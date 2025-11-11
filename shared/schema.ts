@@ -49,6 +49,13 @@ export const messageStatusEnum = pgEnum("message_status", [
   "read"
 ]);
 
+export const locationTypeEnum = pgEnum("location_type", [
+  "il",        // Province
+  "ilce",      // District
+  "mahalle",   // Neighborhood
+  "koy"        // Village
+]);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -74,16 +81,18 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Categories table
+// Categories table (hierarchical with depth and path support)
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
-  parentId: varchar("parent_id"),
+  parentId: varchar("parent_id").references((): any => categories.id, { onDelete: "set null" }), // Self-reference
   icon: text("icon"),
   image: text("image"),
   description: text("description"),
   order: integer("order").default(0),
+  depth: integer("depth").default(0).notNull(), // 0 for root categories
+  path: jsonb("path").$type<string[]>().notNull().default(sql`'[]'::jsonb`), // Array of ancestor IDs
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
@@ -92,6 +101,29 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
+
+// Locations table (hierarchical: il -> ilçe -> mahalle -> köy)
+// Must be defined before listings to allow foreign key reference
+// TODO: When migrating to DbStorage, add composite unique constraint on (slug, parentId)
+// handling NULL parents with partial index or COALESCE pattern to prevent duplicate slugs
+export const locations = pgTable("locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  type: locationTypeEnum("type").notNull(),
+  parentId: varchar("parent_id").references((): any => locations.id, { onDelete: "set null" }), // Self-reference
+  code: text("code"), // Postal or administrative code
+  depth: integer("depth").default(0).notNull(), // 0=il, 1=ilçe, 2=mahalle, 3=köy
+  path: jsonb("path").$type<string[]>().notNull().default(sql`'[]'::jsonb`), // Array of ancestor IDs
+  order: integer("order").default(0),
+});
+
+export const insertLocationSchema = createInsertSchema(locations).omit({
+  id: true,
+});
+
+export type InsertLocation = z.infer<typeof insertLocationSchema>;
+export type Location = typeof locations.$inferSelect;
 
 // Listings table
 export const listings = pgTable("listings", {
@@ -111,8 +143,9 @@ export const listings = pgTable("listings", {
   pedigree: boolean("pedigree").default(false),
   pedigreeDocument: text("pedigree_document"),
   healthDocuments: jsonb("health_documents").$type<string[]>().default([]),
-  city: text("city").notNull(),
-  district: text("district").notNull(),
+  locationId: varchar("location_id").references(() => locations.id, { onDelete: "set null" }),
+  city: text("city").notNull(), // Denormalized for backward compatibility (should sync with locationId)
+  district: text("district").notNull(), // Denormalized for backward compatibility
   status: listingStatusEnum("status").default("active"),
   isPremium: boolean("is_premium").default(false),
   isUrgent: boolean("is_urgent").default(false),
