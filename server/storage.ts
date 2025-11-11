@@ -15,6 +15,8 @@ import {
   type Transaction, type InsertTransaction,
   type StreamChatMessage, type InsertStreamChatMessage,
   type StreamViewer, type InsertStreamViewer,
+  type StreamBan, type InsertStreamBan,
+  type StreamMute, type InsertStreamMute,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
@@ -134,6 +136,16 @@ export interface IStorage {
   addStreamViewer(viewer: InsertStreamViewer): Promise<StreamViewer>;
   removeStreamViewer(streamId: string, userId: string): Promise<boolean>;
   updateStreamViewerCount(streamId: string): Promise<void>;
+  
+  // Stream Moderation
+  getBannedUsers(streamId: string): Promise<Array<StreamBan & { user: User, bannedByUser: User }>>;
+  getMutedUsers(streamId: string): Promise<Array<StreamMute & { user: User, mutedByUser: User }>>;
+  banUser(ban: InsertStreamBan): Promise<StreamBan>;
+  unbanUser(streamId: string, userId: string): Promise<boolean>;
+  muteUser(mute: InsertStreamMute): Promise<StreamMute>;
+  unmuteUser(streamId: string, userId: string): Promise<boolean>;
+  isUserBanned(streamId: string, userId: string): Promise<boolean>;
+  isUserMuted(streamId: string, userId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -153,6 +165,8 @@ export class MemStorage implements IStorage {
   private transactions: Map<string, Transaction>;
   private streamChatMessages: Map<string, StreamChatMessage>;
   private streamViewers: Map<string, StreamViewer>;
+  private streamBans: Map<string, StreamBan>;
+  private streamMutes: Map<string, StreamMute>;
   
   // Adjacency maps for O(depth) hierarchical queries
   private categoryChildren: Map<string | null, Category[]>; // parentId -> children
@@ -175,6 +189,8 @@ export class MemStorage implements IStorage {
     this.transactions = new Map();
     this.streamChatMessages = new Map();
     this.streamViewers = new Map();
+    this.streamBans = new Map();
+    this.streamMutes = new Map();
     
     this.categoryChildren = new Map();
     this.locationChildren = new Map();
@@ -1073,6 +1089,164 @@ export class MemStorage implements IStorage {
     };
     
     this.liveStreams.set(streamId, updated);
+  }
+
+  // Stream Moderation
+  async getBannedUsers(streamId: string): Promise<Array<StreamBan & { user: User, bannedByUser: User }>> {
+    const bans = Array.from(this.streamBans.values()).filter(b => b.streamId === streamId);
+    const now = new Date();
+    
+    // Filter out expired bans
+    const activeBans = bans.filter(ban => 
+      ban.isPermanent || (ban.expiresAt && new Date(ban.expiresAt) > now)
+    );
+    
+    return activeBans.map(ban => {
+      const user = this.users.get(ban.userId);
+      const bannedByUser = this.users.get(ban.bannedBy);
+      return {
+        ...ban,
+        user: user || this.createFallbackUser(ban.userId, "Banned User"),
+        bannedByUser: bannedByUser || this.createFallbackUser(ban.bannedBy, "Moderator"),
+      };
+    });
+  }
+
+  async getMutedUsers(streamId: string): Promise<Array<StreamMute & { user: User, mutedByUser: User }>> {
+    const mutes = Array.from(this.streamMutes.values()).filter(m => m.streamId === streamId);
+    const now = new Date();
+    
+    // Filter out expired mutes
+    const activeMutes = mutes.filter(mute => 
+      mute.expiresAt && new Date(mute.expiresAt) > now
+    );
+    
+    return activeMutes.map(mute => {
+      const user = this.users.get(mute.userId);
+      const mutedByUser = this.users.get(mute.mutedBy);
+      return {
+        ...mute,
+        user: user || this.createFallbackUser(mute.userId, "Muted User"),
+        mutedByUser: mutedByUser || this.createFallbackUser(mute.mutedBy, "Moderator"),
+      };
+    });
+  }
+
+  async banUser(ban: InsertStreamBan): Promise<StreamBan> {
+    // Check if user is already banned
+    const existing = Array.from(this.streamBans.values()).find(
+      b => b.streamId === ban.streamId && b.userId === ban.userId
+    );
+    
+    if (existing) {
+      // Update existing ban
+      const updated: StreamBan = {
+        ...existing,
+        bannedBy: ban.bannedBy,
+        reason: ban.reason || existing.reason,
+        isPermanent: ban.isPermanent ?? existing.isPermanent,
+        expiresAt: ban.expiresAt || existing.expiresAt,
+      };
+      this.streamBans.set(existing.id, updated);
+      return updated;
+    }
+    
+    // Create new ban
+    const id = randomUUID();
+    const newBan: StreamBan = {
+      id,
+      ...ban,
+      createdAt: new Date(),
+    };
+    this.streamBans.set(id, newBan);
+    return newBan;
+  }
+
+  async unbanUser(streamId: string, userId: string): Promise<boolean> {
+    const ban = Array.from(this.streamBans.values()).find(
+      b => b.streamId === streamId && b.userId === userId
+    );
+    
+    if (!ban) return false;
+    
+    this.streamBans.delete(ban.id);
+    return true;
+  }
+
+  async muteUser(mute: InsertStreamMute): Promise<StreamMute> {
+    // Check if user is already muted
+    const existing = Array.from(this.streamMutes.values()).find(
+      m => m.streamId === mute.streamId && m.userId === mute.userId
+    );
+    
+    if (existing) {
+      // Update existing mute
+      const updated: StreamMute = {
+        ...existing,
+        mutedBy: mute.mutedBy,
+        reason: mute.reason || existing.reason,
+        durationMinutes: mute.durationMinutes ?? existing.durationMinutes,
+        expiresAt: mute.expiresAt || existing.expiresAt,
+      };
+      this.streamMutes.set(existing.id, updated);
+      return updated;
+    }
+    
+    // Calculate expiresAt if durationMinutes provided
+    let expiresAt = mute.expiresAt;
+    if (!expiresAt && mute.durationMinutes) {
+      const now = new Date();
+      expiresAt = new Date(now.getTime() + mute.durationMinutes * 60 * 1000);
+    }
+    
+    // Create new mute
+    const id = randomUUID();
+    const newMute: StreamMute = {
+      id,
+      ...mute,
+      expiresAt: expiresAt || null,
+      createdAt: new Date(),
+    };
+    this.streamMutes.set(id, newMute);
+    return newMute;
+  }
+
+  async unmuteUser(streamId: string, userId: string): Promise<boolean> {
+    const mute = Array.from(this.streamMutes.values()).find(
+      m => m.streamId === streamId && m.userId === userId
+    );
+    
+    if (!mute) return false;
+    
+    this.streamMutes.delete(mute.id);
+    return true;
+  }
+
+  async isUserBanned(streamId: string, userId: string): Promise<boolean> {
+    const ban = Array.from(this.streamBans.values()).find(
+      b => b.streamId === streamId && b.userId === userId
+    );
+    
+    if (!ban) return false;
+    
+    // Check if permanent or not expired
+    if (ban.isPermanent) return true;
+    if (ban.expiresAt && new Date(ban.expiresAt) > new Date()) return true;
+    
+    return false;
+  }
+
+  async isUserMuted(streamId: string, userId: string): Promise<boolean> {
+    const mute = Array.from(this.streamMutes.values()).find(
+      m => m.streamId === streamId && m.userId === userId
+    );
+    
+    if (!mute) return false;
+    
+    // Check if not expired
+    if (mute.expiresAt && new Date(mute.expiresAt) > new Date()) return true;
+    
+    return false;
   }
 }
 

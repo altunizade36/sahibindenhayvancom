@@ -474,3 +474,51 @@ export const insertStreamViewerSchema = createInsertSchema(streamViewers).omit({
 
 export type InsertStreamViewer = z.infer<typeof insertStreamViewerSchema>;
 export type StreamViewer = typeof streamViewers.$inferSelect;
+
+// Stream Bans table (permanent or temporary bans from stream)
+export const streamBans = pgTable("stream_bans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamId: varchar("stream_id").notNull().references(() => liveStreams.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  bannedBy: varchar("banned_by").notNull().references(() => users.id),
+  reason: text("reason"),
+  isPermanent: boolean("is_permanent").default(false),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  streamUserUnique: index("stream_ban_stream_user_unique").on(table.streamId, table.userId),
+  streamIdx: index("stream_ban_stream_idx").on(table.streamId),
+  userIdx: index("stream_ban_user_idx").on(table.userId),
+}));
+
+export const insertStreamBanSchema = createInsertSchema(streamBans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStreamBan = z.infer<typeof insertStreamBanSchema>;
+export type StreamBan = typeof streamBans.$inferSelect;
+
+// Stream Mutes table (mute users from chat)
+export const streamMutes = pgTable("stream_mutes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamId: varchar("stream_id").notNull().references(() => liveStreams.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  mutedBy: varchar("muted_by").notNull().references(() => users.id),
+  reason: text("reason"),
+  durationMinutes: integer("duration_minutes"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  streamUserUnique: index("stream_mute_stream_user_unique").on(table.streamId, table.userId),
+  streamIdx: index("stream_mute_stream_idx").on(table.streamId),
+  userIdx: index("stream_mute_user_idx").on(table.userId),
+}));
+
+export const insertStreamMuteSchema = createInsertSchema(streamMutes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStreamMute = z.infer<typeof insertStreamMuteSchema>;
+export type StreamMute = typeof streamMutes.$inferSelect;
