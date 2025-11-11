@@ -16,9 +16,7 @@ import Register from "@/pages/register";
 function SidebarLayout() {
   return (
     <div className="flex flex-col h-screen w-full">
-      <header className="flex items-center justify-end p-2 border-b bg-background z-50 sticky top-0">
-        <Navbar />
-      </header>
+      <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
