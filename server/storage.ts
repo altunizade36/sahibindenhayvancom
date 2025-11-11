@@ -12,7 +12,6 @@ import {
   type TransportService, type InsertTransportService,
   type Review, type InsertReview,
   type Favorite, type InsertFavorite,
-  type Transaction, type InsertTransaction,
   type StreamChatMessage, type InsertStreamChatMessage,
   type StreamViewer, type InsertStreamViewer,
   type StreamBan, type InsertStreamBan,
@@ -119,13 +118,6 @@ export interface IStorage {
   deleteFavorite(userId: string, listingId: string): Promise<boolean>;
   isFavorite(userId: string, listingId: string): Promise<boolean>;
   
-  // Wallet & Transactions
-  getUserBalance(userId: string): Promise<string>;
-  updateUserBalance(userId: string, amount: string): Promise<User | undefined>;
-  getTransactionsByUser(userId: string): Promise<Transaction[]>;
-  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  updateTransactionStatus(id: string, status: string): Promise<Transaction | undefined>;
-  
   // Stream Chat
   getStreamChatMessages(streamId: string, limit?: number): Promise<Array<StreamChatMessage & { sender: User }>>;
   createStreamChatMessage(message: InsertStreamChatMessage): Promise<StreamChatMessage>;
@@ -162,7 +154,6 @@ export class MemStorage implements IStorage {
   private transportServices: Map<string, TransportService>;
   private reviews: Map<string, Review>;
   private favorites: Map<string, Favorite>;
-  private transactions: Map<string, Transaction>;
   private streamChatMessages: Map<string, StreamChatMessage>;
   private streamViewers: Map<string, StreamViewer>;
   private streamBans: Map<string, StreamBan>;
@@ -186,7 +177,6 @@ export class MemStorage implements IStorage {
     this.transportServices = new Map();
     this.reviews = new Map();
     this.favorites = new Map();
-    this.transactions = new Map();
     this.streamChatMessages = new Map();
     this.streamViewers = new Map();
     this.streamBans = new Map();
@@ -909,52 +899,23 @@ export class MemStorage implements IStorage {
     );
   }
 
-  // Wallet & Transactions
-  async getUserBalance(userId: string): Promise<string> {
-    const user = await this.getUser(userId);
-    return user?.walletBalance || "0";
-  }
-
-  async updateUserBalance(userId: string, amount: string): Promise<User | undefined> {
-    const user = this.users.get(userId);
-    if (!user) return undefined;
-    
-    const currentBalance = parseFloat(user.walletBalance);
-    const newBalance = (currentBalance + parseFloat(amount)).toFixed(2);
-    
-    const updated = { ...user, walletBalance: newBalance };
-    this.users.set(userId, updated);
-    return updated;
-  }
-
-  async getTransactionsByUser(userId: string): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
-      .filter(t => t.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
-  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const id = randomUUID();
-    const transaction: Transaction = {
+  // Helper: Create fallback user for missing references
+  private createFallbackUser(id: string, username: string): User {
+    return {
       id,
-      ...insertTransaction,
-      status: insertTransaction.status || "pending",
-      description: insertTransaction.description || null,
-      stripePaymentId: insertTransaction.stripePaymentId || null,
-      metadata: insertTransaction.metadata || null,
+      username,
+      password: "",
+      email: `${id}@fallback.local`,
+      fullName: username,
+      phone: null,
+      role: "buyer",
+      avatar: null,
+      isVerified: false,
+      city: null,
+      district: null,
+      bio: null,
       createdAt: new Date(),
     };
-    this.transactions.set(id, transaction);
-    return transaction;
-  }
-
-  async updateTransactionStatus(id: string, status: string): Promise<Transaction | undefined> {
-    const transaction = this.transactions.get(id);
-    if (!transaction) return undefined;
-    
-    const updated = { ...transaction, status: status as any };
-    this.transactions.set(id, updated);
-    return updated;
   }
 
   // Stream Chat

@@ -40,24 +40,6 @@ export const auctionStatusEnum = pgEnum("auction_status", [
   "cancelled"
 ]);
 
-export const transactionTypeEnum = pgEnum("transaction_type", [
-  "listing_fee",
-  "auction_entry_fee",
-  "auction_deposit",
-  "deposit_refund",
-  "wallet_topup",
-  "wallet_withdrawal",
-  "premium_upgrade",
-  "package_purchase",
-]);
-
-export const transactionStatusEnum = pgEnum("transaction_status", [
-  "pending",
-  "completed",
-  "failed",
-  "refunded",
-]);
-
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "draft",
   "issued",
@@ -98,8 +80,6 @@ export const users = pgTable("users", {
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
-  walletBalance: decimal("wallet_balance", { precision: 10, scale: 2 }).default("0").notNull(),
-  stripeCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -411,29 +391,6 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 
-// Wallet Transactions table
-export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  type: transactionTypeEnum("type").notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  status: transactionStatusEnum("status").default("pending"),
-  description: text("description"),
-  stripePaymentId: text("stripe_payment_id"),
-  metadata: jsonb("metadata").$type<Record<string, any>>(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  userIdx: index("transaction_user_idx").on(table.userId),
-  userCreatedIdx: index("transaction_user_created_idx").on(table.userId, table.createdAt),
-}));
-
-export const insertTransactionSchema = createInsertSchema(transactions).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type Transaction = typeof transactions.$inferSelect;
 
 // Stream Chat Messages table
 export const streamChatMessages = pgTable("stream_chat_messages", {
