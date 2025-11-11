@@ -35,7 +35,34 @@ export const auctionStatusEnum = pgEnum("auction_status", [
   "upcoming",
   "live",
   "ended",
+  "seller_approval",
+  "completed",
   "cancelled"
+]);
+
+export const transactionTypeEnum = pgEnum("transaction_type", [
+  "listing_fee",
+  "auction_entry_fee",
+  "auction_deposit",
+  "deposit_refund",
+  "wallet_topup",
+  "wallet_withdrawal",
+  "premium_upgrade",
+  "package_purchase",
+]);
+
+export const transactionStatusEnum = pgEnum("transaction_status", [
+  "pending",
+  "completed",
+  "failed",
+  "refunded",
+]);
+
+export const invoiceStatusEnum = pgEnum("invoice_status", [
+  "draft",
+  "issued",
+  "paid",
+  "cancelled",
 ]);
 
 export const streamStatusEnum = pgEnum("stream_status", [

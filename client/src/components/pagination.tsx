@@ -51,11 +51,13 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   return (
     <div className="flex items-center justify-center gap-2 my-8">
       <Button
+        type="button"
         variant="outline"
         size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         data-testid="button-prev-page"
+        aria-label="Previous page"
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
@@ -64,27 +66,36 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         typeof page === "number" ? (
           <Button
             key={index}
+            type="button"
             variant={currentPage === page ? "default" : "outline"}
             size="sm"
-            onClick={() => onPageChange(page)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onPageChange(page);
+            }}
             data-testid={`button-page-${page}`}
+            aria-label={`Go to page ${page}`}
+            aria-current={currentPage === page ? "page" : undefined}
             className="min-w-[40px]"
           >
             {page}
           </Button>
         ) : (
-          <span key={index} className="px-2 text-muted-foreground">
+          <span key={index} className="px-2 text-muted-foreground" aria-hidden="true">
             {page}
           </span>
         )
       ))}
 
       <Button
+        type="button"
         variant="outline"
         size="sm"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         data-testid="button-next-page"
+        aria-label="Next page"
       >
         <ChevronRight className="w-4 h-4" />
       </Button>

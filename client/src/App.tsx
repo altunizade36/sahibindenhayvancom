@@ -24,7 +24,6 @@ function SidebarLayout() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={Home} />
-            <Route path="/ilan-ver" component={CreateListing} />
             <Route component={NotFound} />
           </Switch>
         </main>
@@ -33,24 +32,29 @@ function SidebarLayout() {
   );
 }
 
-// Routes without sidebar (auth pages)
-function AuthLayout() {
+// Routes without sidebar (auth pages + create listing)
+function NoSidebarLayout() {
   return (
-    <>
+    <div className="flex flex-col h-screen w-full">
       <Navbar />
-      <Switch>
-        <Route path="/giris" component={Login} />
-        <Route path="/kayit" component={Register} />
-      </Switch>
-    </>
+      <main className="flex-1 overflow-auto">
+        <Switch>
+          <Route path="/giris" component={Login} />
+          <Route path="/kayit" component={Register} />
+          <Route path="/ilan-ver" component={CreateListing} />
+        </Switch>
+      </main>
+    </div>
   );
 }
 
 function Router() {
   const [location] = useLocation();
-  const isAuthRoute = location.startsWith('/giris') || location.startsWith('/kayit');
+  const isNoSidebarRoute = location.startsWith('/giris') || 
+                           location.startsWith('/kayit') || 
+                           location.startsWith('/ilan-ver');
   
-  return isAuthRoute ? <AuthLayout /> : (
+  return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
       style={{ "--sidebar-width": "20rem" } as React.CSSProperties}
       defaultOpen={true}
