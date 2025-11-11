@@ -1,7 +1,7 @@
-# sahibindenhayvan.com - Turkish Animal Classifieds Platform
+# sahibindenhayvan.com - FREE Turkish Animal Classifieds Platform
 
 ## Project Overview
-A comprehensive Turkish animal classifieds platform featuring live streaming, real-time auctions, multi-role dashboards, extensive animal categorization, blog system, veterinary services, and transportation services.
+A completely FREE Turkish animal classifieds platform (no listing fees, no auction fees, no streaming fees) featuring Agora.io live streaming with real-time chat, auctions, multi-role dashboards, extensive animal categorization, blog system, veterinary services, and transportation services. Platform prioritizes user acquisition over monetization.
 
 ## Tech Stack
 - **Frontend**: React + TypeScript + Vite
@@ -83,18 +83,27 @@ A comprehensive Turkish animal classifieds platform featuring live streaming, re
 ## Database Schema
 
 ### Core Tables
-- **users**: User accounts with role-based access
+- **users**: User accounts with role-based access (NO wallet fields)
 - **categories**: Hierarchical animal categories
-- **listings**: Animal listings with images and details
-- **auctions**: Auction configurations
+- **listings**: Animal listings with images and details (FREE to create)
+- **auctions**: Auction configurations (FREE to create)
 - **bids**: Auction bid history
-- **live_streams**: Live streaming sessions
+- **live_streams**: Live streaming sessions (FREE to start)
+- **stream_chat_messages**: Real-time chat during streams
+- **stream_viewers**: Active viewer tracking
+- **stream_bans**: Banned users from streams
+- **stream_mutes**: Muted users in stream chat
 - **messages**: Chat messages
 - **blog_posts**: Blog articles
 - **vet_services**: Veterinary service offerings
 - **transport_services**: Transportation services
 - **reviews**: Service reviews
 - **favorites**: User favorites
+
+### REMOVED Tables (Payment Infrastructure Deleted)
+- ~~transactions~~ - Deleted (no payment tracking)
+- ~~walletBalance field in users~~ - Removed
+- ~~stripeCustomerId field in users~~ - Removed
 
 ## API Endpoints
 
@@ -199,6 +208,23 @@ A comprehensive Turkish animal classifieds platform featuring live streaming, re
 - 2025-01-11: Added password sanitization across all user-returning endpoints
 - 2025-01-11: Implemented profile update field whitelist to prevent role escalation
 - 2025-01-11: Added Agora credential validation with controlled error responses
+
+## Free Platform Architecture (Nov 11, 2025)
+
+### What Changed
+**MAJOR PIVOT: Completely FREE platform**
+- ❌ Removed all payment infrastructure (Stripe, iyzico)
+- ❌ Deleted wallet system (balance tracking, transactions)
+- ❌ Removed listing fees (was 50₺ base + 50₺ premium + 25₺ urgent)
+- ❌ Removed auction entry fees
+- ❌ Deleted /cuzdan (wallet) page
+- ✅ Users can now create unlimited listings, auctions, and streams FOR FREE
+
+### Why Free?
+**User acquisition strategy** - Build a large user base first, implement monetization later through:
+- Premium features (future)
+- Advertising (future)
+- Commission on successful sales (future)
 
 ## Development Status
 

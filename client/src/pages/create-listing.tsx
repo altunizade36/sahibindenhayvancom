@@ -108,10 +108,7 @@ export default function CreateListing() {
 
   const createListingMutation = useMutation({
     mutationFn: async (data: ListingFormData) => {
-      return await apiRequest("/api/listings", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/listings", data);
     },
     onSuccess: () => {
       toast({

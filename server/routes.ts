@@ -538,13 +538,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/listings", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const data = insertListingSchema.parse({
+      const parsedData = insertListingSchema.parse({
         ...req.body,
         sellerId: req.user!.id,
       });
 
       // Create listing - completely free, no fees!
-      const [listing] = await db.insert(listings).values([data]).returning();
+      const [listing] = await db.insert(listings).values(parsedData as any).returning();
       res.status(201).json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
