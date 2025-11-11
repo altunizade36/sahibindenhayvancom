@@ -28,7 +28,14 @@ interface StreamToken {
   token: string;
   appId: string;
   channelName: string;
-  uid: string;
+  uid: number;
+}
+
+interface AgoraConfig {
+  appId: string;
+  channel: string;
+  token: string | null;
+  uid?: number;
 }
 
 export default function StreamControl() {
@@ -39,7 +46,7 @@ export default function StreamControl() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [agoraConfig, setAgoraConfig] = useState<StreamToken | null>(null);
+  const [agoraConfig, setAgoraConfig] = useState<AgoraConfig | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [viewerCount, setViewerCount] = useState(0);
@@ -81,8 +88,14 @@ export default function StreamControl() {
 
     const fetchToken = async () => {
       try {
-        const tokenData = await apiRequest(`/api/streams/${id}/token`, { method: "POST" });
-        setAgoraConfig(tokenData as StreamToken);
+        const res = await apiRequest("POST", `/api/streams/${id}/token`);
+        const tokenData = await res.json() as StreamToken;
+        setAgoraConfig({
+          appId: tokenData.appId,
+          channel: tokenData.channelName,
+          token: tokenData.token,
+          uid: tokenData.uid,
+        });
       } catch (err) {
         toast({
           variant: "destructive",
@@ -157,12 +170,10 @@ export default function StreamControl() {
 
     const fetchChatHistory = async () => {
       try {
-        const messages = await apiRequest(`/api/streams/${id}/chat`);
-        setChatMessages((messages as any[]).map((msg: any) => ({
-          id: msg.id,
-          message: msg.message,
-          senderId: msg.senderId,
-          sender: msg.sender,
+        const res = await apiRequest("GET", `/api/streams/${id}/chat`);
+        const messages = await res.json() as ChatMessage[];
+        setChatMessages(messages.map((msg) => ({
+          ...msg,
           createdAt: new Date(msg.createdAt),
         })));
       } catch (error) {
@@ -186,14 +197,14 @@ export default function StreamControl() {
 
   // Update viewer count from stream data
   useEffect(() => {
-    if (stream) {
+    if (stream && stream.viewerCount != null) {
       setViewerCount(stream.viewerCount);
     }
   }, [stream]);
 
   const startStreamMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/streams/${id}/start`, { method: "POST" });
+      await apiRequest("POST", `/api/streams/${id}/start`);
     },
     onSuccess: () => {
       toast({
@@ -206,7 +217,7 @@ export default function StreamControl() {
 
   const endStreamMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/streams/${id}/end`, { method: "POST" });
+      await apiRequest("POST", `/api/streams/${id}/end`);
     },
     onSuccess: () => {
       toast({
@@ -433,7 +444,7 @@ export default function StreamControl() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Durum</span>
                 <Badge variant={stream.status === "live" ? "default" : "secondary"}>
-                  {stream.status === "live" ? "Canlı" : stream.status === "upcoming" ? "Hazır" : "Zamanlanmış"}
+                  {stream.status === "live" ? "Canlı" : stream.status === "scheduled" ? "Zamanlanmış" : "Bitti"}
                 </Badge>
               </div>
 

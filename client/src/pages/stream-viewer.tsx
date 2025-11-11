@@ -29,7 +29,14 @@ interface StreamToken {
   token: string;
   appId: string;
   channelName: string;
-  uid: string;
+  uid: number;
+}
+
+interface AgoraConfig {
+  appId: string;
+  channel: string;
+  token: string | null;
+  uid?: number;
 }
 
 interface StreamDetails extends LiveStream {
@@ -42,7 +49,7 @@ export default function StreamViewer() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [agoraConfig, setAgoraConfig] = useState<StreamToken | null>(null);
+  const [agoraConfig, setAgoraConfig] = useState<AgoraConfig | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [viewerCount, setViewerCount] = useState(0);
@@ -69,8 +76,14 @@ export default function StreamViewer() {
 
     const fetchToken = async () => {
       try {
-        const tokenData = await apiRequest(`/api/streams/${id}/token`, { method: "POST" });
-        setAgoraConfig(tokenData as StreamToken);
+        const res = await apiRequest("POST", `/api/streams/${id}/token`);
+        const tokenData = await res.json() as StreamToken;
+        setAgoraConfig({
+          appId: tokenData.appId,
+          channel: tokenData.channelName,
+          token: tokenData.token,
+          uid: tokenData.uid,
+        });
       } catch (err) {
         toast({
           variant: "destructive",
@@ -170,12 +183,10 @@ export default function StreamViewer() {
 
     const fetchChatHistory = async () => {
       try {
-        const messages = await apiRequest(`/api/streams/${id}/chat`);
-        setChatMessages((messages as any[]).map((msg: any) => ({
-          id: msg.id,
-          message: msg.message,
-          senderId: msg.senderId,
-          sender: msg.sender,
+        const res = await apiRequest("GET", `/api/streams/${id}/chat`);
+        const messages = await res.json() as ChatMessage[];
+        setChatMessages(messages.map((msg) => ({
+          ...msg,
           createdAt: new Date(msg.createdAt),
         })));
       } catch (error) {
@@ -188,7 +199,7 @@ export default function StreamViewer() {
 
   // Update viewer count from stream data
   useEffect(() => {
-    if (stream) {
+    if (stream && stream.viewerCount != null) {
       setViewerCount(stream.viewerCount);
     }
   }, [stream]);
@@ -338,7 +349,7 @@ export default function StreamViewer() {
                 {stream.streamer && (
                   <div className="flex items-center gap-3 mt-4 pt-4 border-t">
                     <Avatar>
-                      <AvatarImage src={stream.streamer.avatar} />
+                      <AvatarImage src={stream.streamer.avatar || undefined} />
                       <AvatarFallback>
                         {stream.streamer.username[0].toUpperCase()}
                       </AvatarFallback>
