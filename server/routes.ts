@@ -295,6 +295,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const categories = await storage.getAllCategories();
     res.json(categories);
   });
+  
+  app.get("/api/categories/tree", async (_req: Request, res: Response) => {
+    const tree = await storage.getCategoryTree();
+    res.json(tree);
+  });
 
   app.get("/api/categories/:slug", async (req: Request, res: Response) => {
     const category = await storage.getCategoryBySlug(req.params.slug);
@@ -302,6 +307,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Category not found" });
     }
     res.json(category);
+  });
+  
+  // ============ Location Routes ============
+  app.get("/api/locations", async (req: Request, res: Response) => {
+    const { type, parent } = req.query;
+    const locations = await storage.getLocationsByParent(
+      parent as string | null || null,
+      type as "il" | "ilce" | "mahalle" | "koy" | undefined
+    );
+    res.json(locations);
   });
 
   // ============ Listing Routes ============
