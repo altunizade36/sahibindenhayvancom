@@ -2,6 +2,9 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { db } from "./db";
+import { locations } from "@shared/schema";
+import { eq, and, isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -311,12 +314,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ============ Location Routes ============
   app.get("/api/locations", async (req: Request, res: Response) => {
-    const { type, parent } = req.query;
-    const locations = await storage.getLocationsByParent(
-      parent as string | null || null,
-      type as "il" | "ilce" | "mahalle" | "koy" | undefined
-    );
-    res.json(locations);
+    try {
+      const { type, parent } = req.query;
+      
+      let query = db.select().from(locations);
+      
+      const conditions = [];
+      
+      // Filter by parent
+      if (parent === undefined || parent === null || parent === '') {
+        conditions.push(isNull(locations.parentId));
+      } else {
+        conditions.push(eq(locations.parentId, parent as string));
+      }
+      
+      // Filter by type
+      if (type) {
+        conditions.push(eq(locations.type, type as "il" | "ilce" | "mahalle" | "koy"));
+      }
+      
+      const result = await query.where(and(...conditions));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+      res.status(500).json({ message: "Failed to fetch locations" });
+    }
   });
 
   // ============ Listing Routes ============

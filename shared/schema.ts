@@ -8,7 +8,8 @@ import {
   boolean, 
   decimal,
   pgEnum,
-  jsonb
+  jsonb,
+  index
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -104,8 +105,6 @@ export type Category = typeof categories.$inferSelect;
 
 // Locations table (hierarchical: il -> ilçe -> mahalle -> köy)
 // Must be defined before listings to allow foreign key reference
-// TODO: When migrating to DbStorage, add composite unique constraint on (slug, parentId)
-// handling NULL parents with partial index or COALESCE pattern to prevent duplicate slugs
 export const locations = pgTable("locations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -116,7 +115,12 @@ export const locations = pgTable("locations", {
   depth: integer("depth").default(0).notNull(), // 0=il, 1=ilçe, 2=mahalle, 3=köy
   path: jsonb("path").$type<string[]>().notNull().default(sql`'[]'::jsonb`), // Array of ancestor IDs
   order: integer("order").default(0),
-});
+}, (table) => ({
+  // Composite index for efficient cascading queries (parent → children by type)
+  parentTypeIdx: index("locations_parent_type_idx").on(table.parentId, table.type),
+  // Index for type-only queries (e.g., get all provinces)
+  typeIdx: index("locations_type_idx").on(table.type),
+}));
 
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,

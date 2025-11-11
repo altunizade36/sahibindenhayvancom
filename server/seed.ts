@@ -1,6 +1,7 @@
 import { db } from "./db";
-import { categories } from "@shared/schema";
+import { categories, locations } from "@shared/schema";
 import { sql } from "drizzle-orm";
+import { turkeyLocations } from "./data/locations-turkey-full";
 
 const defaultCategories = [
   {
@@ -51,30 +52,55 @@ export async function seedDatabase() {
   console.log("🌱 Seeding database...");
   
   try {
-    // Check if categories already exist to avoid unnecessary inserts
-    const existingCategories = await db.query.categories.findMany({
-      limit: 1,
-    });
+    // Check if already seeded
+    const existingCategories = await db.query.categories.findMany({ limit: 1 });
+    const existingLocations = await db.query.locations.findMany({ limit: 1 });
     
-    if (existingCategories.length > 0) {
+    if (existingCategories.length > 0 && existingLocations.length > 0) {
       console.log("✅ Database already seeded, skipping");
       return;
     }
     
-    // Insert categories with ON CONFLICT DO NOTHING to avoid duplicates
-    for (const category of defaultCategories) {
-      await db
-        .insert(categories)
-        .values(category)
-        .onConflictDoNothing()
-        .execute();
+    // Seed categories
+    if (existingCategories.length === 0) {
+      console.log("📁 Seeding categories...");
+      for (const category of defaultCategories) {
+        await db
+          .insert(categories)
+          .values(category)
+          .onConflictDoNothing()
+          .execute();
+      }
+      console.log("✅ Categories seeded");
+    }
+    
+    // Seed locations (51k+ locations)
+    if (existingLocations.length === 0) {
+      console.log(`🗺️  Seeding locations (${turkeyLocations.length.toLocaleString()} items)...`);
+      console.log("This may take a few minutes...");
+      
+      // Batch insert for performance
+      const batchSize = 500;
+      for (let i = 0; i < turkeyLocations.length; i += batchSize) {
+        const batch = turkeyLocations.slice(i, i + batchSize);
+        await db.insert(locations).values(batch).onConflictDoNothing().execute();
+        
+        if ((i + batchSize) % 5000 === 0) {
+          console.log(`  - Inserted ${Math.min(i + batchSize, turkeyLocations.length).toLocaleString()} / ${turkeyLocations.length.toLocaleString()}`);
+        }
+      }
+      
+      console.log("✅ Locations seeded successfully");
+      console.log(`   - ${turkeyLocations.filter(l => l.type === 'il').length} provinces`);
+      console.log(`   - ${turkeyLocations.filter(l => l.type === 'ilce').length} districts`);
+      console.log(`   - ${turkeyLocations.filter(l => l.type === 'mahalle').length.toLocaleString()} neighborhoods`);
+      console.log(`   - ${turkeyLocations.filter(l => l.type === 'koy').length.toLocaleString()} villages`);
     }
     
     console.log("✅ Database seeded successfully");
   } catch (error) {
     console.error("⚠️  Warning: Error seeding database:", error);
     console.log("Continuing server startup...");
-    // Don't throw - allow server to continue even if seeding fails
   }
 }
 
