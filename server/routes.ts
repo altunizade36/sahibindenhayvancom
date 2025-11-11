@@ -681,9 +681,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Will be re-added in future versions
 
   // ============ Message Routes ============
-    const streams = await storage.getLiveStreamsByStreamer(req.user!.id);
-    
-    // Enrich with streamer and listing data
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
     const conversations = await storage.getConversations(req.user!.id);
     res.json(conversations);
