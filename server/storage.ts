@@ -951,7 +951,20 @@ export class MemStorage implements IStorage {
     return Promise.all(
       messages.map(async (msg) => {
         const sender = await this.getUser(msg.senderId);
-        return { ...msg, sender: sender! };
+        // Fallback if user deleted - return unknown user
+        const fallbackUser: User = {
+          id: msg.senderId,
+          username: "Bilinmeyen Kullanıcı",
+          email: "",
+          password: "",
+          role: "user",
+          walletBalance: "0",
+          stripeCustomerId: null,
+          city: null,
+          phoneNumber: null,
+          createdAt: new Date(),
+        };
+        return { ...msg, sender: sender || fallbackUser };
       })
     );
   }
@@ -1052,6 +1065,7 @@ export class MemStorage implements IStorage {
     const activeViewers = await this.getActiveStreamViewers(streamId);
     const viewerCount = activeViewers.length;
     
+    // Update the stream's viewerCount and peakViewers
     const updated = {
       ...stream,
       viewerCount,
