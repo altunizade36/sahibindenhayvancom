@@ -935,10 +935,13 @@ export class MemStorage implements IStorage {
           email: "",
           password: "",
           role: "user",
-          walletBalance: "0",
-          stripeCustomerId: null,
+          fullName: "Bilinmeyen",
+          phone: null,
           city: null,
-          phoneNumber: null,
+          district: null,
+          bio: null,
+          avatar: null,
+          isVerified: false,
           createdAt: new Date(),
         };
         return { ...msg, sender: sender || fallbackUser };
