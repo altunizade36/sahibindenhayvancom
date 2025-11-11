@@ -19,7 +19,8 @@ import {
   insertFavoriteSchema,
   type User,
 } from "@shared/schema";
-import { RtcTokenBuilder, RtcRole } from "agora-access-token";
+import agoraToken from "agora-access-token";
+const { RtcTokenBuilder, RtcRole } = agoraToken;
 
 // Validate critical environment variables
 if (!process.env.SESSION_SECRET) {

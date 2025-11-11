@@ -23,13 +23,51 @@ export async function apiRequest(
   return res;
 }
 
+// Helper to serialize query key into a URL with query parameters
+function serializeQueryKey(queryKey: readonly unknown[]): string {
+  if (queryKey.length === 0) return "/";
+  
+  // First element should be the base URL string
+  const baseUrl = String(queryKey[0]);
+  
+  // If there's only one element or no additional params, return as is
+  if (queryKey.length === 1) return baseUrl;
+  
+  // Check if there are object params to serialize
+  const params = new URLSearchParams();
+  for (let i = 1; i < queryKey.length; i++) {
+    const item = queryKey[i];
+    
+    // If it's a plain object, add its entries as query params
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      Object.entries(item).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      });
+    }
+  }
+  
+  // Append query params if any
+  const paramString = params.toString();
+  if (paramString) {
+    return baseUrl.includes('?') 
+      ? `${baseUrl}&${paramString}` 
+      : `${baseUrl}?${paramString}`;
+  }
+  
+  return baseUrl;
+}
+
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = serializeQueryKey(queryKey);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

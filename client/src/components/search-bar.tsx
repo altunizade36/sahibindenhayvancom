@@ -19,17 +19,17 @@ interface SearchBarProps {
 export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("");
+  const [category, setCategory] = useState<string>("all");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (onSearch) {
-      onSearch(query, category);
+      onSearch(query, category === "all" ? undefined : category);
     } else {
       const params = new URLSearchParams();
       if (query) params.set("search", query);
-      if (category) params.set("category", category);
+      if (category && category !== "all") params.set("category", category);
       setLocation(`/ilanlar?${params.toString()}`);
     }
   };
@@ -51,7 +51,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tüm Kategoriler</SelectItem>
+              <SelectItem value="all">Tüm Kategoriler</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
