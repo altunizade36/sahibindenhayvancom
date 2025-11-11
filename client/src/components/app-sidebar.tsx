@@ -218,7 +218,7 @@ export function AppSidebar() {
   });
 
   return (
-    <Sidebar collapsible="none" data-testid="app-sidebar" className="pt-20">
+    <Sidebar collapsible="none" data-testid="app-sidebar">
       <SidebarContent>
         {/* Main Navigation */}
         <SidebarGroup>
@@ -276,10 +276,10 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Category Tree */}
-        <SidebarGroup>
+        <SidebarGroup className="flex-1">
           <SidebarGroupLabel>Kategoriler</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <ScrollArea className="h-[calc(100vh-32rem)]">
+          <SidebarGroupContent className="flex-1">
+            <ScrollArea className="h-full">
               <SidebarMenu>
                 {categoryTree.map((rootCategory) => (
                   <CategoryTreeItem
