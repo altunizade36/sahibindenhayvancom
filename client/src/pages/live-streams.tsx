@@ -25,8 +25,9 @@ interface StreamWithDetails extends LiveStream {
 export default function LiveStreams() {
   const { user } = useAuth();
 
+  // Fetch active live streams using new /api/live/active endpoint
   const { data: streams = [], isLoading } = useQuery<StreamWithDetails[]>({
-    queryKey: ["/api/streams"],
+    queryKey: ["/api/live/active"],
   });
 
   const liveStreams = streams.filter(s => s.status === "live");

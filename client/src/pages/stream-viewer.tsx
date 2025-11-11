@@ -45,21 +45,44 @@ interface StreamDetails extends LiveStream {
 }
 
 export default function StreamViewer() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id?: string; channelName?: string }>();
+  const { id, channelName } = params;
   const [, navigate] = useLocation();
+  const [location] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [agoraConfig, setAgoraConfig] = useState<AgoraConfig | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [viewerCount, setViewerCount] = useState(0);
+  const [streamId, setStreamId] = useState<string | null>(null);
   const remoteVideoRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
+  // Determine if we're using channelName or ID route
+  const isChannelRoute = location.startsWith('/canli/');
+  const routeParam = channelName || id;
+
+  // For channel route, manually build URL to ensure query params are sent
+  // For ID route, use default fetcher with path parameter
   const { data: stream, isLoading } = useQuery<StreamDetails>({
-    queryKey: ["/api/streams", id],
-    enabled: !!id,
+    queryKey: isChannelRoute 
+      ? ["/api/live/join", channelName] // Use channel as cache key
+      : ["/api/streams", id],
+    queryFn: isChannelRoute && channelName
+      ? async () => {
+          // Manually build URL with query string for channel route
+          const url = `/api/live/join?channel=${encodeURIComponent(channelName)}`;
+          const res = await fetch(url, { credentials: "include" });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`${res.status}: ${text}`);
+          }
+          return await res.json();
+        }
+      : undefined, // Use default fetcher for ID route
+    enabled: !!routeParam,
   });
 
   const {
@@ -70,31 +93,54 @@ export default function StreamViewer() {
     error: agoraError,
   } = useAgoraClient(agoraConfig, false);
 
-  // Fetch Agora token
+  // Set stream ID once we have stream data
   useEffect(() => {
-    if (!stream || !user || stream.status !== "live") return;
+    if (stream && 'liveStreamId' in stream) {
+      setStreamId(stream.liveStreamId as string);
+    } else if (stream && 'id' in stream) {
+      setStreamId(stream.id);
+    }
+  }, [stream]);
 
-    const fetchToken = async () => {
-      try {
-        const res = await apiRequest("POST", `/api/streams/${id}/token`);
-        const tokenData = await res.json() as StreamToken;
-        setAgoraConfig({
-          appId: tokenData.appId,
-          channel: tokenData.channelName,
-          token: tokenData.token,
-          uid: tokenData.uid,
-        });
-      } catch (err) {
-        toast({
-          variant: "destructive",
-          title: "Token Alınamadı",
-          description: "Yayın izlenemiyor. Lütfen tekrar deneyin.",
-        });
-      }
-    };
+  // Fetch/Setup Agora token
+  useEffect(() => {
+    if (!stream) return;
+    
+    // For /canli/:channelName route, /api/live/join already returns token
+    if (isChannelRoute && 'rtcToken' in stream && 'appId' in stream) {
+      setAgoraConfig({
+        appId: (stream as any).appId,
+        channel: (stream as any).channelName,
+        token: (stream as any).rtcToken,
+        uid: undefined,
+      });
+      return;
+    }
 
-    fetchToken();
-  }, [stream, user, id]);
+    // For /yayin/:id route, we need to fetch token separately
+    if (!isChannelRoute && user && stream.status === "live" && id) {
+      const fetchToken = async () => {
+        try {
+          const res = await apiRequest("POST", `/api/streams/${id}/token`);
+          const tokenData = await res.json() as StreamToken;
+          setAgoraConfig({
+            appId: tokenData.appId,
+            channel: tokenData.channelName,
+            token: tokenData.token,
+            uid: tokenData.uid,
+          });
+        } catch (err) {
+          toast({
+            variant: "destructive",
+            title: "Token Alınamadı",
+            description: "Yayın izlenemiyor. Lütfen tekrar deneyin.",
+          });
+        }
+      };
+
+      fetchToken();
+    }
+  }, [stream, user, id, isChannelRoute]);
 
   // Auto-join when config is ready
   useEffect(() => {
@@ -111,7 +157,7 @@ export default function StreamViewer() {
 
   // WebSocket connection + Join/Leave tracking
   useEffect(() => {
-    if (!user || !id || stream?.status !== "live") return;
+    if (!user || !streamId || stream?.status !== "live") return;
 
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -126,7 +172,7 @@ export default function StreamViewer() {
       // Send stream_join to track this viewer
       ws.send(JSON.stringify({
         type: "stream_join",
-        streamId: id,
+        streamId,
       }));
     };
 
@@ -134,7 +180,7 @@ export default function StreamViewer() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === "stream_chat" && data.streamId === id) {
+        if (data.type === "stream_chat" && data.streamId === streamId) {
           setChatMessages(prev => [...prev, {
             id: data.message.id,
             message: data.message.message,
@@ -149,7 +195,7 @@ export default function StreamViewer() {
           }, 100);
         }
 
-        if (data.type === "stream_viewer_update" && data.streamId === id) {
+        if (data.type === "stream_viewer_update" && data.streamId === streamId) {
           setViewerCount(data.viewerCount);
         }
       } catch (error) {
@@ -170,20 +216,20 @@ export default function StreamViewer() {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           type: "stream_leave",
-          streamId: id,
+          streamId,
         }));
       }
       ws.close();
     };
-  }, [user, id, stream?.status]);
+  }, [user, streamId, stream?.status]);
 
   // Fetch chat history on mount
   useEffect(() => {
-    if (!id) return;
+    if (!streamId) return;
 
     const fetchChatHistory = async () => {
       try {
-        const res = await apiRequest("GET", `/api/streams/${id}/chat`);
+        const res = await apiRequest("GET", `/api/streams/${streamId}/chat`);
         const messages = await res.json() as ChatMessage[];
         setChatMessages(messages.map((msg) => ({
           ...msg,
@@ -195,7 +241,7 @@ export default function StreamViewer() {
     };
 
     fetchChatHistory();
-  }, [id]);
+  }, [streamId]);
 
   // Update viewer count from stream data
   useEffect(() => {
@@ -216,7 +262,7 @@ export default function StreamViewer() {
 
     wsRef.current.send(JSON.stringify({
       type: "stream_chat",
-      streamId: id,
+      streamId,
       message: chatInput.trim(),
     }));
 
@@ -250,7 +296,7 @@ export default function StreamViewer() {
           <CardContent className="p-12 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Yayın Bulunamadı</h3>
-            <Button onClick={() => navigate("/canli-yayinlar")}>
+            <Button onClick={() => navigate("/canli-yayin")}>
               Canlı Yayınlara Dön
             </Button>
           </CardContent>

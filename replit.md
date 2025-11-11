@@ -250,8 +250,22 @@ A completely FREE Turkish animal classifieds platform (no listing fees, no aucti
 ✅ **TanStack Query setup** with proper query parameter serialization
 ✅ **End-to-end testing** - Registration and login flow verified
 
+✅ **Live Streaming System** (Nov 11, 2025)
+  - Backend /api/live/* endpoints:
+    - POST /api/live/create - Create stream with Agora RTC token (seller/admin only)
+    - GET /api/live/join?channel={name} - Join stream with viewer token (public access)
+    - GET /api/live/active - List active streams (public access)
+    - POST /api/live/end - End stream (seller/admin only)
+  - Frontend /canli-yayin page - Active streams list with live badges, viewer counts
+  - Frontend /canli/[channelName] route - Stream viewer with Agora RTC video player
+  - Dual routing: /yayin/:id (by ID) and /canli/:channelName (by channel name)
+  - WebSocket real-time chat during streams
+  - Viewer count tracking with WebSocket join/leave events
+  - Stream-listing linking for product showcasing
+
 ### In Progress
-🚧 Additional pages (listings list, listing detail, live streams, auctions)
+🚧 Seller stream management panel (/panel/canli-yayinlarim)
+🚧 Additional pages (listings list, listing detail, auctions)
 🚧 Dashboard implementation
 🚧 Blog system frontend
 🚧 Service listings frontend
@@ -259,7 +273,6 @@ A completely FREE Turkish animal classifieds platform (no listing fees, no aucti
 ### Planned
 ⏳ Object storage integration for images
 ⏳ Email notifications
-⏳ Payment integration
 ⏳ Admin panel
 ⏳ Mobile responsive optimizations
 ⏳ SEO optimization

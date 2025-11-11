@@ -28,7 +28,7 @@ function SidebarLayout() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={Home} />
-            <Route path="/canli-yayinlar" component={LiveStreams} />
+            <Route path="/canli-yayin" component={LiveStreams} />
             <Route component={NotFound} />
           </Switch>
         </main>
@@ -50,6 +50,7 @@ function NoSidebarLayout() {
           <Route path="/yayin-baslat" component={CreateStream} />
           <Route path="/yayin/:id/kontrol" component={StreamControl} />
           <Route path="/yayin/:id" component={StreamViewer} />
+          <Route path="/canli/:channelName" component={StreamViewer} />
         </Switch>
       </main>
     </div>
@@ -62,7 +63,8 @@ function Router() {
                            location.startsWith('/kayit') || 
                            location.startsWith('/ilan-ver') ||
                            location.startsWith('/yayin-baslat') ||
-                           location.startsWith('/yayin/');
+                           location.startsWith('/yayin/') ||
+                           location.startsWith('/canli/');
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 

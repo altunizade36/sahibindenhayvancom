@@ -873,6 +873,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ Live API (Simplified Turkish Wrappers) ============
+  // POST /api/live/create - Create new live stream
+  app.post("/api/live/create", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      // Only sellers can create live streams
+      if (req.user!.role !== "seller" && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only sellers can create live streams" });
+      }
+
+      // Validate Agora credentials
+      if (!AGORA_APP_ID || !AGORA_APP_CERTIFICATE) {
+        return res.status(500).json({
+          message: "Canlı yayın sistemi yapılandırılmamış. Lütfen destek ile iletişime geçin.",
+        });
+      }
+
+      const { title, description, listingId } = req.body;
+      
+      // Generate unique channel name
+      const channelName = `live-${req.user!.id}-${Date.now()}`;
+
+      // Create stream in database
+      const stream = await storage.createLiveStream({
+        streamerId: req.user!.id,
+        channelName,
+        title: title || "Canlı Yayın",
+        description: description || "",
+        listingId: listingId || null,
+        status: "live",
+      });
+
+      // Generate host token (PUBLISHER role)
+      const uid = 0;
+      const role = RtcRole.PUBLISHER;
+      const expirationTimeInSeconds = 3600;
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+      const rtcToken = RtcTokenBuilder.buildTokenWithUid(
+        AGORA_APP_ID,
+        AGORA_APP_CERTIFICATE,
+        channelName,
+        uid,
+        role,
+        privilegeExpiredTs
+      );
+
+      res.status(201).json({
+        liveStreamId: stream.id,
+        channelName,
+        rtcToken,
+        appId: AGORA_APP_ID,
+        uid: req.user!.id,
+        title: stream.title,
+      });
+    } catch (error) {
+      console.error("Error creating live stream:", error);
+      res.status(500).json({ message: "Canlı yayın oluşturulamadı", error: String(error) });
+    }
+  });
+
+  // GET /api/live/join?channel={channelName} - Join existing live stream
+  app.get("/api/live/join", async (req: Request, res: Response) => {
+    try {
+      const channelName = req.query.channel as string;
+      
+      if (!channelName) {
+        return res.status(400).json({ message: "Channel name is required" });
+      }
+
+      // Validate Agora credentials
+      if (!AGORA_APP_ID || !AGORA_APP_CERTIFICATE) {
+        return res.status(500).json({
+          message: "Canlı yayın sistemi yapılandırılmamış.",
+        });
+      }
+
+      // Find stream by channel name
+      const allStreams = await storage.getAllLiveStreams();
+      const stream = allStreams.find(s => s.channelName === channelName);
+
+      if (!stream) {
+        return res.status(404).json({ message: "Yayın bulunamadı" });
+      }
+
+      if (stream.status !== "live") {
+        return res.status(400).json({ message: "Bu yayın aktif değil" });
+      }
+
+      // Generate viewer token (SUBSCRIBER role)
+      const uid = 0;
+      const role = RtcRole.SUBSCRIBER;
+      const expirationTimeInSeconds = 3600;
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+      const rtcToken = RtcTokenBuilder.buildTokenWithUid(
+        AGORA_APP_ID,
+        AGORA_APP_CERTIFICATE,
+        channelName,
+        uid,
+        role,
+        privilegeExpiredTs
+      );
+
+      // Get streamer info
+      const streamer = await storage.getUser(stream.streamerId);
+      const { password: _, ...safeStreamer } = streamer || {};
+
+      // Get listing info if available
+      let listing = null;
+      if (stream.listingId) {
+        listing = await storage.getListing(stream.listingId);
+      }
+
+      res.json({
+        liveStreamId: stream.id,
+        channelName,
+        rtcToken,
+        appId: AGORA_APP_ID,
+        title: stream.title,
+        description: stream.description,
+        viewerCount: stream.viewerCount || 0,
+        streamer: safeStreamer,
+        listing,
+      });
+    } catch (error) {
+      console.error("Error joining live stream:", error);
+      res.status(500).json({ message: "Yayına katılınamadı", error: String(error) });
+    }
+  });
+
+  // GET /api/live/active - Get all active live streams
+  app.get("/api/live/active", async (req: Request, res: Response) => {
+    try {
+      const streams = await storage.getAllLiveStreams("live");
+      
+      // Enrich with streamer info
+      const enrichedStreams = await Promise.all(
+        streams.map(async (stream) => {
+          const streamer = await storage.getUser(stream.streamerId);
+          const { password: _, ...safeStreamer } = streamer || {};
+          
+          let listing = null;
+          if (stream.listingId) {
+            listing = await storage.getListing(stream.listingId);
+          }
+
+          return {
+            ...stream,
+            streamer: safeStreamer,
+            listing,
+          };
+        })
+      );
+
+      res.json(enrichedStreams);
+    } catch (error) {
+      console.error("Error fetching active streams:", error);
+      res.status(500).json({ message: "Aktif yayınlar getirilemedi", error: String(error) });
+    }
+  });
+
+  // POST /api/live/end - End live stream
+  app.post("/api/live/end", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { liveStreamId } = req.body;
+
+      if (!liveStreamId) {
+        return res.status(400).json({ message: "Live stream ID is required" });
+      }
+
+      const stream = await storage.getLiveStream(liveStreamId);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Yayın bulunamadı" });
+      }
+
+      // Only streamer or admin can end stream
+      if (stream.streamerId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Bu yayını sonlandırma yetkiniz yok" });
+      }
+
+      const updated = await storage.updateLiveStream(liveStreamId, {
+        status: "ended",
+        endedAt: new Date(),
+      });
+
+      res.json({
+        message: "Yayın başarıyla sonlandırıldı",
+        stream: updated,
+      });
+    } catch (error) {
+      console.error("Error ending live stream:", error);
+      res.status(500).json({ message: "Yayın sonlandırılamadı", error: String(error) });
+    }
+  });
+
 
   // ============ Message Routes ============
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
