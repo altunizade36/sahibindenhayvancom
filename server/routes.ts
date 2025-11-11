@@ -550,7 +550,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: req.user!.id,
       });
 
+      // Calculate listing fee
+      let fee = 50; // Base fee: 50₺
+      if (data.isPremium) fee += 50; // Premium: +50₺
+      if (data.isUrgent) fee += 25; // Urgent: +25₺
+
+      // Check user wallet balance
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const balance = parseFloat(user.walletBalance || "0");
+      if (balance < fee) {
+        return res.status(400).json({ 
+          message: "Yetersiz bakiye", 
+          required: fee,
+          current: balance
+        });
+      }
+
+      // Create listing FIRST (before charging)
       const [listing] = await db.insert(listings).values(data).returning();
+
+      // Only deduct fee AFTER successful listing creation
+      const newBalance = (balance - fee).toFixed(2);
+      let walletUpdated = false;
+      
+      try {
+        // Step 1: Update wallet
+        await storage.updateWalletBalance(req.user!.id, newBalance);
+        walletUpdated = true;
+
+        // Step 2: Create transaction record (if this fails, we need to restore wallet)
+        await storage.createTransaction({
+          userId: req.user!.id,
+          type: "listing_fee",
+          amount: (-fee).toString(),
+          status: "completed",
+          description: `İlan yayınlama ücreti${data.isPremium ? " (Premium)" : ""}${data.isUrgent ? " (Acil)" : ""}`,
+          metadata: JSON.stringify({ listingId: listing.id }),
+        });
+      } catch (error) {
+        // Rollback: restore wallet balance if it was updated
+        if (walletUpdated) {
+          try {
+            await storage.updateWalletBalance(req.user!.id, balance.toFixed(2));
+          } catch (restoreError) {
+            console.error("CRITICAL: Failed to restore wallet balance after error", restoreError);
+          }
+        }
+        
+        // Delete the listing to maintain consistency
+        await db.delete(listings).where(eq(listings.id, listing.id));
+        throw error;
+      }
+
       res.status(201).json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
@@ -608,6 +663,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting listing:", error);
       res.status(400).json({ message: "Delete failed", error });
+    }
+  });
+
+  // Calculate listing fee endpoint
+  app.post("/api/listings/calculate-fee", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { isPremium, isUrgent } = req.body;
+      
+      let fee = 50; // Base fee: 50₺
+      if (isPremium) fee += 50; // Premium: +50₺
+      if (isUrgent) fee += 25; // Urgent: +25₺
+      
+      // Get user balance
+      const user = await storage.getUser(req.user!.id);
+      const balance = parseFloat(user?.walletBalance || "0");
+      
+      res.json({
+        fee,
+        balance,
+        canAfford: balance >= fee,
+        breakdown: {
+          base: 50,
+          premium: isPremium ? 50 : 0,
+          urgent: isUrgent ? 25 : 0,
+        }
+      });
+    } catch (error) {
+      console.error("Error calculating fee:", error);
+      res.status(500).json({ message: "Failed to calculate fee" });
     }
   });
 

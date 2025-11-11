@@ -27,7 +27,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, Wallet, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "wouter";
 import type { Category, Location } from "@shared/schema";
 
 const listingFormSchema = z.object({
@@ -102,6 +104,28 @@ export default function CreateListing() {
   const { data: neighborhoods = [] } = useQuery<Location[]>({
     queryKey: ["/api/locations", { parent: selectedDistrict, type: "mahalle" }],
     enabled: !!selectedDistrict,
+  });
+
+  // Watch isPremium and isUrgent for fee calculation
+  const isPremium = form.watch("isPremium");
+  const isUrgent = form.watch("isUrgent");
+
+  // Calculate listing fee
+  const { data: feeData } = useQuery({
+    queryKey: ["/api/listings/calculate-fee", isPremium, isUrgent],
+    queryFn: async () => {
+      const response = await apiRequest("/api/listings/calculate-fee", {
+        method: "POST",
+        body: JSON.stringify({ isPremium, isUrgent }),
+      });
+      return response as {
+        fee: number;
+        balance: number;
+        canAfford: boolean;
+        breakdown: { base: number; premium: number; urgent: number };
+      };
+    },
+    enabled: !!user,
   });
 
   const createListingMutation = useMutation({
@@ -533,6 +557,62 @@ export default function CreateListing() {
                       Fotoğraf yükleme özelliği yakında eklenecek
                     </p>
                   </div>
+
+                  {/* Fee Summary */}
+                  {feeData && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Wallet className="w-5 h-5" />
+                          Ücret Özeti
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Normal İlan</span>
+                            <span>{feeData.breakdown.base}₺</span>
+                          </div>
+                          {feeData.breakdown.premium > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Premium Ek Ücret</span>
+                              <span>+{feeData.breakdown.premium}₺</span>
+                            </div>
+                          )}
+                          {feeData.breakdown.urgent > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Acil İlan Ek Ücret</span>
+                              <span>+{feeData.breakdown.urgent}₺</span>
+                            </div>
+                          )}
+                          <div className="border-t pt-2 flex justify-between font-semibold text-base">
+                            <span>Toplam</span>
+                            <span>{feeData.fee}₺</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Cüzdan Bakiyeniz</span>
+                            <span className={feeData.canAfford ? "text-green-600" : "text-destructive"}>
+                              {feeData.balance.toFixed(2)}₺
+                            </span>
+                          </div>
+                        </div>
+
+                        {!feeData.canAfford && (
+                          <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                              Yetersiz bakiye! Cüzdanınıza {(feeData.fee - feeData.balance).toFixed(2)}₺ yüklemelisiniz.
+                              <Link href="/cuzdan">
+                                <Button variant="link" className="p-0 h-auto ml-2">
+                                  Bakiye Yükle
+                                </Button>
+                              </Link>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               )}
 
@@ -562,7 +642,7 @@ export default function CreateListing() {
                 ) : (
                   <Button
                     type="submit"
-                    disabled={createListingMutation.isPending}
+                    disabled={createListingMutation.isPending || (feeData && !feeData.canAfford)}
                     className="ml-auto"
                     data-testid="button-submit-listing"
                   >
