@@ -23,7 +23,6 @@ import {
   type User,
 } from "@shared/schema";
 import agoraToken from "agora-access-token";
-import Stripe from "stripe";
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
 // Validate critical environment variables
@@ -34,12 +33,6 @@ if (!process.env.SESSION_SECRET) {
 const JWT_SECRET = process.env.SESSION_SECRET;
 const AGORA_APP_ID = process.env.AGORA_APP_ID || "";
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE || "";
-
-// Initialize Stripe (optional - will use Stripe if keys are provided)
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-}) : null;
 
 // Extend Express Request to include user
 declare global {
@@ -550,62 +543,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: req.user!.id,
       });
 
-      // Calculate listing fee
-      let fee = 50; // Base fee: 50₺
-      if (data.isPremium) fee += 50; // Premium: +50₺
-      if (data.isUrgent) fee += 25; // Urgent: +25₺
-
-      // Check user wallet balance
-      const user = await storage.getUser(req.user!.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const balance = parseFloat(user.walletBalance || "0");
-      if (balance < fee) {
-        return res.status(400).json({ 
-          message: "Yetersiz bakiye", 
-          required: fee,
-          current: balance
-        });
-      }
-
-      // Create listing FIRST (before charging)
+      // Create listing - completely free, no fees!
       const [listing] = await db.insert(listings).values(data).returning();
-
-      // Only deduct fee AFTER successful listing creation
-      const newBalance = (balance - fee).toFixed(2);
-      let walletUpdated = false;
-      
-      try {
-        // Step 1: Update wallet
-        await storage.updateWalletBalance(req.user!.id, newBalance);
-        walletUpdated = true;
-
-        // Step 2: Create transaction record (if this fails, we need to restore wallet)
-        await storage.createTransaction({
-          userId: req.user!.id,
-          type: "listing_fee",
-          amount: (-fee).toString(),
-          status: "completed",
-          description: `İlan yayınlama ücreti${data.isPremium ? " (Premium)" : ""}${data.isUrgent ? " (Acil)" : ""}`,
-          metadata: JSON.stringify({ listingId: listing.id }),
-        });
-      } catch (error) {
-        // Rollback: restore wallet balance if it was updated
-        if (walletUpdated) {
-          try {
-            await storage.updateWalletBalance(req.user!.id, balance.toFixed(2));
-          } catch (restoreError) {
-            console.error("CRITICAL: Failed to restore wallet balance after error", restoreError);
-          }
-        }
-        
-        // Delete the listing to maintain consistency
-        await db.delete(listings).where(eq(listings.id, listing.id));
-        throw error;
-      }
-
       res.status(201).json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
@@ -666,34 +605,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Calculate listing fee endpoint
-  app.post("/api/listings/calculate-fee", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const { isPremium, isUrgent } = req.body;
-      
-      let fee = 50; // Base fee: 50₺
-      if (isPremium) fee += 50; // Premium: +50₺
-      if (isUrgent) fee += 25; // Urgent: +25₺
-      
-      // Get user balance
-      const user = await storage.getUser(req.user!.id);
-      const balance = parseFloat(user?.walletBalance || "0");
-      
-      res.json({
-        fee,
-        balance,
-        canAfford: balance >= fee,
-        breakdown: {
-          base: 50,
-          premium: isPremium ? 50 : 0,
-          urgent: isUrgent ? 25 : 0,
-        }
-      });
-    } catch (error) {
-      console.error("Error calculating fee:", error);
-      res.status(500).json({ message: "Failed to calculate fee" });
-    }
-  });
 
   app.get("/api/listings/mine", authMiddleware, async (req: Request, res: Response) => {
     try {
@@ -962,143 +873,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============ Wallet & Payment Routes ============
-  // Get user wallet balance
-  app.get("/api/wallet/balance", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const balance = await storage.getUserBalance(req.user!.id);
-      res.json({ balance });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get balance", error: String(error) });
-    }
-  });
-
-  // Get user transaction history
-  app.get("/api/wallet/transactions", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const transactions = await storage.getTransactionsByUser(req.user!.id);
-      res.json(transactions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get transactions", error: String(error) });
-    }
-  });
-
-  // Create Stripe payment intent for wallet topup
-  app.post("/api/wallet/deposit", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      if (!stripe) {
-        return res.status(503).json({ message: "Stripe is not configured. Please contact support." });
-      }
-
-      const { amount } = req.body;
-      const numAmount = parseFloat(amount);
-      
-      // Validate amount (min: 10 TRY, max: 10000 TRY)
-      if (!amount || isNaN(numAmount) || numAmount < 10 || numAmount > 10000) {
-        return res.status(400).json({ 
-          message: "Geçersiz tutar. Minimum ₺10, maksimum ₺10,000 yükleyebilirsiniz." 
-        });
-      }
-
-      // Create Stripe customer if doesn't exist
-      let stripeCustomerId = req.user!.stripeCustomerId;
-      if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: req.user!.email,
-          name: req.user!.username,
-          metadata: { userId: req.user!.id },
-        });
-        stripeCustomerId = customer.id;
-        await storage.updateUser(req.user!.id, { stripeCustomerId });
-      }
-
-      // Create payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
-        currency: "try", // Turkish Lira
-        customer: stripeCustomerId,
-        metadata: {
-          userId: req.user!.id,
-          type: "deposit",
-        },
-      });
-
-      // Create pending transaction
-      await storage.createTransaction({
-        userId: req.user!.id,
-        type: "deposit",
-        amount,
-        status: "pending",
-        stripePaymentId: paymentIntent.id,
-        description: "Wallet deposit",
-      });
-
-      res.json({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create payment intent", error: String(error) });
-    }
-  });
-
-  // Stripe webhook handler
-  app.post("/api/webhooks/stripe", async (req: Request, res: Response) => {
-    try {
-      if (!stripe) {
-        return res.status(503).json({ message: "Stripe not configured" });
-      }
-
-      const sig = req.headers["stripe-signature"];
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      // Verify webhook signature for security
-      let event;
-      try {
-        if (webhookSecret && sig) {
-          // Use raw body for signature verification
-          const rawBody = (req as any).rawBody || req.body;
-          event = stripe.webhooks.constructEvent(
-            rawBody,
-            sig as string,
-            webhookSecret
-          );
-        } else {
-          // Development mode: skip signature verification if webhook secret not configured
-          event = req.body;
-        }
-      } catch (err) {
-        console.error("Webhook signature verification failed:", err);
-        return res.status(400).json({ message: "Webhook signature verification failed" });
-      }
-
-      // Handle payment intent succeeded
-      if (event.type === "payment_intent.succeeded") {
-        const paymentIntent = event.data.object;
-        const { userId, type } = paymentIntent.metadata;
-
-        if (type === "deposit") {
-          const amount = (paymentIntent.amount / 100).toFixed(2);
-          
-          // Find transaction by stripePaymentId (not by paymentIntent.id)
-          const transactions = await storage.getTransactionsByUser(userId);
-          const transaction = transactions.find(t => t.stripePaymentId === paymentIntent.id);
-          
-          if (transaction) {
-            // Update transaction status using correct transaction ID
-            await storage.updateTransactionStatus(transaction.id, "completed");
-            
-            // Add to user balance
-            await storage.updateUserBalance(userId, amount);
-          }
-        }
-      }
-
-      res.json({ received: true });
-    } catch (error) {
-      res.status(500).json({ message: "Webhook error", error: String(error) });
-    }
-  });
 
   // ============ Message Routes ============
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
