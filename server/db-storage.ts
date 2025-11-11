@@ -247,6 +247,13 @@ export class DbStorage implements IStorage {
     return updated;
   }
 
+  async deleteLiveStream(id: string): Promise<boolean> {
+    const result = await db
+      .delete(liveStreams)
+      .where(eq(liveStreams.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
   // ============ Messages ============
   async getMessagesBetweenUsers(userId1: string, userId2: string): Promise<Message[]> {
     return await db.query.messages.findMany({

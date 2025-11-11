@@ -75,6 +75,7 @@ export interface IStorage {
   getLiveStreamsByStreamer(streamerId: string): Promise<LiveStream[]>;
   createLiveStream(stream: InsertLiveStream): Promise<LiveStream>;
   updateLiveStream(id: string, stream: Partial<LiveStream>): Promise<LiveStream | undefined>;
+  deleteLiveStream(id: string): Promise<boolean>;
   
   // Messages
   getMessagesBetweenUsers(userId1: string, userId2: string): Promise<Message[]>;
@@ -611,6 +612,10 @@ export class MemStorage implements IStorage {
     const updated = { ...stream, ...updateData };
     this.liveStreams.set(id, updated);
     return updated;
+  }
+
+  async deleteLiveStream(id: string): Promise<boolean> {
+    return this.liveStreams.delete(id);
   }
 
   // Messages

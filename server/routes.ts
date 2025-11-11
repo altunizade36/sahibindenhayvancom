@@ -704,6 +704,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Start stream
+  app.post("/api/streams/:id/start", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const stream = await storage.getLiveStream(req.params.id);
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      if (stream.streamerId !== req.user!.id) {
+        return res.status(403).json({ message: "Only the streamer can start the stream" });
+      }
+
+      const updated = await storage.updateLiveStream(req.params.id, {
+        status: "live",
+        startedAt: new Date(),
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start stream", error: String(error) });
+    }
+  });
+
+  // End stream
+  app.post("/api/streams/:id/end", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const stream = await storage.getLiveStream(req.params.id);
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      if (stream.streamerId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only the streamer or admin can end the stream" });
+      }
+
+      const updated = await storage.updateLiveStream(req.params.id, {
+        status: "ended",
+        endedAt: new Date(),
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to end stream", error: String(error) });
+    }
+  });
+
+  // Delete stream
+  app.delete("/api/streams/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const stream = await storage.getLiveStream(req.params.id);
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      if (stream.streamerId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      await storage.deleteLiveStream(req.params.id);
+      res.json({ message: "Stream deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete stream", error: String(error) });
+    }
+  });
+
   // ============ Message Routes ============
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
     const conversations = await storage.getConversations(req.user!.id);
