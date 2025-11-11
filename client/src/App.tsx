@@ -16,6 +16,7 @@ import LiveStreams from "@/pages/live-streams";
 import CreateStream from "@/pages/create-stream";
 import StreamControl from "@/pages/stream-control";
 import StreamViewer from "@/pages/stream-viewer";
+import SellerStreams from "@/pages/seller-streams";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -29,6 +30,7 @@ function SidebarLayout() {
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={Home} />
             <Route path="/canli-yayin" component={LiveStreams} />
+            <Route path="/panel/canli-yayinlarim" component={SellerStreams} />
             <Route component={NotFound} />
           </Switch>
         </main>

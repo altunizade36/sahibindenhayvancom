@@ -686,6 +686,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(streams);
   });
 
+  // Get current user's streams (authenticated sellers/admins only)
+  app.get("/api/my-streams", authMiddleware, async (req: Request, res: Response) => {
+    const streams = await storage.getLiveStreamsByStreamer(req.user!.id);
+    
+    // Enrich with streamer and listing data
+    const enrichedStreams = await Promise.all(streams.map(async (stream) => {
+      const streamer = await storage.getUser(stream.streamerId);
+      let listing = null;
+      if (stream.listingId) {
+        listing = await storage.getListing(stream.listingId);
+      }
+
+      let sanitizedStreamer = null;
+      if (streamer) {
+        const { password: _, ...safe } = streamer;
+        sanitizedStreamer = safe;
+      }
+
+      return {
+        ...stream,
+        streamer: sanitizedStreamer,
+        listing: listing ? {
+          id: listing.id,
+          title: listing.title,
+          images: listing.images,
+        } : null,
+      };
+    }));
+
+    res.json(enrichedStreams);
+  });
+
   app.get("/api/streams/:id", async (req: Request, res: Response) => {
     const stream = await storage.getLiveStream(req.params.id);
     if (!stream) {

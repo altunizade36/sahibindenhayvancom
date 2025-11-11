@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { PawPrint, Plus, User, LogOut, Settings, Heart, MessageSquare } from "lucide-react";
+import { PawPrint, Plus, User, LogOut, Settings, Heart, MessageSquare, Radio } from "lucide-react";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -31,7 +31,7 @@ export function Navbar() {
             <Link href="/ilanlar" className={`hover:text-primary transition-colors ${location === "/ilanlar" ? "text-primary" : ""}`} data-testid="link-listings">
               İlanlar
             </Link>
-            <Link href="/canli-yayinlar" className={`hover:text-primary transition-colors ${location === "/canli-yayinlar" ? "text-primary" : ""}`} data-testid="link-live">
+            <Link href="/canli-yayin" className={`hover:text-primary transition-colors ${location === "/canli-yayin" ? "text-primary" : ""}`} data-testid="link-live">
               Canlı Yayınlar
             </Link>
             <Link href="/muzayedeler" className={`hover:text-primary transition-colors ${location === "/muzayedeler" ? "text-primary" : ""}`} data-testid="link-auctions">
@@ -90,6 +90,14 @@ export function Navbar() {
                         Mesajlar
                       </DropdownMenuItem>
                     </Link>
+                    {(user?.role === 'seller' || user?.role === 'admin') && (
+                      <Link href="/panel/canli-yayinlarim">
+                        <DropdownMenuItem className="cursor-pointer" data-testid="link-my-streams">
+                          <Radio className="w-4 h-4 mr-2" />
+                          Canlı Yayınlarım
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
                     <Link href="/ayarlar">
                       <DropdownMenuItem className="cursor-pointer" data-testid="link-settings">
                         <Settings className="w-4 h-4 mr-2" />
