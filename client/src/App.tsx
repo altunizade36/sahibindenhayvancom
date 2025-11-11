@@ -16,6 +16,7 @@ import LiveStreams from "@/pages/live-streams";
 import CreateStream from "@/pages/create-stream";
 import StreamControl from "@/pages/stream-control";
 import StreamViewer from "@/pages/stream-viewer";
+import Wallet from "@/pages/wallet";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -50,6 +51,7 @@ function NoSidebarLayout() {
           <Route path="/yayin-baslat" component={CreateStream} />
           <Route path="/yayin/:id/kontrol" component={StreamControl} />
           <Route path="/yayin/:id" component={StreamViewer} />
+          <Route path="/cuzdan" component={Wallet} />
         </Switch>
       </main>
     </div>

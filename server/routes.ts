@@ -238,8 +238,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      ws.on("close", () => {
+      ws.on("close", async () => {
         clients.delete(decoded.userId);
+        
+        // Cleanup: Remove user from all active stream viewers
+        try {
+          const activeViewers = await storage.getActiveStreamViewersByUser(decoded.userId);
+          
+          for (const viewer of activeViewers) {
+            await storage.removeStreamViewer(viewer.streamId, decoded.userId);
+            
+            // Broadcast updated viewer count
+            const stream = await storage.getLiveStream(viewer.streamId);
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: "stream_viewer_update",
+                  streamId: viewer.streamId,
+                  viewerCount: stream?.viewerCount || 0,
+                }));
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Failed to cleanup disconnected viewer:", error);
+        }
       });
     } catch (error) {
       ws.close(1008, "Invalid token");
@@ -885,8 +908,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { amount } = req.body;
-      if (!amount || parseFloat(amount) <= 0) {
-        return res.status(400).json({ message: "Invalid amount" });
+      const numAmount = parseFloat(amount);
+      
+      // Validate amount (min: 10 TRY, max: 10000 TRY)
+      if (!amount || isNaN(numAmount) || numAmount < 10 || numAmount > 10000) {
+        return res.status(400).json({ 
+          message: "Geçersiz tutar. Minimum ₺10, maksimum ₺10,000 yükleyebilirsiniz." 
+        });
       }
 
       // Create Stripe customer if doesn't exist
@@ -938,7 +966,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ message: "Stripe not configured" });
       }
 
-      const event = req.body;
+      const sig = req.headers["stripe-signature"];
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      // Verify webhook signature for security
+      let event;
+      try {
+        if (webhookSecret && sig) {
+          // Use raw body for signature verification
+          const rawBody = (req as any).rawBody || req.body;
+          event = stripe.webhooks.constructEvent(
+            rawBody,
+            sig as string,
+            webhookSecret
+          );
+        } else {
+          // Development mode: skip signature verification if webhook secret not configured
+          event = req.body;
+        }
+      } catch (err) {
+        console.error("Webhook signature verification failed:", err);
+        return res.status(400).json({ message: "Webhook signature verification failed" });
+      }
 
       // Handle payment intent succeeded
       if (event.type === "payment_intent.succeeded") {
@@ -948,11 +997,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (type === "deposit") {
           const amount = (paymentIntent.amount / 100).toFixed(2);
           
-          // Update transaction status
-          await storage.updateTransactionStatus(paymentIntent.id, "completed");
+          // Find transaction by stripePaymentId (not by paymentIntent.id)
+          const transactions = await storage.getTransactionsByUser(userId);
+          const transaction = transactions.find(t => t.stripePaymentId === paymentIntent.id);
           
-          // Add to user balance
-          await storage.updateUserBalance(userId, amount);
+          if (transaction) {
+            // Update transaction status using correct transaction ID
+            await storage.updateTransactionStatus(transaction.id, "completed");
+            
+            // Add to user balance
+            await storage.updateUserBalance(userId, amount);
+          }
         }
       }
 

@@ -130,6 +130,7 @@ export interface IStorage {
   
   // Stream Viewers
   getActiveStreamViewers(streamId: string): Promise<Array<StreamViewer & { user: User }>>;
+  getActiveStreamViewersByUser(userId: string): Promise<StreamViewer[]>;
   addStreamViewer(viewer: InsertStreamViewer): Promise<StreamViewer>;
   removeStreamViewer(streamId: string, userId: string): Promise<boolean>;
   updateStreamViewerCount(streamId: string): Promise<void>;
@@ -977,6 +978,11 @@ export class MemStorage implements IStorage {
         return { ...viewer, user: user! };
       })
     );
+  }
+
+  async getActiveStreamViewersByUser(userId: string): Promise<StreamViewer[]> {
+    return Array.from(this.streamViewers.values())
+      .filter(v => v.userId === userId && !v.leftAt);
   }
 
   async addStreamViewer(insertViewer: InsertStreamViewer): Promise<StreamViewer> {
