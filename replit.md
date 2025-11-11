@@ -1,14 +1,13 @@
 # sahibindenhayvan.com - FREE Turkish Animal Classifieds Platform
 
-## Project Overview
-A completely FREE Turkish animal classifieds platform (no listing fees, no auction fees, no streaming fees) featuring Agora.io live streaming with real-time chat, auctions, multi-role dashboards, extensive animal categorization, blog system, veterinary services, and transportation services. Platform prioritizes user acquisition over monetization.
+## Project Overview  
+A completely FREE Turkish animal classifieds platform focusing on comprehensive listing features with advanced search, filtering, and categorization. Auction and live streaming features postponed for future development. Platform prioritizes user acquisition over monetization.
 
 ## Tech Stack
 - **Frontend**: React + TypeScript + Vite
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL (in-memory storage for MVP)
-- **Real-time**: WebSocket for chat and auctions
-- **Live Streaming**: Agora.io
+- **Real-time**: WebSocket for messaging
 - **UI Components**: Shadcn UI + Tailwind CSS
 - **Forms**: React Hook Form + Zod
 - **State Management**: TanStack Query
@@ -25,38 +24,32 @@ A completely FREE Turkish animal classifieds platform (no listing fees, no aucti
 - **Admin**: Full platform management
 
 ### Core Functionality
-1. **Animal Listings**
+1. **Animal Listings** (PRIMARY FOCUS)
    - Categories: Pets, Livestock, Birds, Fish, Horses, Beekeeping
+   - Advanced search and filtering system
    - Rich filters: price, location, breed, age, health status
-   - Premium and urgent listings
    - Image galleries and documents (vaccination, pedigree)
+   - Detailed listing pages with seller contact
+   - Premium and urgent listings
 
-2. **Live Streaming** (Agora.io)
-   - Sellers can showcase animals live
-   - Real-time chat during streams
-   - Link listings to streams
-   - Viewer count tracking
-
-3. **Auction System**
-   - Real-time bidding via WebSocket
-   - Countdown timers
-   - Buy-now option
-   - Bid history and notifications
-
-4. **Messaging**
+2. **Messaging**
    - Real-time chat between buyers and sellers
    - WebSocket-powered conversations
    - Listing-specific threads
 
-5. **Services**
+3. **Services**
    - Veterinary services with reviews and ratings
    - Transportation services for animal delivery
    - Service provider profiles
 
-6. **Blog System**
+4. **Blog System**
    - Animal care articles
    - Veterinary advice
    - Nutrition and training guides
+
+### Postponed Features (Future Development)
+- **Live Streaming** (Agora.io integration removed)
+- **Auction System** (WebSocket bidding removed)
 
 ## Project Structure
 

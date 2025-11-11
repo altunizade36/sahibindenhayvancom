@@ -12,11 +12,6 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import CreateListing from "@/pages/create-listing";
-import LiveStreams from "@/pages/live-streams";
-import CreateStream from "@/pages/create-stream";
-import StreamControl from "@/pages/stream-control";
-import StreamViewer from "@/pages/stream-viewer";
-import SellerStreams from "@/pages/seller-streams";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -29,8 +24,6 @@ function SidebarLayout() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={Home} />
-            <Route path="/canli-yayin" component={LiveStreams} />
-            <Route path="/panel/canli-yayinlarim" component={SellerStreams} />
             <Route component={NotFound} />
           </Switch>
         </main>
@@ -49,10 +42,6 @@ function NoSidebarLayout() {
           <Route path="/giris" component={Login} />
           <Route path="/kayit" component={Register} />
           <Route path="/ilan-ver" component={CreateListing} />
-          <Route path="/yayin-baslat" component={CreateStream} />
-          <Route path="/yayin/:id/kontrol" component={StreamControl} />
-          <Route path="/yayin/:id" component={StreamViewer} />
-          <Route path="/canli/:channelName" component={StreamViewer} />
         </Switch>
       </main>
     </div>
@@ -63,10 +52,7 @@ function Router() {
   const [location] = useLocation();
   const isNoSidebarRoute = location.startsWith('/giris') || 
                            location.startsWith('/kayit') || 
-                           location.startsWith('/ilan-ver') ||
-                           location.startsWith('/yayin-baslat') ||
-                           location.startsWith('/yayin/') ||
-                           location.startsWith('/canli/');
+                           location.startsWith('/ilan-ver');
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
