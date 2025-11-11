@@ -98,6 +98,8 @@ export const users = pgTable("users", {
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
+  walletBalance: decimal("wallet_balance", { precision: 10, scale: 2 }).default("0").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -408,3 +410,67 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
+
+// Wallet Transactions table
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: transactionTypeEnum("type").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: transactionStatusEnum("status").default("pending"),
+  description: text("description"),
+  stripePaymentId: text("stripe_payment_id"),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("transaction_user_idx").on(table.userId),
+  userCreatedIdx: index("transaction_user_created_idx").on(table.userId, table.createdAt),
+}));
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+
+// Stream Chat Messages table
+export const streamChatMessages = pgTable("stream_chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamId: varchar("stream_id").notNull().references(() => liveStreams.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  streamIdx: index("stream_chat_stream_idx").on(table.streamId),
+  streamCreatedIdx: index("stream_chat_stream_created_idx").on(table.streamId, table.createdAt),
+}));
+
+export const insertStreamChatMessageSchema = createInsertSchema(streamChatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStreamChatMessage = z.infer<typeof insertStreamChatMessageSchema>;
+export type StreamChatMessage = typeof streamChatMessages.$inferSelect;
+
+// Stream Viewers tracking (for real-time viewer list)
+export const streamViewers = pgTable("stream_viewers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamId: varchar("stream_id").notNull().references(() => liveStreams.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  leftAt: timestamp("left_at"),
+}, (table) => ({
+  streamUserIdx: index("stream_viewer_stream_user_idx").on(table.streamId, table.userId),
+  streamUserUnique: index("stream_viewer_unique_active").on(table.streamId, table.userId).where(sql`${table.leftAt} IS NULL`),
+}));
+
+export const insertStreamViewerSchema = createInsertSchema(streamViewers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export type InsertStreamViewer = z.infer<typeof insertStreamViewerSchema>;
+export type StreamViewer = typeof streamViewers.$inferSelect;

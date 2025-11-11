@@ -12,6 +12,9 @@ import {
   type TransportService, type InsertTransportService,
   type Review, type InsertReview,
   type Favorite, type InsertFavorite,
+  type Transaction, type InsertTransaction,
+  type StreamChatMessage, type InsertStreamChatMessage,
+  type StreamViewer, type InsertStreamViewer,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
@@ -113,6 +116,23 @@ export interface IStorage {
   createFavorite(favorite: InsertFavorite): Promise<Favorite>;
   deleteFavorite(userId: string, listingId: string): Promise<boolean>;
   isFavorite(userId: string, listingId: string): Promise<boolean>;
+  
+  // Wallet & Transactions
+  getUserBalance(userId: string): Promise<string>;
+  updateUserBalance(userId: string, amount: string): Promise<User | undefined>;
+  getTransactionsByUser(userId: string): Promise<Transaction[]>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  updateTransactionStatus(id: string, status: string): Promise<Transaction | undefined>;
+  
+  // Stream Chat
+  getStreamChatMessages(streamId: string, limit?: number): Promise<Array<StreamChatMessage & { sender: User }>>;
+  createStreamChatMessage(message: InsertStreamChatMessage): Promise<StreamChatMessage>;
+  
+  // Stream Viewers
+  getActiveStreamViewers(streamId: string): Promise<Array<StreamViewer & { user: User }>>;
+  addStreamViewer(viewer: InsertStreamViewer): Promise<StreamViewer>;
+  removeStreamViewer(streamId: string, userId: string): Promise<boolean>;
+  updateStreamViewerCount(streamId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -129,6 +149,9 @@ export class MemStorage implements IStorage {
   private transportServices: Map<string, TransportService>;
   private reviews: Map<string, Review>;
   private favorites: Map<string, Favorite>;
+  private transactions: Map<string, Transaction>;
+  private streamChatMessages: Map<string, StreamChatMessage>;
+  private streamViewers: Map<string, StreamViewer>;
   
   // Adjacency maps for O(depth) hierarchical queries
   private categoryChildren: Map<string | null, Category[]>; // parentId -> children
@@ -148,6 +171,9 @@ export class MemStorage implements IStorage {
     this.transportServices = new Map();
     this.reviews = new Map();
     this.favorites = new Map();
+    this.transactions = new Map();
+    this.streamChatMessages = new Map();
+    this.streamViewers = new Map();
     
     this.categoryChildren = new Map();
     this.locationChildren = new Map();
@@ -864,6 +890,169 @@ export class MemStorage implements IStorage {
     return Array.from(this.favorites.values()).some(
       f => f.userId === userId && f.listingId === listingId
     );
+  }
+
+  // Wallet & Transactions
+  async getUserBalance(userId: string): Promise<string> {
+    const user = await this.getUser(userId);
+    return user?.walletBalance || "0";
+  }
+
+  async updateUserBalance(userId: string, amount: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const currentBalance = parseFloat(user.walletBalance);
+    const newBalance = (currentBalance + parseFloat(amount)).toFixed(2);
+    
+    const updated = { ...user, walletBalance: newBalance };
+    this.users.set(userId, updated);
+    return updated;
+  }
+
+  async getTransactionsByUser(userId: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(t => t.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const id = randomUUID();
+    const transaction: Transaction = {
+      id,
+      ...insertTransaction,
+      status: insertTransaction.status || "pending",
+      description: insertTransaction.description || null,
+      stripePaymentId: insertTransaction.stripePaymentId || null,
+      metadata: insertTransaction.metadata || null,
+      createdAt: new Date(),
+    };
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+
+  async updateTransactionStatus(id: string, status: string): Promise<Transaction | undefined> {
+    const transaction = this.transactions.get(id);
+    if (!transaction) return undefined;
+    
+    const updated = { ...transaction, status: status as any };
+    this.transactions.set(id, updated);
+    return updated;
+  }
+
+  // Stream Chat
+  async getStreamChatMessages(streamId: string, limit: number = 100): Promise<Array<StreamChatMessage & { sender: User }>> {
+    const messages = Array.from(this.streamChatMessages.values())
+      .filter(m => m.streamId === streamId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+      .slice(-limit);
+
+    return Promise.all(
+      messages.map(async (msg) => {
+        const sender = await this.getUser(msg.senderId);
+        return { ...msg, sender: sender! };
+      })
+    );
+  }
+
+  async createStreamChatMessage(insertMessage: InsertStreamChatMessage): Promise<StreamChatMessage> {
+    const id = randomUUID();
+    const message: StreamChatMessage = {
+      id,
+      ...insertMessage,
+      createdAt: new Date(),
+    };
+    this.streamChatMessages.set(id, message);
+    return message;
+  }
+
+  // Stream Viewers
+  async getActiveStreamViewers(streamId: string): Promise<Array<StreamViewer & { user: User }>> {
+    const viewers = Array.from(this.streamViewers.values())
+      .filter(v => v.streamId === streamId && !v.leftAt);
+
+    return Promise.all(
+      viewers.map(async (viewer) => {
+        const user = await this.getUser(viewer.userId);
+        return { ...viewer, user: user! };
+      })
+    );
+  }
+
+  async addStreamViewer(insertViewer: InsertStreamViewer): Promise<StreamViewer> {
+    // UPSERT logic: Check if viewer already exists and hasn't left
+    const existing = Array.from(this.streamViewers.values()).find(
+      v => v.streamId === insertViewer.streamId && v.userId === insertViewer.userId && !v.leftAt
+    );
+    
+    if (existing) {
+      // Viewer already active - just return existing record (prevents duplicate counting)
+      return existing;
+    }
+
+    // Check if viewer previously left - reuse the record
+    const previousSession = Array.from(this.streamViewers.values()).find(
+      v => v.streamId === insertViewer.streamId && v.userId === insertViewer.userId && v.leftAt !== null
+    );
+
+    if (previousSession) {
+      // Rejoin: reset leftAt to null and update joinedAt
+      const rejoined: StreamViewer = {
+        ...previousSession,
+        joinedAt: new Date(),
+        leftAt: null,
+      };
+      this.streamViewers.set(previousSession.id, rejoined);
+      await this.updateStreamViewerCount(insertViewer.streamId);
+      return rejoined;
+    }
+
+    // New viewer - create fresh record
+    const id = randomUUID();
+    const viewer: StreamViewer = {
+      id,
+      ...insertViewer,
+      joinedAt: new Date(),
+      leftAt: null,
+    };
+    this.streamViewers.set(id, viewer);
+    
+    // Update stream viewer count
+    await this.updateStreamViewerCount(insertViewer.streamId);
+    
+    return viewer;
+  }
+
+  async removeStreamViewer(streamId: string, userId: string): Promise<boolean> {
+    const viewer = Array.from(this.streamViewers.values()).find(
+      v => v.streamId === streamId && v.userId === userId && !v.leftAt
+    );
+    
+    if (!viewer) return false;
+    
+    const updated = { ...viewer, leftAt: new Date() };
+    this.streamViewers.set(viewer.id, updated);
+    
+    // Update stream viewer count
+    await this.updateStreamViewerCount(streamId);
+    
+    return true;
+  }
+
+  async updateStreamViewerCount(streamId: string): Promise<void> {
+    const stream = this.liveStreams.get(streamId);
+    if (!stream) return;
+    
+    const activeViewers = await this.getActiveStreamViewers(streamId);
+    const viewerCount = activeViewers.length;
+    
+    const updated = {
+      ...stream,
+      viewerCount,
+      peakViewers: Math.max(stream.peakViewers, viewerCount),
+    };
+    
+    this.liveStreams.set(streamId, updated);
   }
 }
 

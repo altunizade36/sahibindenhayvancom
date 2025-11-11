@@ -23,6 +23,7 @@ import {
   type User,
 } from "@shared/schema";
 import agoraToken from "agora-access-token";
+import Stripe from "stripe";
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
 // Validate critical environment variables
@@ -33,6 +34,12 @@ if (!process.env.SESSION_SECRET) {
 const JWT_SECRET = process.env.SESSION_SECRET;
 const AGORA_APP_ID = process.env.AGORA_APP_ID || "";
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE || "";
+
+// Initialize Stripe (optional - will use Stripe if keys are provided)
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+}) : null;
 
 // Extend Express Request to include user
 declare global {
@@ -170,15 +177,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
           } else if (message.type === "stream_chat") {
-            // Handle live stream chat
+            // Handle live stream chat - save to database
+            const chatMessage = await storage.createStreamChatMessage({
+              streamId: message.streamId,
+              senderId: decoded.userId,
+              content: message.content,
+            });
+
+            // Get sender info
+            const sender = await storage.getUser(decoded.userId);
+            
+            // Broadcast to all connected clients
             wss.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
                   type: "stream_message",
+                  message: {
+                    ...chatMessage,
+                    sender: sender ? { id: sender.id, username: sender.username, avatar: sender.avatar } : null,
+                  },
+                }));
+              }
+            });
+          } else if (message.type === "stream_join") {
+            // Handle viewer joining stream
+            await storage.addStreamViewer({
+              streamId: message.streamId,
+              userId: decoded.userId,
+            });
+
+            // Broadcast updated viewer count
+            const stream = await storage.getLiveStream(message.streamId);
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: "stream_viewer_update",
                   streamId: message.streamId,
-                  userId: decoded.userId,
-                  content: message.content,
-                  timestamp: new Date().toISOString(),
+                  viewerCount: stream?.viewerCount || 0,
+                }));
+              }
+            });
+          } else if (message.type === "stream_leave") {
+            // Handle viewer leaving stream
+            await storage.removeStreamViewer(message.streamId, decoded.userId);
+
+            // Broadcast updated viewer count
+            const stream = await storage.getLiveStream(message.streamId);
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: "stream_viewer_update",
+                  streamId: message.streamId,
+                  viewerCount: stream?.viewerCount || 0,
                 }));
               }
             });
@@ -781,6 +831,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Stream deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete stream", error: String(error) });
+    }
+  });
+
+  // ============ Stream Chat & Viewers ============
+  // Get stream chat history
+  app.get("/api/streams/:id/chat", async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const messages = await storage.getStreamChatMessages(req.params.id, limit);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get chat messages", error: String(error) });
+    }
+  });
+
+  // Get active stream viewers
+  app.get("/api/streams/:id/viewers", async (req: Request, res: Response) => {
+    try {
+      const viewers = await storage.getActiveStreamViewers(req.params.id);
+      res.json(viewers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get viewers", error: String(error) });
+    }
+  });
+
+  // ============ Wallet & Payment Routes ============
+  // Get user wallet balance
+  app.get("/api/wallet/balance", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const balance = await storage.getUserBalance(req.user!.id);
+      res.json({ balance });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get balance", error: String(error) });
+    }
+  });
+
+  // Get user transaction history
+  app.get("/api/wallet/transactions", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const transactions = await storage.getTransactionsByUser(req.user!.id);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get transactions", error: String(error) });
+    }
+  });
+
+  // Create Stripe payment intent for wallet topup
+  app.post("/api/wallet/deposit", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Stripe is not configured. Please contact support." });
+      }
+
+      const { amount } = req.body;
+      if (!amount || parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Create Stripe customer if doesn't exist
+      let stripeCustomerId = req.user!.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: req.user!.email,
+          name: req.user!.username,
+          metadata: { userId: req.user!.id },
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(req.user!.id, { stripeCustomerId });
+      }
+
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+        currency: "try", // Turkish Lira
+        customer: stripeCustomerId,
+        metadata: {
+          userId: req.user!.id,
+          type: "deposit",
+        },
+      });
+
+      // Create pending transaction
+      await storage.createTransaction({
+        userId: req.user!.id,
+        type: "deposit",
+        amount,
+        status: "pending",
+        stripePaymentId: paymentIntent.id,
+        description: "Wallet deposit",
+      });
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create payment intent", error: String(error) });
+    }
+  });
+
+  // Stripe webhook handler
+  app.post("/api/webhooks/stripe", async (req: Request, res: Response) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Stripe not configured" });
+      }
+
+      const event = req.body;
+
+      // Handle payment intent succeeded
+      if (event.type === "payment_intent.succeeded") {
+        const paymentIntent = event.data.object;
+        const { userId, type } = paymentIntent.metadata;
+
+        if (type === "deposit") {
+          const amount = (paymentIntent.amount / 100).toFixed(2);
+          
+          // Update transaction status
+          await storage.updateTransactionStatus(paymentIntent.id, "completed");
+          
+          // Add to user balance
+          await storage.updateUserBalance(userId, amount);
+        }
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      res.status(500).json({ message: "Webhook error", error: String(error) });
     }
   });
 
