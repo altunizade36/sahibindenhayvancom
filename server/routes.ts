@@ -544,7 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create listing - completely free, no fees!
-      const [listing] = await db.insert(listings).values(data).returning();
+      const [listing] = await db.insert(listings).values([data]).returning();
       res.status(201).json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
