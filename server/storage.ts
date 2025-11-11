@@ -15,7 +15,7 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
-import { turkeyLocations } from "./data/locations-turkey";
+import { turkeyLocations } from "./data/locations-turkey-full";
 
 export interface IStorage {
   // Users

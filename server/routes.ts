@@ -321,11 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const conditions = [];
       
-      // Filter by parent
-      if (parent === undefined || parent === null || parent === '') {
-        conditions.push(isNull(locations.parentId));
-      } else {
-        conditions.push(eq(locations.parentId, parent as string));
+      // Filter by parent - ONLY if parent parameter is explicitly provided
+      if (parent !== undefined) {
+        if (parent === null || parent === '') {
+          conditions.push(isNull(locations.parentId));
+        } else {
+          conditions.push(eq(locations.parentId, parent as string));
+        }
       }
       
       // Filter by type
@@ -333,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conditions.push(eq(locations.type, type as "il" | "ilce" | "mahalle" | "koy"));
       }
       
-      const result = await query.where(and(...conditions));
+      const result = await query.where(conditions.length > 0 ? and(...conditions) : undefined);
       res.json(result);
     } catch (error) {
       console.error("Error fetching locations:", error);
