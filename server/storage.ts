@@ -1,6 +1,7 @@
 import {
   type User, type InsertUser,
   type Category, type InsertCategory,
+  type Location, type InsertLocation,
   type Listing, type InsertListing,
   type Auction, type InsertAuction,
   type Bid, type InsertBid,
@@ -13,6 +14,8 @@ import {
   type Favorite, type InsertFavorite,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { categoriesHierarchy } from "./data/categories-hierarchy";
+import { turkeyLocations } from "./data/locations-turkey";
 
 export interface IStorage {
   // Users
@@ -27,6 +30,17 @@ export interface IStorage {
   getCategory(id: string): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
+  getCategoryTree(): Promise<Category[]>; // Get root categories with nested children
+  getCategoryDescendants(id: string): Promise<Category[]>; // Get all descendant categories (flat)
+  getCategoryAncestors(id: string): Promise<Category[]>; // Get breadcrumb trail
+  
+  // Locations
+  getAllLocations(type?: "il" | "ilce" | "mahalle" | "koy"): Promise<Location[]>;
+  getLocation(id: string): Promise<Location | undefined>;
+  getLocationsByParent(parentId: string | null, type?: "il" | "ilce" | "mahalle" | "koy"): Promise<Location[]>;
+  createLocation(location: InsertLocation): Promise<Location>;
+  getLocationDescendants(id: string): Promise<Location[]>; // Get all descendant locations (flat)
+  getLocationAncestors(id: string): Promise<Location[]>; // Get breadcrumb trail
   
   // Listings
   getAllListings(filters?: {
@@ -103,6 +117,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private categories: Map<string, Category>;
+  private locations: Map<string, Location>;
   private listings: Map<string, Listing>;
   private auctions: Map<string, Auction>;
   private bids: Map<string, Bid>;
@@ -113,10 +128,15 @@ export class MemStorage implements IStorage {
   private transportServices: Map<string, TransportService>;
   private reviews: Map<string, Review>;
   private favorites: Map<string, Favorite>;
+  
+  // Adjacency maps for O(depth) hierarchical queries
+  private categoryChildren: Map<string | null, Category[]>; // parentId -> children
+  private locationChildren: Map<string | null, Location[]>; // parentId -> children
 
   constructor() {
     this.users = new Map();
     this.categories = new Map();
+    this.locations = new Map();
     this.listings = new Map();
     this.auctions = new Map();
     this.bids = new Map();
@@ -128,31 +148,58 @@ export class MemStorage implements IStorage {
     this.reviews = new Map();
     this.favorites = new Map();
     
+    this.categoryChildren = new Map();
+    this.locationChildren = new Map();
+    
     this.seedData();
   }
 
   private seedData() {
-    // Seed categories
-    const mainCategories = [
-      { name: "Evcil Hayvanlar", slug: "evcil-hayvanlar", icon: "PawPrint" },
-      { name: "Çiftlik Hayvanları", slug: "ciftlik-hayvanlari", icon: "Tractor" },
-      { name: "Kuşlar", slug: "kuslar", icon: "Bird" },
-      { name: "Akvaryum", slug: "akvaryum", icon: "Fish" },
-      { name: "Atlar", slug: "atlar", icon: "Horse" },
-      { name: "Arıcılık", slug: "aricilik", icon: "Honeycomb" },
-    ];
-
-    mainCategories.forEach((cat, index) => {
-      const id = randomUUID();
-      this.categories.set(id, {
-        id,
-        ...cat,
-        parentId: null,
-        image: null,
-        description: null,
-        order: index,
-      });
+    // Seed categories from hierarchy data
+    categoriesHierarchy.forEach((cat: Category) => {
+      this.categories.set(cat.id, cat);
     });
+    
+    // Seed locations from Turkey data
+    turkeyLocations.forEach((loc: Location) => {
+      this.locations.set(loc.id, loc);
+    });
+    
+    // Build adjacency maps for categories
+    this.buildCategoryAdjacency();
+    
+    // Build adjacency maps for locations
+    this.buildLocationAdjacency();
+  }
+  
+  private buildCategoryAdjacency() {
+    this.categoryChildren.clear();
+    for (const category of this.categories.values()) {
+      const parentId = category.parentId;
+      if (!this.categoryChildren.has(parentId)) {
+        this.categoryChildren.set(parentId, []);
+      }
+      this.categoryChildren.get(parentId)!.push(category);
+    }
+    // Sort children by order
+    for (const children of this.categoryChildren.values()) {
+      children.sort((a, b) => a.order - b.order);
+    }
+  }
+  
+  private buildLocationAdjacency() {
+    this.locationChildren.clear();
+    for (const location of this.locations.values()) {
+      const parentId = location.parentId;
+      if (!this.locationChildren.has(parentId)) {
+        this.locationChildren.set(parentId, []);
+      }
+      this.locationChildren.get(parentId)!.push(location);
+    }
+    // Sort children by order
+    for (const children of this.locationChildren.values()) {
+      children.sort((a, b) => a.order - b.order);
+    }
   }
 
   // Users
@@ -224,22 +271,162 @@ export class MemStorage implements IStorage {
       order: insertCategory.order || 0,
     };
     this.categories.set(id, category);
+    this.buildCategoryAdjacency(); // Rebuild adjacency after adding
     return category;
+  }
+  
+  async getCategoryTree(): Promise<Category[]> {
+    // Return root categories with nested children
+    const roots = this.categoryChildren.get(null) || [];
+    return roots.map(root => this.buildCategoryTreeNode(root));
+  }
+  
+  private buildCategoryTreeNode(category: Category): Category & { children?: Category[] } {
+    const children = this.categoryChildren.get(category.id) || [];
+    if (children.length === 0) {
+      return category;
+    }
+    return {
+      ...category,
+      children: children.map(child => this.buildCategoryTreeNode(child)),
+    };
+  }
+  
+  async getCategoryDescendants(id: string): Promise<Category[]> {
+    const descendants: Category[] = [];
+    const children = this.categoryChildren.get(id) || [];
+    for (const child of children) {
+      descendants.push(child);
+      const childDescendants = await this.getCategoryDescendants(child.id);
+      descendants.push(...childDescendants);
+    }
+    return descendants;
+  }
+  
+  async getCategoryAncestors(id: string): Promise<Category[]> {
+    const category = this.categories.get(id);
+    if (!category) return [];
+    
+    const ancestors: Category[] = [];
+    for (const ancestorId of category.path) {
+      const ancestor = this.categories.get(ancestorId);
+      if (ancestor) {
+        ancestors.push(ancestor);
+      }
+    }
+    return ancestors;
+  }
+  
+  // Locations
+  async getAllLocations(type?: "il" | "ilce" | "mahalle" | "koy"): Promise<Location[]> {
+    let locations = Array.from(this.locations.values());
+    if (type) {
+      locations = locations.filter(l => l.type === type);
+    }
+    return locations.sort((a, b) => a.order - b.order);
+  }
+  
+  async getLocation(id: string): Promise<Location | undefined> {
+    return this.locations.get(id);
+  }
+  
+  async getLocationsByParent(parentId: string | null, type?: "il" | "ilce" | "mahalle" | "koy"): Promise<Location[]> {
+    let children = this.locationChildren.get(parentId) || [];
+    if (type) {
+      children = children.filter(l => l.type === type);
+    }
+    return children;
+  }
+  
+  async createLocation(insertLocation: InsertLocation): Promise<Location> {
+    const id = randomUUID();
+    const location: Location = {
+      id,
+      ...insertLocation,
+      parentId: insertLocation.parentId || null,
+      code: insertLocation.code || null,
+      depth: insertLocation.depth || 0,
+      path: insertLocation.path || [],
+      order: insertLocation.order || 0,
+    };
+    this.locations.set(id, location);
+    this.buildLocationAdjacency(); // Rebuild adjacency after adding
+    return location;
+  }
+  
+  async getLocationDescendants(id: string): Promise<Location[]> {
+    const descendants: Location[] = [];
+    const children = this.locationChildren.get(id) || [];
+    for (const child of children) {
+      descendants.push(child);
+      const childDescendants = await this.getLocationDescendants(child.id);
+      descendants.push(...childDescendants);
+    }
+    return descendants;
+  }
+  
+  async getLocationAncestors(id: string): Promise<Location[]> {
+    const location = this.locations.get(id);
+    if (!location) return [];
+    
+    const ancestors: Location[] = [];
+    for (const ancestorId of location.path) {
+      const ancestor = this.locations.get(ancestorId);
+      if (ancestor) {
+        ancestors.push(ancestor);
+      }
+    }
+    return ancestors;
   }
 
   // Listings
   async getAllListings(filters?: any): Promise<Listing[]> {
     let listings = Array.from(this.listings.values());
     
+    // Hierarchical category filtering (includes descendants)
     if (filters?.categoryId) {
-      listings = listings.filter(l => l.categoryId === filters.categoryId);
+      const category = this.categories.get(filters.categoryId);
+      if (category) {
+        const descendants = await this.getCategoryDescendants(filters.categoryId);
+        const categoryIds = new Set([filters.categoryId, ...descendants.map(d => d.id)]);
+        listings = listings.filter(l => categoryIds.has(l.categoryId));
+      }
     }
+    
+    // Hierarchical location filtering (includes descendants)
+    if (filters?.locationId) {
+      const location = this.locations.get(filters.locationId);
+      if (location) {
+        const descendants = await this.getLocationDescendants(filters.locationId);
+        const locationIds = new Set([filters.locationId, ...descendants.map(d => d.id)]);
+        listings = listings.filter(l => l.locationId && locationIds.has(l.locationId));
+      }
+    }
+    
+    // Legacy city filter (for backward compatibility)
     if (filters?.city) {
       listings = listings.filter(l => l.city === filters.city);
     }
+    
     if (filters?.status) {
       listings = listings.filter(l => l.status === filters.status);
     }
+    
+    // Price filters
+    if (filters?.minPrice !== undefined) {
+      const minPrice = parseFloat(filters.minPrice);
+      if (!isNaN(minPrice)) {
+        listings = listings.filter(l => parseFloat(l.price) >= minPrice);
+      }
+    }
+    
+    if (filters?.maxPrice !== undefined) {
+      const maxPrice = parseFloat(filters.maxPrice);
+      if (!isNaN(maxPrice)) {
+        listings = listings.filter(l => parseFloat(l.price) <= maxPrice);
+      }
+    }
+    
     if (filters?.search) {
       const search = filters.search.toLowerCase();
       listings = listings.filter(l =>
