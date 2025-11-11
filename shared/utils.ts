@@ -35,8 +35,26 @@ export function generateCategoryId(slug: string): string {
 }
 
 /**
- * Generate a deterministic location ID from type and slug
+ * Simple hash function for generating stable IDs
  */
-export function generateLocationId(type: string, slug: string): string {
-  return `loc-${type}-${slug}`;
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+/**
+ * Generate a deterministic location ID from full path
+ * Uses hash of complete lineage for stability
+ */
+export function generateLocationId(type: string, slug: string, parentPath: string[] = []): string {
+  // Build full path including this location
+  const fullPath = [...parentPath, slug].join('/');
+  // Hash the full path for deterministic but collision-free IDs
+  const hash = simpleHash(fullPath);
+  return `loc-${type}-${hash}`;
 }
