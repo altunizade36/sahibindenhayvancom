@@ -675,4 +675,8 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Temporarily using MemStorage while debugging Drizzle ORM issues
+// import { DbStorage } from "./db-storage";
+// export const storage = new DbStorage();
+
 export const storage = new MemStorage();
