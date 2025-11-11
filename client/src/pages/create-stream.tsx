@@ -68,7 +68,7 @@ export default function CreateStream() {
       const payload = {
         title: data.title,
         description: data.description || null,
-        listingId: data.listingId || null,
+        listingId: data.listingId && data.listingId !== "none" ? data.listingId : null,
         channelName,
         status: data.scheduledFor ? "scheduled" : "upcoming",
         scheduledFor: data.scheduledFor ? new Date(data.scheduledFor).toISOString() : null,
@@ -180,7 +180,7 @@ export default function CreateStream() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">İlan bağlama</SelectItem>
+                        <SelectItem value="none">İlan bağlanmayacak</SelectItem>
                         {userListings.map((listing) => (
                           <SelectItem key={listing.id} value={listing.id}>
                             {listing.title} - ₺{Number(listing.price).toLocaleString("tr-TR")}

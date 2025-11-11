@@ -103,7 +103,8 @@ export default function StreamControl() {
     if (!token) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${protocol}//${window.location.host}/?token=${token}`);
+    const host = window.location.host;
+    const ws = new WebSocket(`${protocol}//${host}/ws?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

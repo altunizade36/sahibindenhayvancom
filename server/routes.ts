@@ -191,11 +191,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             wss.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
-                  type: "stream_message",
-                  message: {
-                    ...chatMessage,
-                    sender: sender ? { id: sender.id, username: sender.username, avatar: sender.avatar } : null,
-                  },
+                  type: "stream_chat",
+                  streamId: message.streamId,
+                  message: chatMessage,
+                  sender: sender ? { id: sender.id, username: sender.username, avatar: sender.avatar } : null,
                 }));
               }
             });
