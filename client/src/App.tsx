@@ -16,8 +16,7 @@ import Register from "@/pages/register";
 function SidebarLayout() {
   return (
     <div className="flex flex-col h-screen w-full">
-      <header className="flex items-center justify-between p-2 border-b bg-background z-50 sticky top-0">
-        <SidebarTrigger data-testid="button-sidebar-toggle" />
+      <header className="flex items-center justify-end p-2 border-b bg-background z-50 sticky top-0">
         <Navbar />
       </header>
       <div className="flex flex-1 overflow-hidden">
@@ -52,7 +51,10 @@ function Router() {
   const isAuthRoute = location.startsWith('/giris') || location.startsWith('/kayit');
   
   return isAuthRoute ? <AuthLayout /> : (
-    <SidebarProvider style={{ "--sidebar-width": "20rem" } as React.CSSProperties}>
+    <SidebarProvider 
+      style={{ "--sidebar-width": "20rem" } as React.CSSProperties}
+      defaultOpen={true}
+    >
       <SidebarLayout />
     </SidebarProvider>
   );

@@ -218,7 +218,7 @@ export function AppSidebar() {
   });
 
   return (
-    <Sidebar data-testid="app-sidebar">
+    <Sidebar collapsible="none" data-testid="app-sidebar">
       <SidebarContent>
         {/* Main Navigation */}
         <SidebarGroup>
