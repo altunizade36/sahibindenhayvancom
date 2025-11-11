@@ -15,13 +15,13 @@ import Register from "@/pages/register";
 // Routes that should have the sidebar layout
 function SidebarLayout() {
   return (
-    <div className="flex h-screen w-full">
-      <AppSidebar />
-      <div className="flex flex-col flex-1">
-        <header className="flex items-center justify-between p-2 border-b">
-          <SidebarTrigger data-testid="button-sidebar-toggle" />
-          <Navbar />
-        </header>
+    <div className="flex flex-col h-screen w-full">
+      <header className="flex items-center justify-between p-2 border-b bg-background z-50 sticky top-0">
+        <SidebarTrigger data-testid="button-sidebar-toggle" />
+        <Navbar />
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <AppSidebar />
         <main className="flex-1 overflow-auto">
           <Switch>
             <Route path="/" component={Home} />
