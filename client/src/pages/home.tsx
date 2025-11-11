@@ -30,7 +30,7 @@ export default function Home() {
   
   const featuredListings = listingsResponse?.data || [];
 
-  const { data: activeAuctions = [] } = useQuery({
+  const { data: activeAuctions = [] } = useQuery<any[]>({
     queryKey: ["/api/auctions", { status: "live" }],
   });
 
