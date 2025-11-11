@@ -539,6 +539,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/listings/mine", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userListings = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.sellerId, req.user!.id))
+        .orderBy(desc(listings.createdAt));
+        
+      res.json(userListings);
+    } catch (error) {
+      console.error("Error fetching user listings:", error);
+      res.status(500).json({ message: "Failed to fetch user listings" });
+    }
+  });
+
   app.get("/api/users/:id/listings", async (req: Request, res: Response) => {
     try {
       const userListings = await db

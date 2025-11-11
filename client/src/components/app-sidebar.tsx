@@ -1,4 +1,4 @@
-import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronDown, MapPin } from "lucide-react";
+import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronDown, MapPin, Video } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
@@ -25,6 +25,7 @@ import type { Category, Location } from "@shared/schema";
 const navItems = [
   { title: "Ana Sayfa", url: "/", icon: Home },
   { title: "İlanlar", url: "/ilanlar", icon: List },
+  { title: "Canlı Yayınlar", url: "/canli-yayinlar", icon: Video },
 ];
 
 function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category: Category & { children?: Category[] }; level?: number; activeCategoryId?: string }) {
