@@ -6,7 +6,7 @@ import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { ArrowRight, Tv, Gavel } from "lucide-react";
+import { ArrowRight, Gavel } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
 
 interface ListingsResponse {
@@ -30,10 +30,6 @@ export default function Home() {
   
   const featuredListings = listingsResponse?.data || [];
 
-  const { data: liveStreams = [] } = useQuery({
-    queryKey: ["/api/streams", { status: "live" }],
-  });
-
   const { data: activeAuctions = [] } = useQuery({
     queryKey: ["/api/auctions", { status: "live" }],
   });
@@ -48,7 +44,7 @@ export default function Home() {
               <span className="text-primary">Hayvan İlanları Platformu</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8" data-testid="text-hero-subtitle">
-              Evcil dostlarınızı bulun, satın alın, sahiplenin. Canlı yayınlarla tanışın, müzayedelere katılın.
+              Evcil dostlarınızı bulun, satın alın, sahiplenin. Binlerce ilan arasından aradığınızı bulun.
             </p>
             <SearchBar categories={categories} />
           </div>
@@ -93,46 +89,6 @@ export default function Home() {
         </div>
       </section>
 
-      {liveStreams.length > 0 && (
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <Tv className="w-8 h-8 text-destructive" />
-                <h2 className="text-3xl font-bold">Canlı Yayınlar</h2>
-                <Badge variant="destructive" className="animate-pulse">CANLI</Badge>
-              </div>
-              <Link href="/canli-yayinlar">
-                <Button variant="ghost" data-testid="link-all-streams">
-                  Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {liveStreams.slice(0, 3).map((stream: any) => (
-                <Link key={stream.id} href={`/canli/${stream.id}`}>
-                  <div className="relative aspect-video rounded-lg overflow-hidden hover-elevate cursor-pointer">
-                    <img
-                      src={stream.thumbnailUrl || "/placeholder-stream.jpg"}
-                      alt={stream.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <Badge variant="destructive" className="absolute top-3 left-3">
-                      CANLI
-                    </Badge>
-                    <div className="absolute bottom-3 left-3 right-3 text-white">
-                      <h3 className="font-semibold mb-1">{stream.title}</h3>
-                      <p className="text-sm opacity-90">{stream.viewerCount || 0} izleyici</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {activeAuctions.length > 0 && (
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
@@ -171,11 +127,13 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
               <div>
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Tv className="w-8 h-8 text-primary" />
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
-                <h3 className="font-semibold mb-2">Canlı Yayınlar</h3>
+                <h3 className="font-semibold mb-2">Kolay Arama</h3>
                 <p className="text-sm text-muted-foreground">
-                  Hayvanları canlı yayınla görün, satıcıyla anlık iletişime geçin
+                  Gelişmiş filtreleme ile aradığınız hayvanı hızla bulun
                 </p>
               </div>
               <div>

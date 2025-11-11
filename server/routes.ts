@@ -13,7 +13,6 @@ import {
   insertListingSchema,
   insertAuctionSchema,
   insertBidSchema,
-  insertLiveStreamSchema,
   insertMessageSchema,
   insertBlogPostSchema,
   insertVetServiceSchema,
@@ -165,61 +164,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }));
               }
             });
-          } else if (message.type === "stream_chat") {
-            // Handle live stream chat - save to database
-            const chatMessage = await storage.createStreamChatMessage({
-              streamId: message.streamId,
-              senderId: decoded.userId,
-              content: message.content,
-            });
-
-            // Get sender info
-            const sender = await storage.getUser(decoded.userId);
-            
-            // Broadcast to all connected clients
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: "stream_chat",
-                  streamId: message.streamId,
-                  message: chatMessage,
-                  sender: sender ? { id: sender.id, username: sender.username, avatar: sender.avatar } : null,
-                }));
-              }
-            });
-          } else if (message.type === "stream_join") {
-            // Handle viewer joining stream
-            await storage.addStreamViewer({
-              streamId: message.streamId,
-              userId: decoded.userId,
-            });
-
-            // Broadcast updated viewer count
-            const stream = await storage.getLiveStream(message.streamId);
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: "stream_viewer_update",
-                  streamId: message.streamId,
-                  viewerCount: stream?.viewerCount || 0,
-                }));
-              }
-            });
-          } else if (message.type === "stream_leave") {
-            // Handle viewer leaving stream
-            await storage.removeStreamViewer(message.streamId, decoded.userId);
-
-            // Broadcast updated viewer count
-            const stream = await storage.getLiveStream(message.streamId);
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: "stream_viewer_update",
-                  streamId: message.streamId,
-                  viewerCount: stream?.viewerCount || 0,
-                }));
-              }
-            });
           }
         } catch (error) {
           console.error("WebSocket message error:", error);
@@ -228,29 +172,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       ws.on("close", async () => {
         clients.delete(decoded.userId);
-        
-        // Cleanup: Remove user from all active stream viewers
-        try {
-          const activeViewers = await storage.getActiveStreamViewersByUser(decoded.userId);
-          
-          for (const viewer of activeViewers) {
-            await storage.removeStreamViewer(viewer.streamId, decoded.userId);
-            
-            // Broadcast updated viewer count
-            const stream = await storage.getLiveStream(viewer.streamId);
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: "stream_viewer_update",
-                  streamId: viewer.streamId,
-                  viewerCount: stream?.viewerCount || 0,
-                }));
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Failed to cleanup disconnected viewer:", error);
-        }
       });
     } catch (error) {
       ws.close(1008, "Invalid token");
