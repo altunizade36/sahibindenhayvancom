@@ -1,20 +1,34 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search-bar";
 import { ListingCard } from "@/components/listing-card";
+import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { ArrowRight, Tv, Gavel } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
 
+interface ListingsResponse {
+  data: Listing[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export default function Home() {
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: featuredListings = [] } = useQuery<Listing[]>({
-    queryKey: ["/api/listings", { status: "active" }],
+  const { data: listingsResponse } = useQuery<ListingsResponse>({
+    queryKey: ["/api/listings", { page: currentPage, limit: 50 }],
   });
+  
+  const featuredListings = listingsResponse?.data || [];
 
   const { data: liveStreams = [] } = useQuery({
     queryKey: ["/api/streams", { status: "live" }],
@@ -44,18 +58,38 @@ export default function Home() {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Son Eklenen İlanlar</h2>
-            <Link href="/ilanlar">
-              <Button variant="ghost" data-testid="link-all-listings-top">
-                Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            <div>
+              <h2 className="text-3xl font-bold">Tüm İlanlar</h2>
+              {listingsResponse && (
+                <p className="text-muted-foreground mt-2">
+                  {listingsResponse.total} ilan bulundu
+                </p>
+              )}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredListings.slice(0, 12).map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          
+          {featuredListings.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredListings.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+              </div>
+              
+              <Pagination
+                currentPage={currentPage}
+                totalPages={listingsResponse?.totalPages || 1}
+                onPageChange={setCurrentPage}
+              />
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">Henüz ilan yok</p>
+              <Link href="/ilan-ver">
+                <Button className="mt-4">İlk İlanı Siz Verin</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -124,26 +158,6 @@ export default function Home() {
                     <p className="text-sm text-muted-foreground">{auction.totalBids || 0} teklif</p>
                   </div>
                 </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {featuredListings.length > 12 && (
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold">Daha Fazla İlan</h2>
-              <Link href="/ilanlar">
-                <Button variant="ghost" data-testid="link-all-listings">
-                  Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredListings.slice(12, 20).map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
               ))}
             </div>
           </div>

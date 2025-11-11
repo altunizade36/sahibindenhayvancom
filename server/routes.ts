@@ -3,8 +3,8 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
-import { locations } from "@shared/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { locations, listings } from "@shared/schema";
+import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -345,54 +345,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Listing Routes ============
   app.get("/api/listings", optionalAuthMiddleware, async (req: Request, res: Response) => {
-    const listings = await storage.getAllListings(req.query);
-    
-    // If user is authenticated, check favorites
-    if (req.user) {
-      const favorites = await storage.getFavoritesByUser(req.user.id);
-      const favoriteIds = new Set(favorites.map(f => f.listingId));
+    try {
+      const { page = '1', limit = '50', categoryId, city, minPrice, maxPrice, status, search } = req.query;
       
-      const listingsWithFavorites = listings.map(listing => ({
-        ...listing,
-        isFavorite: favoriteIds.has(listing.id),
-      }));
+      const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10) || 50)); // Max 100
+      const offset = (pageNum - 1) * limitNum;
       
-      return res.json(listingsWithFavorites);
+      // Build query conditions
+      const conditions = [];
+      
+      if (categoryId) {
+        conditions.push(eq(listings.categoryId, categoryId as string));
+      }
+      
+      if (city) {
+        conditions.push(eq(listings.city, city as string));
+      }
+      
+      if (status) {
+        conditions.push(eq(listings.status, status as any));
+      } else {
+        // Default: only show active listings
+        conditions.push(eq(listings.status, 'active'));
+      }
+      
+      if (minPrice) {
+        conditions.push(sql`${listings.price}::numeric >= ${parseFloat(minPrice as string)}`);
+      }
+      
+      if (maxPrice) {
+        conditions.push(sql`${listings.price}::numeric <= ${parseFloat(maxPrice as string)}`);
+      }
+      
+      if (search) {
+        const searchTerm = `%${search}%`;
+        conditions.push(
+          sql`(${listings.title} ILIKE ${searchTerm} OR ${listings.description} ILIKE ${searchTerm})`
+        );
+      }
+      
+      // Get total count
+      const [{ count: totalCount }] = await db
+        .select({ count: count() })
+        .from(listings)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+      
+      // Get paginated listings
+      const listingsData = await db
+        .select()
+        .from(listings)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(listings.createdAt))
+        .limit(limitNum)
+        .offset(offset);
+      
+      // If user is authenticated, check favorites
+      let listingsWithFavorites = listingsData;
+      if (req.user) {
+        const favorites = await storage.getFavoritesByUser(req.user.id);
+        const favoriteIds = new Set(favorites.map(f => f.listingId));
+        
+        listingsWithFavorites = listingsData.map(listing => ({
+          ...listing,
+          isFavorite: favoriteIds.has(listing.id),
+        }));
+      }
+      
+      res.json({
+        data: listingsWithFavorites,
+        total: Number(totalCount),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(Number(totalCount) / limitNum),
+      });
+    } catch (error) {
+      console.error("Error fetching listings:", error);
+      res.status(500).json({ message: "Failed to fetch listings" });
     }
-    
-    res.json(listings);
   });
 
   app.get("/api/listings/:id", optionalAuthMiddleware, async (req: Request, res: Response) => {
-    const listing = await storage.getListing(req.params.id);
-    if (!listing) {
-      return res.status(404).json({ message: "Listing not found" });
+    try {
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+        
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+
+      // Increment views
+      await db
+        .update(listings)
+        .set({ views: sql`${listings.views} + 1` })
+        .where(eq(listings.id, req.params.id));
+
+      // Get seller info
+      const seller = await storage.getUser(listing.sellerId);
+
+      // Check if favorited
+      let isFavorite = false;
+      if (req.user) {
+        isFavorite = await storage.isFavorite(req.user.id, listing.id);
+      }
+
+      // Sanitize seller object
+      let sanitizedSeller = null;
+      if (seller) {
+        const { password: _, ...safe } = seller;
+        sanitizedSeller = safe;
+      }
+
+      res.json({
+        ...listing,
+        views: (listing.views || 0) + 1, // Return incremented view count
+        seller: sanitizedSeller,
+        isFavorite,
+      });
+    } catch (error) {
+      console.error("Error fetching listing:", error);
+      res.status(500).json({ message: "Failed to fetch listing" });
     }
-
-    // Increment views
-    await storage.incrementListingViews(req.params.id);
-
-    // Get seller info
-    const seller = await storage.getUser(listing.sellerId);
-
-    // Check if favorited
-    let isFavorite = false;
-    if (req.user) {
-      isFavorite = await storage.isFavorite(req.user.id, listing.id);
-    }
-
-    // Sanitize seller object
-    let sanitizedSeller = null;
-    if (seller) {
-      const { password: _, ...safe } = seller;
-      sanitizedSeller = safe;
-    }
-
-    res.json({
-      ...listing,
-      seller: sanitizedSeller,
-      isFavorite,
-    });
   });
 
   app.post("/api/listings", authMiddleware, async (req: Request, res: Response) => {
@@ -402,16 +478,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: req.user!.id,
       });
 
-      const listing = await storage.createListing(data);
+      const [listing] = await db.insert(listings).values(data).returning();
       res.status(201).json(listing);
     } catch (error) {
+      console.error("Error creating listing:", error);
       res.status(400).json({ message: "Failed to create listing", error });
     }
   });
 
   app.patch("/api/listings/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const listing = await storage.getListing(req.params.id);
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+        
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -420,16 +502,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      const updated = await storage.updateListing(req.params.id, req.body);
+      const [updated] = await db
+        .update(listings)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(listings.id, req.params.id))
+        .returning();
+        
       res.json(updated);
     } catch (error) {
+      console.error("Error updating listing:", error);
       res.status(400).json({ message: "Update failed", error });
     }
   });
 
   app.delete("/api/listings/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const listing = await storage.getListing(req.params.id);
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+        
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -438,16 +531,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      await storage.deleteListing(req.params.id);
+      await db.delete(listings).where(eq(listings.id, req.params.id));
       res.json({ message: "Listing deleted" });
     } catch (error) {
+      console.error("Error deleting listing:", error);
       res.status(400).json({ message: "Delete failed", error });
     }
   });
 
   app.get("/api/users/:id/listings", async (req: Request, res: Response) => {
-    const listings = await storage.getListingsBySeller(req.params.id);
-    res.json(listings);
+    try {
+      const userListings = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.sellerId, req.params.id))
+        .orderBy(desc(listings.createdAt));
+        
+      res.json(userListings);
+    } catch (error) {
+      console.error("Error fetching user listings:", error);
+      res.status(500).json({ message: "Failed to fetch user listings" });
+    }
   });
 
   // ============ Auction Routes ============

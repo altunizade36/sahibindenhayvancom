@@ -11,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import CreateListing from "@/pages/create-listing";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -23,6 +24,7 @@ function SidebarLayout() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={Home} />
+            <Route path="/ilan-ver" component={CreateListing} />
             <Route component={NotFound} />
           </Switch>
         </main>
