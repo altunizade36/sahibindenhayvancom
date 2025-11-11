@@ -12,6 +12,8 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import CreateListing from "@/pages/create-listing";
+import BlogList from "@/pages/blog-list";
+import BlogDetail from "@/pages/blog-detail";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -32,7 +34,7 @@ function SidebarLayout() {
   );
 }
 
-// Routes without sidebar (auth pages + create listing)
+// Routes without sidebar (auth pages + create listing + blog)
 function NoSidebarLayout() {
   return (
     <div className="flex flex-col h-screen w-full">
@@ -42,6 +44,8 @@ function NoSidebarLayout() {
           <Route path="/giris" component={Login} />
           <Route path="/kayit" component={Register} />
           <Route path="/ilan-ver" component={CreateListing} />
+          <Route path="/blog" component={BlogList} />
+          <Route path="/blog/:slug" component={BlogDetail} />
         </Switch>
       </main>
     </div>
@@ -52,7 +56,8 @@ function Router() {
   const [location] = useLocation();
   const isNoSidebarRoute = location.startsWith('/giris') || 
                            location.startsWith('/kayit') || 
-                           location.startsWith('/ilan-ver');
+                           location.startsWith('/ilan-ver') ||
+                           location.startsWith('/blog');
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
