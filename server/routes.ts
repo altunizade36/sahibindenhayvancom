@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
-import { locations, listings } from "@shared/schema";
+import { locations, listings, blogPosts } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -629,9 +629,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Blog Routes ============
   app.get("/api/blog", async (req: Request, res: Response) => {
-    const published = req.query.published !== "false";
-    const posts = await storage.getAllBlogPosts(published);
-    res.json(posts);
+    try {
+      // Read blog posts directly from database (seeded data)
+      const published = req.query.published !== "false";
+      const posts = await db.query.blogPosts.findMany({
+        where: published ? eq(blogPosts.published, true) : undefined,
+        orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+      });
+      res.json(posts);
+    } catch (error) {
+      console.error("Blog API error:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
+    }
   });
 
   app.get("/api/blog/:slug", async (req: Request, res: Response) => {

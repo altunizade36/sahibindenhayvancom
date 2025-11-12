@@ -224,6 +224,10 @@ A completely FREE Turkish animal classifieds platform focusing on comprehensive 
 ### Completed ✅
 ✅ **Database schema design** (all tables: users, listings, categories, auctions, live_streams, bids, messages, blog_posts, services, reviews, favorites)
 ✅ **Storage interface** with full CRUD operations for all entities
+  - **Hybrid Storage Approach** (Nov 12, 2025):
+    - MemStorage for in-memory entities (MVP)
+    - Database queries for seeded blog posts (persistent)
+    - TODO: Full DbStorage migration for production
 ✅ **Authentication system** (JWT, multi-role) with security hardening
   - Mandatory SESSION_SECRET environment variable
   - Password sanitization across all endpoints
@@ -231,6 +235,7 @@ A completely FREE Turkish animal classifieds platform focusing on comprehensive 
 ✅ **API routes** (listings, auctions, streams, blog, services, favorites, categories)
   - Full REST API with proper error handling
   - Query parameter support for filtering
+  - Blog endpoints read directly from database
 ✅ **WebSocket server** (real-time chat and auction bidding)
 ✅ **Agora.io integration** (live streaming token generation with credential validation)
 ✅ **Theme colors** (Turkish marketplace aesthetics - blue primary, gold accents)
@@ -255,6 +260,13 @@ A completely FREE Turkish animal classifieds platform focusing on comprehensive 
   - WebSocket real-time chat during streams
   - Viewer count tracking with WebSocket join/leave events
   - Stream-listing linking for product showcasing
+
+✅ **Blog System** (Nov 12, 2025)
+  - 20 seeded blog posts with veterinarian author
+  - Hierarchical category system (7 root + 18 subcategories with depth/path fields)
+  - Blog list page (/blog) - Search, category filter, responsive grid
+  - Database-backed blog posts endpoint
+  - Seed script improvements: Individual entity checks, detailed logging
 
 ### In Progress
 🚧 Seller stream management panel (/panel/canli-yayinlarim)

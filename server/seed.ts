@@ -10,15 +10,10 @@ export async function seedDatabase() {
   console.log("🌱 Seeding database...");
   
   try {
-    // Check if already seeded
+    // Check what needs to be seeded (individual checks for each entity)
     const existingCategories = await db.query.categories.findMany({ limit: 1 });
     const existingLocations = await db.query.locations.findMany({ limit: 1 });
     const existingBlogPosts = await db.query.blogPosts.findMany({ limit: 1 });
-    
-    if (existingCategories.length > 0 && existingLocations.length > 0 && existingBlogPosts.length > 0) {
-      console.log("✅ Database already seeded, skipping");
-      return;
-    }
     
     // Seed categories (two-phase: roots first, then children with resolved parentIds and depth/path)
     if (existingCategories.length === 0) {
@@ -117,25 +112,37 @@ export async function seedDatabase() {
     if (existingBlogPosts.length === 0) {
       console.log("📝 Seeding blog posts...");
       
-      // Create veterinarian author
-      const hashedPassword = await bcrypt.hash("veteriner123", 10);
-      const [veterinarianAuthor] = await db
-        .insert(users)
-        .values({
-          username: "drayse",
-          email: "veteriner@sahibindenhayvan.com",
-          password: hashedPassword,
-          fullName: "Dr. Ayşe Yılmaz",
-          role: "vet",
-          phone: "(0532) 123 45 67",
-          city: "İstanbul",
-          district: "Kadıköy",
-          bio: "15 yıllık deneyime sahip veteriner hekim. Hayvan sağlığı ve bakımı konusunda uzmanlaşmış, pek çok hayvansevere danışmanlık vermiştir.",
-        })
-        .returning()
-        .execute();
+      // Check if veterinarian author already exists
+      let veterinarianAuthor = await db.query.users.findFirst({
+        where: eq(users.email, "veteriner@sahibindenhayvan.com"),
+      });
+      
+      if (!veterinarianAuthor) {
+        console.log("Creating veterinarian author...");
+        const hashedPassword = await bcrypt.hash("veteriner123", 10);
+        const [newAuthor] = await db
+          .insert(users)
+          .values({
+            username: "drayse",
+            email: "veteriner@sahibindenhayvan.com",
+            password: hashedPassword,
+            fullName: "Dr. Ayşe Yılmaz",
+            role: "vet",
+            phone: "(0532) 123 45 67",
+            city: "İstanbul",
+            district: "Kadıköy",
+            bio: "15 yıllık deneyime sahip veteriner hekim. Hayvan sağlığı ve bakımı konusunda uzmanlaşmış, pek çok hayvansevere danışmanlık vermiştir.",
+          })
+          .returning()
+          .execute();
+        veterinarianAuthor = newAuthor;
+        console.log("✅ Veterinarian author created");
+      } else {
+        console.log("✅ Veterinarian author already exists");
+      }
       
       // Insert blog posts
+      console.log(`Inserting ${blogPostsData.length} blog posts...`);
       for (const post of blogPostsData) {
         await db
           .insert(blogPosts)
@@ -154,6 +161,8 @@ export async function seedDatabase() {
       }
       
       console.log(`✅ Blog posts seeded (${blogPostsData.length} posts)`);
+    } else {
+      console.log("✅ Blog posts already exist, skipping");
     }
     
     console.log("✅ Database seeded successfully");
