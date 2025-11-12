@@ -1,309 +1,53 @@
-# sahibindenhayvan.com - FREE Turkish Animal Classifieds Platform
+### Overview
+sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform designed for comprehensive listing features with advanced search, filtering, and categorization. The primary goal is user acquisition by offering free listings for pets, livestock, birds, fish, horses, and beekeeping. Future plans include monetization through premium features, advertising, and sales commissions.
 
-## Project Overview  
-A completely FREE Turkish animal classifieds platform focusing on comprehensive listing features with advanced search, filtering, and categorization. Auction and live streaming features postponed for future development. Platform prioritizes user acquisition over monetization.
+### User Preferences
+No specific user preferences were provided in the original document.
 
-## Tech Stack
-- **Frontend**: React + TypeScript + Vite
-- **Backend**: Node.js + Express
-- **Database**: PostgreSQL (in-memory storage for MVP)
-- **Real-time**: WebSocket for messaging
-- **UI Components**: Shadcn UI + Tailwind CSS
-- **Forms**: React Hook Form + Zod
+### System Architecture
+
+**Design Decisions:**
+- **UI/UX**: Utilizes Shadcn UI and Tailwind CSS for a modern, responsive design. Features a Turkish marketplace theme with Blue (#0066CC) as primary, Gold/Yellow as secondary, and Inter, Poppins, Space Grotesk fonts. Layouts include responsive grids for listings, categories, and blog posts, with a prominent central search bar and sticky header.
+- **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles, each with specific permissions and features.
+- **Free Platform Model**: All listing, auction, and live streaming features are free to encourage user acquisition. Payment infrastructure has been entirely removed.
+- **Hybrid Storage Approach**: Currently uses in-memory storage for MVP with a defined PostgreSQL schema (Drizzle ORM) for future migration. Seeded blog posts are read from the database.
+- **Security**: Implements JWT authentication, password hashing with bcrypt, password sanitization, privilege escalation prevention via whitelisted profile fields, and secure WebSocket authentication using JWT tokens.
+
+**Technical Implementations:**
+- **Frontend**: React + TypeScript + Vite, with React Hook Form + Zod for forms, and TanStack Query for state management.
+- **Backend**: Node.js + Express.
+- **Real-time**: WebSocket for messaging and live stream chat.
+- **Core Functionality**:
+    - **Animal Listings**: Advanced search, filtering (price, location, breed, age, health), image galleries, document uploads.
+    - **Messaging**: Real-time chat between buyers and sellers, listing-specific threads.
+    - **Services**: Veterinary and transportation service listings with profiles, reviews, and ratings.
+    - **Blog System**: Animal care articles, veterinary advice, nutrition and training guides by veterinarians.
+    - **Live Streaming**: Real-time video streaming with chat and viewer count tracking.
+    - **User Profiles**: "My Listings" and "Favorites" tabs with management options.
+    - **Comprehensive Pages**: Dedicated pages for listing lists, detail pages, profile management, real-time messaging, veterinary services, and transportation services.
+
+**Key API Endpoints:**
+- **Authentication**: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/profile`
+- **Listings**: `/api/listings` (CRUD operations)
+- **Auctions**: `/api/auctions` (list, detail, create), `/api/auctions/:id/bids`
+- **Live Streams**: `/api/streams` (list, detail, create, update), `/api/streams/:id/token`
+- **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
+- **Services**: `/api/vet-services`, `/api/transport-services` (list, create)
+- **Blog**: `/api/blog` (list, detail, create)
+- **Favorites**: `/api/favorites` (list, add, remove)
+
+**WebSocket Events:**
+- **Client → Server**: `chat`, `bid`, `stream_chat`
+- **Server → Client**: `chat`, `chat_sent`, `new_bid`, `stream_message`
+
+### External Dependencies
+- **Database**: PostgreSQL (planned for full migration; currently in-memory storage for MVP)
+- **Real-time Communication**: WebSocket
+- **UI Components**: Shadcn UI
+- **Styling**: Tailwind CSS
+- **Form Handling**: React Hook Form, Zod
 - **State Management**: TanStack Query
-- **Authentication**: JWT
-
-## Key Features
-
-### Multi-Role System
-- **Guest**: Browse listings, watch live streams, view auctions
-- **Buyer**: All guest features + favorites, messaging, bidding
-- **Seller**: Create listings, start live streams, create auctions
-- **Veterinarian**: Write blog posts, offer vet services
-- **Transporter**: Offer transportation services
-- **Admin**: Full platform management
-
-### Core Functionality
-1. **Animal Listings** (PRIMARY FOCUS)
-   - Categories: Pets, Livestock, Birds, Fish, Horses, Beekeeping
-   - Advanced search and filtering system
-   - Rich filters: price, location, breed, age, health status
-   - Image galleries and documents (vaccination, pedigree)
-   - Detailed listing pages with seller contact
-   - Premium and urgent listings
-
-2. **Messaging**
-   - Real-time chat between buyers and sellers
-   - WebSocket-powered conversations
-   - Listing-specific threads
-
-3. **Services**
-   - Veterinary services with reviews and ratings
-   - Transportation services for animal delivery
-   - Service provider profiles
-
-4. **Blog System**
-   - Animal care articles
-   - Veterinary advice
-   - Nutrition and training guides
-
-### Postponed Features (Future Development)
-- **Live Streaming** (Agora.io integration removed)
-- **Auction System** (WebSocket bidding removed)
-
-## Project Structure
-
-### Backend (`server/`)
-- `index.ts`: Express app setup
-- `routes.ts`: All API routes and WebSocket handling
-- `storage.ts`: In-memory storage implementation
-- `db.ts`: Database connection (for future PostgreSQL migration)
-
-### Frontend (`client/src/`)
-- `pages/`: Route components (home, login, register, etc.)
-- `components/`: Reusable UI components
-  - `navbar.tsx`: Main navigation with user menu
-  - `listing-card.tsx`: Animal listing cards
-  - `search-bar.tsx`: Search with category filter
-  - `category-grid.tsx`: Category navigation
-- `lib/`: Utilities
-  - `auth.tsx`: Authentication context and hooks
-  - `queryClient.ts`: TanStack Query setup
-
-### Shared (`shared/`)
-- `schema.ts`: Drizzle ORM schema and Zod validation schemas
-
-## Database Schema
-
-### Core Tables
-- **users**: User accounts with role-based access (NO wallet fields)
-- **categories**: Hierarchical animal categories
-- **listings**: Animal listings with images and details (FREE to create)
-- **auctions**: Auction configurations (FREE to create)
-- **bids**: Auction bid history
-- **live_streams**: Live streaming sessions (FREE to start)
-- **stream_chat_messages**: Real-time chat during streams
-- **stream_viewers**: Active viewer tracking
-- **stream_bans**: Banned users from streams
-- **stream_mutes**: Muted users in stream chat
-- **messages**: Chat messages
-- **blog_posts**: Blog articles
-- **vet_services**: Veterinary service offerings
-- **transport_services**: Transportation services
-- **reviews**: Service reviews
-- **favorites**: User favorites
-
-### REMOVED Tables (Payment Infrastructure Deleted)
-- ~~transactions~~ - Deleted (no payment tracking)
-- ~~walletBalance field in users~~ - Removed
-- ~~stripeCustomerId field in users~~ - Removed
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register`: User registration
-- `POST /api/auth/login`: User login
-- `GET /api/auth/me`: Get current user
-- `PATCH /api/auth/profile`: Update profile
-
-### Listings
-- `GET /api/listings`: List all listings (with filters)
-- `GET /api/listings/:id`: Get listing details
-- `POST /api/listings`: Create listing
-- `PATCH /api/listings/:id`: Update listing
-- `DELETE /api/listings/:id`: Delete listing
-
-### Auctions
-- `GET /api/auctions`: List auctions
-- `GET /api/auctions/:id`: Get auction details
-- `POST /api/auctions`: Create auction
-- `GET /api/auctions/:id/bids`: Get bid history
-
-### Live Streams
-- `GET /api/streams`: List streams
-- `GET /api/streams/:id`: Get stream details
-- `POST /api/streams`: Create stream
-- `PATCH /api/streams/:id`: Update stream
-- `POST /api/streams/:id/token`: Generate Agora token
-
-### Messages
-- `GET /api/messages/conversations`: Get user conversations
-- `GET /api/messages/:userId`: Get messages with user
-- `POST /api/messages`: Send message
-
-### Services
-- `GET /api/vet-services`: List vet services
-- `POST /api/vet-services`: Create vet service
-- `GET /api/transport-services`: List transport services
-- `POST /api/transport-services`: Create transport service
-
-### Blog
-- `GET /api/blog`: List blog posts
-- `GET /api/blog/:slug`: Get blog post
-- `POST /api/blog`: Create blog post
-
-### Favorites
-- `GET /api/favorites`: Get user favorites
-- `POST /api/favorites`: Add favorite
-- `DELETE /api/favorites/:listingId`: Remove favorite
-
-## WebSocket Events
-
-### Client → Server
-- `chat`: Send chat message
-- `bid`: Place auction bid
-- `stream_chat`: Send live stream chat message
-
-### Server → Client
-- `chat`: Receive chat message
-- `chat_sent`: Message sent confirmation
-- `new_bid`: New bid notification
-- `stream_message`: Live stream chat message
-
-## Environment Variables
-- `SESSION_SECRET`: JWT secret key
-- `AGORA_APP_ID`: Agora.io application ID
-- `AGORA_APP_CERTIFICATE`: Agora.io app certificate
-- `DATABASE_URL`: PostgreSQL connection (for future use)
-
-## Design System
-
-### Colors (Turkish Marketplace Theme)
-- **Primary**: Blue (#0066CC) - Trust and reliability
-- **Secondary**: Gold/Yellow - Premium features
-- **Accent**: Light blue/cyan - Interactive elements
-- **Destructive**: Red - Urgent listings, live indicators
-
-### Typography
-- Primary: Inter (UI, body text)
-- Headings: Poppins (hero, titles)
-- Accent: Space Grotesk (pricing, stats)
-
-### Layout Patterns
-- Listing cards: 4-column grid (responsive)
-- Category tiles: 6-column grid
-- Blog posts: 3-column grid
-- Search bar: Prominent center position
-- Sticky header navigation
-
-## Security Features
-
-### Critical Security Implementations
-✅ **JWT Authentication**: Mandatory SESSION_SECRET environment variable - application fails fast if missing
-✅ **Password Security**: All user responses sanitized to remove password hashes before sending to client
-✅ **Privilege Escalation Prevention**: Profile updates whitelist only safe fields (fullName, phone, city, district, bio, avatar) - role changes blocked
-✅ **Agora Validation**: Live streaming token endpoint validates credentials and returns controlled error if missing
-✅ **JWT Token Expiry**: All tokens expire after 7 days
-✅ **Password Hashing**: bcrypt with salt rounds for secure password storage
-
-### Security Audit Trail
-- 2025-01-11: Removed hard-coded JWT fallback secret (critical fix)
-- 2025-01-11: Added password sanitization across all user-returning endpoints
-- 2025-01-11: Implemented profile update field whitelist to prevent role escalation
-- 2025-01-11: Added Agora credential validation with controlled error responses
-
-## Free Platform Architecture (Nov 11, 2025)
-
-### What Changed
-**MAJOR PIVOT: Completely FREE platform**
-- ❌ Removed all payment infrastructure (Stripe, iyzico)
-- ❌ Deleted wallet system (balance tracking, transactions)
-- ❌ Removed listing fees (was 50₺ base + 50₺ premium + 25₺ urgent)
-- ❌ Removed auction entry fees
-- ❌ Deleted /cuzdan (wallet) page
-- ✅ Users can now create unlimited listings, auctions, and streams FOR FREE
-
-### Why Free?
-**User acquisition strategy** - Build a large user base first, implement monetization later through:
-- Premium features (future)
-- Advertising (future)
-- Commission on successful sales (future)
-
-## Development Status
-
-### Completed ✅
-✅ **Database schema design** (all tables: users, listings, categories, auctions, live_streams, bids, messages, blog_posts, services, reviews, favorites)
-✅ **Storage interface** with full CRUD operations for all entities
-  - **Hybrid Storage Approach** (Nov 12, 2025):
-    - MemStorage for in-memory entities (MVP)
-    - Database queries for seeded blog posts (persistent)
-    - TODO: Full DbStorage migration for production
-✅ **Authentication system** (JWT, multi-role) with security hardening
-  - Mandatory SESSION_SECRET environment variable
-  - Password sanitization across all endpoints
-  - Privilege escalation prevention (whitelisted profile fields)
-✅ **API routes** (listings, auctions, streams, blog, services, favorites, categories)
-  - Full REST API with proper error handling
-  - Query parameter support for filtering
-  - Blog endpoints read directly from database
-✅ **WebSocket server** (real-time chat and auction bidding)
-✅ **Agora.io integration** (live streaming token generation with credential validation)
-✅ **Theme colors** (Turkish marketplace aesthetics - blue primary, gold accents)
-✅ **Core UI components** (Navbar with user menu, ListingCard, SearchBar with category filter, CategoryGrid)
-✅ **Homepage** with hero section, search bar, categories grid, featured listings sections
-✅ **Authentication pages** (login at /giris, register at /kayit)
-  - Form validation with Zod
-  - Auto-login after registration
-  - Secure password handling
-✅ **TanStack Query setup** with proper query parameter serialization
-✅ **End-to-end testing** - Registration and login flow verified
-
-✅ **Live Streaming System** (Nov 11, 2025)
-  - Backend /api/live/* endpoints:
-    - POST /api/live/create - Create stream with Agora RTC token (seller/admin only)
-    - GET /api/live/join?channel={name} - Join stream with viewer token (public access)
-    - GET /api/live/active - List active streams (public access)
-    - POST /api/live/end - End stream (seller/admin only)
-  - Frontend /canli-yayin page - Active streams list with live badges, viewer counts
-  - Frontend /canli/[channelName] route - Stream viewer with Agora RTC video player
-  - Dual routing: /yayin/:id (by ID) and /canli/:channelName (by channel name)
-  - WebSocket real-time chat during streams
-  - Viewer count tracking with WebSocket join/leave events
-  - Stream-listing linking for product showcasing
-
-✅ **Blog System** (Nov 12, 2025)
-  - 20 seeded blog posts with veterinarian author
-  - Hierarchical category system (7 root + 18 subcategories with depth/path fields)
-  - Blog list page (/blog) - Search, category filter, responsive grid
-  - Database-backed blog posts endpoint
-  - Seed script improvements: Individual entity checks, detailed logging
-
-### In Progress
-🚧 Seller stream management panel (/panel/canli-yayinlarim)
-🚧 Additional pages (listings list, listing detail, auctions)
-🚧 Dashboard implementation
-🚧 Blog system frontend
-🚧 Service listings frontend
-
-### Planned
-⏳ Object storage integration for images
-⏳ Email notifications
-⏳ Admin panel
-⏳ Mobile responsive optimizations
-⏳ SEO optimization
-
-## Turkish Language Features
-- All UI text in Turkish
-- Turkish date formats (DD.MM.YYYY)
-- Turkish Lira (₺) currency formatting
-- Turkish locale for date-fns
-- Phone number format: (0XXX) XXX XX XX
-- Address hierarchy: İl (Province) → İlçe (District)
-
-## Running the Project
-```bash
-npm run dev
-```
-Starts both Express server and Vite dev server on port 5000.
-
-## Testing
-- Use `/giris` for login page
-- Use `/kayit` for registration page
-- Homepage at `/` shows categories, search, and featured listings
-
-## Notes
-- Currently using in-memory storage for MVP
-- Ready for PostgreSQL migration (schema defined with Drizzle ORM)
-- WebSocket connection requires JWT token in query params
-- Agora tokens expire after 1 hour
-- All images stored via Replit Object Storage (configured)
+- **Authentication**: JSON Web Tokens (JWT)
+- **Live Streaming**: Agora.io (for RTC token generation)
+- **Password Hashing**: bcrypt
+- **Image Storage**: Replit Object Storage (configured)
