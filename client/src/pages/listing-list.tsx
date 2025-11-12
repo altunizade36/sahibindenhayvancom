@@ -30,9 +30,11 @@ export default function ListingList() {
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "price-low" | "price-high">("newest");
   const [showFilters, setShowFilters] = useState(true);
 
-  const { data: listings, isLoading } = useQuery<ListingWithDetails[]>({
+  const { data: listingsResponse, isLoading } = useQuery<{ data: ListingWithDetails[]; total: number }>({
     queryKey: ["/api/listings"],
   });
+  
+  const listings = listingsResponse?.data || [];
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -43,7 +45,7 @@ export default function ListingList() {
   });
 
   const filteredAndSortedListings = useMemo(() => {
-    if (!listings) return [];
+    if (!listings || listings.length === 0) return [];
 
     let filtered = [...listings];
 

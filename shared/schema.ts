@@ -165,7 +165,12 @@ export const listings = pgTable("listings", {
   views: integer("views").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  categoryStatusCreatedIdx: index("listings_category_status_created_idx").on(table.categoryId, table.status, table.createdAt),
+  locationCreatedIdx: index("listings_location_created_idx").on(table.locationId, table.createdAt),
+  sellerCreatedIdx: index("listings_seller_created_idx").on(table.sellerId, table.createdAt),
+  statusPremiumIdx: index("listings_status_premium_idx").on(table.status, table.isPremium),
+}));
 
 export const insertListingSchema = createInsertSchema(listings).omit({
   id: true,
@@ -260,7 +265,10 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   status: messageStatusEnum("status").default("sent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  senderReceiverCreatedIdx: index("messages_sender_receiver_created_idx").on(table.senderId, table.receiverId, table.createdAt),
+  receiverCreatedIdx: index("messages_receiver_created_idx").on(table.receiverId, table.createdAt),
+}));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
