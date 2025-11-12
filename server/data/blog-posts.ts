@@ -1,2619 +1,11735 @@
 export const blogPosts = [
-  // Köpek Bakımı (7 yazı)
   {
     title: "Köpeklerde Aşı Takvimi: Hangi Aşı Ne Zaman Yapılmalı?",
     slug: "kopeklerde-asi-takvimi",
-    excerpt: "Köpeğinizin sağlıklı kalması için düzenli aşı takvimine uymak hayati önem taşır. İşte tam aşı rehberi.",
-    content: `# Köpeklerde Aşı Takvimi
+    excerpt: "Köpeğinizin sağlıklı kalması için düzenli aşı takvimine uymak hayati önem taşır.",
+    content: `# Köpeklerde Aşı Takvimi: Kapsamlı Rehber
 
-Köpekler için aşı programı, yaşamları boyunca sağlıklı kalmalarını sağlayan en önemli faktörlerden biridir. Doğru zamanlama ve düzenli takip, pek çok ciddi hastalığın önlenmesinde kritik rol oynar.
+Köpeklerin sağlıklı ve uzun bir yaşam sürmesi için aşılar en kritik koruyucu önlemlerdir. Doğru zamanlama ve düzenli takip ile pek çok ölümcül hastalığın önüne geçilebilir.
 
-## Yavru Köpek Aşı Takvimi
+## Neden Aşı Yaptırmalıyız?
 
-**6-8 Haftalık:** İlk kombine aşı (Distemper, Parvovirus, Adenovirus)
-- Bu dönemde yavruların bağışıklık sistemi anneden aldığı antikorlarla korunur
-- İlk aşı bu antikorların azalmaya başladığı dönemde yapılır
-- Veteriner kontrolü mutlaka yapılmalıdır
+Aşılar, köpeğin bağışıklık sistemini güçlendirerek hastalıklara karşı doğal savunma mekanizması geliştirmesini sağlar. Aşısız köpekler:
 
-**10-12 Haftalık:** İkinci kombine aşı
-- İlk aşının pekiştirilmesi için kritik
-- Bağışıklık sisteminin güçlenmesini sağlar
-- Bu dönemde sosyalizasyon sınırlı tutulmalı
+- Parvovirus gibi ölümcül hastalıklara yakalanabilir
+- Kuduz gibi insanlara da bulaşabilen hastalıklar taşıyabilir
+- Pahalı tedavi süreçleri gerektirebilir
+- Diğer hayvanlar için risk oluşturabilir
+- Acı çekerek hayatını kaybedebilir
 
-**14-16 Haftalık:** Üçüncü kombine aşı + Kuduz aşısı
+## Yavru Köpek Aşı Takvimi (0-16 Hafta)
+
+### 6-8 Haftalık: İlk Aşı (DHPP)
+
+**İçeriği:**
+- **D**istemper (Köpek Vebası)
+- **H**epatit (Karaciğer İltihabı)
+- **P**arainfluenza (Köpek Gribi)
+- **P**arvovirus (Bağırsak Enfeksiyonu)
+
+**Önemli Notlar:**
+- Bu dönemde yavru hala anne sütünden aldığı antikorlarla kısmen korunur
+- İlk aşı bu koruma azalmaya başladığında yapılır
+- Aşıdan önce mutlaka veteriner muayenesi gerekir
+- Sadece sağlıklı yavrulara aşı yapılır
+
+### 10-12 Haftalık: İkinci Aşı (DHPP Rapel)
+
+**Neden Tekrar Gerekir?**
+- İlk aşıdan sonra antikorlar henüz yeterli seviyede değildir
+- Bağışıklık sistemi pekiştirilmelidir
+- Anne sütünden gelen antikorlar ilk aşının etkisini azaltmış olabilir
+
+**Bu Dönemde Dikkat Edilecekler:**
+- Yavru henüz tam korunmalı değildir
+- Diğer köpeklerle teması sınırlı tutun
+- Sokakta yere koymayın
+- Aşısız köpeklerden uzak tutun
+- Ev içinde sosyalizasyona başlayabilirsiniz
+
+### 14-16 Haftalık: Üçüncü DHPP + Kuduz Aşısı
+
+**DHPP 3. Doz:**
 - Temel aşı programının tamamlanması
-- Kuduz aşısı zorunludur ve yasal gereklilik taşır
+- Tam bağışıklık sağlanır
+- Artık dışarı güvenle çıkabilir
+
+**Kuduz Aşısı:**
+- **Zorunludur** (Kanuni gereklilik)
+- %100 ölümcül bir hastalıktır
+- İnsanlara da bulaşabilir
+- Yaban hayvanlarından bulaşma riski
+- 1 yıl veya 3 yıl etkili formları vardır
+
+**Ek İşlemler:**
 - Mikroçip takılması önerilir
+- Resmi kayıt yaptırılmalı
+- Aşı karnesi düzenlenmelidir
 
-## Yetişkin Köpek Aşıları
+## Yetişkin Köpek Aşı Programı
 
-**Yıllık Rapel Aşıları:**
-- Kombine aşı (yılda bir)
-- Kuduz aşısı (yılda bir, zorunlu)
-- Kennel öksürüğü (yatılı kalacaksa)
-- Leptospiroz (risk bölgelerinde)
+### Yıllık Rapel Aşıları
 
-## Özel Durumlar
+| Aşı Türü | Sıklık | Zorunluluk | Notlar |
+|----------|---------|------------|--------|
+| DHPP | Yılda 1 kez | Önerilen | Bazı veterinerler 3 yılda 1 önerir |
+| Kuduz | Yılda 1 kez | Zorunlu | 3 yıllık formül kullanılabilir |
+| Leptospiroz | 6-12 ayda 1 | Önerilen | Risk bölgelerinde |
+| Bordetella | Yılda 1 kez | Opsiyonel | Yatılı/kreş gidenlere |
+| Lyme | Yılda 1 kez | Opsiyonel | Kene yoğun bölgelerde |
 
-**Gebe Köpekler:** Gebelik öncesi aşılar tamamlanmalı, gebelik sırasında aşı yapılmamalıdır.
+### 1-7 Yaş Arası Köpekler
 
-**Hasta Köpekler:** Aşı öncesi veteriner muayenesi şart, hasta köpeklere aşı yapılmaz.
+**Rutin Program:**
+- Yıllık veteriner kontrolü
+- DHPP rapel aşısı
+- Kuduz rapel aşısı
+- Gerekirse ek aşılar
 
-**Yaşlı Köpekler:** Bağışıklık sistemleri zayıf olduğu için düzenli takip önemli.
+**Sağlık Kontrolü:**
+- Genel fizik muayene
+- Parazit kontrolü
+- Diş kontrolü
+- Kilo takibi
 
-## Aşı Sonrası Dikkat Edilmesi Gerekenler
+### 7 Yaş Üstü (Yaşlı Köpekler)
 
-- İlk 24 saat yoğun egzersizden kaçının
-- Aşı bölgesinde hafif şişlik normal
-- Ateş, kusma gibi yan etkiler veterinere bildirilmeli
-- En az 1 hafta diğer hayvanlarla teması sınırlayın
+**Özel Dikkat:**
+- Bağışıklık sistemi zayıflamaya başlar
+- Aşı öncesi kan testi önerilir
+- Kronik hastalıklar değerlendirilmeli
+- Veteriner ile bireysel program oluşturulmalı
 
-Unutmayın: Düzenli aşı programı köpeğinizin uzun ve sağlıklı bir yaşam sürmesinin temelidir.`,
-    categoryTags: ["köpek", "sağlık", "aşı", "veteriner"],
-    readTime: 4,
+**Ek Kontroller:**
+- Böbrek ve karaciğer fonksiyonları
+- Kalp muayenesi
+- Eklem sağlığı
+- Tümör taraması
+
+## Opsiyonel (Non-Core) Aşılar
+
+### Leptospiroz Aşısı
+
+**Nedir?**
+- Bakteriyel bir hastalık
+- Kemirgenlerin idrarıyla bulaşır
+- Böbrek ve karaciğer hasarı yapar
+- İnsanlara da bulaşabilir
+
+**Kimler Yaptırmalı?**
+- Kırsal bölgelerde yaşayanlar
+- Su birikintilerine yakın olanlar
+- Avcı köpekler
+- Yüksek riskli bölgeler
+
+### Bordetella (Kennel Cough) Aşısı
+
+**Nedir?**
+- "Köpek öksürüğü" olarak bilinir
+- Havayolu enfeksiyonu
+- Çok bulaşıcıdır
+
+**Kimler Yaptırmalı?**
+- Köpek kreşine/oteline gidenler
+- Eğitim merkezine katılanlar
+- Köpek parklarına sık gidenler
+- Sergi/yarışmalara katılanlar
+
+### Lyme Hastalığı Aşısı
+
+**Nedir?**
+- Kenelerle bulaşan bakteriyel hastalık
+- Eklem iltihabı yapar
+- Ateş ve halsizlik
+- Böbrek problemleri
+
+**Kimler Yaptırmalı?**
+- Orman/kırsal bölgelerde yaşayanlar
+- Yoğun kene bölgeleri
+- Outdoor aktiviteler yapanlar
+
+## Özel Durumlar ve Aşılama
+
+### Gebe Köpekler
+
+**ÖNEMLİ:**
+❌ Gebelik sırasında aşı YAPILMAZ
+✅ Gebelik öncesi aşılar tamamlanmalı
+✅ Çiftleşmeden 2 hafta önce son aşı
+
+**Neden Yapılmaz?**
+- Yavrulara zarar verebilir
+- Düşük riski vardır
+- Canlı virüs içeren aşılar tehlikelidir
+
+**Emzirme Dönemi:**
+- Anne emziriyorken aşılanabilir
+- Yavruları etkilemez
+- Ama acil değilse ertelenebilir
+
+### Hasta Köpekler
+
+**Aşı Yapılmamalıdır:**
+- Ateşli köpeklere
+- İshal/kusan köpeklere
+- Aşırı zayıf köpeklere
+- Ameliyat sonrası 2 hafta içinde
+- İmmün sistemi baskılanmış köpeklere
+
+**Önce Tedavi:**
+- Hastalık tamamen iyileşmeli
+- En az 1 hafta ilaçsız geçmeli
+- Veteriner onayı alınmalı
+
+### Koruyucu Aile Tarafından Sahiplenilen Köpekler
+
+**Bilinmeyen Aşı Geçmişi:**
+- Tüm aşıları sıfırdan başlatın
+- 2-3 hafta arayla 2 doz yapın
+- Kuduz hemen yapılmalı
+- Aşı karnesi oluşturun
+
+## Aşı Sonrası Bakım ve Yan Etkiler
+
+### Normal Reaksiyonlar (İlk 24-48 Saat)
+
+**Hafif Yan Etkiler:**
+- Enjeksiyon bölgesinde şişlik (normal)
+- Hafif ateş (38.5-39°C)
+- Yorgunluk, uyuklama
+- İştah azalması
+- Hafif ağrı
+
+**Ne Yapmalı?**
+- Dinlenme sağlayın
+- Egzersizden kaçının
+- Bol su sunun
+- Hafif yemekler verin
+- 24 saat gözlemleyin
+
+### Acil Müdahale Gerektiren Durumlar
+
+**Alerjik Reaksiyon Belirtileri:**
+⚠️ Yüzde/boyunda şişme
+⚠️ Nefes almada zorluk
+⚠️ Aşırı salya akması
+⚠️ Kusma ve ishal
+⚠️ Kırmızı, kaşıntılı cilt
+⚠️ Çöküntü hali
+
+**HEMEN Veterinere:**
+- Bu belirtiler 15-30 dakika içinde ortaya çıkabilir
+- Hayati tehlike oluşturabilir
+- Antihistaminik enjeksiyonu gerekir
+- Acil müdahale şarttır
+
+### Uzun Vadeli İzleme
+
+**İlk Hafta:**
+- Enjeksiyon bölgesini kontrol edin
+- Davranış değişikliklerini gözleyin
+- İştahı takip edin
+
+**Ender Görülen Yan Etkiler:**
+- Enjeksiyon bölgesinde kalıcı şişlik (3+ hafta)
+- İmmün aracılı reaksiyonlar
+- Aşı ilişkili sarkom (çok nadir)
+
+## Aşı Maliyeti ve Planlama
+
+### Ortalama Maliyetler (2024)
+
+| Aşı Türü | Fiyat Aralığı |
+|----------|---------------|
+| DHPP (tek doz) | 150-300 TL |
+| Kuduz | 100-200 TL |
+| Leptospiroz | 150-250 TL |
+| Bordetella | 150-250 TL |
+| Tam yavru paketi (3 doz DHPP + Kuduz) | 800-1500 TL |
+
+**Ek Maliyetler:**
+- Muayene ücreti: 200-500 TL
+- Mikroçip: 150-300 TL
+- Aşı karnesi: Ücretsiz
+- Parazit ilacı: 100-300 TL
+
+### Tasarruf İpuçları
+
+✅ Belediye veteriner hizmetleri (ücretsiz/ucuz kuduz aşısı)
+✅ Hayvan hakları dernekleri aşı günleri
+✅ Paket programlar (yavru paketi)
+✅ Yıllık sağlık sigortası
+✅ Aşı kampanyaları
+
+## Aşı Kayıtları ve Belgeler
+
+### Aşı Karnesi
+
+**İçermesi Gerekenler:**
+- Köpeğin kimlik bilgileri
+- Mikroçip numarası
+- Her aşının tarihi
+- Aşı parti numarası
+- Veterinerin mührü ve imzası
+- Sonraki aşı tarihi
+
+**Neden Önemli?**
+- Yurt dışı seyahatlerde zorunlu
+- Köpek oteli/kreş için gerekli
+- Sergi/yarışma katılımı için şart
+- Yasal sorumluluk belgesi
+- Sağlık geçmişi takibi
+
+### Dijital Kayıt
+
+**Avantajları:**
+- Kaybetme riski yok
+- Kolay erişim
+- Hatırlatma sistemleri
+- Veterinerler arası paylaşım
+- Bulut yedekleme
+
+## Sıkça Sorulan Sorular
+
+**S: Aşı yapmadan önce kan testi gerekli mi?**
+C: Genelde gerekli değil, ama yaşlı köpeklerde ve sağlık sorunu olan köpeklerde önerilir.
+
+**S: Aşı yaptıktan sonra ne zaman yıkanabilir?**
+C: En az 1 hafta beklemelisiniz. Enjeksiyon bölgesi ıslanmamalı.
+
+**S: Evden çıkmayan köpeğe aşı gerekli mi?**
+C: Evet! Virüsler ayakkabılarla, kıyafetlerle taşınabilir. Kuduz yasal zorunluluktur.
+
+**S: Aşı gecikirse ne olur?**
+C: Bağışıklık azalabilir. Seri baştan başlatılması gerekebilir. Veterinere danışın.
+
+**S: Her yıl mı rapel gerekiyor?**
+C: DHPP için bazı protokoller 3 yılda 1 öneriyor. Kuduz yıllık zorunludur (veya 3 yıllık formül).
+
+## Sonuç ve Öneriler
+
+Düzenli aşı programı:
+✅ Köpeğinizin sağlığını korur
+✅ Toplum sağlığına katkıda bulunur  
+✅ Uzun vadede maliyet tasarrufu sağlar
+✅ Hukuki sorumlulukları yerine getirir
+✅ Huzurlu bir sahiplik deneyimi sunar
+
+**Unutmayın:** Her köpek bireyseldir. Yaşam tarzı, ırk, sağlık durumu ve yaşadığı bölgeye göre aşı programı değişebilir. Veterinerinizle en uygun programı belirleyin ve takviminize sadık kalın.
+
+**En önemli kural:** Aşıları aksatmayın, düzenli veteriner kontrollerine gidin ve köpeğinizin sağlığını her zaman öncelik yapın!`,
+    categoryTags: ["köpek", "sağlık", "aşı", "veteriner", "koruyucu bakım"],
+    readTime: 12,
     published: true,
   },
+
   {
     title: "Köpek Tuvalet Eğitimi: Adım Adım Başarı Rehberi",
     slug: "kopek-tuvalet-egitimi-rehberi",
-    excerpt: "Yavru köpeğinize tuvalet eğitimi vermek sabır ister. Doğru tekniklerle bu süreci kolaylaştırabilirsiniz.",
-    content: `# Köpek Tuvalet Eğitimi Rehberi
+    excerpt: "Yavru köpeğinize tuvalet eğitimi vermek sabır gerektirir. Doğru yöntemlerle başarı garantidir.",
+    content: `# Köpek Tuvalet Eğitimi: Kapsamlı ve Pratik Rehber
 
-Köpek sahipleriyle ilgili en yaygın zorluklardan biri tuvalet eğitimidir. Doğru yöntemler ve tutarlılıkla bu süreç çok daha kolay hale gelir.
+Tuvalet eğitimi, yavru köpek sahiplerinin karşılaştığı en büyük zorluklardan biridir. Ancak doğru teknikler, tutarlılık ve sabırla her köpek başarılı şekilde eğitilebilir.
 
-## Temel İlkeler
+## Tuvalet Eğitimine Başlamadan Önce Bilmeniz Gerekenler
 
-**Zamanlama Her Şeydir:**
-- Sabah uyanır uyanmaz dışarı çıkarın
-- Her yemekten 15-30 dakika sonra
-- Su içtikten sonra
-- Oyun oynama seanslarından sonra
-- Uyumadan hemen önce
+### Köpeklerin Tuvalet Fizyolojisi
 
-**Pozitif Pekiştirme:**
-- Doğru yerde tuvaletini yaptığında anında ödüllendirin
-- Ödül mama veya sevdiği oyuncak olabilir
-- Ses tonunuz sevinçli olmalı
-- Zamanlama çok önemli - hemen ödüllendirin
+**Mesane Kontrolü:**
+- 2 aylık yavru: 2 saat
+- 3 aylık yavru: 3 saat
+- 4 aylık yavru: 4 saat
+- 6+ aylık: 6-8 saat
 
-## Yavru Köpekler İçin Program
+**Formül:** Yaş (ay) = Maksimum bekleme saati
 
-**2-4 Aylık:**
-- Her 2 saatte bir dışarı çıkarma
-- Gece tuvaletleri normal
-- Kaza yapması beklenen bir durum
+**Gece Kontrolü:**
+- 4 aya kadar gece tuvaletleri normaldir
+- 6 ayda gece kontrolü başlar
+- Tam kontrol 8-12 ayda gelişir
+
+### Ne Zaman Başlanmalı?
+
+**İdeal Başlangıç:**
+- Evinize geldiği ilk gün
+- Genelde 8 haftalık
+- Asla çok erken değil
+- Tutarlılık çok önemli
+
+**Geç Başlamanın Zararları:**
+- Kötü alışkanlıklar gelişir
+- Evin içini tuvalet olarak görür
+- Düzeltmek daha zor olur
+
+## Temel Eğitim Prensipleri
+
+### 1. Pozitif Pekiştirme Sistemi
+
+**Ödül Çeşitleri:**
+- Yüksek değerli mama parçaları (tavuk, peynir)
+- Özel tuvalet ödül mamaları
+- Coşkulu övgü ("Aferin! İyi köpek!")
+- Oyuncak hediye (bazen)
+
+**Zamanlama Kritiktir:**
+- Tuvaletini bitirdiği AN ödüllendirin
+- 5 saniye sonrası geç kalırsınız
+- Köpek sebep-sonuç ilişkisi kuramaz
+
+**Ödül Yöntemi:**
+1. Dışarı çıkarın
+2. Tuvalet yaparken sessiz kalın
+3. Bitirdiği an "Aferin tuvalet!" deyin
+4. Anında ödül verin
+5. 2-3 dakika daha dışarıda kalın (oyun zamanı)
+
+### 2. Tutarlı Rutin Oluşturma
+
+**Günlük Program Örneği:**
+
+| Saat | Aktivite | Not |
+|------|----------|-----|
+| 07:00 | Uyanır uyanmaz dışarı | En kritik tuvalet |
+| 07:15 | Sabah yemeği | |
+| 07:30-07:45 | Yemek sonrası tuvalet | 15-30 dk bekleyin |
+| 09:00 | Oyun sonrası tuvalet | Aktivite mesaneyi uyarır |
+| 11:00 | Ara tuvalet | |
+| 12:00 | Öğle yemeği | |
+| 12:15-12:30 | Yemek sonrası tuvalet | |
+| 15:00 | Ara tuvalet | |
+| 18:00 | Akşam yemeği | |
+| 18:15-18:30 | Yemek sonrası tuvalet | |
+| 20:00 | Oyun sonrası tuvalet | |
+| 22:00 | Uyumadan önce son tuvalet | Su erişimi kesilir |
+
+### 3. Tuvalet İşaretlerini Tanıma
+
+**Köpeğiniz Tuvalet Yapmak İstediğinde:**
+- Koklama yapar (yer koklar)
+- Daireler çizer
+- Huzursuzlanır
+- Kapıya gider/gevezelik yapar
+- Aniden oyunu bırakır
+- Ağzını yalar
+
+**Gördüğünüzde:**
+1. Hemen "Tuvalet?" deyin
+2. Tasmasını takın
+3. Hızla dışarı çıkın
+4. Tuvalet noktasına götürün
+5. Yapana kadar bekleyin
+
+## Yaş Gruplarına Göre Eğitim Stratejileri
+
+### 2-4 Aylık Yavrular
+
+**Özellikler:**
+- Çok sık tuvalet yapar (2 saatte bir)
+- Mesane kontrolü minimaldır
+- Gece 1-2 kez kalkabilir
+- Kazalar çok normaldir
+
+**Eğitim Planı:**
+- Her 2 saatte bir dışarı çıkarın
+- Kafes eğitimi başlatın
+- Gece alarm kurun (4-5 saat)
 - Sabırlı olun
 
-**4-6 Aylık:**
-- 3-4 saatte bir dışarı çıkarma yeterli
-- Gece kontrolü artmaya başlar
+**Kafes Boyutu:**
+- Sadece ayağa kalkıp dönebilecek kadar
+- Çok büyük: İçinde tuvalet yapabilir
+- Bölücü panel kullanın (büyüdükçe genişler)
+
+### 4-6 Aylık Yavrular
+
+**Özellikler:**
+- 3-4 saatte bir tuvalet
+- Gece kontrolü gelişmeye başlar
 - Rutini öğrenmeye başlar
+- Daha az kaza
 
-**6+ Aylık:**
+**Eğitim Planı:**
+- 3 saatte bir dışarı çıkarma
+- Gece 1 kez kalkış yeterli
+- Kafes eğitimi devam
+- Ev içi özgürlük kademeli artırılır
+
+### 6+ Aylık
+
+**Özellikler:**
 - 6-8 saat kontrol edebilir
-- Rutin oturmuş olmalı
-- Nadiren kaza yapabilir
+- Gece tam kontrolü vardır
+- Rutin oturmuştur
+- Nadiren kaza yapar
 
-## Kafes Eğitimi
+**Eğitim Planı:**
+- Sabah-akşam düzenli çıkışlar
+- Gece kesintisiz uyur
+- Daha fazla ev özgürlüğü
+- Pekiştirmeye devam
 
-Kafes, tuvalet eğitiminde çok yararlıdır:
-- Köpekler doğal olarak yuvasını kirletmek istemez
-- Gece ve gözetimsiz kalacağı zamanlarda kullanın
-- Kafes ceza yeri değil, güvenli alandır
-- İçine yumuşak yatak ve oyuncak koyun
+## Kafes (Crate) Eğitimi
 
-## Sık Yapılan Hatalar
+### Neden Kafes Kullanmalı?
 
-**Cezalandırma:** Kaza yaptığında köpeğinizi cezalandırmayın. Bu sadece korku yaratır ve gizli yerlerde tuvalet yapmasına neden olur.
+**Faydaları:**
+- Köpekler doğal olarak yuvasını kirletmez
+- Güvenli alan sağlar
+- Gece tuvaletlerini azaltır
+- Seyahat için faydalıdır
+- Yalnız kalma eğitimine yardımcı olur
 
-**Tutarsızlık:** Bazen izin verip bazen cezalandırmak köpeği şaşırtır.
+**Yanlış Anlaşılmalar:**
+❌ Kafes ceza aracı DEĞİLDİR
+❌ Kafes hapis DEĞİLDİR  
+✅ Kafes güvenli yuva, rahatlama alanıdır
+✅ Köpekler kafeslerini sever (doğru kullanılırsa)
 
-**Geç Müdahale:** Kaza olduktan 5 saniye sonra müdahale etmek işe yaramaz.
+### Kafes Eğitimi Adım Adım
 
-## Temizlik Önerileri
+**1. Gün: Tanışma**
+- Kafes kapısını açık bırakın
+- İçine mama/ödül atın
+- Kendi isteğiyle girsin
+- Zorlamayın
 
-- Enzimli temizleyiciler kullanın
-- Normal deterjanlar koku bırakır
-- Koku kalırsa tekrar aynı yere yapar
-- Mobilya koruyucular kullanın
+**2-3. Gün: Yemekleri İçerde**
+- Yemek kabını kafese koyun
+- Kapıyı açık bırakın
+- Yavaş yavaş alışır
 
-Başarı için anahtar: Tutarlılık, sabır ve pozitif pekiştirme!`,
-    categoryTags: ["köpek", "eğitim", "tuvalet", "yavru"],
-    readTime: 5,
+**4-7. Gün: Kısa Süreler**
+- Bir oyuncakla içeri girin
+- Kapıyı 5 dakika kapatın
+- Yanında durun
+- Ağlarsa açmayın (sessizleşince açın)
+
+**2. Hafta: Gece Kullanımı**
+- Gece kafeste yatar
+- Yatak odanızda olsun (ilk haftalarda)
+- Sabah hemen dışarı çıkarın
+
+### Kafes İçinde Tuvalet Yapıyorsa
+
+**Olası Nedenler:**
+- Kafes çok büyük
+- Çok uzun süre içerde
+- Geçmişte kafeste yaşamış (barınak köpekleri)
+- Tuvalet eğitimi olmamış
+
+**Çözümler:**
+- Kafesi küçültün
+- Daha sık dışarı çıkarın
+- Tamamen temizleyin (koku kalmasın)
+- Veterinere götürün (enfeksiyon kontrolü)
+
+## Ev İçi Tuvalet Alternatifleri
+
+### Pee Pad (Emici Ped) Kullanımı
+
+**Avantajları:**
+- Apartman daireleri için pratik
+- Gece/uzun süre yalnızlık
+- Yaşlı/hasta köpekler
+- Kötü hava koşulları
+
+**Dezavantajları:**
+- Ev içi tuvalet alışkanlığı oluşturabilir
+- Dış mekana geçiş zor olabilir
+- Halı/kilim karışıklığı yapabilir
+
+**Doğru Kullanım:**
+1. Belirli bir köşeye yerleştirin
+2. Her seferinde aynı yer
+3. Koku bırakın (ilk kullanımda idrar  damlası)
+4. Kullandığında ödüllendirin
+5. Kademeli olarak dışarıya geçirin
+
+### Yapay Çim (Doggy Grass)
+
+**Avantajları:**
+- Gerçek çim hissi
+- Balkonlarda kullanılabilir
+- Temizlenebilir
+- Uzun ömürlü
+
+**Kullanım:**
+- Balkona/terasa yerleştirin
+- Köpeği düzenli götürün
+- Günlük temizleyin
+- Haftada bir yıkayın
+
+## Sık Yapılan Hatalar ve Çözümleri
+
+### HATA 1: Cezalandırma
+
+❌ **Yanlış:** Kaza sonrası köpeği azarlamak, burun sürmek, vurmak
+
+**Neden Yanlış?**
+- Köpek tuvalet yapmanın yanlış olduğunu öğrenir
+- Sizden gizli yerlerde yapar
+- Korku gelişir
+- Eğitim geriye gider
+
+✅ **Doğru:** Sessizce temizleyin, hiçbir şey demeden devam edin
+
+### HATA 2: Geç Müdahale
+
+❌ **Yanlış:** Saatler sonra bulduğunuz kazayı gösterip azarlamak
+
+**Neden Yanlış?**
+- Köpek 5 saniye öncesini hatırlamaz
+- Sebep-sonuç ilişkisi kuramaz
+- Sadece korkutur
+
+✅ **Doğru:** Anında yakaladıysanız (işerken) "AH!" deyip dışarı çıkarın
+
+### HATA 3: Tutarsızlık
+
+❌ **Yanlış:** Bazen ödüllendirmek, bazen unutmak
+
+**Neden Yanlış?**
+- Köpek ne beklediğini anlamaz
+- Eğitim uzar
+- Motivasyon azalır
+
+✅ **Doğru:** HER doğru davranışta ödüllendirin (ilk 3-6 ay)
+
+### HATA 4: Özgürlük Çok Erken Vermek
+
+❌ **Yanlış:** 1 hafta kaza olmayınca tüm eve serbest bırakmak
+
+**Neden Yanlış?**
+- Köpek hazır değildir
+- Kazalar tekrar başlar
+- Eğitim resetlenir
+
+✅ **Doğru:** Kademeli olarak alan genişletin (oda oda)
+
+## İleri Seviye Teknikler
+
+### Zil Eğitimi
+
+**Nasıl Yapılır?**
+1. Kapıya zil asın (köpeğin erişebileceği yükseklikte)
+2. Her dışarı çıkışta köpeğin patisiyle zile dokundurrun
+3. "Tuvalet zili!" deyin
+4. Dışarı çıkarın
+5. Tuvalet yaptıktan sonra ödüllendirin
+
+**Sonuç:**
+- 1-2 hafta içinde köpek zili kendi çalar
+- Dışarı çıkmak istediğinde bağımsız sinyal verir
+
+### Komut İle Tuvalet
+
+**Eğitim:**
+1. Her tuvalet yaptığında "Tuvalet yap" deyin
+2. Tutarlı olun (her seferinde)
+3. Ödüllendirin
+4. Zamanla komut verdiğinizde yapacaktır
+
+**Faydaları:**
+- Seyahatlerde işe yarar
+- Yağmurda hızlı tuvalet
+- Veteriner öncesi boşaltma
+- Belirli bölgelerde yapması
+
+## Özel Durumlar ve Çözümleri
+
+### Yetişkin Köpek Evlat Edinme
+
+**Zorluklar:**
+- Bilinmeyen geçmiş
+- Kötü alışkanlıklar olabilir
+- Ev eğitimi olmamış olabilir
+
+**Yaklaşım:**
+- Sıfırdan başlayın
+- Yavru gibi yaklaşın
+- Daha sabırlı olun
+- İlk 2 hafta intensif gözetim
+
+### Apartman Yaşamı
+
+**Zorluklar:**
+- Asansör bekleme
+- Dışarı çıkış uzun sürer
+- Sık çıkma zorluğu
+
+**Çözümler:**
+- İlk aylarda pee pad kullanın
+- Balkon/teras çözümü
+- Günde 4-5 kez mutlaka dışarı
+- Gece son tuvalet geç olsun (23:00)
+
+### Kış/Yağmur
+
+**Zorluklar:**
+- Köpek dışarı çıkmak istemez
+- Soğuktan üşür
+- Islak olması rahatsız eder
+
+**Çözümler:**
+- Köpek kıyafeti giydirin
+- Yağmurluk kullanın
+- Üstü kapalı alan bulun
+- Hızlı tuvalet sonrası ödül
+- Kuru havada ekstra övgü
+
+## Temizlik ve Koku Giderme
+
+### Doğru Temizleyiciler
+
+**Kullanılmalı:**
+- Enzim bazlı temizleyiciler (pet-specific)
+- Beyaz sirke + su karışımı (1:1)
+- Hidrojen peroksit çözeltisi
+
+**Kullanılmamalı:**
+- Amonyak içeren ürünler (idrar kokusu verir)
+- Klor bazlı ürünler (toksik olabilir)
+- Parfümlü temizleyiciler (kokuyu maskeler)
+
+### Temizlik Adımları
+
+1. **Emme:** Kağıt havlu ile fazla sıvıyı çekin
+2. **Enzim:** Enzimli temizleyici püskürtün
+3. **Bekleme:** 10-15 dakika etki etsin
+4. **Silme:** Temiz bezle silin
+5. **Kurutma:** Tamamen kurumasını bekleyin
+
+**Önemli:** Koku tamamen gitmeli, yoksa köpek tekrar aynı yere yapar!
+
+## Başarı İçin Zaman Çizelgesi
+
+**1. Hafta:** Hala çok kazalar olur, normal
+**2-3. Hafta:** Kazalar azalmaya başlar
+**1-2. Ay:** Köpek rutini öğrenir, ama gözetim şart
+**3-4. Ay:** Kazalar nadir, daha özgür bırakılabilir
+**6. Ay:** Tam başarı (küçük hatalar olabilir)
+**1 Yıl:** Tamamen güvenilir (stres anlarında nadiren kaza)
+
+## Başarısızlık Durumunda
+
+### Veteriner Kontrolü Gerektirir
+
+**Alarmlar:**
+- Eğitime rağmen ilerleme yok (4+ hafta)
+- Gece kontrolü hiç gelişmedi (6+ ay)
+- Aniden geri gidiş
+- Sık idrara çıkma
+- Kan/koku değişikliği
+
+**Olası Sağlık Sorunları:**
+- İdrar yolu enfeksiyonu
+- Böbrek problemleri
+- Diyabet
+- Parazitler
+- Anksiyete bozukluğu
+
+## Başarı İpuçları Özeti
+
+✅ Tutarlı olun (aile içi koordinasyon)
+✅ Sabırlı olun (aylar sürebilir)
+✅ Pozitif kalın (asla ceza)
+✅ Rutini takip edin (her gün aynı saatler)
+✅ Ödüllendirin (her doğru davranış)
+✅ Kafes kullanın (gece ve gözetimsiz saatler)
+✅ Kazaları önemsemeyin (drama yapmayın)
+✅ Sinyalleri öğrenin (köpek ne zaman yapmak ister)
+✅ Temizliği doğru yapın (koku tamamen gitsin)
+✅ Veterinere danışın (ilerleme yoksa)
+
+**Sonuç:** Tuvalet eğitimi sabır, tutarlılık ve pozitif yaklaşım gerektir. Her köpek öğrenebilir, siz sadece doğru yöntemi kullanın ve sabırlı olun. İlk aylar zor olsa da, başarı sonsuza kadar sürer!`,
+    categoryTags: ["köpek", "eğitim", "tuvalet", "yavru", "davranış"],
+    readTime: 15,
     published: true,
   },
+
   {
     title: "Köpeklerde Diş Sağlığı ve Bakımı",
     slug: "kopeklerde-dis-sagligi-bakimi",
-    excerpt: "Köpeklerin diş sağlığı genel sağlık durumlarını doğrudan etkiler. Düzenli diş bakımı nasıl yapılır?",
-    content: `# Köpeklerde Diş Sağlığı ve Bakımı
+    excerpt: "Diş sağlığı genel sağlığın temelidir. Düzenli bakımla ciddi hastalıkları önleyin.",
+    content: `# Köpeklerde Diş Sağlığı: Kapsamlı Bakım Rehberi
 
-Köpeklerin diş sağlığı, genel sağlıkları üzerinde doğrudan etkisi olan, ancak sıklıkla ihmal edilen bir konudur. Diş problemleri kalp, karaciğer ve böbrek hastalıklarına yol açabilir.
+Köpeklerin diş sağlığı sadece ağız sağlığıyla sınırlı değildir. Diş problemleri kalp, böbrek ve karaciğer hastalıklarına yol açabilir. Düzenli diş bakımı hayati önem taşır.
+
+## Neden Diş Sağlığı Bu Kadar Önemli?
+
+### Ağız Sağlığı = Genel Sağlık
+
+**Diş Problemlerinin Etkileri:**
+
+1. **Kalp Hastalıkları:**
+   - Diş eti bakterileri kan dolaşımına karışır
+   - Kalp kapaklarına yerleşir
+   - Endokardit riski (kalp zarı iltihabı)
+   - Kalp yetmezliği gelişebilir
+
+2. **Böbrek ve Karaciğer Hasarı:**
+   - Bakteriler böbrek dokusunu etkiler
+   - Kronik böbrek yetmezliği
+   - Karaciğer enfeksiyonları
+   - Toksik madde birikimi
+
+3. **Ağrı ve Acı Çekme:**
+   - Diş ağrısı şiddetlidir
+   - Yemek yiyememe
+   - Davranış değişiklikleri
+   - Yaşam kalitesi düşer
+
+4. **Diş Kaybı:**
+   - Çiğneme güçlüğü
+   - Beslenme problemleri
+   - Sindirim sorunları
+
+### İstatistikler
+
+- **3 yaşındaki köpeklerin %80'inde** diş hastalığı vardır
+- **5 yaşın üzerindeki köpeklerin %90'ında** periodontal hastalık görülür
+- Düzenli diş bakımı ile bu oran %90 azaltılabilir
+
+## Diş Anatomisi ve Gelişim
+
+### Süt Dişleri
+
+**Çıkış Süreci:**
+- 3-4 hafta: İlk dişler çıkar
+- 6 hafta: Tüm süt dişleri tamamlanır
+- Toplam: 28 süt dişi
+
+**Süt Dişi Dönemi:**
+- Çok keskindir
+- Kolayca kırılabilir
+- Diş eti kaşıntısı (4-6 hafta)
+- Oyuncaklar önemlidir
+
+### Kalıcı Dişler
+
+**Değişim:**
+- 3-4 ay: Başlar
+- 6-7 ay: Tamamlanır
+- Toplam: 42 kalıcı diş
+
+**Diş Yapısı:**
+- Kesici dişler (ön): 12 adet
+- Köpek dişleri (sivri): 4 adet
+- Azı dişler: 26 adet
 
 ## Diş Problemlerinin Belirtileri
 
-**Erken Uyarı İşaretleri:**
-- Ağızdan kötü koku
-- Kırmızı veya kanamış diş etleri
-- Yemek yerken zorluk
-- Yüzüne patiyle dokunma
-- Aşırı salyalanma
-- Sararmış veya kahverengi dişler
+### Erken Uyarı İşaretleri
 
-## Ev Bakımı
+**Gözle Görülebilen:**
+✓ Ağızdan kötü koku (halitosis)
+✓ Sarı/kahverengi diş taşı
+✓ Kırmızı, şiş diş etleri
+✓ Kanamış diş etleri
+✓ Salya akıntısı
+✓ Kırık/çatlak diş
 
-**Diş Fırçalama:**
-- Haftada en az 3 kez, ideal olarak günlük
-- Köpeklere özel diş macunu kullanın (insan diş macunu zararlı)
-- Yumuşak kıllı fırça tercih edin
-- Yavaş ve nazikçe fırçalayın
+**Davranış Değişiklikleri:**
+✓ Yemek yerken zorluk
+✓ Yiyeceği bırakma
+✓ Tek tarafla çiğneme
+✓ Yüzüne patiyle dokunma
+✓ Huysuzluk, agresyon
+✓ Ağzını açtırmama
+
+### Diş Hastalıkları
+
+**1. Plak Birikimi**
+- Bakteriler + yiyecek artıkları
+- Yumuşak, sarımtırak tabaka
+- 24-48 saat içinde oluşur
+- Fırçalama ile gider
+
+**2. Diş Taşı (Tartar)**
+- Plağın sertleşmesi
+- Mineraller ile birleşir
+- Sarı/kahverengi, sert
+- Sadece profesyonel temizlik ile gider
+
+**3. Gingivit (Diş Eti İltihabı)**
+- Diş etinde kızarıklık
+- Şişlik
+- Kanama
+- Reversible (tedavi edilebilir)
+
+**4. Periodontal Hastalık**
+- İlerleyen gingivit
+- Diş kökünü etkiler
+- Kemik kaybı
+- Irreversible (kalıcı hasar)
+- Diş kaybı
+
+**5. Diş Absesi**
+- Bakteriyel enfeksiyon
+- Diş kökünde apse
+- Şiddetli ağrı
+- Yüzde şişlik
+- Acil veteriner gerekir
+
+## Ev Bakımı: Diş Fırçalama
+
+### Gerekli Malzemeler
+
+**Diş Fırçası:**
+- Köpek özel diş fırçası
+- Parmağa geçen fırça (başlangıç için)
+- Yumuşak kıllı
+- Köpek boyutuna uygun
+
+**Diş Macunu:**
+❌ **İnsan diş macunu KESİNLİKLE KULLANMAYIN**
+   - Xylitol içerir (zehirlidir!)
+   - Florür toksiktir
+   - Köpüğü yutamaz
+
+✅ **Köpek diş macunu:**
+   - Tavuk/sığır eti aromalı
+   - Yutulabilir
+   - Enzimatik formül
+   - Plak çözücü
+
+### Fırçalama Tekniği
+
+**Alıştırma Programı (2-4 Hafta)**
+
+**1. Hafta: Ağız Dokunuşu**
+- Her gün birkaç saniye dudaklarını kaldırın
+- Dişlere parmağınızla dokunun
+- Diş etlerini nazikçe masaj edin
+- Ödüllendirin
+
+**2. Hafta: Macun Tanıtma**
+- Parmağınıza macun sürün
+- Köpeğin yalatın (lezzetli bulacak)
+- Dişlerine sürün
+- Ödüllendirin
+
+**3. Hafta: Fırça Tanıtma**
+- Fırçaya macun sürün
+- Sadece ön dişleri fırçalayın (5 sn)
+- Kademeli artırın
+- Ödüllendirin
+
+**4. Hafta: Tam Fırçalama**
+- Tüm dişleri fırçalayın
+- 30 saniye - 2 dakika
+- Nazik, dairesel hareketler
 - Diş eti çizgisine özel dikkat
 
-**Fırçalama Alıştırma:**
-1. İlk hafta: Sadece parmağınızla dişlerine dokunun
-2. İkinci hafta: Parmağınıza macun sürüp ödüllendirin
-3. Üçüncü hafta: Fırça ile dış yüzeyleri fırçalayın
-4. Dördüncü hafta: Tam fırçalama rutini
+**Doğru Fırçalama Adımları:**
 
-## Diş Bakım Ürünleri
+1. **Pozisyon:** Köpeği rahat bir yere oturtun/yatırın
+2. **Dudak Kaldırma:** Nazikçe dudağı kaldırın
+3. **45° Açı:** Fırçayı diş eti çizgisine 45° açıyla tutun
+4. **Dairesel Hareket:** Küçük daireler çizerek fırçalayın
+5. **Dış Yüzeyler:** Dış yüzeylere odaklanın (en önemli)
+6. **Arka Azılar:** Özellikle arka azılara dikkat
+7. **İç Yüzeyler:** Mümkünse iç yüzeyleri de fırçalayın
+8. **Süre:** 30-120 saniye yeterli
+9. **Ödül:** Bittiğinde mutlaka ödüllendirin
 
-**Diş Temizleme Kemikleri:**
-- Doğal kauçuk ve nane içeren kemikler etkili
-- Boyut köpeğe uygun olmalı
-- Günlük kullanım önerilir
-- Kalorili ödüller ise kontrolle verin
+**Sıklık:**
+- **İdeal:** Günlük
+- **Minimum:** Haftada 3 kez
+- **Yaşlı köpekler:** Haftada 5 kez
+- **Diş problemi olanlar:** Günlük şart
 
-**Diyet ve Kuru Mama:**
-- Kuru mama diş sağlığına yararlıdır
-- Özel diş sağlığı mamaları mevcuttur
-- Su içimi teşvik edin
+### Diş Fırçalama İpuçları
+
+**Başarı İçin:**
+✅ Enerjisi tükendiğinde yapın (yürüyüş sonrası)
+✅ Aynı saatte rutin oluşturun
+✅ Pozitif, sakin olun
+✅ Zorlamayın
+✅ İlk günlerde 5 saniye yeterli
+✅ Her seferinde ödüllendirin
+
+**Kaçınılması Gerekenler:**
+❌ Sabahları aç karnına
+❌ Köpek hiperaktifken
+❌ Zorlayarak
+❌ Ağzını paklamak
+❌ Ceza olarak kullanmak
+
+## Diş Bakım Ürünleri ve Alternatifler
+
+### Diş Temizleme Kemikleri
+
+**Etkili Olanlar:**
+- **Doğal kauçuk kemikler:** Diş etlerini masaj eder
+- **Nane içerenler:** Nefesi tazeler
+- **Sırt çıkıntılı:** Plakı kazır
+
+**Seçim Kriterleri:**
+- Köpek boyutuna uygun
+- Çok sert olmamalı (diş kırılması riski)
+- Doğal malzeme
+- VOHC onaylı (Veterinary Oral Health Council)
+
+**Kullanım:**
+- Günlük 10-15 dakika
+- Gözetim altında
+- Yutma riskine dikkat
+- Kemiklerin yerine geçemez (takviye)
+
+### Diş İpi Oyuncakları
+
+**Faydaları:**
+- Diş aralarını temizler
+- Eğlenceli
+- Diş eti masajı
+- Dayanıklı
+
+**Kullanım:**
+- Günlük oyun
+- Çekiştirme oyunları
+- Kirlenince yıkayın
+- Yıpranınca değiştirin
+
+### Dental Spreyi ve Jeller
+
+**Enzimli Spreyler:**
+- Fırçalama yapamayanlar için
+- Ağza püskürtülür
+- Plakı yumuşatır
+- Günde 1-2 kez
+
+**Jellermükemmel:**
+- Parmakla uygulanır
+- Enzimler plakı çözer
+- Antibakteriyel etki
+
+### Su Katkı Maddeleri
+
+**Dental Su Katkıları:**
+- Su kabına birkaç damla
+- Klorheksidin veya enzim içerir
+- Plak oluşumunu azaltır
+- Nefesi tazeler
+
+**Dikkat:**
+- Bazı köpekler tadını sevmeyebilir
+- Su tüketimi azalabilir
+- Fırçalamanın yerini tutmaz
+
+### Diş Sağlığı Mamaları
+
+**Özel Formülasyonlar:**
+- Büyük tanecikler (çiğnemeyi zorlar)
+- Plak kırıcı doku
+- Kalsiyum bağlayıcılar
+- VOHC onaylı markalar
+
+**Markalar:**
+- Hill's t/d
+- Royal Canin Dental
+- Purina DH
 
 ## Profesyonel Diş Temizliği
 
-**Ne Zaman Gerekir:**
-- Yılda 1-2 kez veteriner kontrolü
-- Diş taşı birikimleri
-- Diş eti problemleri
-- Kırık veya çürük dişler
+### Ne Zaman Gerekir?
 
-**Veteriner Diş Temizliği:**
-- Anestezi altında yapılır
-- Diş taşı temizliği
-- Röntgen ile kontrol
-- Gerekirse diş çekimi
+**Yıllık Kontrol:**
+- Veteriner muayenesi
+- Diş ve diş eti değerlendirmesi
+- Diş taşı kontrolü
 
-## Irk Bazlı Farklılıklar
-
-**Küçük Irklar:** Diş problemlerine daha yatkın, daha sık kontrol gerekir.
-
-**Brachycephalic Irklar (Pug, Bulldog):** Diş dizilimi problemleri yaygın.
-
-**Büyük Irklar:** Diş kırılmaları daha sık görülür.
-
-## Önlenebilir Sorunlar
-
-Düzenli bakımla şunlar önlenebilir:
-- Diş taşı birikimi
+**Profesyonel Temizlik Gereken Durumlar:**
+- Yoğun diş taşı
 - Diş eti iltihabı
-- Erken diş kaybı
-- Enfeksiyonlar
-- Organ hasarı
+- Kötü ağız kokusu (fırçalamaya rağmen)
+- Diş kaybı riski
+- Yaşlı köpekler (yıllık)
 
-Unutmayın: Ağız sağlığı, genel sağlığın aynasıdır!`,
-    categoryTags: ["köpek", "sağlık", "diş bakımı", "veteriner"],
-    readTime: 5,
+### Prosedür
+
+**Anestezi:**
+- Genel anestezi gerekir
+- Güvenli ve ağrısız
+- Tam temizlik için şart
+- Yaşlı köpeklerde kan testi önce
+
+**Temizleme Adımları:**
+1. **Muayene:** Ağız içi tam kontrolü
+2. **Röntgen:** Diş kökleri ve kemik kontrolü
+3. **Ultrasonik Temizlik:** Diş taşı kaldırılır
+4. **Alt Diş Eti Temizliği:** Bakteriler temizlenir
+5. **Polisaj:** Diş yüzeyi düzeltilir
+6. **Florür:** Diş minesini güçlendirir
+7. **Diş Çekimi:** Gerekirse çürük dişler çekilir
+
+**Süre:**
+- 30-60 dakika (basit temizlik)
+- 1-2 saat (komplike vakalar)
+
+**Maliyet:**
+- Basit temizlik: 1500-3000 TL
+- Diş çekimi ile: 2500-5000 TL
+- Röntgen: +500-1000 TL
+
+### Anestezi Riskleri
+
+**Düşük Risk:**
+- Genç, sağlıklı köpekler
+- Rutin kan testi normal
+- Kalp ve akciğer sağlıklı
+
+**Yüksek Risk:**
+- Yaşlı köpekler (10+)
+- Kalp hastalığı
+- Böbrek/karaciğer problemleri
+- Obez köpekler
+
+**Risk Azaltma:**
+- Operasyon öncesi kan testi
+- EKG (yaşlı köpekler)
+- IV sıvı desteği
+- Deneyimli veteriner
+
+## Irk Bazlı Diş Problemleri
+
+### Küçük Irklar
+
+**Chihuahua, Yorkshire Terrier, Pomeranian, Maltese**
+
+**Sorunlar:**
+- Küçük ağız, kalabalık dişler
+- Erken diş kaybı
+- Diş taşı birikimi hızlı
+- Diş eti hastalıkları yaygın
+
+**Özel Bakım:**
+- **Günlük** fırçalama şart
+- 6 ayda bir profesyonel temizlik
+- Küçük diş fırçası kullanın
+- Dental mama önerilir
+
+### Brachycephalic Irklar
+
+**Pug, Bulldog, Boxer, Boston Terrier**
+
+**Sorunlar:**
+- Düzensiz diş dizilimi
+- Çarpık dişler
+- Çene yapısı problemleri
+- Nefes alma zorluğu
+
+**Özel Bakım:**
+- Anestezi riski daha yüksek
+- Genç yaşta ortodonti gerekebilir
+- Daha sık kontrol
+- Özel diş fırçası
+
+### Büyük Irklar
+
+**Alman Çoban, Rottweiler, Golden Retriever**
+
+**Sorunlar:**
+- Diş kırılmaları
+- Kemik çiğneme ile hasar
+- Yaşlılıkta diş kaybı
+
+**Özel Bakım:**
+- Çok sert oyuncaklardan kaçının
+- Taş çiğnetmeyin
+- Kemikleri dikkatli verin
+- Haftada 3-5 kez fırçalama
+
+## Özel Durumlar
+
+### Yavru Köpek Diş Bakımı
+
+**Süt Dişi Dönemi (2-6 Ay):**
+- Diş eti kaşıntısı
+- Diş çıkarma oyuncakları
+- Soğuk oyuncaklar (ağrı kesici)
+- Fırçalamaya alıştırma başlayın
+
+**Diş Değişimi (3-7 Ay):**
+- Süt dişleri düşer
+- Hafif kanama normal
+- Çift diş kontrolü (süt düşmezse veteriner)
+- Yumuşak mama
+
+### Yaşlı Köpek Diş Bakımı
+
+**7+ Yaş:**
+- Diş kaybı yaygınlaşır
+- Diş eti çekilmesi
+- Diş kökleri hassaslaşır
+- Ağrı artabilir
+
+**Özel Yaklaşım:**
+- Yumuşak diş fırçası
+- Hassas macun
+- Ağrı kesici (gerekirse)
+- Yumuşak mama
+
+### Kurtarma/Sahiplenme Köpekleri
+
+**Bilinmeyen Geçmiş:**
+- Diş bakımı olmamış olabilir
+- İleri evre hastalıklar
+- Diş kayıpları
+
+**İlk Adımlar:**
+1. Hemen veteriner kontrolü
+2. Gerekirse acil temizlik
+3. Günlük bakıma başlayın
+4. Sabırlı olun (ağıza dokunuşa alışmamış)
+
+## Sıkça Sorulan Sorular
+
+**S: Ne sıklıkla fırçalamalıyım?**
+C: İdeal günlük, minimum haftada 3 kez.
+
+**S: İnsan diş macunu kullanabilir miyim?**
+C: KEİN KESİNLİKLE HAYIR! Köpekler için zehirlidir.
+
+**S: Köpeğim fırçalamayı sevmiyor, ne yapmalıyım?**
+C: Kademeli alıştırın, ödüllendirin. Dental spreyler veya su katkıları deneyebilirsiniz.
+
+**S: Diş taşı fırçalama ile gider mi?**
+C: Hayır. Sadece profesyonel temizlik ile gider. Fırçalama yeni oluşumları önler.
+
+**S: Profesyonel temizlik ne sıklıkla?**
+C: Yılda 1-2 kez, köpeğe ve diş durumuna göre değişir.
+
+**S: Anestezisiz temizlik güvenli mi?**
+C: Hayır. Sadece yüzeysel temizlik yapar, diş eti altını temizlemez. Önerilmez.
+
+**S: Çiğ kemik verebilir miyim?**
+C: Büyük, çiğ sığır kemiği verilebilir (gözetimle). Pişmiş kemik asla! Tavuk kemiği asla!
+
+## Diş Sağlığı İçin Beslenme
+
+### Faydalı Besinler
+
+- **Çiğ havuç:** Doğal diş temizleyici
+- **Elma dilimleri:** Plak söker
+- **Kabak:** Vitamin A (diş eti sağlığı)
+- **Kuru mama:** Yumuşaktan daha iyi
+
+### Zararlı Besinler
+
+❌ Yapışkan tedaviler
+❌ Şekerli yiyecekler
+❌ İnsan yemek artıkları
+❌ Çok sert kemikler (diş kırılması)
+
+## Önleme Programı Özeti
+
+### Günlük
+
+- Diş fırçalama (ideal)
+- Diş temizleme kemiği
+- Su kabına dental katkı
+
+### Haftalık
+
+- Diş fırçalama (minimum 3x)
+- Diş kontrolü
+- Oyuncak temizliği
+
+### Aylık
+
+- Diş ve diş eti muayenesi (ev)
+- Yeni diş fırçası
+
+### Yıllık
+
+- Veteriner diş kontrolü
+- Profesyonel temizlik (gerekirse)
+- Dental röntgen (yaşlı köpekler)
+
+**Sonuç:** Diş sağlığı köpeğinizin genel sağlığı, konvoru ve yaşam kalitesi için kritiktir. Düzenli ev bakımı ve veteriner kontrolleri ile ciddi sağlık problemlerini önleyebilir, köpeğinize uzun ve mutlu bir yaşam sunabilirsiniz. Bugün başlayın!`,
+    categoryTags: ["köpek", "sağlık", "diş bakımı", "veteriner", "koruyucu bakım"],
+    readTime: 14,
     published: true,
   },
+
   {
     title: "Köpeklerde Kene ve Pire Kontrolü",
     slug: "kopeklerde-kene-pire-kontrolu",
-    excerpt: "Keneler ve pireler sadece rahatsızlık değil, ciddi hastalıklar da taşıyabilir. Etkili koruma yöntemleri.",
-    content: `# Köpeklerde Kene ve Pire Kontrolü
+    excerpt: "Keneler ve pireler ciddi hastalıklar taşıyabilir. Etkili koruma stratejileri ile sevdiklerinizi koruyun.",
+    content: `# Köpeklerde Kene ve Pire Kontrolü: Tam Koruma Rehberi
 
-Kene ve pireler, köpekler için sadece rahatsızlık kaynağı değil, aynı zamanda ciddi hastalıklar da taşıyabilirler. Etkili koruma stratejileri hayati önem taşır.
+Keneler ve pireler sadece rahatsız edici parazitler değil, aynı zamanda ölümcül hastalıkların taşıyıcılarıdır. Etkili koruma programı ile köpeğinizi ve ailenizi koruyabilirsiniz.
 
-## Kene ve Pirelerin Taşıdığı Hastalıklar
+## Keneler: Gizli Tehlike
 
-**Kenelerden Bulaşan:**
-- Lyme hastalığı
-- Ehrlichiosis
-- Babesiosis
-- Anaplasmosis
+### Kene Nedir?
 
-**Pirelerden Bulaşan:**
-- Tenya (bağırsak kurdu)
-- Bartonellosis
-- Dermatit (cilt iltihabı)
+Keneler, kan emerek yaşayan araknitlerdir (örümcek familyası). Küçük ama büyük tehlike taşırlar.
 
-## Önleme Yöntemleri
+**Türkiye'de Yaygın Kene Türleri:**
+- Kahverengi köpek kenesi (Rhipicephalus)
+- Çayır kenesi (Dermacentor)
+- Orman kenesi (Ixodes)
 
-**Topikal İlaçlar:**
-- Ayda bir damla şeklinde uygulanır
-- Sırt boyunca deri üzerine
-- Su geçirmez formüller tercih edin
-- Köpeğin kilosuna göre doz ayarlanır
+### Kenelerin Taşıdığı Hastalıklar
 
-**Oral Tablet İlaçlar:**
-- Ayda bir veya 3 ayda bir formlar
-- Etkili ve pratik
-- Yemekle verilebilir
-- Veteriner reçetesi gerektirir
+**1. Lyme Hastalığı (Borreliosis)**
+- **Belirtiler:** Ateş, eklem iltihabı, topallık, iştahsızlık
+- **Bulaşma:** Kene 24-48 saat tutunmalı
+- **Tedavi:** Antibiyotik (4-6 hafta)
+- **İnsanlara bulaşır:** EVET
 
-**Tasmalar:**
-- 6-8 ay koruma sağlar
-- Su geçirmezdir
-- Diğer yöntemlerle kombine edilebilir
-- Her zaman takılı kalmalı
+**2. Ehrlichiosis**
+- **Belirtiler:** Ateş, halsizlik, kan hücresi azalması
+- **Ciddiyet:** Kronik olabilir
+- **Tedavi:** Doxycycline
+- **Ölümcül olabilir:** EVET
 
-**Şampuanlar ve Spreyler:**
-- Kısa süreli koruma
-- Anında etki
-- Yoğun atak dönemlerinde takviye
+**3. Anaplasmosis**
+- **Belirtiler:** Ateş, eklem ağrısı, kusma
+- **Tanı:** Kan testi
+- **Tedavi:** Antibiyotik
+
+**4. Babesiosis (Piroplazma)**
+- **Belirtiler:** Anemi, sarılık, koyu idrar
+- **Ciddiyet:** Hayati tehlike
+- **Acil:** Kan transfüzyonu gerekebilir
+
+### Kene Yaşam Döngüsü
+
+**4 Evrecle:**
+1. **Yumurta:** 1000'lerce yumurta
+2. **Larva:** 6 bacaklı, kan emerken (genelde kemirgenlerde)
+3. **Nimf:** 8 bacaklı, kan emerken (küçük hayvanlar)
+4. **Erişkin:** 8 bacaklı, köpeklerde (en büyük risk)
+
+**Hayatta Kalma:**
+- Su olmadan 200+ gün yaşayabilir
+- -20°C soğuğa dayanır
+- Yılda 3000'e kadar yumurta bırakır
+
+## Pireler: Hızlı Düşman
+
+### Pire Nedir?
+
+Pireler, kansız parazit böceklerdir. Küçük (1-2mm) ama çok hızlıdırlar.
+
+**Özellikler:**
+- Saniyede 50 adım atlar
+- 30 cm yüksekliğe zıplar
+- Günde 50 adete kadar ısırır
+- 100+ yumurta bırakır (günlük)
+
+### Pirelerin Taşıdığı Hastalıklar
+
+**1. Tenya (Bağırsak Kurdu)**
+- **Bulaşma:** Pireyi yutma
+- **Belirtiler:** Kilo kaybı, makat kaşıma
+- **Tedavi:** Antiparaziter ilaç
+
+**2. Pire Alerjisi Dermatiti (FAD)**
+- **Neden:** Pire tükürüğüne alerji
+- **Belirtiler:** Şiddetli kaşıntı, tüy dökülmesi, kabuklanma
+- **Tedavi:** Pire kontrolü + antihistaminik
+
+**3. Bartonellosis (Kedi Tırmığı Hastalığı)**
+- **İnsanlara bulaşır:** EVET
+- **Belirtiler:** Ateş, lenf düğümü şişmesi
+
+### Pire Yaşam Döngüsü
+
+**4 Evre:**
+1. **Yumurta:** Beyaz, küçük, halılara düşer (50%)
+2. **Larva:** Karanlık, nemli yerlerde (35%)
+3. **Pupa:** Koza içinde, dayanıklı (10%)
+4. **Erişkin:** Kan emici (5% - gördüğünüz kısmı)
+
+**Önemli:**
+- Gördüğünüz pireler toplam pirelerin sadece %5'i
+- %95'i çevrede yumurta/larva/pupa halinde
+
+## Kene ve Pire Önleme Yöntemleri
+
+### 1. Topikal (Damla) İlaçlar
+
+**Nasıl Çalışır?**
+- Boyun arkasına damlatılır
+- Yağ bezlerinde dağılır
+- Tüm vücuda yayılır
+- Keneler/pireler temas edince ölür
+
+**Popüler Markalar:**
+- **Frontline Combo:** Kene + pire + yumurta
+- **Advantix:** Kene + pire + sivrisinek
+- **Bravecto Spot-On:** 3 ay koruma
+
+**Avantajları:**
+✓ Kolay uygulama
+✓ Hızlı etki (24 saat)
+✓ Su geçirmez (48 saat sonra)
+✓ Ekonomik
+
+**Dezavantajları:**
+✗ Aylık tekrar gerekir
+✗ Yanlış uygulama etkisiz kalır
+✗ Bazı köpekler cilt reaksiyonu gösterir
+
+**Uygulama Tekniği:**
+1. Köpek sakin olmalı
+2. Tüyleri ayırın (deriyi görün)
+3. Omurga üzerine, kürek kemiği arasına
+4. Direkt deriye damlatın (tüye değil)
+5. 48 saat yıkamayın
+
+### 2. Oral (Ağızdan) Tablet İlaçlar
+
+**Nasıl Çalışır?**
+- Yutulur, sindirim sistemine geçer
+- Kan dolaşımına karışır
+- Kene/pire kan emerken ilacı alır ve ölür
+
+**Popüler Markalar:**
+- **Bravecto:** 3 ay koruma
+- **NexGard:** 1 ay koruma
+- **Simparica:** 1 ay koruma
+
+**Avantajları:**
+✓ Çok etkili
+✓ Su/yıkanma etkilemez
+✓ Uygulama kolay
+✓ Uzun süreli (3 ay)
+
+**Dezavantajları:**
+✗ Reçete gerekir
+✗ Pahalı
+✗ Mide hassasiyeti (nadir)
+✗ Küçük yavrulara uygun değil
+
+**Doğru Kullanım:**
+- Yemekle verin (daha iyi emilim)
+- Dozaj önemli (kilo bazlı)
+- Veteriner reçetesi şart
+- Düzenli zamanlama
+
+### 3. Kene ve Pire Tasmaları
+
+**Nasıl Çalışır?**
+- Aktif madde yavaşça salgılanır
+- Tüm vücuda yayılır
+- 6-8 ay koruma
+
+**Popüler Markalar:**
+- **Seresto:** 8 ay koruma
+- **Scalibor:** 6 ay kene koruması
+
+**Avantajları:**
+✓ Uzun süreli
+✓ Su geçirmez
+✓ Unutma riski yok
+✓ Pratik
+
+**Dezavantajları:**
+✗ Pahalı
+✗ Cilt hassasiyeti (nadir)
+✗ Kaybolma riski
+✗ İlk 48 saat etkisizdir
+
+**Kullanım İpuçları:**
+- Deri temasını sağlayın
+- Çok sıkı takmayın (2 parmak boşluk)
+- Islak olursa kurulayın
+- Diğer tasmalarla beraber kullanılabilir
+
+### 4. Şampuanlar ve Spreyler
+
+**Şampuanlar:**
+- **Anında etki:** Var olan keneleri/pireleri öldürür
+- **Koruma süresi:** 1-2 hafta
+- **Kullanım:** Ayda 1-2 kez
+
+**Spreyler:**
+- **Hızlı uygulama:** Tüm vücuda püskürtülür
+- **Koruma:** 2-4 hafta
+- **İdeal:** Yoğun atak dönemleri
+
+**Ne Zaman Kullanılmalı?**
+- Aktif enfestasyon varsa
+- Yoğun kene sezonunda takviye
+- Doğa gezisi öncesi
+- Diğer yöntemlerle kombine
+
+### Karşılaştırma Tablosu
+
+| Yöntem | Koruma Süresi | Maliyet | Uygulama | Su Dayanımı |
+|--------|---------------|---------|----------|-------------|
+| Topikal damla | 1 ay | Orta | Kolay | İyi |
+| Oral tablet | 1-3 ay | Yüksek | Çok kolay | Mükemmel |
+| Tasma | 6-8 ay | Yüksek | Çok kolay | Mükemmel |
+| Şampuan | 1-2 hafta | Düşük | Zor | Yok |
+| Spray | 2-4 hafta | Orta | Kolay | Orta |
 
 ## Kene Kontrolü ve Çıkarma
 
-**Düzenli Kontrol:**
-- Her yürüyüş sonrası kontrol edin
-- Kulak içi, ayak parmakları arası
-- Boyun ve göğüs bölgesi
-- Koltuk altları
+### Günlük Kontrol Rutini
 
-**Kene Çıkarma Tekniği:**
-1. Özel kene pensetiyle keneyi deri seviyesinden tutun
-2. Yavaşça ve sabit bir şekilde yukarı çekin
-3. Döndirmeden dik çekin
-4. Keneyi çöpe atın veya yakın
-5. Bölgeyi dezenfekte edin
+**Her Yürüyüş Sonrası Kontrol Edin:**
 
-**ASLA:**
-- Keneyi elinizle çıkarmayın
-- Üzerine alkol dökmeyin
-- Yakmaya çalışmayın
-- Vücudu koparmayın
+**Yüksek Riskli Bölgeler:**
+1. **Kulaklar:** İçi ve arkası
+2. **Boyun:** Tasma altı
+3. **Koltuk Altları:** Nemli, sıcak
+4. **Kasık:** Ince cilt
+5. **Ayak Parmakları Arası:** Gözden kaçar
+6. **Kuyruk Altı:** Kolay tutunur
+7. **Göz Çevresi:** Hassas bölge
 
-## Ev ve Bahçe Kontrolü
+**Nasıl Kontrol Edilir?**
+- İyi ışıkta
+- Ellerinizle tarayın
+- Küçük kabartılar arayın
+- Tüylü ırklarda tarak kullanın
 
-**İç Mekan:**
-- Düzenli elektrik süpürgesi
-- Halı ve kumaşları sıcak suda yıkayın
-- Köpek yatağını haftalık temizleyin
-- Ev içi sprey kullanın
+### Kene Çıkarma Tekniği
 
-**Dış Mekan:**
-- Çimleri kısa tutun
+**Gerekli Malzemeler:**
+- Kene penseği (özel ince uçlu) veya kene kancası
+- Dezenfektan
+- Eldiven
+- Kavanoz (keneyi koymak için)
+
+**Adım Adım Çıkarma:**
+
+1. **Hazırlık:**
+   - Sakin olun (köpek gerginliği hisseder)
+   - İyi ışık sağlayın
+   - Eldiven giyin
+
+2. **Tutma:**
+   - Kene pensetiyle keneyi DERİ SEVİYESİNDEN tutun
+   - Kene vücudunu SIKMAYIN (hastalık yayar)
+   - Mümkün olduğunca başa yakın
+
+3. **Çıkarma:**
+   - Yavaş ve SABİT yukarı çekin
+   - DİK açıda çekin (eğri değil)
+   - DÖNDÜRME
+YİN (baş kopabilir)
+   - Sabit basınçla çekin
+
+4. **Sonrası:**
+   - Keneyi kavanoza koyun (tanı için saklayın)
+   - Bölgeyi dezenfekte edin
+   - Ellerinizi iyice yıkayın
+
+**ASLA YAPMAYIN:**
+❌ Keneyi elinizle çekmeyin
+❌ Üzerine alkol/benzin dökmeyin
+❌ Yakmaya çalışmayın
+❌ Vücudu sıkmayın
+❌ Döndürmeyin
+❌ Keneyi tuvalete atmayın (öldürün)
+
+**Baş İçerde Kaldıysa?**
+- Genelde zararsızdır
+- Vücut kendi atacaktır
+- Enfeksiyon riski düşük
+- İltihap olursa veterinere
+
+### Kene Sonrası İzleme
+
+**İlk 48 Saat:**
+- Bölgede kızarıklık/şişlik kontrol
+- Genel durum gözlemi
+
+**2-6 Hafta:**
+- **Lyme hastalığı belirtileri:**
+  - Ateş
+  - Topallık/eklem ağrısı
+  - İştahsızlık
+  - Halsizlik
+
+**Veterinere Gidin:**
+- Kene 24+ saat tutunmuşsa
+- Kızarıklık yayılıyorsa
+- Ateş varsa
+- Topallık/eklem şişliği
+
+## Pire Kontrolü
+
+### Evde Pire Mücadelesi
+
+**Entegre Yaklaşım:**
+Köpek + Ev + Bahçe = Tam kontrol
+
+**Köpek Üzerinde:**
+- Pire ilacı (topikal/oral)
+- Pire şampuanı (aktif enfestasyon)
+- Düzenli tarama
+
+**Ev İçi:**
+
+**1. Elektrik Süpürgesi (En Önemli):**
+- **Günlük:** Pire salgını varsa
+- **Haftada 2-3:** Normal dönem
+- **Odaklanın:** Halılar, köşeler, kanepeler
+- **Torbayı:** Hemen çöpe (dışarıda)
+
+**2. Yıkama:**
+- Köpek yatağı: Haftada 1, sıcak su (60°C+)
+- Battaniyeler: Haftada 1
+- Koltuk kılıfları: Haftada 1
+
+**3. Pire Spreyi:**
+- Halılara, mobilyalara
+- IGR içeren (böcek büyüme düzenleyici)
+- Larva ve yumurtaları öldürür
+- Ayda 1 uygulama
+
+**4. Pire Bombası/Fogger:**
+- Tüm odayı kaplayar
+- Evin boş olması gerekir
+- 2-4 saat sonra havalandırın
+- Ciddi enfestasyonlar için
+
+**Dış Mekan (Bahçe):**
+
+**Çevre Düzenlemesi:**
+- Çimleri kısa tutun (5 cm)
 - Yaprakları toplayın
 - Nemli alanları azaltın
+- Odun yığınları kaldırın
 - Yabani hayvanları uzak tutun
 
-## Alerji ve Reaksiyonlar
+**Bahçe Spreyi:**
+- Pyretrin bazlı
+- Çimlere, çalılıklara
+- Ayda 1 uygulama
+- Yağmur sonrası tekrar
 
-**Pire Alerjisi Dermatiti:**
-- Aşırı kaşınma
-- Kırmızı, iltihaplanmış cilt
-- Tüy kaybı
-- Kabuklanma
+### Çoklu Evcil Hayvan Ortamı
 
-**Tedavi:**
-- Veteriner muayenesi
-- Antihistaminikler
-- Topikal kremler
-- Pirelerin tamamen temizlenmesi
+**Önemli:**
+- **TÜM** evcil hayvanlar tedavi edilmeli
+- Kediler de dahil (kedi güvenli ürünler)
+- Aynı gün başlayın
+- Ev temizliği eşzamanlı
 
-## Mevsimsel Dikkat
+**Kedi Dikkat:**
+❌ Köpek ilaçları kedilere KULLANMAYIN
+❌ Permethrin kediler için ZEHİRLİDİR
+✅ Kedi özel ürünler kullanın
 
-**İlkbahar-Yaz:** En yoğun dönem, korumayı aksatmayın
-**Sonbahar:** Keneler hala aktif, kontrolü sürdürün
-**Kış:** Korumayı hafifletebilirsiniz ama bırakmayın
+## Doğal ve Alternatif Yöntemler
 
-Koruma yıl boyunca düzenli olmalıdır!`,
-    categoryTags: ["köpek", "sağlık", "parazit", "koruma"],
-    readTime: 5,
+### Esansiyel Yağlar
+
+**Etkili Olanlar:**
+- Nane yağı
+- Lavanta yağı
+- Okaliptüs yağı
+- Limon suyu
+- Elma sirkesi
+
+**Kullanım:**
+- Su ile seyrelt (1:10)
+- Sprey olarak uygula
+- Haftada 2-3 kez
+
+**Dikkat:**
+⚠ Bilimsel kanıt sınırlı
+⚠ Tam koruma sağlamaz
+⚠ Hassasiyet olabilir
+⚠ İlaçların yerini tutmaz
+
+### Diatomeli Toprak (Food Grade)
+
+**Nasıl Çalışır?**
+- Pirelerin dış iskeletini keser
+- Kurutur ve öldürür
+
+**Kullanım:**
+- Halılara serpin
+- 24 saat bekleyin
+- Elektrik süpürgesi
+
+**Güvenlik:**
+✓ Doğal, kimyasalsız
+⚠ Toz solunmamalı (maske kullanın)
+
+### Bira Mayası ve Sarımsak
+
+**İddia:** Kan tadını değiştirir, pireler uzak durur
+
+**Gerçek:**
+⚠ Bilimsel kanıt YOK
+⚠ Sarımsak yüksek dozda zehirlidir
+❌ Önerilmez
+
+## Önleme Takvimi
+
+### Mevsimsel Koruma
+
+**İlkbahar (Mart-Mayıs):**
+- Kene sezonu başlar
+- Korumaya başlayın
+- Günlük kontroller
+- Bahçe spreyi
+
+**Yaz (Haziran-Ağustos):**
+- En yoğun dönem
+- Korumayı aksatmayın
+- Doğa gezileri öncesi ekstra
+- Pire riski artar (sıcak, nemli)
+
+**Sonbahar (Eylül-Kasım):**
+- Keneler hala aktif
+- Koruma devam
+- Yaprak temizliği
+
+**Kış (Aralık-Şubat):**
+- Kene aktivitesi azalır (ama sıfır değil)
+- Ev içi pireler aktif (ısıtma)
+- Korumayı azaltmayın
+- 3 aylık ürünler ideal
+
+### Yıl Boyu Koruma
+
+**Önerilen:**
+- **12 ay koruma:** İdeal
+- **8 ay koruma:** Minimum (Mart-Kasım)
+- Kış: En az 3 ayda bir
+
+**Neden Yıl Boyu?**
+- Pireler iç mekanda yaşar (ısıtma)
+- Kış aylarında ılık günler olabilir
+- Unutma riski azalır
+- Daha ekonomik (yıllık paketler)
+
+## Sıkça Sorulan Sorular
+
+**S: Kene/pire ilacı kullanmak güvenli mi?**
+C: Evet, onaylı ürünler güvenlidir. Dozaj önemli, veteriner tavsiyesi alın.
+
+**S: Hamile köpeğe kene ilacı verilebilir mi?**
+C: Bazı ürünler güvenlidir, mutlaka veterinere danışın.
+
+**S: Evden çıkmayan köpeğe gerek var mı?**
+C: Evet! Pireler siz eve taşıyabilirsiniz.
+
+**S: İlaç kullandım ama hala pire var, neden?**
+C: Çevredeki yumurta/larvalar olgunlaşıyor. 3 ay sürekli tedavi gerekir.
+
+**S: Doğal yöntemler yeterli mi?**
+C: Hayır. Takviye olarak kullanılabilir ama tek başına yetersiz.
+
+**S: Kene hastalığı insanlara bulaşır mı?**
+C: Evet, Lyme ve diğer hastalıklar insanlara da bulaşır.
+
+## Acil Durum: Pire/Kene Salgını
+
+**Belirtiler:**
+- Köpek sürekli kaşınıyor
+- Cilt kızarıklığı
+- Tüy dökülmesi
+- Gözle görülebilen pireler/keneler
+
+**7 Günlük Acil Plan:**
+
+**Gün 1:**
+- Pire şampuanı ile yıkayın
+- Oral/topikal ilaç verin
+- Köpek yatağını yıkayın
+
+**Gün 1-2:**
+- Tüm evi elektrik süpürgesi (günde 2 kez)
+- Mobilya, halı, köşeler
+- Torbaları çöpe
+
+**Gün 3:**
+- Ev spreyi/fogger uygulayın
+- Evden 4 saat çıkın
+- İyice havalandırın
+
+**Gün 4-7:**
+- Günlük elektrik süpürgesi
+- Günlük köpek kontrolü
+- Yıkamaları devam
+
+**Gün 14:**
+- İkinci pire ilacı (gerekirse)
+- Kontrol muayenesi
+
+**Gün 30:**
+- Son kontrol
+- Normal koruma programına geçin
+
+## Sonuç ve Öneriler
+
+**Etkili Kene/Pire Kontrolü İçin:**
+
+✅ Yıl boyunca düzenli koruma
+✅ Kombine yöntemler (ilaç + çevre temizliği)
+✅ Günlük kontroller
+✅ Erken müdahale
+✅ Veteriner takibi
+✅ Tüm evcil hayvanlar tedavi
+✅ Ev + bahçe temizliği
+✅ Mevsimsel dikkat
+
+**Unutmayın:** Önleyici tedbirler, tedaviden her zaman daha kolay ve ucuzdur. Düzenli koruma programı ile köpeğinizi ve ailenizi ciddi hastalıklardan koruyabilirsiniz!`,
+    categoryTags: ["köpek", "sağlık", "parazit", "koruma", "kene", "pire"],
+    readTime: 15,
     published: true,
   },
+
   {
     title: "Köpeklerde Beslenme: Yaşa Göre Mama Seçimi",
     slug: "kopeklerde-yasa-gore-mama-secimi",
-    excerpt: "Her yaş grubunun farklı besin ihtiyaçları vardır. Köpeğiniz için doğru mamayı nasıl seçersiniz?",
-    content: `# Köpeklerde Yaşa Göre Beslenme
+    excerpt: "Her yaş grubunun farklı besinsel ihtiyaçları vardır. Köpeğiniz için en doğru beslenme planını keşfedin.",
+    content: `# Köpeklerde Yaşa Göre Beslenme: Kapsamlı Mama Rehberi
 
-Köpekler yaşamlarının farklı dönemlerinde farklı besinsel ihtiyaçlara sahiptir. Doğru mama seçimi, sağlıklı gelişim ve uzun ömür için kritik öneme sahiptir.
+Doğru beslenme, köpeğin sağlığı, enerji seviyesi ve yaşam kalitesi için temel taştır. Her yaş döneminin kendine özgü besinsel ihtiyaçları vardır ve mama seçimi bu ihtiyaçlara göre yapılmalıdır.
 
-## Yavru Köpek Beslenmesi (0-12 Ay)
+## Beslenmenin Önemi
 
-**Besinsel İhtiyaçlar:**
-- Yüksek protein (%28-32)
-- Yüksek kalori
-- Kalsiyum ve fosfor dengesi
-- DHA (beyin gelişimi için)
-- Prebiyotikler (sindirim için)
+### Neden Doğru Beslenme Kritiktir?
 
-**Beslenme Sıklığı:**
-- 2-3 aylık: Günde 4 öğün
-- 3-6 aylık: Günde 3 öğün
-- 6-12 aylık: Günde 2 öğün
+**Sağlık Üzerindeki Etkileri:**
+- **Bağışıklık Sistemi:** Güçlü savunma mekanizması
+- **Kemik ve Eklem:** Sağlıklı gelişim ve yaşlanma
+- **Cilt ve Tüy:** Parlak, sağlıklı görünüm
+- **Sindirim:** Düzenli, sorunsuz işleyiş
+- **Enerji:** Optimal aktivite seviyesi
+- **Ömür:** Daha uzun, kaliteli yaşam
 
-**Önemli Noktalar:**
+### Kötü Beslenmenin Sonuçları
+
+❌ Obezite ve eklem problemleri
+❌ Beslenme eksiklikleri
+❌ Cilt hastalıkları
+❌ Sindirim sorunları
+❌ Kısalan yaşam süresi
+❌ Kronik hastalıklar
+
+## Yavru Köpek Beslenmesi (0-12/18 Ay)
+
+### Yaş Aralığı
+
+- **Küçük ırklar:** 0-12 ay
+- **Orta ırklar:** 0-12 ay
+- **Büyük ırklar:** 0-18/24 ay
+
+### Besinsel İhtiyaçlar
+
+**Yüksek Protein:**
+- **Minimum:** %22-28
+- **İdeal:** %28-32
+- **Kaynak:** Tavuk, kuzu, sığır, balık
+- **Rol:** Kas gelişimi, organ oluşumu
+
+**Yüksek Kalori:**
+- **DER (Kcal/kg):** 3500-4000
+- **Neden:** Hızlı büyüme, yüksek metabolizma
+- **Dikkat:** Kontrollü, aşırı beslenmeye dikkat
+
+**Kalsiyum ve Fosfor Dengesi:**
+- **Oran:** Ca:P = 1.2:1 - 1.4:1
+- **Önem:** Kemik gelişimi
+- **Büyük ırklar:** Fazla kalsiyum sakıncalı (eklem problemleri)
+
+**DHA (Docosahexaenoic Acid):**
+- **Kaynak:** Balık yağı
+- **Rol:** Beyin ve göz gelişimi
+- **Önem:** Zeka ve öğrenme yeteneği
+
+**Prebiyotik ve Probiyotikler:**
+- **Rol:** Bağırsak sağlığı
+- **Faydası:** Güçlü sindirim
+- **Örnekler:** Chicory, FOS, MOS
+
+### Beslenme Sıklığı
+
+| Yaş | Günlük Öğün Sayısı | Porsiyon |
+|-----|---------------------|----------|
+| 2-3 ay | 4 öğün | Küçük porsiyonlar |
+| 3-6 ay | 3 öğün | Orta porsiyonlar |
+| 6-12 ay | 2 öğün | Büyük porsiyonlar |
+
+**Neden Sık Öğün?**
+- Küçük mide hacmi
+- Yüksek enerji ihtiyacı
+- Kan şekeri dengesi
+- Daha iyi sindirim
+
+### Mama Seçim Kriterleri
+
+**Etiket Okuma:**
+- "Puppy", "Junior", "Growth" yazıyor mu?
+- İlk 3 bileşen et bazlı mı?
+- AAFCO onaylı mı?
+- Yapay renklendirici/koruyucu var mı?
+
+**İrk Bazlı Seçim:**
+- Küçük ırklar: Küçük taneli, yüksek kalorili
+- Büyük ırklar: Özel "Large Breed Puppy" (kontrollü kalsiyum)
+
+**Popüler Yavru Mamaları:**
+- Royal Canin Puppy
+- Hill's Science Diet Puppy
+- Purina Pro Plan Puppy
+- Acana Puppy
+- Orijen Puppy
+
+### Önemli Noktalar
+
+**✓ Yapılması Gerekenler:**
 - Yavru maması mutlaka kullanın
 - Porsiyon kontrolü yapın
-- Taze su daima mevcut olsun
-- Aşırı beslenme sakıncalı
+- Taze su her zaman mevcut
+- Düzenli kilo takibi
+
+**✗ Yapılmaması Gerekenler:**
+- Yetişkin maması vermeyin
+- Aşırı beslemeyin
+- İnsan yemeği vermeyin
+- Sürekli mama değiştirmeyin
 
 ## Yetişkin Köpek Beslenmesi (1-7 Yaş)
 
-**Besinsel İhtiyaçlar:**
-- Dengeli protein (%18-25)
-- Orta kalori
-- Omega-3 ve 6 yağ asitleri
-- Lif (sindirim için)
-- Antioksidanlar
+### Besinsel İhtiyaçlar
 
-**Beslenme Programı:**
-- Günde 2 öğün ideal
-- Sabah-akşam düzenli saatler
-- Porsiyon kontrolü önemli
-- Aktivite seviyesine göre ayarlama
+**Dengeli Protein:**
+- **Minimum:** %18
+- **İdeal:** %22-26
+- **Kaynak:** Çeşitli et kaynakları
+- **Rol:** Kas korunumu, enerji
 
-**Irk Bazlı Farklar:**
-- Küçük ırklar: Yüksek metabolizma, daha sık öğün
-- Orta ırklar: Standart program
-- Büyük ırklar: Eklem sağlığı için glukozamin
+**Orta Kalori:**
+- **DER:** 2500-3500 Kcal/kg
+- **Ayarlama:** Aktivite seviyesine göre
+- **Hedef:** Ideal kiloyu korumak
+
+**Omega-3 ve Omega-6 Yağ Asitleri:**
+- **Oran:** Omega-6:3 = 5:1 - 10:1
+- **Kaynak:** Balık yağı, keten tohumu
+- **Faydası:** Parlak tüy, sağlıklı cilt
+
+**Lif (Fiber):**
+- **Oran:** %2.5-4.5
+- **Kaynak:** Sebzeler, tahıllar
+- **Rol:** Sindirim sağlığı, doygunluk hissi
+
+**Antioksidanlar:**
+- **Vitaminler:** E, C
+- **Mineraller:** Selenyum
+- **Rol:** Hücre korunması, bağışıklık
+
+### Beslenme Programı
+
+**Günde 2 Öğün (İdeal):**
+- **Sabah:** 07:00-09:00
+- **Akşam:** 18:00-20:00
+- **Aralık:** 10-12 saat
+
+**Neden 2 Öğün?**
+- Mide gerginliği önleme (gastrik dilatasyon riski)
+- Kan şekeri dengesi
+- Daha iyi enerji dağılımı
+- Rutin oluşturma
+
+### Porsiyon Hesaplama
+
+**Temel Formül:**
+Günlük Kalori İhtiyacı = RER x Aktivite Faktörü
+
+**RER (Resting Energy Requirement):**
+RER = 70 x (Kilo)^0.75
+
+**Aktivite Faktörleri:**
+- Kısırlaştırılmış, sakin: 1.6 x RER
+- Aktif, normal: 1.8 x RER
+- Çok aktif, çalışan: 2.0-5.0 x RER
+
+**Örnek Hesaplama:**
+- Köpek: 20 kg, kısırlaştırılmış
+- RER = 70 x (20)^0.75 = 662 Kcal
+- Günlük İhtiyaç = 662 x 1.6 = 1059 Kcal
+- Mama (3500 Kcal/kg) = 1059/3500 = ~300 gram/gün
+
+### Irk Bazlı Farklar
+
+**Küçük Irklar (<10 kg):**
+- Yüksek metabolizma
+- Küçük taneli mama
+- Günde 2-3 öğün
+- Diş sağlığına dikkat
+
+**Orta Irklar (10-25 kg):**
+- Standart beslenme
+- Günde 2 öğün
+- Dengeli aktivite
+
+**Büyük Irklar (25+ kg):**
+- Eklem sağlığı öncelik
+- Glukozamin/kondroitin katkılı
+- Yavaş yeme (anti-gulp kaseler)
+- Mide gerginliği riski
+
+### Özel Formülasyonlar
+
+**Enerji Seviyesi:**
+- **Light/Weight Control:** Hareketsiz, obez
+- **Active/Sport:** Çok aktif, çalışan
+- **Sensitive:** Hassas sindirim
+
+**Sağlık Durumu:**
+- **Skin Care:** Cilt problemleri
+- **Dental:** Diş sağlığı
+- **Hairball:** Tüy yumağı kontrolü
 
 ## Yaşlı Köpek Beslenmesi (7+ Yaş)
 
-**Besinsel İhtiyaçlar:**
-- Kaliteli protein (kas kaybını önler)
-- Düşük kalori (aktivite azalır)
-- Eklem desteği (glukozamin, kondroitin)
-- Düşük fosfor (böbrek sağlığı)
-- Antioksidanlar (yaşlanma karşıtı)
+### Yaş Tanımı
 
-**Özel Dikkat:**
-- Kolay sindirilir mama
-- Küçük lokma boyutu
-- Yumuşak doku varsa ıslak mama
-- Vitamin-mineral desteği
+- **Küçük ırklar:** 10+ yaş
+- **Orta ırklar:** 8+ yaş
+- **Büyük ırklar:** 6+ yaş
+
+### Besinsel İhtiyaçlar
+
+**Kaliteli Protein:**
+- **Oran:** %20-25 (yüksek kaliteli)
+- **Neden:** Kas kaybını önlemek
+- **Kaynak:** Kolay sindirilebilir etler
+- **Önemli:** Böbrek sağlığı için uygun
+
+**Düşük Kalori:**
+- **DER:** 2000-2800 Kcal/kg
+- **Neden:** Aktivite azalır, metabolizma yavaşlar
+- **Hedef:** Obeziteyi önlemek
+
+**Eklem Desteği:**
+- **Glukozamin:** 300-600 mg/gün
+- **Kondroitin:** 200-400 mg/gün
+- **MSM:** Ek destek
+- **Faydası:** Eklem esnekliği, ağrı azaltma
+
+**Düşük Fosfor:**
+- **Oran:** <0.5%
+- **Neden:** Böbrek sağlığını korumak
+- **Önem:** Kronik böbrek hastalığı riski
+
+**Antioksidanlar:**
+- **Vitamin E:** 400-600 IU
+- **Vitamin C:** 100-200 mg
+- **Beta-karoten:** Hücre korunması
+- **Rol:** Yaşlanma karşıtı, bağışıklık
+
+### Özel Dikkat Gerektiren Noktalar
+
+**Kolay Sindirilir:**
+- Prebiyotikler
+- Probiyotikler
+- Sindirim enzimleri
+- Az lifli
+
+**Küçük Lokma Boyutu:**
+- Diş kaybı varsa
+- Çiğneme zorluğu
+- Yaşlı dişler hassas
+
+**Yumuşak Doku:**
+- Islak mama kombinasyonu
+- Kuru mamayı ıslatma
+- Diş problemleri için
+
+**Vitamin-Mineral Desteği:**
+- B Vitaminleri (enerji)
+- Kalsiyum (kemik)
+- Antioksidanlar (bağışıklık)
+
+### Yaşlı Köpek Mama Seçimi
+
+**Popüler Markalar:**
+- Royal Canin Senior
+- Hill's Science Diet 7+/11+
+- Purina Pro Plan Senior
+- Farmina N&D Senior
+
+**Etiket Okuma:**
+- "Senior", "Mature", "7+" yazıyor mu?
+- Eklem destekleyiciler var mı?
+- Düşük fosfor mu?
+- Kolay sindirilebilir mi?
 
 ## Mama Türleri
 
-**Kuru Mama:**
-✓ Ekonomik
-✓ Diş temizliği
-✓ Uzun raf ömrü
-✓ Kolay depolama
-
-**Yaş Mama:**
-✓ Yüksek nem içeriği
-✓ Lezzetli
-✓ Kolay çiğnenir
-✓ İştah arttırıcı
-
-**Ev Yapımı Mama:**
-⚠ Dengeli olmalı
-⚠ Veteriner danışmanlığı şart
-⚠ Vitamin-mineral ekleme gerekir
-⚠ Hijyene dikkat
-
-## Özel Durumlar
-
-**Gebe/Emziren Köpekler:**
-- Yavru maması verin
-- Porsiyon %50 artırın
-- Sık öğün
-- Bol su
-
-**Aktif/Sporcu Köpekler:**
-- Yüksek protein ve kalori
-- Performans maması
-- Egzersiz öncesi/sonrası zamanlama
-
-**Kısırlaştırılmış Köpekler:**
-- Metabolizma yavaşlar
-- Kısırlaştırılmış köpek maması
-- Porsiyon kontrolü kritik
-
-## Mama Geçişi
-
-Yeni mamaya geçerken:
-1. Gün: %75 eski + %25 yeni
-2-3. Gün: %50 eski + %50 yeni
-4-5. Gün: %25 eski + %75 yeni
-6-7. Gün: %100 yeni
-
-## Kaçınılması Gerekenler
-
-❌ Çikolata, üzüm, soğan
-❌ Aşırı tuzlu yiyecekler
-❌ Kemikli tavuk
-❌ Alkol, kafein
-❌ Xylitol (tatlandırıcı)
-
-Doğru beslenme = Sağlıklı yaşam!`,
-    categoryTags: ["köpek", "beslenme", "mama", "sağlık"],
-    readTime: 6,
-    published: true,
-  },
-  {
-    title: "Köpek Cinsleri ve Karakteristik Özellikleri",
-    slug: "kopek-cinsleri-karakteristik-ozellikleri",
-    excerpt: "Her köpek ırkının kendine özgü karakteri, bakım ihtiyaçları ve yaşam tarzı gereksinimleri vardır.",
-    content: `# Köpek Cinsleri Rehberi
-
-Doğru köpek ırkını seçmek, yaşam tarzınıza uygun bir arkadaş bulmak demektir. Her ırkın kendine özgü karakteri, bakım ihtiyaçları ve egzersiz gereksinimleri vardır.
-
-## Popüler Küçük Irklar
-
-**Chihuahua:**
-- Kilo: 1-3 kg
-- Karakter: Sadık, cesur, enerjik
-- Bakım: Kolay, az egzersiz
-- İdeal: Apartman yaşamı
-- Dikkat: Soğuktan korunmalı
-
-**Yorkshire Terrier:**
-- Kilo: 2-3 kg
-- Karakter: Oyuncu, meraklı, zeki
-- Bakım: Düzenli tüy bakımı
-- İdeal: Tek kişi veya çift
-- Dikkat: Diş sağlığına özen
-
-**Pomeranian:**
-- Kilo: 2-3 kg
-- Karakter: Canlı, arkadaş canlısı
-- Bakım: Günlük fırçalama
-- İdeal: Aktif bireyler
-- Dikkat: Havlama eğilimi
-
-## Orta Boy Irklar
-
-**Beagle:**
-- Kilo: 10-12 kg
-- Karakter: Neşeli, arkadaş canlısı, meraklı
-- Bakım: Düşük
-- İdeal: Aileler, bahçeli ev
-- Dikkat: Koku takibi instinktü güçlü
-
-**Cocker Spaniel:**
-- Kilo: 12-15 kg
-- Karakter: Yumuşak, oyuncu, sadık
-- Bakım: Düzenli tüy bakımı
-- İdeal: Aileler, çocuklu evler
-- Dikkat: Kulak enfeksiyonları
-
-**Bulldog:**
-- Kilo: 18-25 kg
-- Karakter: Sakin, nazik, inatçı
-- Bakım: Cilt kıvrımları temizlik
-- İdeal: Apartman, az egzersiz
-- Dikkat: Sıcağa hassas
-
-## Büyük Irklar
-
-**Golden Retriever:**
-- Kilo: 30-35 kg
-- Karakter: Dostane, zeki, sadık
-- Bakım: Haftalık fırçalama
-- İdeal: Aktif aileler, bahçeli ev
-- Dikkat: Kalça displazisi riski
-
-**Alman Çoban Köpeği:**
-- Kilo: 30-40 kg
-- Karakter: Koruyucu, zeki, eğitilebilir
-- Bakım: Düzenli egzersiz şart
-- İdeal: Aktif sahipler, geniş alan
-- Dikkat: Sosyalizasyon önemli
-
-**Labrador Retriever:**
-- Kilo: 30-35 kg
-- Karakter: Arkadaş canlısı, enerjik, eğitilebilir
-- Bakım: Orta seviye
-- İdeal: Aileler, aktif yaşam
-- Dikkat: Kilo kontrolü gerekli
-
-## Çalışan Köpek Irkları
-
-**Border Collie:**
-- Karakter: En zeki ırk, çok enerjik
-- Egzersiz: Günde 2+ saat
-- Eğitim: Zihinsel uyarım şart
-- İdeal: Deneyimli sahip
-
-**Siberian Husky:**
-- Karakter: Bağımsız, enerjik, sosyal
-- Egzersiz: Yüksek
-- Bakım: Mevsimlik tüy dökümü
-- İdeal: Soğuk iklim, bahçeli ev
-
-## Irk Seçiminde Dikkat Edilecekler
-
-**Yaşam Tarzı Uyumu:**
-- Aktivite seviyeniz
-- Ev büyüklüğü
-- Bahçe varlığı
-- Günlük zaman ayırabilme
-
-**Bakım Gereksinimleri:**
-- Tüy bakımı sıklığı
-- Egzersiz ihtiyacı
-- Veteriner masrafları
-- Tımar maliyeti
-
-**Aile Yapısı:**
-- Çocuk varlığı
-- Diğer evcil hayvanlar
-- Alerji durumu
-- Deneyim seviyesi
-
-**Sağlık Faktörleri:**
-- Irk spesifik hastalıklar
-- Genetik testler
-- Sigorta maliyeti
-- Yaşam süresi
-
-## Melez Köpekler
-
-**Avantajları:**
-- Genetik çeşitlilik (daha sağlıklı)
-- Benzersiz karakter
-- Sahiplenmek iyilik
-- Ekonomik
-
-**Dikkat Edilecekler:**
-- Tam büyüklük tahmin edilemez
-- Karakter öngörüsü zor
-- Sağlık geçmişi bilinmiyor
-
-Unutmayın: En iyi köpek, yaşam tarzınıza uygun olandır!`,
-    categoryTags: ["köpek", "ırklar", "seçim", "karakter"],
-    readTime: 6,
-    published: true,
-  },
-  {
-    title: "Köpeklerde Temel Komut Eğitimi",
-    slug: "kopeklerde-temel-komut-egitimi",
-    excerpt: "Otur, kal, gel gibi temel komutlar köpeğinizin güvenliği ve sosyal uyumu için şarttır.",
-    content: `# Köpeklerde Temel Komut Eğitimi
-
-Temel itaat komutları, köpeğinizin güvenliğini sağlar ve sosyal ortamlarda kontrol edilebilir olmasını mümkün kılar. Doğru eğitim teknikleriyle her köpek bu komutları öğrenebilir.
-
-## Eğitim İlkeleri
-
-**Pozitif Pekiştirme:**
-- Ödül odaklı eğitim en etkili yöntemdir
-- Doğru davranışı anında ödüllendirin
-- Ceza değil, ödül kullanın
-- Ses tonunuz ödülün bir parçasıdır
-
-**Tutarlılık:**
-- Her zaman aynı kelimeyi kullanın
-- Aile üyeleri aynı kuralları uygulasın
-- Günlük kısa seanslar yapın
-- Sabırlı olun
-
-## 1. OTUR Komutu
-
-**Öğretme Adımları:**
-1. Ödülü elinizde tutun
-2. Ödülü köpeğin burnunun üzerinden arkaya çekin
-3. Poposu yere değdiğinde "Otur" deyin
-4. Anında ödüllendirin
-5. 5-10 saniye sonra serbest bırakın
-
-**Yaygın Hatalar:**
-- Çok uzun oturma beklemek
-- Ödülü çok yüksekte tutmak
-- Fiziksel baskı yapmak
-
-**İlerleme:**
-- Süreyi kademeli artırın
-- Dikkat dağıtıcılar ekleyin
-- Farklı lokasyonlarda pratik
-
-## 2. KAL Komutu
-
-**Öğretme Adımları:**
-1. Köpeği oturtun
-2. Avucunuzu açık tutarak "Kal" deyin
-3. Bir adım geriye gidin
-4. 2 saniye bekleyin
-5. Geri dönüp ödüllendirin
-
-**Zorluk Artırma:**
-- Mesafeyi kademeli artırın
-- Süreyi uzatın
-- Gözden çıkın
-- Farklı pozisyonlardan deneyin
-
-**Dikkat:**
-- Köpek gelirse geri gönderin
-- Başarısızlık varsa zorluk azaltın
-- Serbest komutunu mutlaka kullanın
-
-## 3. GEL Komutu
-
-**Hayati Önem:**
-- Köpeğin güvenliği için kritik
-- Tasmasız alanlarda kontrol
-- Tehlike anlarında can kurtarır
-
-**Öğretme:**
-1. Uzun ip kullanın (10m)
-2. "Gel" deyip ipi nazikçe çekin
-3. Geldiğinde büyük ödül
-4. Asla cezalandırmayın
-5. Eğlenceli yapın
-
-**Pratik:**
-- İki kişi arası gel-git oyunu
-- Bahçede serbest pratik
-- Dikkat dağıtıcılarla test
-- Her gelişte ödüllendirin
-
-## 4. YAT Komutu
-
-**Öğretme:**
-1. Köpeği oturtun
-2. Ödülü yere doğru çekin
-3. "Yat" derken burnunu takip etsin
-4. Göğüs yere değince ödüllendirin
-
-**Zorluklar:**
-- Bazı köpekler yatmakta isteksiz
-- Yumuşak zeminde başlayın
-- Sabırlı olun
-- Kademeli ilerleyin
-
-## 5. BIRAK Komutu
-
-**Güvenlik:**
-- Tehlikeli şeyleri bırakması için gerekli
-- Oyun kontrolü sağlar
-- Agresyon önler
-
-**Öğretme:**
-1. Oyuncakla oynayın
-2. "Bırak" deyip daha iyi ödül gösterin
-3. Bıraktığında anında ödül
-4. Oyuncağı geri verin (değiştirme)
-
-## Eğitim Programı
-
-**İdeal Seans:**
-- Süre: 5-10 dakika
-- Sıklık: Günde 2-3 seans
-- Zamanlama: Köpek aç/enerjik iken
-- Ortam: Sakin, dikkat dağıtıcısız
-
-**İlerleme Takibi:**
-- Başarı oranını not edin
-- Zorluk kademeli artırın
-- Gerilemeler normaldir
-- Başarıları kutlayın
-
-## Sorun Giderme
-
-**Dikkat Dağılması:**
-- Daha değerli ödül
-- Daha sakin ortam
-- Daha kısa seanslar
-
-**Öğrenmeme:**
-- Adımları küçültün
-- Daha çok tekrar
-- Veteriner kontrolü (işitme)
-
-Unutmayın: Her köpek kendi hızında öğrenir!`,
-    categoryTags: ["köpek", "eğitim", "komut", "itaat"],
-    readTime: 7,
-    published: true,
-  },
-
-  // Kedi Bakımı (7 yazı)
-  {
-    title: "Kedilerde Kum Tuvaleti Eğitimi ve Seçimi",
-    slug: "kedilerde-kum-tuvaleti-secimi",
-    excerpt: "Kediler doğal olarak temiz hayvanlardır. Doğru kum ve tuvalet seçimi önemlidir.",
-    content: `# Kedilerde Kum Tuvaleti Rehberi
-
-Kediler instinktif olarak toprak benzeri yüzeylerde ihtiyaçlarını görüp üzerini örterler. Doğru kum tuvaleti sistemi, kedinin ve sizin konforunuz için kritiktir.
-
-## Tuvalet Kabı Seçimi
-
-**Açık Tuvalet:**
-✓ İyi havalanma
-✓ Klaustrofobi yapmaz
-✓ Temizlik kontrolü kolay
-✗ Koku yayılımı fazla
-✗ Kum saçılması
-
-**Kapalı Tuvalet:**
-✓ Koku kontrolü
-✓ Mahremiyet
-✓ Kum saçılması az
-✗ Havalanma zayıf
-✗ Bazı kediler sevmez
-
-**Boyut Kuralı:**
-- Uzunluk: Kedinin 1.5 katı
-- Genişlik: Rahat dönebilmeli
-- Yükseklik: Kolay giriş-çıkış
-
-## Kum Türleri
-
-**Topaklanabilir Kum:**
-✓ Kolay temizlik
-✓ Ekonomik (uzun ömür)
-✓ Koku kontrolü iyi
-✗ Tozlu olabilir
-✗ Yavru kediler yiyebilir
-
-**Topaklanmayan Kum:**
-✓ Az toz
-✓ Ucuz
-✗ Sık değişim gerekir
-✗ Koku kontrolü zayıf
-
-**Silika Jel Kum:**
-✓ Mükemmel koku kontrolü
-✓ Az toz
-✓ Uzun süre dayanır
-✗ Pahalı
-✗ Bazı kediler sevmez
-
-**Doğal Kumlar:**
-- Odun peleti
-- Mısır bazlı
-- Buğday bazlı
-✓ Çevre dostu
-✓ Kokusuz
-✗ Topaklanma zayıf
-
-## Tuvalet Yerleşimi
-
-**İdeal Konum:**
-- Sessiz, sakin alan
-- Kolay erişim
-- Yemek kabından uzak
-- Çok geçişli yerlerden uzak
-- Birden fazla kedi için: Kedi sayısı + 1 tuvalet
-
-**Kaçınılacak Yerler:**
-- Çamaşır makinesi yanı (gürültü)
-- Dar koridorlar
-- Köpek ulaşabileceği yerler
-- Nem oranı yüksek alanlar
-
-## Temizlik ve Bakım
-
-**Günlük:**
-- Topakları temizleyin
-- Dışkıları alın
-- Kumu karıştırın
-- Kenarları kontrol edin
-
-**Haftalık:**
-- Tüm kumu değiştirin
-- Kabı yıkayın (yumuşak sabun)
-- Iyice kurulayın
-- Taze kum ekleyin
-
-**Kum Miktarı:**
-- 5-7 cm derinlik ideal
-- Çok az: Kazıma zorluğu
-- Çok fazla: İsraf ve saçılma
-
-## Sorun Giderme
-
-**Tuvaleti Kullanmıyor:**
-1. Veteriner kontrolü (enfeksiyon?)
-2. Tuvalet sayısı yeterli mi?
-3. Kum tipi değişti mi?
-4. Tuvalet yeterince temiz mi?
-5. Stres faktörü var mı?
-
-**Tuvalet Dışına Yapıyor:**
-- İdrar yolu enfeksiyonu
-- Stres/anksiyete
-- Tuvalet çok kirli
-- Kum tipi beğenmiyor
-- Tuvalet çok küçük
-
-**Saçma/Kazıma:**
-- Daha büyük tuvalet
-- Tuvalet matı kullanın
-- Kum miktarı azaltın
-- Kapalı tuvalet deneyin
-
-## Çok Kedi Ortamı
-
-**Tuvalet Sayısı:**
-- Formül: Kedi sayısı + 1
-- Farklı katlarda
-- Farklı oda/alanlarda
-- Ayrı kum türleri deneyebilirsiniz
-
-**Rekabet Önleme:**
-- Yeterli sayıda tuvalet
-- Farklı tuvalet tipleri
-- Sakin, özel alanlar
-
-## Yavru Kedi Eğitimi
-
-**Doğal İçgüdü:**
-- Genelde eğitim gerektirmez
-- 3-4 haftalıktan itibaren
-- Anneyi taklit eder
-
-**Yardımcı Olma:**
-- Yemekten sonra tuvalete koyun
-- Patilerle kazıma gösterin
-- Doğru yaptığında övün
-- Cezalandırmayın
-
-## Sağlık İpuçları
-
-**İdrar Takibi:**
-- Günlük kontrol
-- Renk değişimi
-- Sıklık artışı
-- Kan görülmesi
-
-**Kaka İzleme:**
-- Kıvam
-- Renk
-- Sıklık
-- Kan/mukus
-
-Anormallik görürseniz veterinere!
-
-Unutmayın: Temiz tuvalet = Mutlu kedi!`,
-    categoryTags: ["kedi", "tuvalet", "bakım", "eğitim"],
-    readTime: 6,
-    published: true,
-  },
-  {
-    title: "Kedilerde Tüy Bakımı ve Tüy Yumağı Kontrolü",
-    slug: "kedilerde-tuy-bakimi-yumagi",
-    excerpt: "Kediler kendilerini temizler ama tüy bakımında yardımınıza ihtiyaç duyarlar. Tüy yumağı nasıl önlenir?",
-    content: `# Kedilerde Tüy Bakımı Rehberi
-
-Kediler gününün büyük bölümünü kendini yalayarak temizler. Ancak düzenli tüy bakımı hem tüy yumağını önler hem de cilt sağlığını korur.
-
-## Tüy Tipine Göre Bakım
-
-**Kısa Tüylü Kediler:**
-- Sıklık: Haftada 1-2 kez
-- Araç: Lastik fırça veya tarak
-- Süre: 5-10 dakika
-- Örnekler: British Shorthair, Siamese
-
-**Uzun Tüylü Kediler:**
-- Sıklık: Günlük
-- Araç: Metal tarak + yumuşak fırça
-- Süre: 15-20 dakika
-- Örnekler: Persian, Maine Coon, Ankara
-
-**Yarı Uzun Tüylü:**
-- Sıklık: Haftada 3-4 kez
-- Araç: Kombine fırça
-- Örnekler: Ragdoll, Siberian
-
-## Fırçalama Teknikleri
-
-**Doğru Yöntem:**
-1. Kedinin rahat olduğu zamanda
-2. Tüy yönünde fırçalayın
-3. Nazik, yavaş hareketler
-4. Düğümleri çözmek için parmaklar
-5. Karın bölgesine dikkat
-
-**Düğüm Çözme:**
-- Küçük düğümler: Parmakla ayırın
-- Büyük düğümler: Özel spray kullanın
-- Çok sert: Veteriner tıraşı
-
-**Hassas Bölgeler:**
-- Kulak arkası
-- Koltuk altları
-- Kasık bölgesi
-- Kuyruk altı
-
-## Tüy Yumağı (Hairball) Problemi
-
-**Nedenleri:**
-- Aşırı tüy yalama
-- Uzun/kalın tüy
-- Sindirim yavaşlığı
-- Mevsimlik tüy dökümü
-
-**Belirtiler:**
-- Öksürme/tıksırma
-- İştah kaybı
-- Kabızlık
-- Halsizlik
-
-**Önleme Yöntemleri:**
-
-**1. Düzenli Fırçalama:**
-- Yuttuğu tüy miktarını azaltır
-- En etkili yöntem
-- Mevsimlik dönemlerde artırın
-
-**2. Tüy Yumağı Mamalar:**
-- Lifli formüller
-- Sindirim destekleyici
-- Veteriner tavsiyesi
-
-**3. Maltlı Krepler:**
-- Haftada 2-3 kez
-- Tüylerin geçişini kolaylaştırır
-- Lezzetli, kediler sever
-
-**4. Yağ Takviyeleri:**
-- Omega-3 yağı
-- Zeytinyağı (az miktarda)
-- Balık yağı
-
-## Mevsimlik Tüy Dökümü
-
-**İlkbahar-Sonbahar:**
-- En yoğun dönem
-- Günlük fırçalama şart
-- Evde fazla tüy
-- Tüy yumağı riski artar
-
-**Döküm Yönetimi:**
-- Sık fırçalama
-- Beslenme desteği
-- Nemli bez silme
-- Elektrik süpürgesi
-
-## Kedi Banyosu
-
-**Gerekli mi?**
-- Genelde gerekli değil
-- Özel durumlar:
-  - Aşırı kirlenme
-  - Pire/dış parazit
-  - Tıbbi sebeplerle
-  - Sergi hazırlığı
-
-**Banyo Tekniği:**
-1. Ilık su (37-38°C)
-2. Özel kedi şampuanı
-3. Nazikçe masaj
-4. İyice durulama
-5. Havlu ve fön
-
-**Sıklık:**
-- Kısa tüy: Yılda 2-3 kez
-- Uzun tüy: Ayda 1-2 kez
-- Hairless: Haftada 1 kez
-
-## Tırnak Bakımı
-
-**Kesim Sıklığı:**
-- İç mekan kedileri: 2-3 haftada bir
-- Dış mekan kedileri: Daha seyrek
-
-**Doğru Kesim:**
-- Özel kedi tırnak makası
-- Sadece uç kısım
-- Pembe damardan uzak
-- İyi aydınlatma
-
-## Kulak Temizliği
-
-**Kontrol:**
-- Haftada bir bakın
-- Koku, kızarıklık kontrol
-- Normal: Az balmumu
-
-**Temizlik:**
-- Özel kulak solüsyonu
-- Pamuklu bezle silme
-- Kulak çöpü kullanmayın
-- Derin temizlik veterinerde
-
-## Göz Bakımı
-
-**Günlük Kontrol:**
-- Akıntı var mı?
-- Kızarıklık?
-- Şişlik?
-
-**Temizlik:**
-- Islak pamuklu bez
-- Her göz için ayrı bez
-- Dıştan içe silme
-- Steril serum
-
-## Diş Bakımı
-
-**Fırçalama:**
-- Haftada 2-3 kez ideal
-- Özel kedi diş macunu
-- Yumuşak fırça
-- Kademeli alıştırma
-
-**Diş Sağlığı:**
-- Yıllık veteriner kontrolü
-- Diş taşı temizliği
-- Özel mama desteği
-
-Düzenli bakım = Sağlıklı, mutlu kedi!`,
-    categoryTags: ["kedi", "bakım", "tüy", "sağlık"],
-    readTime: 6,
-    published: true,
-  },
-  {
-    title: "Kedilerde Aşı Programı ve Sağlık Takibi",
-    slug: "kedilerde-asi-programi-saglik",
-    excerpt: "Kedi aşıları hangi hastalıklardan korur? Aşı takvimi nasıl planlanır?",
-    content: `# Kedilerde Aşı Programı
-
-Aşılar, kedilerin ciddi ve ölümcül hastalıklardan korunmasında en etkili yöntemdir. Düzenli aşı programı uzun ve sağlıklı bir yaşam için şarttır.
-
-## Temel (Core) Aşılar
-
-**1. FVRCP (3'lü Combo Aşı):**
-
-**Feline Viral Rhinotracheitis (FVR):**
-- Üst solunum yolu enfeksiyonu
-- Hapşırma, burun akıntısı
-- Göz akıntısı, ateş
-
-**Calicivirus (FCV):**
-- Ağız ülserleri
-- Solunum problemleri
-- Topallık
-- Pnömoni riski
-
-**Panleukopenia (FPV - Kedi Humması):**
-- Çok bulaşıcı, ölümcül
-- Kusma, ishal
-- Ateş, halsizlik
-- Özellikle yavru kediler risk altında
-
-**2. Kuduz Aşısı:**
-- Zorunlu, yasal gereklilik
-- %100 ölümcül hastalık
-- İnsanlara bulaşabilir
-- Yıllık rapel gerekir
-
-## Ek (Non-Core) Aşılar
-
-**Feline Leukemia (FeLV):**
-- İmmün sistemi zayıflatır
-- Kansere yol açar
-- Dışarı çıkan kediler için önemli
-- Kedi-kedi temasıyla bulaşır
-
-**Chlamydia:**
-- Göz enfeksiyonu
-- Konjunktivit
-- Çok kedili evlerde önerilir
-
-**Bordetella:**
-- Solunum enfeksiyonu
-- Barınak/pansiyon kedileri için
-
-## Yavru Kedi Aşı Takvimi
-
-**6-8 Haftalık:**
-- İlk FVRCP aşısı
-- FeLV testi (gerekirse)
-- Genel sağlık muayenesi
-
-**10-12 Haftalık:**
-- İkinci FVRCP aşısı
-- FeLV aşısı (1. doz)
-
-**14-16 Haftalık:**
-- Üçüncü FVRCP aşısı
-- Kuduz aşısı
-- FeLV aşısı (2. doz)
-- Mikroçip takılması
-
-## Yetişkin Kedi Aşıları
-
-**Yıllık Kontroller:**
-- FVRCP rapel (yılda bir veya 3 yılda bir)
-- Kuduz rapel (yılda bir, zorunlu)
-- FeLV rapel (riskli kediler için)
-
-**Yaşa Göre Aşı Protokolü:**
-- 1-7 yaş: Standart program
-- 7+ yaş: Veteriner değerlendirmesi
-- Risk faktörleri dikkate alınır
-
-## Aşı Öncesi Hazırlık
-
-**Sağlık Kontrolü:**
-- Hasta kedilere aşı yapılmaz
-- Parazit kontrolü yapılmalı
-- İyi beslenme durumu
-
-**Stres Yönetimi:**
-- Sakin ortam
-- Taşıma çantası alıştırması
-- Feromon spreyleri
-
-## Aşı Sonrası Bakım
-
-**İlk 24-48 Saat:**
-- Hafif halsizlik normal
-- Az yemek yeme olabilir
-- Enjeksiyon bölgesinde şişlik
-- Dinlenme sağlayın
-
-**Dikkat Gerektiren Belirtiler:**
-- Yüksek ateş (>39.5°C)
-- Aşırı uyuklama
-- İştahsızlık (24 saat+)
-- Kusma/ishal
-- Yüz şişmesi (alerjik reaksiyon)
-
-**Acil Durum:**
-- Nefes darlığı
-- Çöküntü
-- Konvülsiyon
-→ Hemen veterinere!
-
-## İç Mekan vs Dış Mekan
-
-**İç Mekan Kedileri:**
-- Temel aşılar yeterli
-- Risk düşük ama sıfır değil
-- 3 yılda bir program uygulanabilir
-
-**Dış Mekan Kedileri:**
-- Tüm aşılar önerilir
-- FeLV kritik önem taşır
-- Yıllık rapeller şart
-- Parazit kontrolü daha sıklıkla
-
-## Düzenli Sağlık Kontrolleri
-
-**Yıllık Muayene:**
-- Fiziksel muayene
-- Kilo takibi
-- Diş kontrolü
-- Kan tahlilleri (7+ yaş)
-
-**Kan Testleri:**
-- FeLV/FIV testi
-- Tam kan sayımı
-- Böbrek/karaciğer fonksiyonları
-- Tiroid (yaşlı kediler)
-
-## Parazit Kontrolü
-
-**İç Parazitler:**
-- 3 ayda bir iç parazit ilacı
-- Dışkı kontrolü yılda 1-2 kez
-
-**Dış Parazitler:**
-- Aylık pire-kene önleme
-- Özellikle ilkbahar-yaz
-- İç mekan kedileri bile risk altında
-
-## Maliyet Yönetimi
-
-**Tasarruf İpuçları:**
-- Paket programlar
-- Pet sigortası
-- Belediye klinikleri
-- Aşı kampanyaları
-
-**Yatırımın Değeri:**
-- Hastalık tedavisi çok pahalı
-- Önleme her zaman ekonomik
-- Uzun ömür = düşük maliyet
-
-Unutmayın: Düzenli aşı + kontrol = Sağlıklı kedi!`,
-    categoryTags: ["kedi", "aşı", "sağlık", "veteriner"],
-    readTime: 6,
-    published: true,
-  },
-  {
-    title: "Kedilerde Beslenme: Kuru Mama mı Yaş Mama mı?",
-    slug: "kedilerde-beslenme-kuru-yas-mama",
-    excerpt: "Kediler için ideal beslenme nasıl olmalı? Kuru ve yaş mama avantajları nelerdir?",
-    content: `# Kedilerde Beslenme Rehberi
-
-Kediler obligat (zorunlu) etçillerdir. Doğru beslenme, sağlıklı yaşam için temeldir. Kuru mama mı, yaş mama mı yoksa karışık beslenme mi? İşte cevaplar.
-
-## Kedilerin Besinsel İhtiyaçları
-
-**Protein:**
-- En önemli besin
-- %30-40 oranında
-- Hayvansal protein şart
-- Taurin asidi kritik
-
-**Yağlar:**
-- Enerji kaynağı
-- %10-20 oranında
-- Omega-3 ve 6
-- Kıl sağlığı için
-
-**Karbonhidrat:**
-- Minimal ihtiyaç
-- %5-10 yeterli
-- Fazlası kilo yapabilir
-
-**Taurin:**
-- Kedilerde sentezlenemez
-- Kalp sağlığı için kritik
-- Göz sağlığı
-- Sindirim sistemi
-
-## Kuru Mama
+### Kuru Mama (Kibble)
 
 **Avantajları:**
 ✓ Ekonomik
-✓ Uzun raf ömrü
 ✓ Kolay depolama
-✓ Diş temizliği (tartışmalı)
-✓ Ölçüm kolaylığı
-✓ Porsiyon kontrolü
+✓ Uzun raf ömrü (açıldıktan sonra 6 hafta)
+✓ Diş temizliği (mekanik sürtünme)
+✓ Pratik
 
 **Dezavantajları:**
 ✗ Düşük nem içeriği (%10)
-✗ Yüksek karbonhidrat
-✗ İdrar yolu problemleri riski
-✗ Kilo alma riski
-✗ Bazı kedilerce tercih edilmez
+✗ Katkı maddeleri (koruyucular)
+✗ İşlenmiş
 
-**İdeal Kullanım:**
-- Genç, aktif kediler
-- Bol su içen kediler
-- Bütçe dostu seçenek
-- Çalışan sahipler için
+**Kimler İçin Uygun?**
+- Sağlıklı, genç köpekler
+- Diş sağlığı iyi olanlar
+- Ekonomik tercih edenler
 
-## Yaş Mama
+### Islak Mama (Konserve)
 
 **Avantajları:**
-✓ Yüksek nem içeriği (%75-80)
-✓ Doğal beslenmeye yakın
-✓ Su tüketimi arttırır
-✓ İdrar yolu sağlığı
-✓ Daha lezzetli
-✓ Yaşlı kediler için kolay
+✓ Yüksek nem içeriği (%75-85)
+✓ Lezzetli (köpekler sever)
+✓ Kolay çiğnenir
+✓ İştah arttırıcı
+✓ Hidrasyon desteği
 
 **Dezavantajları:**
 ✗ Pahalı
-✗ Açıldıktan sonra bozulur
-✗ Diş taşı riski (tartışmalı)
-✗ Porsiyon kontrolü zor
+✗ Kısa raf ömrü (açıldıktan sonra 2-3 gün, buzdolabında)
+✗ Diş temizliği yok
+✗ Daha fazla dışkı
 
-**İdeal Kullanım:**
-- Yaşlı kediler
-- İdrar yolu problemli
-- Az su içen kediler
-- Hasta/toparlanma dönemi
+**Kimler İçin Uygun?**
+- Yaşlı köpekler
+- Diş problemleri olanlar
+- İştahsız köpekler
+- Az su içenler
 
-## Karışık Beslenme (Önerilen)
+### Yarı Nemli Mama
 
-**En İyi Yaklaşım:**
-- Sabah: Yaş mama
-- Akşam: Kuru mama
-- Veya: %75 kuru + %25 yaş
+**Özellikleri:**
+- Nem: %25-35
+- Yumuşak doku
+- Orta raf ömrü
+
+**Kullanım:**
+- Nadir tercih edilir
+- Katkı maddeleri fazla
+- Şeker içeriği yüksek (sakıncalı)
+
+### Ev Yapımı Mama
 
 **Avantajları:**
-✓ Her iki dünyanın iyisi
-✓ Yeterli nem
-✓ Ekonomik
-✓ Diyet çeşitliliği
-✓ Esnek program
+✓ Tam kontrol
+✓ Taze malzemeler
+✓ Katkı maddesi yok
+✓ Özel ihtiyaçlara uygun
 
-## Yaşa Göre Beslenme
+**Dezavantajları:**
+✗ Zaman alıcı
+✗ Pahalı olabilir
+✗ Dengeli olması zor
+✗ Veteriner danışmanlığı şart
+✗ Vitamin-mineral ekleme gerekir
 
-**Yavru Kedi (0-12 Ay):**
-- Yüksek protein (%35-40)
-- Yüksek kalori
-- Günde 3-4 öğün
-- Özel yavru maması
+**Önemli:**
+⚠ Kendi başınıza dengelemek tehlikelidir
+⚠ Beslenme uzmanı ile çalışın
+⚠ Düzenli kan testleri
 
-**Yetişkin (1-7 Yaş):**
-- Dengeli protein (%30-35)
-- Günde 2 öğün
-- Kilo kontrolü
-- Aktiviteye göre ayarlama
+### BARF (Bones and Raw Food) / Çiğ Et Diyeti
 
-**Yaşlı (7+ Yaş):**
-- Kaliteli protein
-- Düşük fosfor (böbrek)
-- Eklem desteği
-- Kolay sindirilebilir
-- Yaş mama tercih edilmeli
+**Prensip:**
+- Çiğ et, kemik, organ
+- Tahıl yok
+- "Doğal" beslenme
 
-## Porsiyon Kontrolü
+**Riskler:**
+❌ Bakteriyel enfeksiyonlar (Salmonella, E. coli)
+❌ Paraızit riski
+❌ Dengesiz beslenme
+❌ Kemik yaralanmaları
 
-**Hesaplama:**
-- Kedi kilosu x 50-60 kalori
-- Örnek: 4 kg kedi = 200-240 kalori/gün
-
-**Kilo Yönetimi:**
-- Düzenli tartım (haftalık)
-- Mama kab\ı ölçümü
-- İkramların azaltılması
-- Oyun/aktivite artırımı
-
-## Su Tüketimi
-
-**Önemi:**
-- Böbrek sağlığı
-- İdrar yolu taşları önleme
-- Hidrasyon
-
-**Su İçmeyi Artırma:**
-- Çeşme suyu (birçok kedi sever)
-- Su çeşmesi/fountain
-- Birden fazla su kabı
-- Taze, temiz su
-- Yaş mama oranını artırma
+**Önerilen:**
+- Uzman danışmanlığı alın
+- Hijyen kritik
+- Köpeğe ve insanlara risk
 
 ## Özel Durumlar
 
-**Kısırlaştırılmış Kediler:**
-- Metabolizma %30 yavaşlar
-- Özel kısır kedisi maması
+### Gebe ve Emziren Köpekler
+
+**Gebelik (63 gün):**
+- **İlk 5 hafta:** Normal yetişkin maması
+- **Son 4 hafta:** Yavru maması, porsiyon artırılır
+- **Artış:** %25-50 fazla
+
+**Emzirme:**
+- **Mama:** Yavru maması
+- **Porsiyon:** Normal'in %150-300'ü
+- **Sıklık:** Serbest beslenme (ad libitum)
+- **Su:** Bol su şart
+
+### Aktif ve Sporcu Köpekler
+
+**Enerji İhtiyacı:**
+- **Orta aktif:** 1.5-2 x RER
+- **Yüksek aktif (agility, arama-kurtarma):** 2-5 x RER
+- **Çalışan (kızak, polis):** 4-8 x RER
+
+**Besinsel Öncelikler:**
+- Yüksek protein (>28%)
+- Yüksek yağ (%15-20)
+- Performans mamaları
+- Egzersiz öncesi/sonrası zamanlama
+
+**Zamanlama:**
+- **Önce:** 2-4 saat önce besle (hafif)
+- **Sonra:** 30-60 dakika sonra besle
+
+### Kısırlaştırılmış Köpekler
+
+**Metabolizma Değişimi:**
+- %20-30 azalma
+- Kilo alma riski
+- Hormon dengesizliği
+
+**Beslenme Yaklaşımı:**
+- Kısırlaştırılmış köpek maması
+- %20 daha az kalori
 - Porsiyon kontrolü kritik
-- Aktivite artırımı
+- Günlük tartım
 
-**Hamile/Emziren:**
-- Yavru maması verin
-- Sınırsız beslenme
-- Yüksek kalori
-- Kaliteli protein
+### Alerjik/Hassas Köpekler
 
-**Hasta Kediler:**
-- Veteriner diyeti
-- Reçeteli mamalar
-- Özel besin destekleri
+**Yaygın Alerjenler:**
+- Sığır eti
+- Süt ürünleri
+- Buğday
+- Tavuk
+- Soya
 
-## Yasaklı Yiyecekler
+**Çözüm:**
+- Hipoalerjenik mama (hidrolize protein)
+- Tek protein kaynağı (novel protein)
+- Tahılsız formüller
+- Veteriner reçeteli mama
 
-**ZEHİRLİ:**
-❌ Soğan, sarımsak
-❌ Çikolata
-❌ Üzüm, kuru üzüm
-❌ Ksylitol (tatlandırıcı)
-❌ Alkol
-❌ Kafein
-
-**SAKINCALI:**
-⚠ Süt (laktoz intoleransı)
-⚠ Çiğ et (parazit riski)
-⚠ Balık (fazlası zararlı)
-⚠ Tuzlu yiyecekler
-⚠ Yağlı yemekler
+**Popüler Markalar:**
+- Hill's z/d
+- Royal Canin Hypoallergenic
+- Purina HA
 
 ## Mama Geçişi
 
-**Yeni Mamaya Alıştırma:**
-1-2. Gün: %75 eski + %25 yeni
-3-4. Gün: %50 eski + %50 yeni
-5-6. Gün: %25 eski + %75 yeni
-7. Gün: %100 yeni
+### Neden Kademeli?
 
-**Ani Değişim:**
-- Mide bulantısı
-- İshal
+- Sindirim sistemi alışması gerekir
+- Ani değişim: İshal, kusma
+- Mikrobiyota dengesi bozulur
+
+### 7 Günlük Geçiş Planı
+
+| Gün | Eski Mama | Yeni Mama |
+|-----|-----------|-----------|
+| 1-2 | %75 | %25 |
+| 3-4 | %50 | %50 |
+| 5-6 | %25 | %75 |
+| 7+ | %0 | %100 |
+
+**Yavaş Geçiş (Hassas Köpekler):**
+- 10-14 güne yayın
+- Her 2 günde bir %10 artırın
+
+### Geçiş Sırasında İzleme
+
+**Normal Belirtiler:**
+- Hafif dışkı yumuşaması (1-2 gün)
+- Gaz
+
+**Alarm Belirtileri:**
+- Şiddetli ishal (>2 gün)
 - Kusma
-- Yemek reddi
-
-## Kaliteli Mama Seçimi
-
-**Etiket Okuma:**
-- İlk 3 malzeme hayvansal protein
-- "Et unu" yerine "et"
-- Yapay katkı yok
-- Tahıl oranı düşük
-- AAFCO onaylı
-
-Doğru beslenme = Sağlıklı, uzun ömür!`,
-    categoryTags: ["kedi", "beslenme", "mama", "sağlık"],
-    readTime: 7,
-    published: true,
-  },
-  {
-    title: "Kedilerde Davranış Sorunları ve Çözümleri",
-    slug: "kedilerde-davranis-sorunlari-cozumleri",
-    excerpt: "Tırmalama, ısırma, aşırı miyavlama gibi davranış problemlerinin altında yatan nedenler ve çözümler.",
-    content: `# Kedilerde Davranış Sorunları
-
-Kediler karmaşık davranış paternlerine sahip hayvanlardır. Problemli görünen davranışlar çoğunlukla doğal içgüdülerden kaynaklanır. Çözüm, kedinin dilini anlamaktır.
-
-## Tırmalama Problemi
-
-**Neden Tırmalarlar?**
-- Tırnak bakımı (dış katman soyulması)
-- Kas germe egzersizi
-- Bölge işaretleme
-- Stres atma
-- Oyun/avlanma içgüdüsü
-
-**Çözüm Yöntemleri:**
-
-**1. Tırmalama Tahtası:**
-- Kedi sayısı + 1 adet
-- Farklı yükseklik ve açılarda
-- Tercih edilen materyaller: sisal, karton, halı
-- Tırmaladığı mobilya yakınına yerleştirin
-- Kedi nanesi spreyi ile teşvik
-
-**2. Yönlendirme:**
-- Mobilya tırmalarsa: Hemen tırmalama tahtasına götürün
-- Doğru yaptığında: Ödüllendirin
-- Yanlış yaptığında: Ses çıkarın (pssst)
-- Asla fiziksel ceza yok
-
-**3. Caydırma:**
-- Çift taraflı bant
-- Folyo
-- Özel caydırıcı spreyler
-- Mobilya koruyucular
-
-**Tırnak Kesimi:**
-- Her 2-3 haftada bir
-- Sadece uç kısım
-- Tırnak kılıfları (alternatif)
-
-## Isırma Davranışı
-
-**Oyun Isırması:**
-- Yavru kedilerde çok yaygın
-- Avlanma içgüdüsü
-- Enerji boşaltma
-
-**Çözüm:**
-- El oyuncağı değildir
-- Asa oyuncakları kullanın
-- Isırdığında oyunu durdurun
-- "Ayyy!" deyip çekilin
-
-**Stres/Agresif Isırma:**
-- Kuyruk hızlıca sallanır
-- Kulaklar geriye
-- Hırıltı sesi
-- Genişlemiş göz bebekleri
-
-**Önleme:**
-- Kedinin limitlerini tanıyın
-- Zorla kucaklamayın
-- Güvenli alan sağlayın
-- Stres kaynaklarını azaltın
-
-**Aşırı Uyarılma:**
-- Okşama sınırı vardır
-- Kuyruğa dikkat: Sinir göstergesi
-- Sinyal gelince bırakın
-
-## Aşırı Miyavlama
-
-**Nedenleri:**
-- Dikkat çekme
-- Açlık
-- Su isteme
-- Tuvalet kirli
-- Sağlık problemi
-- Yaşlılık (bunama)
-- Cinsel aktivite
-
-**Çözümler:**
-
-**Dikkat İstiyorsa:**
-- Düzenli oyun seansları
-- Günde en az 15 dakika
-- İnteraktif oyuncaklar
-- Yalnız bırakma süresini azaltın
-
-**Yemek İstiyorsa:**
-- Düzenli beslenme saatleri
-- Otomatik mama kabı
-- Miyavladığında yem vermeyIn
-- Sessizken verin
-
-**Yaşlılık/Bunama:**
-- Veteriner konsültasyonu
-- Gece lambası
-- Rutin değişikliği yapmayın
-- Sabırlı olun
-
-## Gece Aktivitesi
-
-**Neden Gece Aktif:**
-- Doğal avlanma saatleri
-- Gündüz uyuyor
-- Yeterli egzersiz yok
-
-**Çözüm:**
-- Akşam yoğun oyun
-- Yatmadan önce bol yemek
-- Gündüz aktivite artırımı
-- Gece oyuncakları saklayın
-- Karanlık, sessiz ortam
-
-## İstensiz Yerlerde Tuvalet Yapma
-
-**Tıbbi Nedenler (Önce Veteriner):**
-- İdrar yolu enfeksiyonu
-- Böbrek hastalığı
-- Diyabet
-- Artrit (tuvalete girmek ağrılı)
-
-**Davranışsal Nedenler:**
-- Kirli tuvalet
-- Tuvalet yetmez (çok kedi)
-- Tuvalet yeri değişti
-- Yeni kum türü
-- Stres/anksiyete
-
-**Çözüm:**
-- Günde 2 kez temizlik
-- Kedi sayısı + 1 tuvalet
-- Farklı lokasyonlar
-- Eski kum türüne dön
-- Stres faktörleri belirle
-
-**İşaretleme (Marking):**
-- Dikey yüzeylere püskürtme
-- Genelde kısırlaştırılmamış
-- Bölge ihlali hissi
-
-**Çözüm:**
-- Kısırlaştırma (%90 etkili)
-- Feromon diffüzerleri
-- Temizlik: Enzimli temizleyici
-- Rekabet azaltma
-
-## Agresyon
-
-**Türleri:**
-- Oyun agresyonu
-- Korku agresyonu
-- Bölgesel agresyon
-- Yönlendirilmiş agresyon
-
-**Korku Agresyonu:**
-- Sırtı kamburlaşmış
-- Tüyleri diken diken
-- Hışırtı
-- Gözler genişlemiş
-
-**Çözüm:**
-- Tehdit kaynağını kaldırın
-- Yavaş yaklaşım
-- Saklanma yeri sağlayın
-- Zorlamayın
-- Pozitif pekiştirme
-
-**Kediler Arası:**
-- Yavaş tanıştırma
-- Ayrı kaynaklar
-- Yüksek alanlar
-- Oyun seansları
-
-## Yıkıcı Davranışlar
-
-**Eşya Düşürme:**
-- Dikkat çekme
-- Sıkılma
-- Av simülasyonu
-
-**Çözüm:**
-- Değerli eşyaları kaldırın
-- İnteraktif oyuncaklar
-- Düzenli oyun
-- Görmezden gelin
-
-**Bitki Yeme:**
-- Kedi çimi sağlayın
-- Zehirli bitkileri kaldırın
-- Dikkat dağıtıcı oyuncaklar
-
-## Aşırı Yalama
-
-**Nedenleri:**
-- Stres/anksiyete
-- Alerji/kaşıntı
-- Parazit
-- Dermatit
-
-**Dikkat:**
-- Tüy dökülmesi
-- Yara oluşumu
-- Veteriner kontrolü
-
-Unutmayın: Davranış değişikliği sabır ister!`,
-    categoryTags: ["kedi", "davranış", "eğitim", "psikoloji"],
-    readTime: 7,
-    published: true,
-  },
-  {
-    title: "Kedilerde İdrar Yolu Hastalıkları (FLUTD)",
-    slug: "kedilerde-idrar-yolu-hastaliklari-flutd",
-    excerpt: "FLUTD kedilerde yaygın ve ciddi bir sağlık sorunudur. Belirtileri tanıyın ve önleyin.",
-    content: `# Kedilerde İdrar Yolu Hastalıkları
-
-FLUTD (Feline Lower Urinary Tract Disease), kedilerde alt idrar yolu hastalıkları şemsiye terimidir. Ciddi, ağrılı ve hayati tehlike oluşturabilir.
-
-## FLUTD Nedir?
-
-**Tanım:**
-- Mesane ve üretra hastalıkları
-- Çeşitli nedenleri var
-- %1-3 prevalans
-- Erkek kediler daha riskli
-
-**Alt Kategoriler:**
-- İdrar taşları (kum, kristal)
-- Sistit (mesane iltihabı)
-- İdrar yolu tıkanıklığı
-- İdiopatik sistit (neden bilinmez)
-
-## Belirtiler
-
-**Erken Belirtiler:**
-- Sık tuvalet girişi
-- Az miktarda idrar
-- İdrarda zorlanma/inleme
-- Tuvaletten hemen çıkıp tekrar girme
-- Tuvalet dışında işeme
-
-**Ciddi Belirtiler:**
-🚨 Acil Durum:
-- Hiç idrar yapamama
-- Ağrılı karın
-- Kusma
-- Halsizlik/uyuşukluk
 - İştahsızlık
-→ 24 saat içinde ölümcül!
-
-**Dikkat:**
-- Kanlı idrar
-- Bulanık idrar
-- Güçlü idrar kokusu
-- Genital bölgeyi aşırı yalama
-
-## Risk Faktörleri
-
-**Demografik:**
-- 2-6 yaş arası en riskli
-- Erkek kediler (anatomi)
-- Kısırlaştırılmış kediler
-- Aşırı kilolu kediler
-
-**Çevresel:**
-- İç mekan kedileri
-- Az su içme
-- Stres
-- Kötü tuvalet hijyeni
-- Kuru mama ağırlıklı beslenme
-
-**Irk:**
-- Persian
-- Himalayan
-- Exotic Shorthair
-
-## İdrar Taşları Türleri
-
-**Struvit:**
-- En yaygın
-- Alkali idrar (pH >7)
-- Diyet ile çözülebilir
-- Enfeksiyon ilişkili
-
-**Kalsiyum Oksalat:**
-- Asidik idrar
-- Diyet ile çözülemez
-- Cerrahi gerektirir
-- Tekrarlama riski yüksek
-
-## Tanı
-
-**Veteriner Muayenesi:**
-- Fizik muayene
-- Mesane palpasyonu
-- İdrar analizi
-- İdrar kültürü
-- Radyografi (X-ray)
-- Ultrason
-
-**İdrar Testi:**
-- pH seviyesi
-- Protein varlığı
-- Bakteri
-- Kristal/taş
-- Kan hücreleri
-
-## Tedavi
-
-**Tıkanıklık (Acil):**
-1. Hemen veterinere
-2. Kateter ile tıkanıklık açılır
-3. Serum tedavisi
-4. Ağrı kesici
-5. Antibiyotik (enfeksiyon varsa)
-6. Hospitalizasyon
-
-**Taş/Kristal:**
-- Özel diyet mama
-- Su tüketimi artırımı
-- Asidifikasyon veya alkalizasyon
-- Cerrahi (gerekirse)
-
-**İdiopatik Sistit:**
-- Stres yönetimi
-- Feromon difüzerleri
-- Zenginleştirilmiş çevre
-- Ağrı kesiciler
-- Anti-inflamatuar
-
-## Önleme
-
-**Beslenme:**
-✓ Yaş mama oranını artırın
-✓ Özel FLUTD mamalar
-✓ pH dengeli mamalar
-✓ Düşük magnezyum
-✓ Kontrollü mineral
-
-**Hidrasyon:**
-✓ Taze, temiz su (günlük değişim)
-✓ Birden fazla su kabı
-✓ Su çeşmesi kullanımı
-✓ Yaş mama (%75 su)
-✓ Su aroması (tavuk suyu)
-
-**Tuvalet Yönetimi:**
-✓ Her zaman temiz
-✓ Kedi sayısı + 1 adet
-✓ Uygun kum tipi
-✓ Uygun lokasyon
-✓ Büyük tuvalet boyutu
-
-**Stres Azaltma:**
-✓ Rutin sürdürme
-✓ Güvenli saklanma yerleri
-✓ Yeterli oyun
-✓ Tırmalama alanları
-✓ Feromeli
-
- ürünler
-
-**Kilo Yönetimi:**
-✓ İdeal kiloda tutun
-✓ Porsiyon kontrolü
-✓ Düzenli egzersiz
-✓ Az ikram
-
-## Özel Diyetler
-
-**Reçeteli Mamalar:**
-- Hill's c/d
-- Royal Canin Urinary S/O
-- Purina UR
-- Blue Buffalo WU
-
-**Nasıl Çalışır:**
-- pH dengeleme
-- Kristal çözme
-- Taş oluşumunu engelleme
-- Su tüketimi artırımı
-
-**Süre:**
-- Hayat boyu (çoğunlukla)
-- Veteriner takibi
-- Düzenli kontroller
-
-## Ev Takibi
-
-**İdrar İzleme:**
-- Sıklık
-- Miktar
-- Renk
-- Koku
-- Zorlanma
-
-**Davranış İzleme:**
-- Tuvalet alışkanlığı
-- Ağrı belirtileri
-- İştah
-- Su tüketimi
-
-**Ne Zaman Veterinere:**
-🚨 Acil:
-- Hiç idrar yapamama
-- Ağrılı miyavlama
-- Kusma
 - Halsizlik
 
-⚠ Randevu:
-- İdrar değişikliği
-- Sık tuvalet
-- Tuvalet dışı işeme
+**Sorun Olursa:**
+- Geçişi yavaşlatın
+- Eski mamaya geri dönün
+- Veterinere danışın
 
-## Komplikasyonlar
+## Kaçınılması Gerekenler
 
-**Kronik FLUTD:**
-- Tekrarlayan epizodlar
-- Kronik ağrı
-- Mesane kalınlaşması
-- Böbrek hasarı
+### Zehirli Yiyecekler
 
-**Tam Tıkanıklık:**
-- 24-72 saat ölümcül
-- Böbrek yetmezliği
-- Kalp yetmezliği
-- Toksinler birikimi
+**KESİNLİKLE ASLA:**
+❌ **Çikolata:** Theobromine zehirlidir (ölümcül)
+❌ **Üzüm ve Kuru Üzüm:** Böbrek yetmezliği
+❌ **Soğan ve Sarımsak:** Anemi yapar
+❌ **Xylitol (Şekersiz sakız):** Karaciğer hasarı, ölümcül
+❌ **Avokado:** Persin toksik
+❌ **Alkol:** Zehirlidir
+❌ **Kafein:** Kalp problemleri
+❌ **Pişmiş Kemikler:** Bağırsak delinmesi
+❌ **Macadamia Fındığı:** Zehirlidir
 
-## Prognoz
+### Zararlı Besinler
 
-**Genel:**
-- Erken tanı önemli
-- Çoğu başarıyla tedavi edilir
-- Tekrarlama %15-20
-- Yaşam boyu yönetim
+**Sakıncalı:**
+⚠ Aşırı tuzlu yiyecekler
+⚠ Yağlı yiyecekler (pankreatit riski)
+⚠ Ham yumurta (salmonella, biotin eksikliği)
+⚠ Ham hamur (mide şişmesi)
+⚠ Kırmızı biber/acı baharatlar
 
-**Başarı Faktörleri:**
-- Hızlı müdahale
-- Veteriner takibi
-- Diyet uyumu
-- Çevre yönetimi
+## Sıkça Sorulan Sorular
 
-Unutmayın: FLUTD önlenebilir hastalıktır!`,
-    categoryTags: ["kedi", "sağlık", "idrar yolu", "veteriner"],
-    readTime: 7,
+**S: Köpek mamasını ne sıklıkla değiştirmeliyim?**
+C: Gereksiz değişimden kaçının. Ancak yaş dönemine göre (yavru→yetişkin→yaşlı) geçiş yapın.
+
+**S: Kuru ve ıslak mamayı karıştırabilir miyim?**
+C: Evet, %50-50 veya %75-25 oranında. Kademeli karıştırın.
+
+**S: En iyi mama markası nedir?**
+C: "En iyi" yoktur, köpeğinize en uygun olanı seçin. AAFCO onaylı kaliteli markalar tercih edin.
+
+**S: Köpek insan yemeği yiyebilir mi?**
+C: Bazı sebze/etler ödül olarak verilebilir ama ana öğün mama olmalı. Tuz/baharat eklemeyin.
+
+**S: Mamanın son kullanma tarihini kontrol etmeli miyim?**
+C: Kesinlikle evet! Bayat mama besleyici değerini kaybeder ve zararlı olabilir.
+
+**S: Köpek her zaman aynı mamayı mı yemeli?**
+C: Evet, alışkınsa ve sorun yoksa değiştirmeyin. Rutin önemlidir.
+
+## Beslenme İpuçları Özeti
+
+✅ Yaşa uygun mama seçin
+✅ Porsiyon kontrolü yapın
+✅ Düzenli öğün saatleri
+✅ Taze su her zaman mevcut
+✅ İdeal kiloyu koruyun
+✅ Mama geçişini kademeli yapın
+✅ Etiketleri okuyun (ilk 3 bileşen önemli)
+✅ Veteriner kontrollerinde beslenme danışın
+✅ İnsan yemeğinden kaçının
+✅ Alerjileri izleyin
+
+**Sonuç:** Doğru beslenme köpeğinizin sağlığının, enerjisinin ve mutluluğunun temelidir. Yaşa, ırka ve aktivite seviyesine uygun mama seçimi ile köpeğinize uzun ve kaliteli bir yaşam hediye edebilirsiniz!`,
+    categoryTags: ["köpek", "beslenme", "mama", "sağlık", "yaş grupları"],
+    readTime: 14,
     published: true,
   },
+
   {
-    title: "Kedi Cinsleri: Hangi Irk Size Uygun?",
-    slug: "kedi-cinsleri-irk-secimi-rehberi",
-    excerpt: "Her kedi ırkının kendine özgü karakteri ve bakım ihtiyaçları vardır. Size uygun ırkı bulun.",
-    content: `# Kedi Cinsleri Seçim Rehberi
+    title: "Köpek Cinsleri ve Karakteristik Özellikleri",
+    slug: "kopek-cinsleri-karakteristik-ozellikleri",
+    excerpt: "En popüler köpek cinslerini tanıyın. Her ırkın benzersiz özellikleri, bakım gereksinimleri ve karakteristik yapısı.",
+    content: `# Köpek Cinsleri ve Karakteristik Özellikleri: Kapsamlı Rehber
 
-Her kedi ırkı farklı kişilik özellikleri, bakım gereksinimleri ve yaşam tarzı beklentileri taşır. İşte popüler kedi ırklarının özellikleri.
+Köpek sahiplenmeyi düşünüyorsanız veya zaten bir köpeğiniz varsa, ırk özelliklerini bilmek çok önemlidir. Her köpek cinsi farklı mizaç, enerji seviyesi ve bakım gereksinimleri ile birlikte gelir.
 
-## Kısa Tüylü Irklar
+## Golden Retriever: Aile Dostu Yoldaş
 
-**British Shorthair:**
-- Karakter: Sakin, bağımsız, sevecen
-- Bakım: Az (haftada bir fırça)
-- Aktivite: Orta seviye
-- Sağlık: Genelde sağlam
-- İdeal: Çalışan bireyler, apartman
-- Özellikler: "Cheshire Cat" gülümsemesi, yuvarlak yüz
+### Genel Özellikler
 
-**American Shorthair:**
-- Karakter: Uyumlu, oyuncu, bağımsız
-- Bakım: Düşük
-- Aktivite: Orta-yüksek
-- Sağlık: Sağlam genetik
-- İdeal: Aileler, çocuklu evler
-- Özellikler: Uzun ömürlü (15-20 yıl), avcı içgüdüsü güçlü
+**Menşei:** İskoçya (1800'ler)
+**Boy:** 51-61 cm
+**Kilo:** 25-34 kg
+**Ömür:** 10-12 yıl
+**Grup:** Avcı köpekleri (Sporting)
 
-**Russian Blue:**
-- Karakter: Utangaç, sadık, zeki
-- Bakım: Düşük
-- Aktivite: Orta seviye
-- Sağlık: Az hastalık
-- İdeal: Sakin evler, tek kişiler
-- Özellikler: Gümüş-mavi tüy, yeşil gözler, hipoalerjenik
+### Fiziksel Özellikler
 
-**Siamese:**
-- Karakter: Konuşkan, sosyal, enerjik
-- Bakım: Düşük
-- Aktivite: Çok yüksek
-- Sağlık: Diş ve solunum problemleri
-- İdeal: Aktif sahipler, sosyal çevre
-- Özellikler: Mavi migdem gözler, vokal, insan odaklı
+**Görünüm:**
+- Orta-büyük boy
+- Güçlü, atletik yapı
+- Altın sarısı, parlak tüy
+- Uzun, dalgalı kürk
+- Tüylü kuyruk (mutlu sallanır)
+- Yumuşak ifadeli yüz
 
-## Uzun Tüylü Irklar
+**Tüy Yapısı:**
+- Çift katlı tüy (su geçirmez)
+- Yoğun alt tüy
+- İlkbahar/sonbaharda yoğun döker
+- Haftalık fırçalama şart
+- Profesyonel tıraş ihtiyacı yok
 
-**Persian:**
-- Karakter: Sakin, nazik, kucak kedisi
-- Bakım: Çok yoğun (günlük fırça)
-- Aktivite: Düşük
-- Sağlık: Solunum, göz, böbrek problemleri
-- İdeal: Evde vakit geçirenler
-- Özellikler: Yassı yüz, lüks tüy, sessiz
+### Karakter ve Mizaç
 
-**Maine Coon:**
-- Karakter: Arkadaş canlısı, oyuncu, "köpek gibi"
-- Bakım: Orta (haftada 2-3 fırça)
-- Aktivite: Yüksek
-- Sağlık: Kalp problemleri (HCM)
-- İdeal: Aileler, geniş evler
-- Özellikler: En büyük ev kedisi (9 kg+), su sever, zeki
+**Olumlu Özellikler:**
+✅ Son derece sadık ve sevecen
+✅ Çocuklarla mükemmel uyum
+✅ Diğer hayvanlarla barışçıl
+✅ Eğitilebilir, akıllı
+✅ Sabırlı ve nazik
+✅ Sosyal, insanları sever
+✅ Eğlenceli, oyuncu
 
-**Ragdoll:**
-- Karakter: Çok yumuşak, sakin, kucağa gelmeyi sever
-- Bakım: Orta-yüksek
-- Aktivite: Düşük-orta
-- Sağlık: Kalp ve böbrek
-- İdeal: Sakin evler, kucak isteyen
-- Özellikler: Kucağa alınınca gevşer, mavi gözler, büyük boy
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Yüksek enerji seviyesi
+⚠️ Günde 1-2 saat egzersiz gerekir
+⚠️ Yalnız kalmayı sevmez
+⚠️ Ayrılık anksiyetesi riski
+⚠️ Çok tüy döker
 
-**Norwegian Forest:**
-- Karakter: Bağımsız, oyuncu, tırmanma sever
-- Bakım: Orta (mevsimlik tüy)
-- Aktivite: Yüksek
-- Sağlık: Genelde sağlam
-- İdeal: Bahçeli evler, aktif sahipler
-- Özellikler: Su geçirmez tüy, doğa seven, avcı
+### Eğitim ve Aktivite
 
-## Yar\ı Uzun Tüylü
+**Eğitilebilirlik:**
+- Çok zeki (4. sırada)
+- Hızlı öğrenir
+- Pozitif pekiştirmeye çok iyi yanıt verir
+- İnsanı memnun etmek ister
+- Itaat eğitimi kolayca öğrenir
 
-**Turkish Angora:**
-- Karakter: Enerjik, oyuncu, zeki, atlet
-- Bakım: Orta
-- Aktivite: Çok yüksek
-- Sağlık: Beyazlarda sağırlık riski
-- İdeal: Aktif sahipler, etkileşim isteyen
-- Özellikler: Türkiye kökenli, beyaz klasik, renkli gözler
+**Egzersiz İhtiyacı:**
+- Günlük 60-120 dakika
+- Yüzme çok sever
+- Top getirme oyunları
+- Koşu, yürüyüş
+- Mental stimülasyon önemli
 
-**Siberian:**
-- Karakter: Sosyal, oyuncu, su sever
-- Bakım: Orta
-- Aktivite: Yüksek
-- Sağlık: Sağlam genetik
-- İdeal: Aileler, alerjikler (düşük Fel d 1)
-- Özellikler: Kalın kış tüyü, zeki, köpeklerle anlaşır
+**İdeal İçin:**
+✅ Aktif aileler
+✅ Bahçeli evler
+✅ Çocuklu aileler
+✅ İlk kez köpek sahiplenenler
+✅ Spor/aktivite sevenler
 
-## Kısa/Tüysüz Irklar
+### Sağlık ve Bakım
 
-**Sphynx (Tüysüz):**
-- Karakter: Enerjik, sosyal, sıcak seven
-- Bakım: Yüksek (haftalık banyo)
-- Aktivite: Yüksek
-- Sağlık: Cilt problemleri, kalp
-- İdeal: Alerjikler, interaktif sahipler
-- Özellikler: Tüysüz, ısı kaybı, çok sevecen
+**Yaygın Sağlık Sorunları:**
+- Kalça displazisi
+- Dirsek displazisi
+- Kalp hastalıkları
+- Kanser (yaşlılıkta)
+- Göz problemleri (katarakt)
 
-## Hibrit/Egzotik Irklar
+**Bakım Gereksinimleri:**
+- Haftada 2-3 kez fırçalama
+- Ayda 1-2 banyo
+- Kulak temizliği (haftalık)
+- Tırnak kesimi (2 haftada bir)
+- Diş fırçalama (günlük ideal)
 
-**Bengal:**
-- Karakter: Çok enerjik, vahşi, oyuncu
-- Bakım: Düşük
-- Aktivite: Çok yüksek
-- Sağlık: Genelde sağlam
-- İdeal: Deneyimli sahipler, aktif yaşam
-- Özellikler: Leopar deseni, su sever, atlıyor/tırmanıyor
+---
 
-**Savannah:**
-- Karakter: Köpek benzeri, sadık, enerjik
-- Bakım: Düşük
-- Aktivite: Çok yüksek
-- Sağlık: Genelde sağlam
-- İdeal: Deneyimli sahipler, geniş alan
-- Özellikler: Çok büyük, vahşi görünüm, tasma ile gezdirilir
+## French Bulldog: Şirin Apartman Köpeği
 
-## Irk Seçim Kriterleri
+### Genel Özellikler
 
-**Yaşam Tarzı Uyumu:**
-- **Çalışıyorsanız:** Bağımsız ırklar (British, American)
-- **Evdeyseniz:** Sosyal ırklar (Siamese, Ragdoll)
-- **Aktifseniz:** Enerjik ırklar (Bengal, Maine Coon)
-- **Sakin hayat:** Dingin ırklar (Persian, Ragdoll)
+**Menşei:** Fransa/İngiltere
+**Boy:** 28-33 cm
+**Kilo:** 8-14 kg
+**Ömür:** 10-12 yıl
+**Grup:** Yoldaş köpekleri (Companion)
 
-**Ev Özellikleri:**
-- **Apartman:** Sakin, az aktif (British, Persian)
-- **Bahçeli ev:** Aktif, dış mekan sevenler (Norwegian, Turkish Angora)
-- **Geniş alan:** Büyük ırklar (Maine Coon, Savannah)
+### Fiziksel Özellikler
 
-**Zaman ve Bakım:**
-- **Az zaman:** Kısa tüy, bağımsız
-- **Çok zaman:** Uzun tüy, sosyal
-- **Tımar bütçesi:** Profesyonel bakım gereksinimi
+**Görünüm:**
+- Küçük, kompakt yapı
+- Kocaman yarasa kulakları
+- Kısa, basık burun
+- Kısa kuyruk
+- Kaslı, güçlü yapı
+- Sevimli yüz ifadesi
 
-**Aile Yapısı:**
-- **Çocuklar:** Sabırlı ırklar (Maine Coon, Ragdoll)
-- **Diğer evcil:** Sosyal ırklar (American, Siberian)
-- **Tek kişi:** Sadık ırklar (Siamese, Russian Blue)
+**Tüy Yapısı:**
+- Kısa, düz, parlak
+- Az döker
+- Kolay bakım
+- Renk seçenekleri: Bej, brindle, beyaz, siyah
 
-**Alerji:**
-- Düşük alerjen: Sphynx, Siberian, Russian Blue
-- (Hiçbiri tamamen hipoalerjenik değil)
+### Karakter ve Mizaç
 
-**Sağlık ve Bütçe:**
-- Sağlam ırklar: American, Siberian
-- Veteriner masrafı yüksek: Persian, Sphynx, Bengal
+**Olumlu Özellikler:**
+✅ Çok sevecen, sarılmayı sever
+✅ Apartman yaşamına ideal
+✅ Az egzersiz ihtiyacı
+✅ Komik, eğlenceli karakter
+✅ Çocuklarla uyumlu
+✅ Az havlar
+✅ Sakin mizaç
 
-## Melez Kediler
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Sıcağa çok hassas (solunum)
+⚠️ Horlama, gaz problemi
+⚠️ Pahalı cins
+⚠️ Doğum genelde sezaryen
+⚠️ Sırt problemleri (IVDD)
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Orta seviye zeka
+- İnatçı olabilir
+- Kısa, eğlenceli eğitimler
+- Sabır gerektirir
+- Ödül sistemi ile motive olur
+
+**Egzersiz İhtiyacı:**
+- Günlük 20-30 dakika
+- Kısa yürüyüşler
+- Aşırı egzersize uygun değil
+- Sıcakta dışarı çıkarmayın
+- Yüzme tehlikelidir (batabilir)
+
+**İdeal İçin:**
+✅ Apartman sakinleri
+✅ Yaşlılar
+✅ Çalışan kişiler
+✅ Az aktif aileler
+✅ İlk kez sahiplenenler
+
+### Sağlık ve Bakım
+
+**Yaygın Sağlık Sorunları:**
+- Brakisefalik sendrom (solunum)
+- Omurga problemleri
+- Cilt kıvrımlarında enfeksiyon
+- Göz problemleri
+- Alerjiler
+
+**Bakım Gereksinimleri:**
+- Cilt kıvrımlarını günlük temizleyin
+- Haftada 1 kez fırçalama
+- Ayda 1 banyo
+- Tırnak, diş bakımı
+- Göz çevresini nemli bezle silin
+
+---
+
+## Kangal: Türkiye'nin Gururu
+
+### Genel Özellikler
+
+**Menşei:** Türkiye (Sivas-Kangal)
+**Boy:** 72-86 cm
+**Kilo:** 50-70 kg
+**Ömür:** 12-15 yıl
+**Grup:** Çoban köpekleri (Guardian)
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Çok büyük, güçlü yapı
+- Kocaman kafa
+- Kara maskeli yüz
+- Kıvrık kuyruk
+- Uzun bacaklar
+- İhtişamlı duruş
+
+**Tüy Yapısı:**
+- Kısa-orta boy
+- Çift katlı
+- Kış/yaz farklı yoğunluk
+- Kolay bakım
+- Mevsimsel döküm
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Son derece sadık
+✅ Koruyucu, cesur
+✅ Akıllı, bağımsız
+✅ Sakin, dengeli (evde)
+✅ Ailesi ile çok iyi
+✅ Güvenilir bekçi
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Bağımsız karakter
+⚠️ Deneyimli sahip gerektirir
+⚠️ Erken sosyalizasyon şart
+⚠️ Yabancılara mesafeli
+⚠️ Geniş alan ihtiyacı
+⚠️ Dominant olabilir
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Çok zeki ama bağımsız
+- Güven kazanılmalı
+- Sert değil, saygılı yaklaşım
+- Erken eğitim kritik
+- Sosyalizasyon şart (2-4 ay)
+
+**Egzersiz İhtiyacı:**
+- Günlük 60-90 dakika
+- Geniş alanda gezinti
+- Koşma, devriye
+- Mental stimülasyon
+- Bahçede dolaşma
+
+**İdeal İçin:**
+✅ Deneyimli sahipler
+✅ Büyük bahçeli ev
+✅ Çiftlik/köy yaşamı
+✅ Güvenlik ihtiyacı
+❌ Apartman yaşamı
+❌ İlk kez sahiplenenler
+
+### Sağlık ve Bakım
+
+**Yaygın Sağlık Sorunları:**
+- Kalça displazisi
+- Eklem problemleri
+- Gastrik burulma (büyük köpek)
+- Genel olarak sağlıklı
+
+**Bakım Gereksinimleri:**
+- Haftada 1-2 fırçalama
+- Nadir banyo (kendini temizler)
+- Tırnak, diş bakımı
+- Yıllık veteriner kontrolü
+
+---
+
+## Pug: Neşeli Küçük Dost
+
+### Genel Özellikler
+
+**Menşei:** Çin
+**Boy:** 25-30 cm
+**Kilo:** 6-8 kg
+**Ömür:** 12-15 yıl
+**Grup:** Oyuncak/Yoldaş
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Çok küçük, kompakt
+- Kare vücut
+- Kıvrımlı kuyruk
+- Kocaman gözler
+- Buruşuk yüz
+- Basık burun
+
+**Tüy Yapısı:**
+- Kısa, parlak
+- Yoğun döküm
+- Renk: Bej, siyah, gümüş
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Çok sevgi dolu
+✅ Eğlenceli, komik
+✅ Ailecek uyumlu
+✅ Apartmana ideal
+✅ Sosyal, dost canlısı
+✅ Uyumlu karakter
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Solunum problemleri
+⚠️ Sıcağa hassas
+⚠️ Kilo almaya yatkın
+⚠️ Göz problemleri
+⚠️ Horlama
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- İnatçı olabilir
+- Yemekle motive olur
+- Sabır gerektirir
+- Kısa eğitimler
+
+**Egzersiz İhtiyacı:**
+- Günlük 20-30 dakika
+- Aşırı egzersiz zararlı
+- Soğuk/sıcaktan koruyun
+
+**İdeal İçin:**
+✅ Apartman
+✅ Yaşlılar
+✅ Az aktif kişiler
+✅ Çocuklu aileler
+
+---
+
+## Pomeranian: Sevimli Pofuduk
+
+### Genel Özellikler
+
+**Menşei:** Almanya/Polonya
+**Boy:** 18-22 cm
+**Kilo:** 1.5-3.5 kg
+**Ömür:** 12-16 yıl
+**Grup:** Oyuncak
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Çok küçük
+- Tilki yüzlü
+- Pofuduk tüy
+- Tüylü kuyruk
+- Küçük kulaklar
+
+**Tüy Yapısı:**
+- Uzun, çift katlı
+- Çok yoğun
+- Günlük fırçalama
+- Profesyonel tıraş
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Canlı, enerjik
+✅ Akıllı, uyanık
+✅ Sadık
+✅ Küçük ama cesur
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok havlar
+⚠️ Kırılgan (küçük çocuklar için risk)
+⚠️ Bağımsız
+⚠️ Soğuğa hassas
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Çok zeki
+- Havlama kontrolü gerekir
+- Erken sosyalizasyon
+
+**Egzersiz İhtiyacı:**
+- Günlük 20-30 dakika
+- Evi koşarak gezdirmesi yeter
+- Oyuncak topu
+
+**İdeal İçin:**
+✅ Apartman
+✅ Tek kişiler
+✅ Yaşlılar
+❌ Küçük çocuklu aileler
+
+---
+
+## Yorkshire Terrier: Zarif ve Cesur
+
+### Genel Özellikler
+
+**Menşei:** İngiltere
+**Boy:** 18-20 cm
+**Kilo:** 2-3 kg
+**Ömür:** 13-16 yıl
+**Grup:** Terrier/Oyuncak
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Çok küçük
+- Uzun, ipeksi tüy
+- Mavi-altın renk
+- Dik kulaklar
+- Zarif duruş
+
+**Tüy Yapısı:**
+- İpeksi, ince
+- Sürekli büyür
+- Günlük fırçalama
+- Aylık tıraş
+- Az döker
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Cesur, enerjik
+✅ Sadık
+✅ Uyanık
+✅ Eğlenceli
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Havlar
+⚠️ Kırılgan kemikler
+⚠️ Diş problemleri
+⚠️ Soğuğa hassas
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Zeki ama inatçı
+- Tutarlılık gerekir
+- Havlama eğitimi
+
+**Egzersiz İhtiyacı:**
+- Günlük 20-30 dakika
+- Oyun ve kısa yürüyüş
+
+**İdeal İçin:**
+✅ Apartman
+✅ Aktif yaşlılar
+✅ Tek kişiler
+
+---
+
+## Labrador Retriever: Dünyanın En Popüleri
+
+### Genel Özellikler
+
+**Menşei:** Kanada (Newfoundland)
+**Boy:** 54-62 cm
+**Kilo:** 25-36 kg
+**Ömür:** 10-12 yıl
+**Grup:** Avcı/Sporting
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Orta-büyük boy
+- Atletik, güçlü
+- Su geçirmez tüy
+- Kalın "otter" kuyruk
+- Geniş kafa
+
+**Tüy Yapısı:**
+- Kısa, yoğun, çift katlı
+- Su geçirmez
+- Yoğun döküm
+- Renk: Sarı, siyah, çikolata
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Son derece dost canlısı
+✅ Sabırlı, nazik
+✅ Çocuklarla mükemmel
+✅ Eğitilebilir
+✅ Sosyal
+✅ Enerjik, oyuncu
+✅ Sadık
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok enerji
+⚠️ Yemek düşkünü (kilo riski)
+⚠️ Çok tüy döker
+⚠️ Yavaş olgunlaşır (3 yaş)
+⚠️ Ayrılık anksiyetesi
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Çok zeki (7. sırada)
+✅ Hızlı öğrenir
+✅ Pozitif pekiştirme
+✅ Yardımcı köpek eğitimi alabilir
+✅ Rehber, terapi köpeği
+
+**Egzersiz İhtiyacı:**
+- Günlük 60-120 dakika
+- Yüzme harika
+- Top getirme
+- Koşu, yürüyüş
+- Agility
+
+**İdeal İçin:**
+✅ Aktif aileler
+✅ Bahçeli evler
+✅ Çocuklu aileler
+✅ Outdoor sevenler
+✅ İlk kez sahiplenenler
+
+### Sağlık ve Bakım
+
+**Yaygın Sağlık Sorunları:**
+- Kalça/dirsek displazisi
+- Obezite
+- Göz problemleri
+- Kulak enfeksiyonları
+
+**Bakım Gereksinimleri:**
+- Haftada 2-3 fırçalama
+- Kulak kontrolü (haftalık)
+- Porsiyon kontrolü
+- Bol egzersiz
+
+---
+
+## Beagle: Enerjik Koku Dedektifi
+
+### Genel Özellikler
+
+**Menşei:** İngiltere
+**Boy:** 33-41 cm
+**Kilo:** 9-11 kg
+**Ömür:** 12-15 yıl
+**Grup:** Av köpekleri (Hound)
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Küçük-orta boy
+- Kompakt, kaslı
+- Uzun kulaklar
+- Kahverengi gözler
+- Beyaz uçlu kuyruk
+
+**Tüy Yapısı:**
+- Kısa, yoğun
+- Üç renk (tricolor)
+- Orta döküm
+- Kolay bakım
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Neşeli, dost canlısı
+✅ Meraklı, oyuncu
+✅ Çocuklarla harika
+✅ Diğer köpeklerle uyumlu
+✅ Enerjik
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok havlar/ulumasıdır
+⚠️ Koku takip eder (kaçma riski)
+⚠️ Yemek odaklı
+⚠️ İnatçı olabilir
+⚠️ Kaçma sanatçısı
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Orta seviye
+- Koku ile çok ilgilenir
+- Yemek motivasyonu
+- Sabır gerektirir
+- Hatırlatma eğitimi zor
+
+**Egzersiz İhtiyacı:**
+- Günlük 60 dakika
+- Koklamaya izin verin
+- Güvenli alanda serbest
+- Mental stimülasyon
+
+**İdeal İçin:**
+✅ Aktif aileler
+✅ Bahçeli ev (güvenli çit)
+✅ Çocuklu aileler
+✅ Sabırlı sahipler
+❌ Apartman (havlama)
+
+### Sağlık ve Bakım
+
+**Yaygın Sağlık Sorunları:**
+- Obezite
+- Kulak enfeksiyonları
+- Epilepsi
+- Hip displazi
+
+**Bakım Gereksinimleri:**
+- Haftada 1-2 fırçalama
+- Kulak temizliği (kritik)
+- Porsiyon kontrolü
+- Diyet takibi
+
+---
+
+## Border Collie: Zeka Şampiyonu
+
+### Genel Özellikler
+
+**Menşei:** İskoçya/İngiltere sınırı
+**Boy:** 46-56 cm
+**Kilo:** 14-20 kg
+**Ömür:** 12-15 yıl
+**Grup:** Çoban köpekleri (Herding)
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Orta boy
+- Atletik, çevik
+- Keskin bakış
+- Orta uzunlukta tüy
+- Zarif yapı
+
+**Tüy Yapısı:**
+- Orta-uzun
+- Çift katlı
+- Siyah-beyaz (yaygın)
+- Düzenli fırçalama
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ En zeki köpek (1. sıra)
+✅ Enerjik, çalışkan
+✅ Sadık
+✅ Eğitime çok yatkın
+✅ Çevik
+✅ Duyarlı
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ ÇOK yüksek enerji
+⚠️ Sıkılırsa yıkıcı
+⚠️ Mental stimülasyon şart
+⚠️ İşçi köpek (görev gerekir)
+⚠️ Deneyimli sahip
+⚠️ Çocukları "gütme" eğilimi
+
+### Eğitim ve Aktivite
+
+**Eğitilebilirlik:**
+- Olağanüstü zeka
+- Hızlı öğrenir
+- Karmaşık komutlar
+- Yarışma potansiyeli
+- Her gün eğitim isiter
+
+**Egzersiz İhtiyacı:**
+- Günlük 120+ dakika
+- Agility, flyball
+- Frisbee, top
+- Çoban görevi
+- Mental oyunlar
+
+**İdeal İçin:**
+✅ Çok aktif sahipler
+✅ Spor/yarışma ilgisi
+✅ Çiftlik yaşamı
+✅ Deneyimli köpek eğitmenleri
+❌ Apartman
+❌ Çalışan, az vakit olanlar
+❌ İlk kez sahiplenenler
+
+### Sağlık ve Bakım
+
+**Yaygın Sağlık Sorunları:**
+- Hip displazi
+- Epilepsi
+- Göz problemleri (PRA)
+- Collie eye anomaly
+
+**Bakım Gereksinimleri:**
+- Haftada 2-3 fırçalama
+- Bol egzersiz
+- Mental oyunlar
+- Düzenli veteriner
+
+---
+
+## Irk Seçimi Karar Matrisi
+
+### Yaşam Tarzınıza Göre
+
+| Yaşam Tarzı | Önerilen Irklar |
+|-------------|-----------------|
+| Apartman | French Bulldog, Pug, Pomeranian, Yorkshire |
+| Bahçeli ev | Golden Retriever, Labrador, Beagle |
+| Çiftlik/köy | Kangal, Border Collie |
+| Çalışan kişi | French Bulldog, Pug |
+| Emekli/ev | Tüm ırklar (aktiviteye göre) |
+| Aktif sporcu | Border Collie, Labrador, Golden |
+
+### Deneyim Seviyesine Göre
+
+**İlk Kez Sahiplenenler:**
+✅ Golden Retriever
+✅ Labrador
+✅ French Bulldog
+✅ Pug
+
+**Deneyimli Sahipler:**
+✅ Kangal
+✅ Border Collie
+✅ Beagle (eğitim için)
+
+### Aile Yapısına Göre
+
+**Küçük Çocuklu Aileler:**
+✅ Golden Retriever (en iyi)
+✅ Labrador
+✅ Beagle
+
+**Yaşlı Çocuklu Aileler:**
+✅ Tüm ırklar
+
+**Çocuksuz Çiftler:**
+✅ Tüm ırklar
+
+**Tek Kişi:**
+✅ Yorkshire
+✅ Pomeranian
+✅ French Bulldog
+
+## Irk Karışımı (Melez) Köpekler
+
+### Avantajları
+
+✅ Daha sağlıklı (hybrid vigor)
+✅ Benzersiz görünüm
+✅ Daha uygun fiyat
+✅ Barınaklardan sahiplenilebilir
+
+### Dezavantajları
+
+⚠️ Tahmin edilemez büyüme
+⚠️ Bilinmeyen mizaç
+⚠️ Sağlık geçmişi belirsiz
+
+## Saf Irk vs Melez
+
+**Saf Irk Avantajları:**
+- Tahmin edilebilir büyüklük/mizaç
+- Sağlık taramaları yapılmış
+- Irk standardı
+
+**Melez Avantajları:**
+- Barınak hayvanı kurtarma
+- Benzersiz
+- Genellikle daha sağlıklı
+
+## Sıkça Sorulan Sorular
+
+**S: Hangi köpek cinsi en az bakım gerektirir?**
+C: French Bulldog ve Pug kısa tüyleri sayesinde kolay bakım gerektirir. Ancak sağlık kontrolleri önemli.
+
+**S: Çocuklar için en iyi köpek cinsi hangisi?**
+C: Golden Retriever ve Labrador sabırlı, nazik ve oyuncu yapıları ile ideal aile köpekleridir.
+
+**S: En zeki köpek cinsi hangisi?**
+C: Border Collie en zeki köpek olarak bilinir, ardından Poodle ve Golden Retriever gelir.
+
+**S: Apartmanda beslenebilecek büyük köpek var mı?**
+C: Pek önerilmez. Büyük köpekler geniş alan ve egzersiz gerektirir. Ancak bazı Golden Retriever'lar uyum sağlayabilir (yeterli egzersizle).
+
+**S: Kangal şehir hayatına uygun mu?**
+C: Hayır. Kangal geniş alan ve görev gerektirir. Çiftlik/köy yaşamı ideal.
+
+## Irk Seçerken Kontrol Listesi
+
+✅ Yaşam tarzınıza uygun mu?
+✅ Egzersiz ihtiyacını karşılayabilir misiniz?
+✅ Tüy bakımını yapabilir misiniz?
+✅ Eğitim süresine sabrınız var mı?
+✅ Veteriner masraflarını karşılayabilir misiniz?
+✅ Ev/bahçe uygun mu?
+✅ Ailenin tüm bireyleri onaylıyor mu?
+✅ Uzun dönem taahhüt (10-15 yıl) hazır mısınız?
+
+**Sonuç:** Köpek cinsi seçimi hayatınızı etkileyecek önemli bir karardır. Yaşam tarzınıza, deneyim seviyenize ve aile yapınıza uygun ırkı seçmek, hem sizin hem de köpeğinizin mutluluğunu sağlar. Aceleci davranmayın, araştırın ve barınakları da göz önünde bulundurun!`,
+    categoryTags: ["köpek", "ırklar", "karakter", "bakım", "seçim"],
+    readTime: 13,
+    published: true,
+  },
+
+  {
+    title: "Köpeklerde Temel Komut Eğitimi",
+    slug: "kopeklerde-temel-komut-egitimi",
+    excerpt: "Otur, kal, gel komutlarını adım adım öğretin. Pozitif pekiştirme ile etkili eğitim teknikleri.",
+    content: `# Köpeklerde Temel Komut Eğitimi: Kapsamlı Rehber
+
+Temel itaat komutları, köpeğinizle sağlıklı bir iletişim kurmanın ve güvenliğini sağlamanın temelidir. Doğru eğitim teknikleri ile her köpek bu komutları öğrenebilir.
+
+## Eğitime Başlamadan Önce
+
+### Pozitif Pekiştirme Nedir?
+
+**Temel Prensip:**
+Köpek doğru davranış gösterdiğinde ödüllendirilir. Ceza verilmez, istenmeyen davranışlar görmezden gelinir veya alternatif davranış öğretilir.
+
+**Neden Pozitif Pekiştirme?**
+✅ Bilimsel olarak kanıtlanmış
+✅ Köpekle bağ kurar
+✅ Kalıcı öğrenme sağlar
+✅ Korku yaratmaz
+✅ Eğlenceli ve etkili
+✅ Güven inşa eder
+
+**Neden Ceza İşlemez?**
+❌ Korku yaratır
+❌ Güven kaybı
+❌ Agresyon tetikleyebilir
+❌ Geçici etki
+❌ İlişkiye zarar verir
+❌ Stres ve anksiyete
+
+### Gerekli Malzemeler
+
+**Temel Ekipman:**
+1. **Ödül Maması:** 
+   - Küçük parçalar (bezelye boyutunda)
+   - Yüksek değerli (tavuk, karaciğer, peynir)
+   - Yumuşak (çiğneme zaman kaybı olmasın)
+   - Sağlıklı
+
+2. **Tasma ve Uzun İp:**
+   - Standart tasma (eğitim için)
+   - Uzun ip 5-10 metre ("gel" komutu için)
+   - Rahat boyun tasması (çekme tasmaya gerek yok)
+
+3. **Clicker (Opsiyonel):**
+   - Net işaret verir
+   - Tutarlı ses
+   - Hızlı iletişim
+   - Profesyonel eğitimde kullanılır
+
+4. **Sabır ve Tutarlılık:**
+   - En önemli "ekipman"
+   - Tutarlı komutlar
+   - Aynı ödül sistemi
+   - Tüm aile aynı şeyi yapmalı
+
+### Eğitim Ortamı
+
+**Başlangıç (1-2 Hafta):**
+- Sessiz, dikkat dağıtıcısız ortam
+- Ev içi
+- Tek başına köpekle
+- 5-10 dakikalık seanslar
+
+**İlerledikçe (2-4 Hafta):**
+- Hafif dikkat dağıtıcılar ekleyin
+- Bahçe
+- Farklı odalar
+- Aile bireyleri mevcut
+
+**İleri Seviye (1+ Ay):**
+- Park
+- Yoğun ortamlar
+- Diğer köpekler mevcut
+- Gerçek hayat senaryoları
+
+### Zamanlama ve Sıklık
+
+**İdeal Eğitim Programı:**
+- Günde 2-3 seans
+- Seans süresi: 5-15 dakika
+- Köpek enerjisi tükendiğinde (yemek/yürüyüş sonrası)
+- Aç karnına (ödül motivasyonu)
+
+**Hatırlanması Gerekenler:**
+✅ Kısa ve tatlı
+✅ Pozitif not ile bitirin
+✅ Aynı saatte rutin
+✅ Sabırlı olun
+✅ Eğlenceli tutun
+
+---
+
+## OTUR Komutu: Temel Taş
+
+### Neden Otur Önemli?
+
+**Faydaları:**
+- En kolay öğrenilen komut
+- Sakinleştirici etkisi var
+- Zıplama engelini önler
+- Diğer komutlar için temel
+- Günlük hayatta sıkça kullanılır
+
+### Adım Adım Otur Eğitimi
+
+**1. Gün: Tanıştırma**
+
+**Adımlar:**
+1. Köpeğin önünde durun
+2. Bir ödülü burnuna yakın tutun
+3. Ödülü yavaşça yukarı ve geriye götürün
+4. Köpek doğal olarak oturacak (burnunu takip ederken)
+5. Oturduer otrmaz "OTUR!" deyin
+6. Hemen ödülü verin ve övün ("Aferin!")
+
+**İpuçları:**
+- Hiçbir fiziksel baskı yapmayın
+- Elinle iterek oturtmayın
+- Sadece lure (yönlendirme) yapın
+- Ödül burnundan 5cm yukarıda
+
+**İlk Gün Hedef:**
+- 5-10 tekrar
+- %50 başarı yeterli
+
+**2-3. Gün: Tekrarlama**
+
+**Adımlar:**
+1. Önceki günkü tekniği tekrarlayın
+2. Başarı oranı artacaktır
+3. Bazen ödülü vermeden önce 1 saniye bekleyin
+
+**Hedef:**
+- %80+ başarı
+- Daha hızlı oturuş
+
+**4-5. Gün: Komut Ekleme**
+
+**Adımlar:**
+1. Artık ÖNCE "Otur!" deyin
+2. Sonra lure hareketini yapın
+3. Oturduğunda ödüllendirin
+
+**Önemli:**
+- Komutu bir kez söyleyin
+- Tekrar etmeyin (öğrenemez)
+- Net, sakin tonla
+
+**6-7. Gün: Lure Azaltma**
+
+**Adımlar:**
+1. "Otur!" deyin
+2. El hareketini yapın ama ödül elde değil
+3. Oturursa cebinizden ödül çıkarın verin
+
+**Hedef:**
+- Ödül olmadan da el hareketine tepki
+
+**2. Hafta: El İşareti Olmadan**
+
+**Adımlar:**
+1. Sadece "Otur!" deyin
+2. El hareketi yapmayın
+3. 3-5 saniye bekleyin
+4. Oturursa ödüllendirin
+5. Oturmazsa bir adım geri gidin
+
+**Hedef:**
+- Sadece sesli komuta otursun
+
+**3. Hafta: Dikkat Dağıtıcılarla**
+
+**Zorluk Seviyeleri:**
+1. Farklı odalarda
+2. Bahçede
+3. Yürüyüş sırasında (dur, otur, devam)
+4. Diğer insanlar varken
+5. Diğer köpekler varken
+
+### Sık Yapılan Hatalar
+
+**HATA 1: Fiziksel Baskı**
+❌ Köpeğin kalçasına basarak oturtmak
+**Neden Yanlış?** Köpek kendi başına düşünmeyi öğrenmez, sadece itilmeyi bekler.
+✅ **Doğru:** Lure tekniği ile kendi isteğiyle otursun.
+
+**HATA 2: Komutu Tekrarlamak**
+❌ "Otur, otur, otur, OTUR!"
+**Neden Yanlış?** Köpek "otur otur otur" kelimesini öğrenir, ilk "otur"u duymazlaştırır.
+✅ **Doğru:** Bir kez söyleyin, 5 saniye bekleyin.
+
+**HATA 3: İsim + Komut Karışımı**
+❌ "Karabaş otur!"
+**Neden Yanlış?** Köpek ismini duyunca başka şey bekliyor olabilir.
+✅ **Doğru:** Önce dikkat çekin "Karabaş!" sonra 1 saniye bekleyin, sonra "Otur!"
+
+**HATA 4: Ödülü Çok Geç Vermek**
+❌ Oturdu, 5 saniye sonra ödül
+**Neden Yanlış?** Köpek sebep-sonuç ilişkisi kuramaz.
+✅ **Doğru:** 1 saniye içinde ödül verin.
+
+### İleri Seviye: Uzun Süreli Oturma
+
+**4. Hafta Hedefi:**
+- 10 saniye oturma
+- Siz hareket ederken oturma
+- Dikkat dağıtıcılar varken oturma
+
+**Adımlar:**
+1. "Otur" deyin, otursun
+2. 2 saniye bekleyin, ödül
+3. Kademeli 5, 10, 20 saniyeye çıkarın
+4. Hareket etmeye başlarsa hemen önce ödül verin
+5. Bir sonraki seferde daha kısa süre bekleyin
+
+---
+
+## KAL Komutu: Güvenlik ve Kontrol
+
+### Neden Kal Önemli?
+
+**Hayat Kurtarıcı Durumlar:**
+- Kapıdan kaçma önleme
+- Araç yolunda güvenlik
+- Veteriner muayenesi
+- Misafir geldiğinde zıplama önleme
+- Fotoğraf çekimi
+
+**Otur vs Kal Farkı:**
+- **Otur:** Otur ve bekle (kısa süre)
+- **Kal:** Bulunduğun pozisyonda kal (uzun süre, mesafe)
+
+### Kal Eğitimine Başlamadan Önce
+
+**Ön Koşul:**
+✅ "Otur" komutunu öğrenmiş olmalı
+✅ 10 saniye oturabilmeli
+✅ Göz teması kurabilmeli
+
+### Adım Adım Kal Eğitimi
+
+**1. Hafta: Süre Artırma**
+
+**Gün 1-3:**
+1. "Otur" deyin
+2. El işareti: Avuç içi köpeğe (dur işareti)
+3. "Kal!" deyin
+4. 5 saniye bekleyin
+5. Geri dönün, ödüllendirin
+
+**Önemli:**
+- Köpeğe gitmeden ÖNCü serbest bırakma kelimesi: "Tamam!" veya "Serbest!"
+- Ödülü verirken hala oturuyorken verin
+
+**Gün 4-7:**
+1. "Otur, kal"
+2. 10 saniye bekleyin
+3. Geri dönün, ödül
+4. Kademeli 15, 20, 30 saniye
+
+**2. Hafta: Mesafe Ekleme**
+
+**Adımlar:**
+1. "Otur, kal"
+2. Bir adım geri
+3. Hemen geri dönün, ödül
+4. Kademeli 2, 3, 5 adım
+
+**İpucu:**
+- İlk adımı yana atın (geriye değil)
+- Göz teması koparılmamalı
+- Köpek hareket ederse hemen durdurun
+
+**3. Hafta: Mesafe + Süre**
+
+**Adımlar:**
+1. "Otur, kal"
+2. 5 adım uzaklaş
+3. 10 saniye bekle
+4. Geri dön, ödül
+
+**Kademeli:**
+- 10 adım, 20 saniye
+- 20 adım, 30 saniye
+- Gözden kaybolma (kapının arkası)
+
+**4. Hafta: Dikkat Dağıtıcılar**
+
+**Zorluk Seviyeleri:**
+1. Yanınızdan birisi geçsin
+2. Bir oyuncak atın (kal!)
+3. Başka köpek yürüsün
+4. Koşarak geçin
+5. Kapıyı açın (kal!)
+
+### Kapı Eğitimi (Kritik)
+
+**Neden Önemli?**
+Köpeklerin çoğu kapı açılınca dışarı fırlar. Tehlikelidir!
+
+**Adımlar:**
+1. Kapının önünde "otur, kal"
+2. Kapı kolunu tutun (açmayın)
+3. Kalırsa ödül
+4. Kapıyı 2 cm aralayın
+5. Hareket ederse kapat
+6. Kalırsa ödül
+7. Kademeli tamamen açın
+
+**Hedef:**
+Kapı tamamen açık, köpek "tamam" diyene kadar bekliyor.
+
+### Sık Yapılan Hatalar
+
+**HATA 1: Çok Hızlı İlerleme**
+❌ İlk gün 5 metre uzaklaşma
+✅ **Doğru:** Kademeli, %80 başarı ile ilerleyin
+
+**HATA 2: Serbest Kelimesi Kullanmama**
+❌ Köpek kendisi kalkıyor
+✅ **Doğru:** Mutlaka "tamam/serbest" deyin
+
+**HATA 3: Başarısızlığı Cezalandırma**
+❌ Kalkmışsa azarlamak
+✅ **Doğru:** Bir adım geri, daha kolay seviyeden devam
+
+---
+
+## GEL Komutu: En Önemli Komut
+
+### Neden Gel Kritik Öneme Sahip?
+
+**Hayat Kurtarıcı:**
+- Köpek tasmasız kaçtı
+- Tehlikeli durumdan geri çağırma
+- Vahşi hayvanlardan uzaklaştırma
+- Trafik tehlikesi
+- Kavga önleme
+
+**Önemli Not:** "Gel" komutu %100 pozitif olmalı. Asla ceza ile ilişkilendirmeyin.
+
+### Gel Eğitimine Başlamadan Önce
+
+**Altın Kural:**
+❌ Asla köpeği cezalandırmak için çağırmayın
+❌ Gel = banyo, tırnak, tasma (olumsuz) olmasın
+✅ Gel = en harika ödül, oyun, sevgi
+
+**Geldiğinde:**
+✅ Muhteşem ödül
+✅ Parti havası
+✅ En sevdiği ödül
+✅ Oyun zamanı
+
+### Adım Adım Gel Eğitimi
+
+**Aşama 1: Ev İçi, Yakın Mesafe (1. Hafta)**
+
+**Adımlar:**
+1. Ödülü gösterin
+2. 2 adım geri gidin
+3. "Gel!" deyin + alkış/dizlerinize vurun
+4. Köpek gelince harika ödül + övgü
+5. Hemen serbest bırakın (oyun)
+
+**İpuçları:**
+- Heyecanlı tonla "Gel!"
+- Çömelin (daha az tehdit edici)
+- İlk hafta 2-3 metre yeterli
+
+**Aşama 2: Uzun İp ile Bahçe (2. Hafta)**
+
+**Malzeme:** 5-10 metre uzun ip
+
+**Adımlar:**
+1. Köpeğe uzun ip takın
+2. Bırakın biraz koklasın
+3. "Gel!" deyin
+4. Gelmezse hafifçe ipe çekin (zorlamayın)
+5. Geldiğinde harika ödül
+
+**Önemli:**
+- İpi ceza aracı yapmayın
+- Sadece hatırlatma
+- Geldiğinde ip gerilimi hemen bırakın
+
+**Aşama 3: Dikkat Dağıtıcılarla (3. Hafta)**
+
+**Zorluk Seviyeleri:**
+1. Köpek oynarken çağırın
+2. Koku alırken
+3. Başka insan varken
+4. Başka köpek (uzakta) varken
+
+**Rekabet Ekleme:**
+5-10 metre uzaklaşın, koşmaya başlayın (ters yön)
+Köpek sizi takip edecek, sırtınız dönükken "Gel!" deyin
+
+**Aşama 4: Gerçek Hayat (4. Hafta+)**
+
+**Güvenli Park:**
+- Kapalı alan
+- Diğer köpekler az
+- Uzun ip hala takılı (basmıyorsunuz ama güvenlik için)
+
+**Test:**
+1. Serbest bırakın
+2. Biraz koklasın
+3. "Gel!" deyin
+4. Gelirse muazzam ödül
+5. Gelmezse ipten tutup yanına gidin (ama ödül yok)
+
+### Acil Durum Komutu: Özel Kelime
+
+**Neden İki Komut?**
+- Günlük "gel" sıkça kullanılır, değeri azalabilir
+- Acil durum için özel kelime
+
+**Eğitim:**
+"Buraya!" veya "Acil!" gibi farklı bir kelime seçin
+Sadece acil + en iyi ödülle kullanın
+Ayda 2-3 kez prova edin
+
+**Örnek Senaryo:**
+Köpek başka köpekle oynuyor, "gel" diyorsunuz ama gelmiyor.
+Ama "BURAYA!" dediğinizde tavuk parçası bildiği için %100 geliyor.
+
+### Sık Yapılan Hatalar
+
+**HATA 1: Ceza İle İlişkilendirme**
+❌ Köpek geldi, azarladınız (başka bir sebepten)
+**Sonuç:** Köpek bir daha gelmez
+✅ **Doğru:** Geldiğinde ASLA azarlamayın
+
+**HATA 2: "Gel" Sonrası Kötü Şey**
+❌ "Gel" → Tasma tak → Eve gir (eğlence bitti)
+**Sonuç:** Köpek "gel" = eğlence sonu öğrenir
+✅ **Doğru:** Bazen "gel" → Ödül → Tekrar serbest bırak
+
+**HATA 3: Koşarak Kovalama**
+❌ Köpek kaçtı, peşinden koşuyorsunuz
+**Sonuç:** Köpek için oyun, daha çok kaçar
+✅ **Doğru:** Ters yöne koşun, köpek sizi kovalar
+
+**HATA 4: Monoton Ton**
+❌ "gel." (sıkıcı tonla)
+✅ **Doğru:** "GEEEL!" (heyecanlı, yüksek ton)
+
+### Gelmeme Sorununu Çözme
+
+**Köpek Asla Gelmiyor:**
+1. Sıfırdan başlayın (ev içi, 1 metre)
+2. Ödülü artırın (tavuk, karaciğer)
+3. Sadece %100 başarı ile ilerleyin
+4. Uzun ip kullanın (6 ay)
+
+**Bazen Geliyor, Bazen Gelmiyor:**
+- Dikkat dağıtıcı çok büyük
+- Ödül yeterli değil
+- Henüz hazır değil
+
+---
+
+## Clicker Eğitimi (Opsiyonel)
+
+### Clicker Nedir?
+
+Küçük plastik alet, basınca "click" sesi çıkarır.
+Köpeğe doğru davranışın TAM anını işaret eder.
 
 **Avantajları:**
-✓ Sağlam genetik (heterozis)
-✓ Benzersiz karakter
-✓ Ekonomik
-✓ Sahiplenme = hayat kurtarma
-✓ Çeşitlilik
+✅ Net, tutarlı işaret
+✅ Zamanlamayı iyileştirir
+✅ Köpek daha hızlı öğrenir
+✅ Sessiz ortamda da kullanılır
 
-**Dikkat:**
-- Karakteri tam tahmin edilemez
-- Boyut belirsiz olabilir
-- Sağlık geçmişi bilinmez
+**Dezavantajları:**
+⚠️ Ekstra ekipman
+⚠️ Öğrenme eğrisi var
+⚠️ Bazı köpekler sesten korkar (hassas)
 
-Unutmayın: En uygun kedi, yaşam tarzınıza uygun olandır!`,
-    categoryTags: ["kedi", "ırklar", "seçim", "karakter"],
-    readTime: 8,
+### Clicker Nasıl Kullanılır?
+
+**1. Clicker = Ödül İlişkisi Kurma**
+
+**İlk Seans (5 dakika):**
+1. Clicker'a bas → hemen ödül ver
+2. 20-30 kez tekrarla
+3. Köpek "click" duyunca size bakmalı (ödül bekliyor)
+
+**2. Komutlarla Birleştirme**
+
+**Otur Örneği:**
+1. "Otur" deyin
+2. Köpek oturdugu AN click yapın
+3. Hemen ödül verin
+
+**Faydası:** Köpek oturduğu ANI tam biliyor (click ile işaretli)
+
+---
+
+## İleri Seviye Komutlar
+
+### Yere Uzan
+
+**Ne Zaman Öğretilir:** "Otur" öğrendikten sonra
+
+**Adımlar:**
+1. Köpek otursun
+2. Ödülü yere götürün (burnundan aşağı)
+3. Köpek uzanacak
+4. "Uzan!" deyin
+5. Ödül
+
+**Zorluk:**
+Bazı köpekler oturup eğilir (uzanmaz)
+**Çözüm:** Bacağınızın altından ödülü gösterin, geçmek için uzanmalı
+
+### Pati Ver
+
+**Adımlar:**
+1. Köpek otursun
+2. Parmağınızı kapalı yumruk yapın (içinde ödül)
+3. Köpeğin önünde tutun
+4. Köpek patisiyle vuracak
+5. "Pati!" deyin + açın + ödül
+
+**İpucu:** Bazı köpekler burnuyla iterler. Sadece pati değince açın.
+
+### Dön (Spin)
+
+**Adımlar:**
+1. Ödülü köpeğin burnuna yakın tutun
+2. Yavaşça daire çizdirin
+3. Tam tur attığında "Dön!" deyin + ödül
+
+**Eğlenceli:** Parti numarası, zeka oyunu
+
+---
+
+## Eğitim Sorun Giderme
+
+### Köpek Dikkatini Verim Hızlı Kaybediyor
+
+**Çözüm:**
+- Daha kısa seanslar (3 dakika)
+- Daha yüksek değerli ödül
+- Daha az dikkat dağıtıcı ortam
+- Enerjisini tüketin (önce yürüyüş)
+
+### Komutları Evde Yapıyor, Dışarıda Yapmıyor
+
+**Normal:** Farklı ortamlar yeni deneyim
+
+**Çözüm:**
+- Kademeli geçiş
+- Önce sessiz park
+- Sonra kalabalık park
+- Yüksek değerli ödül (dışarıda)
+
+### Komutu Öğrendi Ama Artık İlgilenmiyor
+
+**Sebep:** Sıkıldı veya ödül değerini kaybetti
+
+**Çözüm:**
+- Ödülü değiştirin
+- "Jackpot" verin (5 ödül birden)
+- Oyunla ödüllendirin
+- Ara verin (1-2 hafta)
+
+### Ailenin Diğer Bireylerine Dinlemiyor
+
+**Sebep:** Tutarsızlık
+
+**Çözüm:**
+- Aile eğitimi: Herkes aynı komutu kullanmalı
+- Herkes eğitim seansı yapmalı
+- Aynı ödül sistemi
+
+---
+
+## Yaşa Göre Eğitim
+
+### Yavru Köpek (2-6 Ay)
+
+**Avantaj:**
+- Hızlı öğrenir
+- Kötü alışkanlık yok
+- Şekillendirme kolay
+
+**Zorluk:**
+- Kısa dikkat süresi
+- Enerji fazla
+
+**Strateji:**
+- 3-5 dakika seanslar
+- Günde 3-4 seans
+- Oyunlarla birleştirin
+
+### Genç Köpek (6-18 Ay)
+
+**Avantaj:**
+- İyi dikkat süresi
+- Enerjik ama kontrollü
+
+**Zorluk:**
+- "Ergenlik" dönemi
+- İnatçı olabilir
+
+**Strateji:**
+- Tutarlı olun
+- Sabırlı olun
+- Bol egzersiz
+
+### Yetişkin Köpek (2-7 Yaş)
+
+**Avantaj:**
+- Sakin, odaklanıyor
+- Ciddiye alıyor
+
+**Zorluk:**
+- Var olan alışkanlıklar
+
+**Strateji:**
+- Kötü alışkanlıkları düzeltin
+- Alternatif davranış öğretin
+
+### Yaşlı Köpek (8+ Yaş)
+
+**Avantaj:**
+- Sakin
+- Bağ kurulmuş
+
+**Zorluk:**
+- Yavaş öğrenir
+- Fiziksel sınırlamalar
+
+**Strateji:**
+- Sabırlı olun
+- Fiziksel kısıtlamaları göz önünde bulundurun
+- Mental stimülasyon için harika
+
+---
+
+## Eğitim İpuçları Özeti
+
+✅ Pozitif pekiştirme kullanın (asla ceza)
+✅ Kısa seanslar (5-15 dakika)
+✅ Tutarlı olun (aynı komut, aynı ödül)
+✅ Sabırlı olun (her köpek farklı hızda)
+✅ Zamanlamaya dikkat (1 saniye içinde ödül)
+✅ Kademeli ilerleyin (%80 başarı ile)
+✅ Dikkat dağıtıcıları yavaş ekleyin
+✅ Eğlenceli tutun
+✅ Pozitif not ile bitirin
+✅ Yaşam boyu pratik yapın
+
+**Sonuç:** Temel itaat eğitimi, köpeğinizle sağlıklı iletişimin ve güvenli bir yaşamın temelidir. Pozitif pekiştirme ile hem siz hem köpeğiniz eğitimden keyif alırsınız. Sabırlı olun, tutarlı olun ve başarı kaçınılmazdır!`,
+    categoryTags: ["köpek", "eğitim", "komut", "itaat", "pozitif pekiştirme"],
+    readTime: 14,
     published: true,
   },
 
-  // Küçükbaş Hayvanlar (6 yazı)
   {
-    title: "Koyun Yetiştir iciliği: Temel Bilgiler ve Bakım",
-    slug: "koyun-yetistiriciligi-temel-bilgiler",
-    excerpt: "Koyun yetiştiriciliğine başlamak isteyenler için temel bilgiler, bakım gereksinimleri ve dikkat edilmesi gerekenler.",
-    content: `# Koyun Yetiştiriciliği Temel Rehberi
+    title: "Kedilerde Kum Tuvaleti Eğitimi ve Seçimi",
+    slug: "kedilerde-kum-tuvaleti-egitimi-secimi",
+    excerpt: "Doğru kedi tuvaleti ve kum seçimi. 1 aylıktan itibaren tuvalet eğitimi adımları ve pratik çözümler.",
+    content: `# Kedilerde Kum Tuvaleti Eğitimi ve Seçimi: Kapsamlı Rehber
 
-Koyun yetiştiriciliği, hem et hem de süt üretimi için karlı bir hayvancılık dalıdır. Başarılı olmak için temel bilgilere sahip olmak şarttır.
+Kediler doğuştan temiz hayvanlardır ve genellikle tuvalet eğitimi köpeklere göre çok daha kolaydır. Ancak doğru tuvalet seçimi ve eğitim teknikleri kedinizdeki başarı oranını %100'e çıkarır.
 
-## Irk Seçimi
+## Kedi Tuvaleti Türleri
 
-**Et Tipi Irklar:**
-- İvesi: Türkiye'nin yaygın ırkı, dayanıklı
-- Merinos: Hem et hem yün
-- Karayaka: Dağ koşullarına uygun
-- Hampshire: Hızlı büyüme
+### Açık Tuvalet
 
-**Süt Tipi Irklar:**
-- Sakız koyunu: Yüksek süt verimi
-- Çios: Peynir üretimi için ideal
-- İmroz: Süt ve et dengeli
+**Özellikler:**
+- Üst kapalı değil
+- Basit yapı
+- Genellikle dikdörtgen
+- Kenarlar 10-15 cm
 
-## Barınak Gereksinimleri
+**Avantajları:**
+✅ Uygun fiyat (50-150 TL)
+✅ Temizlemesi kolay
+✅ Koku birikimi az
+✅ Kedi kendini kapalı hissetmez
+✅ Çok kedi için ideal (giriş-çıkış kolay)
+✅ Yaşlı kediler için ulaşımı kolay
 
-**Alan Hesabı:**
-- Her koyun için: 1.5-2 m²
-- Kuzu için: 0.5-1 m²
-- Havalandırma kritik
-- Nem kontrolü önemli
+**Dezavantajları:**
+❌ Kum dışarı saçılır
+❌ Koku yayılır
+❌ Görüntü estetik değil
+❌ Mahremiyetsiz (bazı kediler istemez)
 
-**Barınak Özellikleri:**
-- Kuru zemin şart
-- İyi drenaj
-- Rüzgar koruması
-- Doğal ışık
-- Temizlik yapılabilir
+**Kimler İçin İdeal:**
+- Birden fazla kedi
+- Küçük yavrular
+- Yaşlı kediler
+- Bütçe dostu çözüm isteyenler
+- Koku hassasiyeti az olanlar
 
-## Beslenme
+### Kapalı Tuvalet
 
-**Yem Bileşimi:**
-- Kaba yem (kuru ot): %60-70
-- Konsantre yem: %30-40
-- Tuz taşı sürekli
-- Temiz su (günlük 4-8 L)
+**Özellikler:**
+- Kutu şeklinde
+- Üst kapaklı
+- Giriş kapısı (bazılarında)
+- Filtre sistemi (bazılarında)
 
-**Mevsimlik:**
-- Yaz: Otlatma + az konsantre
-- Kış: Kuru ot + yem
-- Gebe dönem: Artırılmış beslenme
-- Emzikli dönem: Yüksek kaliteli yem
+**Avantajları:**
+✅ Kum dışarı saçılmaz
+✅ Koku içeride kalır (filtreli olursa)
+✅ Estetik görünüm
+✅ Mahremiyet sağlar
+✅ Kum ekonomisi (az saçılma)
 
-## Sağlık ve Aşı Takvimi
+**Dezavantajları:**
+❌ Pahalı (150-500 TL)
+❌ Koku birikir (filtresiz)
+❌ Temizlemesi zor
+❌ Bazı kediler sevmez (kapalı alan)
+❌ Çok kedi için sıkışık
+❌ Yaşlı kediler için zor giriş
 
-**Yılık Aşılar:**
-- Enterotoksemi (3'lü, 6'lı aşı)
-- Şap aşısı
-- Brucella (genç dişiler)
-- Şarbon (riskli bölgeler)
+**Kimler İçin İdeal:**
+- Tek kedi
+- Estetik önem verenler
+- Koku hassasiyeti yüksek olanlar
+- Küçük mekan sahipleri
 
-**Parazit Kontrolü:**
-- İç parazit: 3 ayda bir
-- Dış parazit: Gerektiğinde
-- Tırnak bakımı: 6 ayda bir
+### Elekten Geçmeli (Sifting)
 
-## Üreme ve Doğum
+**Özellikler:**
+- İki katlı tuvalet
+- Alt katman eleği
+- Kaldırıp sallayarak temizlik
 
-**Çiftleştirme:**
-- Koyun olgunluk yaşı: 12-15 ay
-- Koç/koyun oranı: 1/30-50
-- Çiftleştirme sezonu: Sonbahar
+**Avantajları:**
+✅ Hızlı temizlik
+✅ Kum ekonomisi
+✅ Az kürek kullanımı
 
-**Gebelik:**
-- Süre: 145-150 gün (~5 ay)
-- Özel beslenme son 2 ay
-- Doğuma hazırlık
+**Dezavantajları:**
+❌ Pahalı (200-400 TL)
+❌ Her kumla uyumlu değil
+❌ İki katlı (yer kaplar)
 
-**Doğum:**
-- Temiz, sakin ortam
-- Gözetim altında
-- İlk süt (kolostrum) kritik
-- Göbek kordonu dezenfeksiyonu
+### Otomatik Tuvalet
 
-## Kuzu Bakımı
+**Özellikler:**
+- Sensörlü sistem
+- Kendi kendine temizlenir
+- Elektrikli/bataryalı
 
-**İlk Günler:**
-- Kolostrum ilk 2 saatte
-- Sıcak tutma
-- Sağlık kontrolü
-- Zayıflara özel bakım
+**Avantajları:**
+✅ Minimal bakım
+✅ Hijyenik
+✅ Teknoloji severler için
 
-**Büyüme Dönemi:**
-- Anne sütü 45-60 gün
-- Başlangıç yemi 2 haftalıktan
-- Grup otlatma 2 aylıktan
-- Damızlık/kasaplık ayırımı
+**Dezavantajları:**
+❌ Çok pahalı (2000-5000 TL)
+❌ Elektrik/batarya gerekir
+❌ Arıza riski
+❌ Bazı kediler korkabilir (ses)
 
-Başarı için tutarlılık ve hijyen çok önemli!`,
-    categoryTags: ["küçükbaş", "koyun", "hayvancılık", "bakım"],
-    readTime: 5,
-    published: true,
-  },
-  {
-    title: "Keçi Yetiştiriciliği ve Süt Üretimi",
-    slug: "keci-yetistiriciligi-sut-uretimi",
-    excerpt: "Keçi yetiştiriciliği karlı bir iştir. Süt keçiciliğinde dikkat edilmesi gerekenler.",
-    content: `# Keçi Yetiştiriciliği Rehberi
+---
 
-Keçi yetiştiriciliği, özellikle süt ve peynir üretimi için popüler bir hayvancılık dalıdır. Az sermaye ile başlanabilir ve karlıdır.
+## Kedi Kumu Türleri
 
-## Irk Seçimi
+### Bentonit Kum
 
-**Süt Keçileri:**
-- Saanen: En yüksek süt verimi (4-6 L/gün)
-- Alpin: Dayanıklı, yüksek yağ oranı
-- Toggenburg: Düşük bakım
-- Malta keçisi: Türkiye koşullarına uygun
+**Özellikler:**
+- Kil bazlı
+- Topaklanır
+- En yaygın kullanılan
 
-**Et Keçileri:**
-- Kıl keçisi: Türkiye'nin yerli ırkı
-- Boer: Hızlı büyüme, yüksek et
-- Honamli: Et ve süt dengeli
+**Avantajları:**
+✅ Mükemmel topaklanma
+✅ Kolay temizlik
+✅ Koku kontrolü iyi
+✅ Uygun fiyat (40-100 TL/10kg)
+✅ Kedilerin çoğu sever
+✅ Doğal his (kum gibi)
 
-## Barınak ve Yaşam Alanı
+**Dezavantajları:**
+❌ Tozlu (akciğere zararlı olabilir)
+❌ Ağır (taşıması zor)
+❌ Tuvalete atılmaz
+❌ Pati aralarında taşınır
 
-**Barınak:**
-- Keçi başına 2 m²
-- Kuru, iyi havalandırma
-- Oğlak için ayrı bölme
-- Sağım yeri
+**Kimler İçin:**
+- Çoğu kedi sahibi
+- Bütçe dostu çözüm
+- Kolay temizlik isteyenler
 
-**Otlatma:**
-- Gündüz otlatma ideal
-- 4-6 saat yeterli
-- Çeşitli bitki erişimi
-- Su kaynağı yakın
+**Popüler Markalar:**
+- Ever Clean
+- Catsan
+- Cat's Best (bentonit karışım)
 
-## Beslenme
+### Silica (Kristal) Kum
 
-**Günlük Oran:**
-- Kaba yem: 2-3 kg
-- Konsantre: 0.5-1 kg (süt verimine göre)
-- Taze ot/silaj
-- Tuz ve mineral
+**Özellikler:**
+- Silika jel bazlı
+- Topaklanmaz
+- Kristal görünümlü
 
-**Süt Verimi İçin:**
-- Yüksek protein (% 16-18)
-- Enerji dengesi
-- Bol su (8-12 L)
-- Düzenli besleme saatleri
+**Avantajları:**
+✅ Mükemmel koku kontrolü
+✅ Hafif (taşıması kolay)
+✅ Az tozsuz
+✅ Uzun ömürlü (2-4 hafta)
+✅ Pati aralarında az kalır
+✅ Temiz, hijyenik
 
-## Sağım ve Süt Kalitesi
+**Dezavantajları:**
+❌ Pahalı (80-200 TL/5kg)
+❌ Topaklanmaz (tam değişim gerekir)
+❌ Bazı kediler dokuya alışamaz
+❌ Geri dönüştürülemiyor
+❌ Yenilebilir (yavru kediler için risk)
 
-**Sağım Tekniği:**
-- Günde 2 kez (sabah-akşam)
-- Meme temizliği
-- Elle veya makineyle
-- Soğuk zincir
+**Kimler İçin:**
+- Toz hassasiyeti olanlar
+- Koku önceliği olanlar
+- Seyahat edenler
 
-**Hijyen:**
-- Temiz kaplar
-- Hızlı soğutma
-- Bakteriisiz ortam
-- Düzenli veteriner kontrolü
+**Popüler Markalar:**
+- Fresh Step Crystals
+- Ultra Pearls
 
-## Üreme ve Oğlak Bakımı
+### Doğal/Organik Kum
 
-**Çiftleştirme:**
-- Olgunluk: 12-15 ay
-- Kızgınlık süresi: 24-36 saat
-- Gebelik: 145-155 gün
+**Özellikler:**
+- Mısır, buğday, odun bazlı
+- Çevre dostu
+- Topaklanır (çoğu)
 
-**Doğum Sonrası:**
-- Kolostrum 1-2 saat içinde
-- Oğlağı kurulatma
-- Anne-oğlak bağı
-- Zayıf oğlaklara özel bakım
+**Avantajları:**
+✅ Çevre dostu
+✅ Tuvalete atılabilir (bazıları)
+✅ Doğal koku
+✅ Az tozlu
+✅ Güvenli (yenilebilir)
 
-## Sağlık Yönetimi
+**Dezavantajları:**
+❌ Pahalı (100-250 TL/10kg)
+❌ Koku kontrolü zayıf
+❌ Hızla tükenir
+❌ Rutubet çeker
 
-**Aşılar:**
-- Enterotoksemi
-- Brucella
-- Şap
-- Şarbon (riskli alanlar)
+**Kimler İçin:**
+- Çevre bilinci olanlar
+- Alerjisi olan kediler
+- Yavru kediler (güvenli)
 
-**Parazit:**
-- İç: 3 ayda bir
-- Dış: Gerektiğinde
-- Özellikle nemli havalarda dikkat
+**Popüler Markalar:**
+- World's Best Cat Litter (mısır)
+- ökocat (odun)
 
-## Ekonomi
+### Klasik Kil (Topaklanmaz)
 
-**Gelir Kaynakları:**
-- Süt satışı
-- Peynir üretimi
-- Oğlak satışı
-- Gübre
+**Özellikler:**
+- Eski tip
+- Topaklanmaz
+- Ucuz
 
-Keçi yetiştiriciliği sabır ve düzen ister!`,
-    categoryTags: ["küçükbaş", "keçi", "süt", "hayvancılık"],
-    readTime: 5,
-    published: true,
-  },
-  {
-    title: "Küçükbaş Hayvanlarda Parazit Kontrolü",
-    slug: "kucukbas-parazit-kontrolu",
-    excerpt: "Koyun ve keçilerde iç ve dış parazitler büyük verim kaybına neden olur. Etkili kontrol yöntemleri.",
-    content: `# Küçükbaş Hayvanlarda Parazit Kontrolü
+**Avantajları:**
+✅ Çok ucuz (20-40 TL/10kg)
+✅ Bulunması kolay
 
-Parazitler küçükbaş hayvancılıkta en büyük verim kayıplarının nedenidir. Etkili kontrol programı karlılığı doğrudan etkiler.
+**Dezavantajları:**
+❌ Koku kontrolsüz
+❌ Tüm kumu değiştirmek gerekir (haftada 1)
+❌ Çok tozlu
+❌ Hijyenik değil
 
-## İç Parazitler
+**Öneri:** Artık kullanılmamalı. Bentonit çok daha iyi.
 
-**Mide-Bağırsak Parazitleri:**
-- Kıl kurdu (Haemonchus)
-- Şerit kurt (Moniezia)
-- Karaciğer kelebeği (Fasciola)
+---
 
-**Belirtiler:**
-- Zayıflık, kansızlık
-- İshal
-- Tüy/yün döküntüsü
-- Göz kapağı solukluğu
-- Verim düşüşü
+## Tuvalet ve Kum Seçimi Kriterler
 
-**İlaçlama Programı:**
-- İlkbahar: Nisan-Mayıs
-- Yaz: Temmuz
-- Sonbahar: Ekim
-- Gebelik öncesi
+### Kedi Sayısına Göre
 
-## Dış Parazitler
+**Genel Kural:** N+1 Tuvalet
+- 1 kedi = 2 tuvalet
+- 2 kedi = 3 tuvalet
+- 3 kedi = 4 tuvalet
 
-**Kene:**
-- Kan emici
-- Hastalık taşıyıcı
-- Mevsimlik (İlkbahar-sonbahar)
+**Neden?**
+- Kediler seçicidir
+- Pis tuvalet kullanmaz
+- Yedek gerekir
+- Teritoryal sorunlar önlenir
 
-**Bit:**
-- Kaşıntı
-- Yün/tüy dökümü
+### Kedi Yaşına Göre
+
+**Yavru Kedi (0-6 Ay):**
+- Kenarları alçak tuvalet (5-8 cm)
+- Açık tuvalet (kolay giriş-çıkış)
+- Güvenli kum (yenilebilir)
+- Küçük boyutlu
+
+**Yetişkin Kedi (1-10 Yaş):**
+- Standart tuvalet
+- Her tür kum uygun
+- Açık/kapalı tercihe göre
+
+**Yaşlı Kedi (10+ Yaş):**
+- Kenarları alçak (artrit)
+- Açık tuvalet
+- Kolay erişilebilir
+- Yumuşak kum (pati ağrısı)
+
+### Kedi Büyüklüğüne Göre
+
+**Tuvalet Boyutu:**
+- Kedi rahatça dönebilmeli
+- Boy: En az kedi uzunluğu x 1.5
+- Genişlik: En az kedi genişliği x 1.5
+
+**Küçük Kedi (Singapura, Munchkin):**
+- 40x30 cm yeterli
+
+**Orta Kedi (Çoğu cins):**
+- 50x40 cm ideal
+
+**Büyük Kedi (Maine Coon, Ragdoll):**
+- 60x50 cm veya daha büyük
+- Jumbo tuvaletler
+
+---
+
+## Tuvalet Eğitimi: 1 Aylıktan İtibaren
+
+### Ne Zaman Başlanır?
+
+**İdeal Yaş:** 3-4 haftalık
+**En Geç:** 8 haftalık
+
+**Önemli:** Anne kedi örnek olur. Yavruları izler ve taklit eder.
+
+### Adım Adım Eğitim
+
+**1. Hafta (3-4 Haftalık Yavru)**
+
+**Hazırlık:**
+1. Yavrunun ulaşabileceği yerde tuvalet
+2. Kenarları çok alçak (5 cm)
+3. 3-5 cm kum (derin olmasın)
+4. Kolay erişim
+
+**Eğitim:**
+1. Yavruyu her 2 saatte bir tuvalete koyun
+2. Özellikle yemekten sonra
+3. Uyandıktan sonra
+4. Oyundan sonra
+5. Pati ile kumu karıştırın (örnek)
+
+**İşaretler:**
+- Koklama
+- Daireler çizme
+- Miyavlama
 - Huzursuzluk
 
-**Uyuz:**
-- Şiddetli kaşıntı
-- Kabuklanma
-- Yara oluşumu
-- Bulaşıcı
+**Gördüğünüzde:** Hemen tuvalete koyun
 
-**Sinek/Miyaz:**
-- Yaz aylarında
-- Yaralara yumurta
-- Doku tahribi
+**2. Hafta (5-6 Haftalık)**
 
-## İlaçlar ve Uygulama
+**İlerleme:**
+- Yavru kendi gidiyor (çoğunlukla)
+- Hala kazalar olabilir (normal)
+- Ödüllendirmeyin (kediler için gereksiz)
+- Cezalandırmayın (işe yaramaz)
 
-**Geniş Spektrumlu:**
-- Ivermektin (enjeksiyon/dökme)
-- Albendazol (oral)
-- Levamisol (enjeksiyon)
+**Kazalar:**
+- Sessizce temizleyin
+- Enzim bazlı temizleyici
+- Koku tamamen gitsin
+- Tuvaleti gösterin (tekrar)
 
-**Uygulama Yöntemleri:**
-- Oral (ağız yolu)
-- Enjeksiyon (deri altı/kas içi)
-- Dökme (sırt üzerine)
-- Banyo (daldırma)
+**3-4. Hafta (7-8 Haftalık)**
 
-## Direnç Yönetimi
+**Başarı:**
+- Yavru %90 başarılı
+- Bazen unutabilir (oyun/heyecan)
+- Normal
 
-**Direnç Belirtileri:**
-- İlaçtan sonra parazit devam ediyor
-- Verim düzelmiyor
-- Dışkıda hala yumurta
+**Kum Derinliği Artırma:**
+- İlk 3-5 cm
+- Sonra 5-8 cm
+- Kedi kazabilsin
 
-**Önleme:**
-- İlaç rotasyonu
-- Doğru doz kullanımı
-- Tedavi öncesi/sonrası test
-- Aşırı ilaçlamaktan kaçının
+### Yetişkin Kedi Eğitimi
 
-## Otlatma Yönetimi
+**Yeni Evlat Edilen Kedi:**
 
-**Bulaşmayı Azaltma:**
-- Mera rotasyonu
-- Aşırı otlatmayı önleyin
-- Islak alanlardan uzak
-- Dışkı temizliği
+**İlk Gün:**
+1. Eve getirdiğinizde ilk gösterim: Tuvalet
+2. Kediyi tuvalete koyun
+3. Pati ile kumu karıştırın
+4. Sonra serbest bırakın
 
-## Hijyen ve Genel Bakım
+**İlk Hafta:**
+- Genelde ilk günde öğrenir
+- Ev/barınak kedileri bilir
+- Tuvalet yerini hatırlatın
 
-- Temiz barınak
-- Kuru zemin
-- İyi havalandırma
-- Sık sık temizlik
+**Sokak Kedisi Evlat Edindiyseniz:**
 
-Düzenli kontrol + hijyen = Sağlıklı sürü!`,
-    categoryTags: ["küçükbaş", "parazit", "sağlık", "veteriner"],
-    readTime: 4,
+**Zorluk:** Toprak/kumda alışkın
+
+**Çözüm:**
+1. İlk hafta bahçe toprağı + kum karışımı
+2. Kademeli toprak azaltın
+3. 2. hafta %100 kum
+
+---
+
+## Yaygın Tuvalet Sorunları ve Çözümleri
+
+### Sorun 1: Tuvaletin Dışına Yapma
+
+**Olası Sebepler:**
+
+**1. Tuvalet Çok Kirli**
+- **Çözüm:** Günde 2 kez temizleyin
+- Topakları hemen alın
+- Haftada tam değişim
+
+**2. Tuvalet Çok Küçük**
+- **Çözüm:** Daha büyük tuvalet alın
+- Kedi rahatça dönebilmeli
+
+**3. Tuvalet Yeri Uygun Değil**
+- **Çözüm:** Sessiz, özel alan
+- Mama/su kabından uzak
+- Yüksek trafik alanından uzak
+
+**4. Kum Tipi Hoşuna Gitmiyor**
+- **Çözüm:** Farklı kum deneyin
+- 2 tuvalet, 2 farklı kum
+- Hangisini kullanıyor gözlemleyin
+
+**5. Sağlık Sorunu**
+- **Belirtiler:** Sık idrara çıkma, acı çekerek, kan
+- **Çözüm:** Hemen veterinere
+- İdrar yolu enfeksiyonu
+- Böbrek taşı
+- Sistit
+
+**6. Stres/Anksiyete**
+- **Sebepler:** Taşınma, yeni kedi, bebek
+- **Çözüm:** Feliway (feromon spreyi)
+- Sakin ortam
+- Oyun/ilgi
+- Veteriner (anti-anksiyete)
+
+### Sorun 2: Sadece İdrar veya Sadece Kaka Tuvalette
+
+**Sebep:**
+- Tuvalet çağrışımları farklı
+- Bir yer rahatsız ediyor
+
+**Çözüm:**
+1. İkinci tuvalet ekleyin
+2. Farklı kum tipleri
+3. Farklı yerler
+4. Hangisini nasıl kullanıyor izleyin
+
+### Sorun 3: Tuvalet Kenarına/Duvarına Yapma
+
+**Sebep:**
+- Tuvalet çok küçük
+- Kedi hizalanmasını bilmiyor
+
+**Çözüm:**
+- Daha büyük tuvalet
+- Yüksek kenarlı tuvalet
+- Kapalı tuvalet
+
+### Sorun 4: Kumla Çok Oynama/Saçma
+
+**Sebep:**
+- Doğal kazma içgüdüsü
+- Eğlenceli
+
+**Çözüm:**
+- Tuvalet önüne mat
+- Kapalı tuvalet
+- Daha ağır kum parçacıkları
+- Normal (engellenemez)
+
+### Sorun 5: Kumu Yiyor
+
+**Sebep:**
+- Yavru merak (normal)
+- Pika (sağlık sorunu)
+
+**Çözüm:**
+- Güvenli kum kullanın (doğal/organik)
+- Veterinere danışın (pika tedavisi)
+- Kum dışı alternatif (pellet)
+
+---
+
+## Tuvalet Yerleşimi ve Hijyen
+
+### İdeal Tuvalet Yeri
+
+**Olması Gerekenler:**
+✅ Sessiz, özel köşe
+✅ Kolay erişim (kedi için)
+✅ Havalandırma iyi
+✅ Gece ışık erişimi
+✅ Kaçış yolu var (köşeye sıkışmama)
+
+**Olmaması Gerekenler:**
+❌ Mama/su kabı yakını (5 metre uzak)
+❌ Yüksek trafik alan (salon ortası)
+❌ Çamaşır makinesi yanı (ses korkutur)
+❌ Karanlık bodrum (erişim zor)
+❌ Tek çıkışlı dar alan
+
+**İdeal Lokasyonlar:**
+- Banyodaki köşe
+- Balkon (kapalı)
+- Çamaşırlık (sessiz köşe)
+- Misafir tuvaleti
+
+### Temizlik ve Hijyen
+
+**Günlük Bakım:**
+- Sabah: Topakları al
+- Akşam: Topakları al
+- Eksilen kumu tamamla
+- Kenarları sil
+
+**Haftalık Bakım:**
+- Tüm kumu değiştir
+- Tuvaleti yıka (sabun+su)
+- Kurula, kuru bez sil
+- Yeni kum doldur (5-8 cm)
+
+**Aylık Bakım:**
+- Derin temizlik
+- Dezenfektan (pet-safe)
+- Plastik yıpranmışsa değiştir
+
+**Temizlik İpuçları:**
+✅ Eldiven kullanın
+✅ Hamile kadınlar yapmasın (toxoplasma riski)
+✅ Enzim bazlı temizleyici
+❌ Klor bazlı ürünler (toksik)
+❌ Parfümlü ürünler (kediler sevmez)
+
+### Kum Miktarı
+
+**İdeal Derinlik:** 5-8 cm
+- Çok sığ (3 cm): Kedi kazamaz
+- Çok derin (15 cm+): İsraf, taşma
+
+**Hesaplama:**
+- Orta boy tuvalet: 5-7 kg kum
+- Büyük tuvalet: 8-10 kg kum
+
+---
+
+## Çok Kedi Evleri İçin
+
+### Tuvalet Sayısı
+
+**Formül:** N+1
+- 2 kedi = 3 tuvalet
+- 3 kedi = 4 tuvalet
+
+**Neden Fazla?**
+- Teritoryal paylaşım
+- Temiz tuvalet garantisi
+- Stres azaltma
+
+### Yerleşim
+
+**Dağıtık Yerleştirme:**
+- Farklı odalara
+- Dominant kedi bloklamamalı
+- Her kedinin erişimi olmalı
+
+**Farklı Tipte:**
+- 1 açık, 1 kapalı
+- Farklı kum tipleri
+- Kedi tercihleri farklı
+
+### Gözlem
+
+- Hangi kedi hangi tuvaleti kullanıyor?
+- Çatışma var mı?
+- Biri tuvalet önünü mü bekliyor?
+
+---
+
+## Özel Durumlar
+
+### Yaşlı Kedi (10+ Yaş)
+
+**Sorunlar:**
+- Artrit (zor giriş)
+- Hafıza kaybı
+- İnkontinans
+
+**Çözümler:**
+- Alçak kenarlı tuvalet
+- Her katta tuvalet
+- Büyük, kolay erişim
+- Veteriner kontrolü
+
+### Engelli Kedi
+
+**Bacak Eksikliği/Felç:**
+- Rampalı tuvalet
+- Çok alçak kenar
+- Kaymaz taban
+
+**Görme Engelli:**
+- Sabit lokasyon (asla değiştirme)
+- Koyu renkler
+- Ses işaretleri
+
+### Dışarı Çıkan Kedi
+
+**Problem:** Hem içerde hem dışarıda
+**Çözüm:**
+- Yine de ev içi tuvalet olmalı
+- Hava/hastalık durumunda
+- Gece için
+
+---
+
+## Sık Sorulan Sorular
+
+**S: Kedi tuvaleti ne sıklıkla temizlenmeli?**
+C: Topaklar günde 2 kez alınmalı, tüm kum haftada 1 kez değiştirilmeli.
+
+**S: Hangi kum tipi en iyi?**
+C: Bentonit kum (topaklanır) çoğu kedi için ideal. Silica koku kontrolü için daha iyi ama pahalı.
+
+**S: Tuvalet kaç aylıktan itibaren?**
+C: 3-4 haftalıktan itibaren başlayabilirsiniz. Anne kedi örnek olur.
+
+**S: Kedi tuvaletinizi kullanmıyor, ne yapmalı?**
+C: Sebep bulun: Tuvalet kirli mi? Yer uygun mu? Kum hoşuna gitmiyor mu? Sağlık sorunu var mı?
+
+**S: Hamile kadınlar kedi tuvaletini temizleyebilir mi?**
+C: Hayır, toxoplasma riski var. Başkası temizlemeli.
+
+**S: Tuvalet için en iyi yer neresi?**
+C: Sessiz, özel köşe. Mama kabından uzak, kolay erişimli.
+
+**S: Açık mı kapalı tuvalet mi daha iyi?**
+C: Kedinin tercihine bağlı. Çoğu açık tuvaleti tercih eder (mahremiyet ama kapalı değil).
+
+## Tuvalet Kontrol Listesi
+
+✅ Uygun boyutlu tuvalet (kedi x1.5)
+✅ Kedi sayısı + 1 tuvalet
+✅ Topaklanır kum (bentonit/silica)
+✅ 5-8 cm kum derinliği
+✅ Sessiz, özel lokasyon
+✅ Günde 2 kez topak temizliği
+✅ Haftada 1 tam kum değişimi
+✅ Mama/sudan 5+ metre uzak
+✅ Kolay erişim (özellikle yaşlı kediler)
+✅ Yedek tuvalet (çok kedi)
+
+**Sonuç:** Kedi tuvaleti eğitimi köpeklere göre çok daha kolaydır çünkü kediler doğuştan temiz hayvanlardır. Doğru tuvalet ve kum seçimi, hijyenik ortam ve sabır ile her kedi başarıyla tuvalet kullanabilir. Sorun çıkarsa önce tuvalet şartlarını gözden geçirin, sonra veterinere danışın!`,
+    categoryTags: ["kedi", "tuvalet", "eğitim", "hijyen", "bakım"],
+    readTime: 14,
     published: true,
   },
+
   {
-    title: "Koyun Kırpımı ve Yün Yönetimi",
-    slug: "koyun-kirpimi-yun-yonetimi",
-    excerpt: "Koyun kırpımı sadece yün üretimi değil, aynı zamanda hayvan sağlığı için de önemlidir.",
-    content: `# Koyun Kırpımı Rehberi
+    title: "Kedi Cinsleri ve Karakter Özellikleri",
+    slug: "kedi-cinsleri-karakter-ozellikleri",
+    excerpt: "Dünyada ve Türkiye'de en popüler kedi cinslerini keşfedin. Her ırkın benzersiz karakteri, bakım gereksinimleri ve mizaç özellikleri.",
+    content: `# Kedi Cinsleri ve Karakter Özellikleri: Kapsamlı Rehber
 
-Koyun kırpımı hem yün üretimi hem de hayvan konforuiçin yapılması gereken önemli bir işlemdir.
+Kediler bağımsız, zarif ve gizemli hayvanlardır. Her kedi cinsi farklı mizaç, bakım gereksinimleri ve karakter özellikleriyle gelir. Doğru cinsi seçmek mutlu bir birliktelik için kritik önem taşır.
 
-## Kırpım Zamanlaması
+## Van Kedisi: Türkiye'nin Beyaz İncisi
 
-**İlkbahar Kırpımı:**
-- Nisan-Mayıs ideal
-- Hava ısınmadan önce
-- Sıcak stresini önler
-- Parazit kontrolü kolaylaşır
+### Genel Özellikler
 
-**Sonbahar Kırpımı (opsiyonel):**
-- Ekim ayı
-- Kış öncesi hijyen
-- Bölgeye göre değişir
+**Menşei:** Türkiye (Van Gölü bölgesi)
+**Kilo:** 3-8 kg
+**Ömür:** 13-17 yıl
+**Özel Özellik:** Yüzmeyi sever (tek yüzen kedi!)
 
-## Hazırlık
+### Fiziksel Özellikler
 
-**Koyun Hazırlığı:**
-- Kuru olmalı (yağmurdan 24 saat sonra)
-- Tokken değil (sindirim problemi)
+**Görünüm:**
+- Beyaz, ipeksi tüy
+- Heterokromia (farklı renk gözler) yaygın
+- Mavi ve/veya amber gözler
+- Kabarık kuyruk
+- Orta-büyük yapı
+- Kaslı, atletik
+
+**Tüy Yapısı:**
+- Yarı uzun
+- Su geçirmez (yüzme adaptasyonu)
+- Alt tüy minimal
+- Mevsimsel döküm
+- Yumuşak, ipeksi
+
+**Renkler:**
+- Klasik: Beyaz + kırmızı-kahverengi kuyruk ve başında lekeler
+- Tamamen beyaz varyasyonlar
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Akıllı, meraklı
+✅ Enerjik, oyuncu
+✅ Sadık (köpek gibi)
+✅ Suyu sever (yüzme, duş)
+✅ Sosyal
+✅ Konuşkan (miyavlama)
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok aktif (egzersiz gerekir)
+⚠️ Bağımsız
+⚠️ Seçici (kime yakın olacağına karar verir)
+⚠️ Yüksek yerleri sever
+⚠️ Meraklı (tehlikeye atılabilir)
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 2 kez fırçalama
+- Banyo sevebilir (opsiyonel)
+- Kulak temizliği (beyaz kedilerde önemli)
+- Tırnak kesimi
+
+**Sağlık:**
+- Genel olarak sağlıklı
+- Beyazlarda sağırlık riski (%20)
+- Mavi gözlülerde sağırlık daha yaygın
+- Kalp hastalıkları (HCM) izlenmeli
+
+**İdeal İçin:**
+✅ Aktif kişiler
+✅ Su oyunları sevenler
+✅ Enerjik kedi isteyenler
+✅ Bahçeli ev (ideal)
+
+---
+
+## Ankara Kedisi: Zarif Anadolu Güzeli
+
+### Genel Özellikler
+
+**Menşei:** Türkiye (Ankara)
+**Kilo:** 2.5-5 kg
+**Ömür:** 12-18 yıl
+**Özel Özellik:** Çok eski cins (Osmanlı saraylarında)
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- İnce, zarif yapı
+- Uzun, ince bacaklar
+- Küçük kafa
+- Büyük, badem gözler
+- Tüylü kuyruk
+
+**Tüy Yapısı:**
+- Uzun, ipeksi
+- Alt tüy yok
+- Kolay bakım
+- Az döküm (tek kat)
+
+**Renkler:**
+- Beyaz (en tanınan)
+- Siyah, mavi, krem
+- Desen: Tekir, calico
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Zarif, sakin
+✅ Akıllı
+✅ Sadık
+✅ Sessiz (az miyavlar)
+✅ Temiz
+✅ Uyumlu
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Hassas
+⚠️ Tek kişiye bağlanır
+⚠️ Yavaş ısınır
+⚠️ Strese duyarlı
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 2-3 fırçalama
+- Tırnak, diş bakımı
+- Kulak kontrolü
+
+**Sağlık:**
+- Sağlıklı cins
+- Kalp kontrolleri
+- Beyazlarda sağırlık (nadir)
+
+**İdeal İçin:**
+✅ Sakin evler
+✅ Tek kişiler
+✅ Apartman
+✅ Zarif kedi isteyenler
+
+---
+
+## İran Kedisi (Persian): Kadife Tüylü Asil
+
+### Genel Özellikler
+
+**Menşei:** İran (Persia)
+**Kilo:** 3-7 kg
+**Ömür:** 12-17 yıl
+**Özel Özellik:** Basık yüz, uzun tüy
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Yassı, basık yüz
+- Kocaman gözler
+- Küçük kulaklar
+- Kompakt, kaslı vücut
+- Kısa bacaklar
+- Kalın, tüylü kuyruk
+
+**Tüy Yapısı:**
+- Çok uzun (12-15 cm)
+- Çift katlı, yoğun
+- Günlük fırçalama şart
+- Dolaşma riski
+
+**Renkler:**
+- 200+ renk varyasyonu
+- Siyah, beyaz, krem
+- Mavi, gümüş, altın
+- Calico, tabby
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Çok sakin
+✅ Sevecen
+✅ Kucak kedisi
+✅ Sabırlı
+✅ Sessiz (yumuşak ses)
+✅ Çocuklarla uyumlu
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Yoğun bakım (tüy)
+⚠️ Solunum problemleri (basık yüz)
+⚠️ Göz akıntısı (günlük temizlik)
+⚠️ Sıcağa hassas
+⚠️ Az aktif (obezite riski)
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Günlük fırçalama (şart)
+- Göz temizliği (günlük)
+- Yüz kıvrımları temizliği
+- Aylık banyo
+- Profesyonel tıraş (yaz)
+
+**Sağlık Sorunları:**
+- Polikistik böbrek hastalığı (PKD)
+- Solunum problemleri
+- Diş problemleri
+- Göz enfeksiyonları
+
+**İdeal İçin:**
+✅ Ev içi yaşam
+✅ Zamanlı kişiler (bakım)
+✅ Sakin evler
+✅ Kucak kedisi isteyenler
+❌ Meşgul kişiler
+
+---
+
+## British Shorthair: Ayı Kedi
+
+### Genel Özellikler
+
+**Menşei:** İngiltere
+**Kilo:** 4-8 kg (erkek), 3-5 kg (dişi)
+**Ömür:** 14-20 yıl
+**Özel Özellik:** "Cheshire Cat" gülümsemesi
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Tombul, yuvarlak vücut
+- Kocaman yuvarlak baş
+- Şişman yanaklar
+- Kocaman bakır/altın gözler
+- Kalın, güçlü bacaklar
+- Peluş oyuncak görünümü
+
+**Tüy Yapısı:**
+- Kısa, yoğun, peluş
+- Çift katlı
+- Su geçirmez
+- Kolay bakım
+
+**Renkler:**
+- British Blue (en ünlü - gri)
+- Siyah, beyaz, krem
+- Tabby, colorpoint
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Sakin, dengeli
+✅ Sevecen ama mesafeli
+✅ Bağımsız
+✅ Sabırlı
+✅ Sessiz
+✅ Çocuk ve diğer hayvanlarla uyumlu
+✅ Az bakım
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Kucakta durmayı pek sevmez
+⚠️ Yavaş olgunlaşır (3-5 yaş)
+⚠️ Obezite riski
+⚠️ Tembel olabilir
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 1-2 fırçalama
+- Porsiyon kontrolü (kilo)
+- Oyun teşviki
+
+**Sağlık:**
+- HCM (kalp hastalığı)
+- Obezite
+- Hemofili B (erkeklerde)
+
+**İdeal İçin:**
+✅ Meşgul kişiler
+✅ Apartman
+✅ Sakin ortam
+✅ Bağımsız kedi isteyenler
+
+---
+
+## Scottish Fold: Kıvrık Kulaklı Sevimlik
+
+### Genel Özellikler
+
+**Menşei:** İskoçya
+**Kilo:** 2.5-6 kg
+**Ömür:** 11-15 yıl
+**Özel Özellik:** Katlanmış kulaklar
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Yuvarlak baş
+- Katlanmış kulaklar (genetik mutasyon)
+- Kocaman yuvarlak gözler
+- Orta boy, yuvarlak vücut
+- Baykuş görünümü
+
+**Tüy Yapısı:**
+- Kısa veya uzun (iki varyasyon)
+- Yumuşak, yoğun
+- Kolay bakım
+
+**Renkler:**
+- Tüm renkler mümkün
+- Tabby, solid, bicolor
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Çok sevecen
+✅ Sosyal, dost canlısı
+✅ Sakin
+✅ Oyuncu
+✅ Uyumlu
+✅ Sessiz
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Yalnız kalmayı sevmez
+⚠️ Eklem problemleri (genetik)
+⚠️ Kulak bakımı kritik
+⚠️ Pahalı cins
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 1-2 fırçalama (kısa tüy)
+- Günlük fırçalama (uzun tüy)
+- Kulak temizliği (haftalık, önemli)
+- Eklem kontrolü
+
+**Sağlık Sorunları:**
+- Osteokondrodisplazi (eklem, kemik)
+- Kulak enfeksiyonları
+- Kalp hastalıkları
+
+**İdeal İçin:**
+✅ Ev içi yaşam
+✅ Aileler
+✅ Sevecen kedi isteyenler
+❌ Çok uzun süre yalnız bırakanlar
+
+---
+
+## Maine Coon: Dev Nazik Kedi
+
+### Genel Özellikler
+
+**Menşei:** ABD (Maine)
+**Kilo:** 5-10 kg (erkek), 3-6 kg (dişi)
+**Ömür:** 12-15 yıl
+**Özel Özellik:** En büyük evcil kedi cinsi
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Çok büyük, kaslı
+- Dikdörtgen vücut
+- Geniş göğüs
+- Büyük, tüylü kulaklar (lynx tufts)
+- Çok uzun, kabarık kuyruk
+- Yaban kedisi görünümü
+
+**Tüy Yapısı:**
+- Uzun, yoğun
+- Su geçirmez
+- Boyun etrafında "yakası"
+- Mevsimsel döküm
+
+**Renkler:**
+- Tabby (yaygın)
+- Solid, bicolor, calico
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ "Nazik dev"
+✅ Çok dost canlısı
+✅ Akıllı
+✅ Oyuncu (yaşam boyu)
+✅ Sosyal (köpek gibi)
+✅ Suyu sever
+✅ Konuşkan (şirıldama sesi)
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok büyük (alan gerekir)
+⚠️ Yavaş olgunlaşır (3-5 yaş)
+⚠️ Pahalı (mama, veteriner)
+⚠️ Aktif (egzersiz gerekir)
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 2-3 fırçalama
+- Tırnak, diş bakımı
+- Büyük kedi tuvaleti
+
+**Sağlık:**
+- HCM (kalp hastalığı)
+- Hip displazi
+- Spinal müsküler atrofi
+
+**İdeal İçin:**
+✅ Bahçeli ev
+✅ Aktif aileler
+✅ Büyük kedi isteyenler
+✅ Sosyal kedi isteyenler
+
+---
+
+## Ragdoll: Bebek Kedi
+
+### Genel Özellikler
+
+**Menşei:** ABD (California)
+**Kilo:** 4.5-9 kg (erkek), 3-6 kg (dişi)
+**Ömür:** 12-17 yıl
+**Özel Özellik:** Kucağa alınınca gevşer (bez bebek gibi)
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Büyük, ağır
+- Mavi gözler (her zaman)
+- Sivri renk desenli (colorpoint)
+- Orta uzunlukta tüy
+- Peluş oyuncak görünüm
+
+**Tüy Yapısı:**
+- Yarı uzun
+- İpeksi, yumuşak
+- Az dolaşır
+- Orta bakım
+
+**Renkler:**
+- Seal, blue, chocolate, lilac
+- Desenler: Colorpoint, mitted, bicolor
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Çok sakin, uysal
+✅ Sevecen, sarılkan
+✅ Kucak kedisi (tam anlamıyla)
+✅ Sabırlı
+✅ Sosyal
+✅ Çocuklarla harika
+✅ Ağrıya toleranslı
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ Çok uysal (kendini koruyamaz, ev içi)
+⚠️ Yalnız kalmayı sevmez
+⚠️ Bağımlı
+⚠️ Saf, tehlikeleri fark etmez
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Haftada 2 fırçalama
+- Tırnak, diş bakımı
+- Sevgi, ilgi (çok gerekir)
+
+**Sağlık:**
+- HCM (kalp)
+- Polikistik böbrek
+- Obezite
+
+**İdeal İçin:**
+✅ Ev içi yaşam (şart)
+✅ Aileler
+✅ Çocuklu evler
+✅ Kucak kedisi isteyenler
+❌ Çok uzun süre yalnız bırakanlar
+❌ Dışarı çıkan kediler
+
+---
+
+## Siyam Kedisi: Konuşkan Zeki
+
+### Genel Özellikler
+
+**Menşei:** Tayland (eski adı Siam)
+**Kilo:** 2.5-5.5 kg
+**Ömür:** 15-20 yıl
+**Özel Özellik:** Çok konuşkan, mavi gözler
+
+### Fiziksel Özellikler
+
+**Görünüm:**
+- Zarif, ince yapı
+- Uzun, ince bacaklar
+- Kama şeklinde kafa
+- Büyük kulaklar
+- Parlak mavi gözler
+- Sivri renkler (colorpoint)
+
+**Tüy Yapısı:**
+- Çok kısa, parlak
+- Tek kat
+- Neredeyse hiç bakım gerektirmez
+
+**Renkler:**
+- Seal point (siyah uçlar)
+- Blue, chocolate, lilac point
+- Vücut açık renkli, uçlar koyu
+
+### Karakter ve Mizaç
+
+**Olumlu Özellikler:**
+✅ Çok zeki (en zeki cinslerden)
+✅ Sosyal, dışa dönük
+✅ Enerjik, oyuncu
+✅ Sadık (köpek gibi)
+✅ Konuşkan (sürekli miyavlar)
+✅ Meraklı
+
+**Dikkat Edilmesi Gerekenler:**
+⚠️ ÇOK vokal (gürültülü)
+⚠️ İhtiyaç fazla (ilgi, sevgi)
+⚠️ Bağımlı
+⚠️ Yalnız kalmayı hiç sevmez
+⚠️ İnatçı, ısrarcı
+
+### Bakım ve Sağlık
+
+**Bakım Gereksinimleri:**
+- Minimal (haftada 1 fırça yeterli)
+- Bol ilgi, oyun
+- Mental stimülasyon
+
+**Sağlık:**
+- Genel olarak sağlıklı
+- Diş problemleri
+- Astma (bazılarında)
+- Kalp hastalıkları
+
+**İdeal İçin:**
+✅ Aktif kişiler
+✅ Ev içinde çok vakit geçirenler
+✅ Konuşkan kedi isteyenler
+✅ Enerjik kedi isteyenler
+❌ Sessiz ev isteyenler
+❌ Meşgul, çok çalışan kişiler
+
+---
+
+## Cins Seçimi Karar Matrisi
+
+### Yaşam Tarzına Göre
+
+| Yaşam Tarzı | Önerilen Cinsler |
+|-------------|------------------|
+| Meşgul, çalışan | British Shorthair, Ankara |
+| Ev içinde çok vakit geçiren | Ragdoll, Siyam, Scottish Fold |
+| Aktif, enerjik | Van, Maine Coon, Siyam |
+| Sakin, dingin | İran, British Shorthair, Ragdoll |
+| Apartman | British Shorthair, Ankara, Scottish Fold |
+| Bahçeli ev | Van, Maine Coon |
+
+### Bakım Seviyesine Göre
+
+**Düşük Bakım:**
+- British Shorthair
+- Siyam
+- Ankara (tek kat tüy)
+
+**Orta Bakım:**
+- Van
+- Maine Coon
+- Ragdoll
+- Scottish Fold
+
+**Yüksek Bakım:**
+- İran (günlük fırçalama şart)
+
+### Karakter Tercihine Göre
+
+**Bağımsız Kediler:**
+- British Shorthair
+- Ankara
+- Van
+
+**Sevgi Dolu, Sarılkan:**
+- Ragdoll
+- Scottish Fold
+- İran
+- Maine Coon
+
+**Enerjik, Oyuncu:**
+- Van
+- Siyam
+- Maine Coon
+
+**Sakin, Sessiz:**
+- British Shorthair
+- İran
+- Ragdoll
+
+**Konuşkan:**
+- Siyam (en konuşkan)
+- Van
+- Maine Coon
+
+### Aile Yapısına Göre
+
+**Çocuklu Aileler:**
+✅ Ragdoll (en iyi)
+✅ Maine Coon
+✅ British Shorthair
+✅ İran
+
+**Tek Kişi:**
+✅ Ankara
+✅ British Shorthair
+✅ Siyam
+
+**Çok Hayvan:**
+✅ Maine Coon
+✅ Ragdoll
+✅ British Shorthair
+
+---
+
+## Saf Irk vs Sokak Kedisi
+
+### Saf Irk Avantajları
+
+✅ Tahmin edilebilir karakter
+✅ Tahmin edilebilir boyut/görünüm
+✅ Sağlık taramaları
+✅ Soy ağacı
+
+### Saf Irk Dezavantajları
+
+❌ Pahalı (1000-10,000 TL)
+❌ Genetik hastalık riski (inbreeding)
+❌ Bakım gereksinimleriyüksek
+❌ Hassas
+
+### Sokak Kedisi Avantajları
+
+✅ Ücretsiz/ucuz
+✅ Sağlıklı (genetic çeşitlilik)
+✅ Dayanıklı
+✅ Hayat kurtarma
+✅ Benzersiz görünüm
+
+### Sokak Kedisi Dezavantajları
+
+⚠️ Bilinmeyen karakter
+⚠️ Bilinmeyen sağlık geçmişi
+⚠️ Sosyalizasyon gerekebilir
+
+---
+
+## Sıkça Sorulan Sorular
+
+**S: En az bakım gerektiren kedi cinsi hangisi?**
+C: British Shorthair ve Siyam. Kısa tüyleri nedeniyle minimal fırçalama gerekir.
+
+**S: Çocuklar için en iyi kedi cinsi?**
+C: Ragdoll ve Maine Coon. Sabırlı, oyuncu ve nazik.
+
+**S: En uzun yaşayan kedi cinsi?**
+C: Siyam kedileri 15-20 yıl yaşayabilir. British Shorthair da 14-20 yıl.
+
+**S: En zeki kedi cinsi?**
+C: Siyam ve Maine Coon en zeki cinsler arasında. Komutları öğrenebilirler.
+
+**S: Apartmanda hangi kedi cinsi beslenebilir?**
+C: British Shorthair, Ankara, Scottish Fold, İran ideal. Sessiz, sakin cinsler.
+
+**S: Tüy dökmeyen kedi var mı?**
+C: Tamamen tüy dökmeyen kedi yok. Ama Siyam ve Ankara minimal döker (tek kat tüy).
+
+## Cins Seçerken Kontrol Listesi
+
+✅ Yaşam tarzınıza uygun mu?
+✅ Bakım ihtiyaçlarını karşılayabilir misiniz?
+✅ Karakter özelliği istediğiniz gibi mi?
+✅ Ev yapısı uygun mu? (bahçe, apartman)
+✅ Bütçeniz yeterli mi? (mama, veteriner, bakım)
+✅ Zamanınız var mı? (oyun, ilgi, bakım)
+✅ Sağlık problemlerini göze alıyor musunuz?
+✅ Uzun dönem taahhüt (12-20 yıl) hazır mısınız?
+
+**Sonuç:** Kedi cinsi seçimi kişisel tercihe ve yaşam tarzına bağlıdır. Her cins benzersiz özellikleri ve bakım gereksinimleri ile gelir. Türkiye'nin Van ve Ankara kedileri dünyaca ünlü, sağlıklı ve özel cinslerdir. Ancak sokak kedileri sahiplenmek de hem hayat kurtarır hem sağlıklı bir dost kazandırır. Hangi cinsi seçerseniz seçin, kedi sevginiz ve sabrınız en önemli faktördür!`,
+    categoryTags: ["kedi", "ırklar", "karakter", "bakım", "seçim"],
+    readTime: 13,
+    published: true,
+  },
+
+  {
+    title: "Kedilerde Beslenme: Kuru vs Islak Mama",
+    slug: "kedilerde-beslenme-kuru-islak-mama",
+    excerpt: "Kuru ve ıslak mama arasındaki farklar, avantajlar, dezavantajlar. Kediniziçin en doğru beslenme stratejisi.",
+    content: `# Kedilerde Beslenme: Kuru vs Islak Mama Rehberi
+
+Kediler zorunlu etobur hayvanlardır ve beslenme ihtiyaçları köpeklerden çok farklıdır. Kuru mu ıslak mama mı, yoksa karışık mı? Bu rehber, bilinçli karar vermenize yardımcı olacak.
+
+## Kedilerin Beslenme İhtiyaçları
+
+### Zorunlu Etobur (Obligate Carnivore)
+
+**Ne Demek?**
+Kediler anatomik ve fizyolojik olarak et yemeye adapte olmuşlardır. Bitkisel kaynaklardan besin elde edemezler.
+
+**Temel İhtiyaçlar:**
+
+**1. Protein (En Kritik)**
+- **Minimum:** %26 (yetişkin)
+- **İdeal:** %30-40
+- **Kaynak:** Hayvansal protein (tavuk, balık, sığır)
+- **Neden:** Amino asitler (taurin, arginin) şart
+
+**2. Taurin (Esansiyel Amino Asit)**
+- Kediler kendi üretemez
+- Eksikliği: Körlük, kalp hastalığı
+- Kaynak: Et, balık
+- Bitkisel yiyeceklerde YOK
+
+**3. Yağ**
+- **Minimum:** %9
+- **İdeal:** %15-25
+- Enerji kaynağı
+- Cilt ve tüy sağlığı
+
+**4. Arahidonik Asit**
+- Omega-6 yağ asidi
+- Sadece hayvansal kaynaklarda
+- Kediler üretemez
+
+**5. Vitamin A**
+- Bitkilerdeki beta-karoteni dönüştüremezler
+- Doğrudan vitamin A gerekir
+- Kaynak: Karaciğer, balık yağı
+
+**6. Su (ÇOK ÖNEMLİ)**
+- Kediler az su içer (çöl atası)
+- Mamayla su alması önemli
+- Böbrek sağlığı için kritik
+
+---
+
+## Kuru Mama (Kibble)
+
+### Genel Özellikler
+
+**Ne İçerir?**
+- %6-10 nem
+- %30-40 protein
+- %10-20 yağ
+- Karbonhidrat (tahıl, patates)
+
+**Yapım Süreci:**
+- Ekstrüzyon (yüksek ısı, basınç)
+- Kurutma
+- Kaplama (yağ, vitamin)
+
+### Avantajları
+
+✅ **Ekonomik:**
+- Ucuz (50-200 TL/kg)
+- Uzun ömürlü (açıldıktan sonra 1-2 ay)
+- Toplu alım avantajı
+
+✅ **Pratik:**
+- Oda sıcaklığında saklanır
+- Koku yapmaz
+- Kolay porsiyon
+- Seyahatte kolay
+
+✅ **Diş Sağlığı:**
+- Çiğneme diş taşını azaltır (minimal)
+- Diş eti masajı
+
+✅ **Uzun Süre Açıkta Kalabilir:**
+- Bozulmaz (8-12 saat)
+- Serbest besleme mümkün
+
+### Dezavantajları
+
+❌ **Düşük Nem İçeriği:**
+- %10 nem (doğal av %70)
+- Böbrek hastalığı riski
+- İdrar yolu taşları
+- Su tüketimi artırılmalı
+
+❌ **Karbonhidrat Fazla:**
+- %30-50 karbonhidrat
+- Kediler karbonhidrata ihtiyaç duymaz
+- Obezite riski
+- Diyabet riski
+
+❌ **İşlenmiş:**
+- Yüksek ısıda bazı besinler bozulur
+- Yapay koruyucu, renklendirici
+
+❌ **Lezzet:**
+- Islak mamadan az lezzetli
+- Seçici kediler yemeyebilir
+
+### Kimler İçin İdeal?
+
+✅ Sağlıklı, genç kediler (1-7 yaş)
+✅ Bol su içen kediler
+✅ Aktif kediler
+✅ Bütçe sınırlı olanlar
+✅ Serbest besleme yapanlar
+
+---
+
+## Islak Mama (Konserve)
+
+### Genel Özellikler
+
+**Ne İçerir?**
+- %75-85 nem
+- %10-15 protein
+- %2-10 yağ
+- Az karbonhidrat
+
+**Yapım Süreci:**
+- Pişirme (düşük ısı)
+- Sterilizasyon
+- Kapalı teneke/poşet
+
+### Avantajları
+
+✅ **Yüksek Nem:**
+- %78 nem (doğal ava yakın)
+- Böbrek sağlığı
+- İdrar yolu sağlığı
+- Dehidrasyonu önler
+- Yaşlı kediler için ideal
+
+✅ **Protein Yüksek (Oranda):**
+- Kuru madde bazında %40-50 protein
+- Daha et bazlı
+- Az karbonhidrat
+
+✅ **Lezzet:**
+- Çok lezzetli
+- Seçici kediler sever
+- Koku yoğun
+- İştah uyarıcı
+
+✅ **İştahsız Kediler İçin:**
+- Hasta kediler
+- Yaşlı kediler
+- Operasyon sonrası
+
+✅ **Kilo Kontrolü:**
+- Tok tutar (su ile hacim)
+- Az kalori (su nedeniyle)
+- Obez kediler için iyi
+
+### Dezavantajları
+
+❌ **Pahalı:**
+- 10-50 TL/100g
+- Günlük maliyet yüksek
+- Toplu alım zorluğu
+
+❌ **Kısa Ömür:**
+- Açıldıktan sonra 24 saat (buzdolabı)
+- Oda sıcaklığında 1-2 saat
+- Hızla bozulur
+
+❌ **Pratik Değil:**
+- Buzdolabı gerekir
+- Koku yapar
+- Servis bulaşık gerektirir
+
+❌ **Diş Sağlığı:**
+- Diş taşı birikimine katkı
+- Diş eti problemi (uzun vadede)
+
+❌ **Seçici Kedi Riski:**
+- Alışırsa kuru mama yemez
+- Geçiş zorlaşır
+
+### Kimler İçin İdeal?
+
+✅ Yaşlı kediler (7+ yaş)
+✅ Böbrek/idrar yolu problemi olanlar
+✅ Az su içen kediler
+✅ Hasta, iştahsız kediler
+✅ Kilo problemli kediler
+✅ Seçici, iştahsız kediler
+
+---
+
+## Karışık Besleme (Kuru + Islak)
+
+### Altın Oran
+
+**Önerilen Karışım:**
+- %70 kuru + %30 ıslak
+- veya
+- %50 kuru + %50 ıslak
+
+**Uygulama:**
+- Sabah: Islak mama
+- Akşam: Islak mama
+- Gün içi: Kuru mama (serbest)
+
+### Karışık Beslemenin Avantajları
+
+✅ **Her İkisinin de Artıları:**
+- Nem alımı (ıslak)
+- Ekonomi (kuru)
+- Diş sağlığı (kuru)
+- Lezzet (ıslak)
+
+✅ **Denge:**
+- Karbonhidrat dengeli
+- Protein yeterli
+- Su ihtiyacı karşılanır
+
+✅ **Esneklik:**
+- Seyahatte kuru
+- Ev'de ıslak
+- Seçenek çeşitliliği
+
+### Karışık Besleme Stratejileri
+
+**Strateji 1: Karıştırma**
+- Kuru + ıslak karıştırın
+- Her öğün
+- Kedinin tercihi
+
+**Strateji 2: Sabah/Akşam Ayrımı**
+- Sabah: Islak (tok tutar)
+- Akşam: Islak (gece tok)
+- Gün boyu: Kuru (az miktarda)
+
+**Strateji 3: Haftalık Rotasyon**
+- 3 gün kuru
+- 2 gün ıslak
+- 2 gün karışık
+
+---
+
+## Yaşa Göre Beslenme
+
+### Yavru Kedi (0-12 Ay)
+
+**İhtiyaçlar:**
+- Yüksek protein (%35+)
+- Yüksek kalori
+- Küçük, yumuşak taneler
+
+**Önerilen:**
+- Yavru mama (kitten formula)
+- Islak mama (daha yumuşak)
+- Günde 3-4 öğün
+- Serbest besleme
+
+**Mama Tipi:**
+- %60 ıslak + %40 kuru
+- Yavru'ya özel formül
+
+### Yetişkin Kedi (1-7 Yaş)
+
+**İhtiyaçlar:**
+- Protein %30-35
+- Dengeli enerji
+- Kilo kontrolü
+
+**Önerilen:**
+- Yetişkin mama
+- Günde 2 öğün
+- Porsiyon kontrolü
+
+**Mama Tipi:**
+- %70 kuru + %30 ıslak
+- veya tercihe göre
+
+### Yaşlı Kedi (7+ Yaş)
+
+**İhtiyaçlar:**
+- Düşük kalori (aktivite azalır)
+- Yüksek nem (böbrek sağlığı)
+- Kolay sindirim
+
+**Önerilen:**
+- Yaşlı kedi maması (senior)
+- Günde 2-3 küçük öğün
+- Bol ıslak mama
+
+**Mama Tipi:**
+- %60-70 ıslak + %30-40 kuru
+- Böbrek destek formülü (gerekirse)
+
+### Kısırlaştırılmış Kedi
+
+**Değişim:**
+- Metabolizma %20-30 yavaşlar
+- Kilo alma riski artar
+- İştah artar
+
+**Önerilen:**
+- Kısır kedi maması (sterilized)
+- %20 daha az kalori
+- Porsiyon kontrolü şart
+- Oyun, aktivite artırın
+
+**Mama Tipi:**
+- %70 kuru (düşük kalorili)
+- %30 ıslak (tok tutar)
+
+---
+
+## Sağlık Durumuna Göre
+
+### Böbrek Hastalığı
+
+**Özel İhtiyaçlar:**
+- Düşük protein (ama kaliteli)
+- Düşük fosfor
+- Bol su
+
+**Mama Seçimi:**
+- Veteriner reçeteli mama (k/d, Renal)
+- %80-100 ıslak mama
+- Bol su teşviki
+
+### İdrar Yolu Taşları
+
+**Özel İhtiyaçlar:**
+- Bol su
+- pH kontrolü
+- Düşük magnezyum
+
+**Mama Seçimi:**
+- Üriner mama (c/d, Urinary)
+- %70-80 ıslak
+- Bol taze su
+
+### Obezite
+
+**Hedef:**
+- Kilo kaybı (yavaş)
+- Tok tutma
+- Enerji dengesi
+
+**Mama Seçimi:**
+- Light/Weight Control mama
+- %60 ıslak (tok tutar, az kalori)
+- Porsiyon kontrolü
+- Günde 3-4 küçük öğün
+
+### Diyabet
+
+**Özel İhtiyaçlar:**
+- Düşük karbonhidrat (<10%)
+- Yüksek protein
+- Sabit öğün saatleri
+
+**Mama Seçimi:**
+- Diyabet maması (m/d, Diabetic)
+- Tahılsız mama
+- %50-70 ıslak
+- Kan şekeri takibi
+
+### Alerjiler
+
+**Belirti:**
+- Kaşıntı, kızarıklık
+- İshal, kusma
+- Kulak enfeksiyonu
+
+**Mama Seçimi:**
+- Hipoalerjenik mama
+- Tek protein kaynağı (novel protein: tavşan, ördek)
+- Tahılsız
+- Veteriner reçeteli
+
+---
+
+## Mama Seçerken Dikkat Edilecekler
+
+### Etiket Okuma
+
+**İlk 3 Bileşen:**
+- 1. Bileşen: Et olmalı (tavuk, balık, sığır)
+- "Et unu" yerine "et" olmalı
+- "Yan ürünler" kötü
+
+**Örnek İyi Etiket:**
+1. Tavuk eti
+2. Tavuk karaciğeri
+3. Balık
+
+**Örnek Kötü Etiket:**
+1. Tahıl
+2. Tavuk unu
+3. Yan ürünler
+
+### Kaçınılması Gerekenler
+
+❌ **By-products (Yan Ürünler):**
+- Düşük kalite
+- Tüy, gaga, pençe
+
+❌ **Aşırı Tahıl:**
+- Mısır, buğday, soya
+- Kedi bitkisel sindiremez
+
+❌ **Yapay Katkılar:**
+- BHA, BHT (koruyucu)
+- Yapay renklendirici
+- Aşırı tuz
+
+❌ **Belirsiz Kaynaklar:**
+- "Et" (hangi et?)
+- "Hayvansal protein"
+
+✅ **Aranan Özellikler:**
+- AAFCO onaylı
+- Açık protein kaynağı (tavuk, balık)
+- Taurin içerir
+- Hayvansal yağ
+- Az karbonhidrat
+
+---
+
+## Porsiyon Kontrolü
+
+### Günlük Kalori İhtiyacı
+
+**Hesaplama:**
+- **Yetişkin (normal):** 50-70 kcal/kg
+- **Kısır:** 40-50 kcal/kg
+- **Aktif:** 70-90 kcal/kg
+- **Yaşlı:** 40-60 kcal/kg
+
+**Örnek:**
+4 kg kısır kedi = 4 x 45 = 180 kcal/gün
+
+### Mama Miktarı
+
+**Kuru Mama:**
+- ~400 kcal/100g
+- 4 kg kedi: 45g/gün
+
+**Islak Mama:**
+- ~100 kcal/100g
+- 4 kg kedi: 180g/gün
+
+**Karışık (50-50):**
+- 22g kuru + 90g ıslak
+
+### Obez Kedi İçin
+
+**Hedef:**
+- Haftada 1-2% kilo kaybı
+- 4 kg → 3 kg (1 kg fazla)
+- 10-12 haftada
+
+**Strateji:**
+- Kaloriyi %20 azalt
+- Islak mama artır (tok tutar)
+- Oyun, aktivite
+
+---
+
+## Su Tüketimi
+
+### Neden Su Önemli?
+
+**Böbrek Sağlığı:**
+- İdrar konsantrasyonunu azaltır
+- Taş oluşumunu önler
+- Toksinleri atar
+
+**Günlük İhtiyaç:**
+- 50-70 ml/kg
+- 4 kg kedi: 200-280 ml/gün
+
+### Su İçmeyi Teşvik
+
+**İpuçları:**
+✅ Birden fazla su kabı
+✅ Farklı odalarda
+✅ Çeşme suyu (akan su sevenler için)
+✅ Geniş, sığ kap
+✅ Günlük değiştirin
+✅ Mamadan uzak
+✅ Su çeşmesi (pet fountain)
+
+**Islak Mama = Su:**
+- 100g ıslak mama = 75ml su
+- Islak mama böbrek sağlığı için harika
+
+---
+
+## Mama Geçişi
+
+### Neden Kademeli?
+
+- Sindirim adaptasyonu
+- Ani değişim: İshal, kusma
+- Mikrobiyota dengesi
+
+### 7-10 Günlük Plan
+
+| Gün | Eski Mama | Yeni Mama |
+|-----|-----------|-----------|
+| 1-2 | %75 | %25 |
+| 3-4 | %50 | %50 |
+| 5-6 | %25 | %75 |
+| 7+ | %0 | %100 |
+
+**Hassas Kediler:**
+- 14 güne yayın
+- Probiyotik ekleyin
+
+---
+
+## Sık Yapılan Hatalar
+
+**HATA 1: İnsan Yemeği**
+❌ Tuzlu, baharatlı yemek
+❌ Süt (laktoz intoleransı)
+❌ Çikolata, soğan, sarımsak (zehir)
+
+**HATA 2: Köpek Maması**
+❌ Taurin yok (kediler için şart)
+❌ Protein az
+❌ Kedi ölebilir (uzun vadede)
+
+**HATA 3: Sadece Et**
+❌ Dengeli değil
+❌ Vitamin/mineral eksikliği
+❌ Kemik gerekir (kalsiyum)
+
+**HATA 4: Serbest Besleme (Kuru)**
+❌ Obezite
+❌ Porsiyon kontrolsüz
+❌ Sadece açken değil, sıkılınca yer
+
+**HATA 5: Su Yenilenmeme**
+❌ Bayat su
+❌ Yetersiz su noktası
+
+---
+
+## Sıkça Sorulan Sorular
+
+**S: Kuru mu ıslak mama mı daha iyi?**
+C: Her ikisinin de artıları var. Karışık (70% kuru, 30% ıslak) ideal.
+
+**S: Süt verebilir miyim?**
+C: Hayır, kediler laktoz intoleransı var. İshal yapar.
+
+**S: Kedi günde kaç kez yemeli?**
+C: Yetişkin kedi günde 2-3 öğün. Yavru 3-4 öğün.
+
+**S: Hangi marka en iyi?**
+C: "En iyi" yok. AAFCO onaylı, et bazlı, kaliteli markalar tercih edin (Royal Canin, Hill's, Purina Pro Plan).
+
+**S: Tahılsız mama şart mı?**
+C: Şart değil ama kediler tahıla ihtiyaç duymaz. Düşük karbonhidrat ideal.
+
+**S: Islak mamadan diş çürümesi olur mu?**
+C: Diş taşı birikebilir. Diş fırçalama önerilir.
+
+**S: Kedi maması pahalı, insan yemeği verebilir miyim?**
+C: Hayır, kediler özel besin ihtiyacı var (taurin vb). İnsan yemeği yetersiz ve zararlı.
+
+## Beslenme Kontrol Listesi
+
+✅ Yaşa uygun mama
+✅ Sağlık durumuna uygun
+✅ Protein %30+
+✅ Et bazlı (ilk bileşen)
+✅ Taurin içerir
+✅ Porsiyon kontrolü
+✅ Bol taze su
+✅ Günde 2-3 öğün
+✅ Kademeli geçiş
+✅ Veteriner kontrolü (yıllık)
+
+**Sonuç:** Kuru ve ıslak mamanın her ikisinin de avantajları vardır. Kediniziçin en iyi seçim yaş, sağlık durumu, yaşam tarzı ve bütçenize göre değişir. Karışık besleme çoğu kedi için ideal dengeli çözümdür. Her zaman kaliteli, et bazlı mama seçin ve bol su sunun. Düzenli veteriner kontrolü ile beslenme planınızı gözden geçirin!`,
+    categoryTags: ["kedi", "beslenme", "mama", "sağlık", "kuru mama", "ıslak mama"],
+    readTime: 14,
+    published: true,
+  },
+
+  {
+    title: "Kedilerde Tüy Bakımı ve Tüy Dökülmesi",
+    slug: "kedilerde-tuy-bakimi-dokulmesi",
+    excerpt: "Kedilerin tüy bakımı sadece estetik değil, sağlık meselesidir. Doğru tekniklerle tüy yumağı ve deri problemlerini önleyin.",
+    content: `# Kedilerde Tüy Bakımı ve Tüy Dökülmesi: Kapsamlı Rehber
+
+Kediler doğal olarak temiz hayvanlardır ve günün büyük kısmını kendilerini yalayarak geçirirler. Ancak bu, özellikle uzun tüylü ırklar için yeterli değildir. Düzenli tüy bakımı, tüy yumağı oluşumunu önler, deri sağlığını korur ve sizinle kediniz arasında bağ kurar.
+
+## Neden Tüy Bakımı Önemlidir?
+
+### Tüy Bakımının Faydaları
+
+**Sağlık Faydaları:**
+- Tüy yumağı (hairball) oluşumunu önler
+- Deri sorunlarını erken tespit eder
+- Kan dolaşımını iyileştirir
+- Parazit kontrolü sağlar
+- Deriye oksijen sağlar
+
+**Pratik Faydalar:**
+- Evde dökülen tüy azalır
+- Mobilyalarda daha az tüy
+- Alerjenleri azaltır
+- Temizlik kolaylaşır
+
+**Duygusal Faydalar:**
+- Kedi-insan bağını güçlendirir
+- Kedinin rahatlamasını sağlar
+- Stres azaltır
+- Kaliteli vakit geçirme
+
+## Kedi Tüy Tipleri ve Bakım İhtiyaçları
+
+### Kısa Tüylü Kediler
+
+**İrkler:** British Shorthair, Siamese, Bengal, Abyssinian
+
+**Tüy Özellikleri:**
+- Uzunluk: 2-4 cm
+- Daha az dolaşır
+- Kolay bakım
+- Haftada 1-2 kez yeterli
+
+**Bakım Programı:**
+- **Tarak:** Haftada 2 kez
+- **Süre:** 5-10 dakika
+- **Araçlar:** Yumuşak fırça, kauçuk eldiven
+- **Mevsimsel:** İlkbahar/sonbahar günlük
+
+### Orta Tüylü Kediler
+
+**İrkler:** British Longhair, Ragdoll, Turkish Angora
+
+**Tüy Özellikleri:**
+- Uzunluk: 4-8 cm
+- Orta dolaşma riski
+- Düzenli bakım gerekir
+- Haftada 3-4 kez
+
+**Bakım Programı:**
+- **Tarak:** Gün aşırı
+- **Süre:** 10-15 dakika
+- **Araçlar:** Metal tarak, yumuşak fırça
+- **Mevsimsel:** Günlük
+
+### Uzun Tüylü Kediler
+
+**İrkler:** Persian, Maine Coon, Norwegian Forest
+
+**Tüy Özellikleri:**
+- Uzunluk: 8-15 cm
+- Yüksek dolaşma riski
+- Yoğun bakım şart
+- Günlük tarama zorunlu
+
+**Bakım Programı:**
+- **Tarak:** Günlük (sabah-akşam)
+- **Süre:** 15-30 dakika
+- **Araçlar:** Geniş dişli tarak, metal tarak, fırça
+- **Mevsimsel:** Günde 2 kez
+
+### Tüysüz/Az Tüylü Kediler
+
+**İrkler:** Sphynx, Devon Rex, Cornish Rex
+
+**Özel Bakım:**
+- Tarak gereksiz
+- Haftalık banyo
+- Cilt temizliği
+- Yağ birikimi önleme
+
+## Tüy Bakım Araçları
+
+### Temel Araçlar
+
+**1. Metal Tarak (Geniş Dişli)**
+- **Kullanım:** İlk tarama, düğüm çözme
+- **Kime:** Orta-uzun tüylüler
+- **Sıklık:** Her taramada ilk adım
+- **Fiyat:** 50-150 TL
+
+**2. Metal Tarak (Dar Dişli)**
+- **Kullanım:** Detaylı tarama
+- **Kime:** Tüm kediler
+- **Sıklık:** Geniş taraktan sonra
+- **Fiyat:** 40-120 TL
+
+**3. Yumuşak Fırça (Bristle Brush)**
+- **Kullanım:** Son rötuş, parlaklık
+- **Kime:** Kısa-orta tüylüler
+- **Sıklık:** Her tarama sonunda
+- **Fiyat:** 60-200 TL
+
+**4. Slicker Brush (Tel Fırça)**
+- **Kullanım:** Ölü tüy alma
+- **Kime:** Orta-uzun tüylüler
+- **Dikkat:** Cildi sıyırmayın
+- **Fiyat:** 80-250 TL
+
+**5. Furminator (Tüy Alıcı)**
+- **Kullanım:** Alt tüy kaldırma
+- **Kime:** Çift katlı tüylüler
+- **Sıklık:** Haftada 1-2 kez
+- **Fiyat:** 200-500 TL
+- **Önemli:** Aşırı kullanmayın (haftada max 2)
+
+**6. Kauçuk Eldiven/Fırça**
+- **Kullanım:** Ölü tüy alma, masaj
+- **Kime:** Kısa tüylüler
+- **Sıklık:** Günlük
+- **Fiyat:** 30-100 TL
+
+**7. Düğüm Açıcı (Dematting Tool)**
+- **Kullanım:** Ciddi dolaşmalar
+- **Kime:** Uzun tüylüler
+- **Dikkat:** Dikkatli kullanın
+- **Fiyat:** 80-200 TL
+
+### Yardımcı Ürünler
+
+**Tüy Bakım Spreyi:**
+- Dolaşma önleyici
+- Antistatik
+- Kolay tarama
+- Markallar: Pawfume, Biogance
+
+**Islak Mendiller:**
+- Hızlı temizlik
+- Seyahat için
+- Yaşlı kediler için
+
+**Tüy Toplama Silindiri:**
+- Mobilya temizliği
+- Kıyafet temizliği
+- Ev temizliği
+
+## Adım Adım Tüy Bakımı
+
+### Hazırlık
+
+**1. Zamanlama Seçimi**
+- Kedi sakin ve tokken
+- Uyku öncesi ideal
+- Oyun sonrası enerji attıktan sonra
+- Sabah/akşam rutini
+
+**2. Ortam Hazırlığı**
+- Rahat, sabit yüzey (masa, yatak)
+- İyi aydınlatma
+- Tüy dökülecek yer (kolay temizlenir)
+- Ödüller hazır
+
+**3. Kedi Hazırlığı**
+- Nazikçe okşayın
+- Sakinleştirin
+- Ses tonunuz yumuşak
+- Stres belirtileri izleyin
+
+### Tarama Teknikleri
+
+**Adım 1: Başlangıç (Geniş Dişli Tarak)**
+- Baş ve kulakların arkasından başlayın
+- Tüy yönünde tarayın
+- Nazik, yavaş hareketler
+- Düğümler varsa sabırla çözün
+
+**Adım 2: Vücut Taraması**
+- Sırt: Boyundan kuyruğa
+- Yanlar: Yukarıdan aşağıya
+- Göğüs: Merkezden yanlara
+- Karın: ÇOK NAZİK (hassas bölge)
+
+**Adım 3: Hassas Bölgeler**
+- Koltukaltı: Dolaşma olasılığı yüksek
+- Arka bacak içleri: Nazikçe
+- Kuyruğun altı: Hafifçe
+- Kuyruk: Kökten uca
+
+**Adım 4: Detay Tarama (Dar Dişli)**
+- Yüz çevresi: Kulak arkası, çene altı
+- Patiler arası
+- Kulaklık kenarlar
+- Son kontrol
+
+**Adım 5: Parlaklık (Yumuşak Fırça)**
+- Tüm vücuda hafif vuruşlarla
+- Doğal yağları dağıtır
+- Parlak görünüm
+
+### Düğüm Çözme
+
+**Hafif Düğümler:**
+1. Parmakla nazikçe ayırın
+2. Geniş dişli tarak ile gevşetin
+3. Yavaş yavaş tara
+
+**Orta Düğümler:**
+1. Düğüm açıcı spreyi püskürtün
+2. Parmakla ıslatın
+3. Düğüm açıcı tarak ile çözün
+4. Sabırlı olun
+
+**Ciddi Düğümler (Mat):**
+1. Küçük parçalara ayırın
+2. Düğüm açıcı alet kullanın
+3. Deriye yakın tutun (çekmeyi önler)
+4. Gerekirse traşlayın (veteriner/groomer)
+
+**ASLA:**
+❌ Çekerek zorlamayın
+❌ Makas ile kesmeyin (cilt kesilmesi riski)
+❌ Suyla ıslatıp bekletmeyin (daha kötü olur)
+
+## Tüy Dökülmesi: Normal ve Anormal
+
+### Normal Tüy Dökülmesi
+
+**Mevsimsel Döküm:**
+- **İlkbahar (Mart-Mayıs):** Kış tüyü dökülür
+- **Sonbahar (Eylül-Kasım):** Kış tüyüne hazırlık
+- 2-3 hafta sürer
+- Yoğun tarama gerekir (günlük)
+
+**Sürekli Döküm:**
+- Ev kedileri için normal
+- Sabit ısı nedeniyle
+- Mevsimsel kadar yoğun değil
+- Düzenli tarama yeterli
+
+**Döküm Miktarı (Günlük):**
+- Kısa tüylü: 1-2 gram
+- Orta tüylü: 2-4 gram
+- Uzun tüylü: 4-8 gram
+
+### Anormal Tüy Dökülmesi
+
+**Aşırı Döküm Nedenleri:**
+
+**1. Beslenme Eksikliği**
+- Protein yetersizliği
+- Omega-3/6 dengesizliği
+- Vitamin B eksikliği
+- Çinko eksikliği
+
+**2. Parazitler**
+- Pireler
+- Keneler
+- Kulak akarı
+- Bağırsak parazitleri
+
+**3. Alerjiler**
+- Yiyecek alerjisi
+- Çevre alerjisi (toz, polen)
+- Bit alerjisi
+
+**4. Deri Hastalıkları**
+- Mantar (ringworm)
+- Bakteriyel enfeksiyon
+- Seboreik dermatit
+
+**5. Stres**
+- Çevre değişikliği
+- Yeni hayvan/insan
+- Rutinin bozulması
+- Psikolojik yalamalar
+
+**6. Hormonal Problemler**
+- Tiroid hastalığı
+- Cushing sendromu
+- Üreme hormonu dengesizliği
+
+**Veterinere Gitme Zamanı:**
+⚠️ Kelleşme bölgeleri
+⚠️ Kırmızı, kaşıntılı cilt
+⚠️ Kabuklanma, yaralar
+⚠️ Aşırı yalama
+⚠️ Davranış değişikliği
+⚠️ İştah kaybı
+
+## Tüy Yumağı (Hairball) Problemi
+
+### Tüy Yumağı Nedir?
+
+**Oluşum:**
+- Kedi kendini yalarken tüy yutar
+- Midesinde birikir
+- Küçük yumak halinde kusulur
+
+**Normal Sıklık:**
+- Ayda 1-2 kez normal
+- Haftada 1+ kez çok
+
+**Belirtiler:**
+- Öksürük/hıçkırık sesleri
+- Kusma öncesi sinyal
+- Tüy parçaları içeren kusmuk
+
+### Tüy Yumağını Önleme
+
+**1. Düzenli Tarama**
+✅ Kısa tüylü: Haftada 2-3 kez
+✅ Uzun tüylü: Günlük
+✅ Döküm sezonunda: Günde 2 kez
+
+**2. Malt Pastası (Hairball Paste)**
+- **Ne İşe Yarar:** Tüyü bağırsaktan geçirir
+- **İçerik:** Yağ, lif, vitamin
+- **Kullanım:** Haftada 2-3 kez
+- **Miktar:** 2-3 cm pasta (parmak ucu)
+- **Markalar:** Beaphar Malt Paste, GimCat Malt-Soft
+
+**3. Özel Mama**
+- **Hairball Control Mamaları:**
+  - Royal Canin Hairball Care
+  - Hill's Science Diet Hairball Control
+  - Purina Pro Plan Hairball Management
+- **Özellik:** Yüksek lif (selüloz)
+- **Etki:** Tüyü dışkı ile atar
+
+**4. Kedi Çimi**
+- Doğal kusturucu
+- Lifli yapı
+- Evde yetiştirilebilir
+- Haftada birkaç kez
+
+**5. Su Tüketimi**
+- Sindirim yardımcısı
+- Tüyü yumuşatır
+- Günlük 200-300 ml
+
+### Ciddi Durum: Tıkanma
+
+**Semptomlar:**
+⚠️ 24+ saat kusma girişimi
+⚠️ İştah kaybı
+⚠️ Kabızlık
+⚠️ Halsizlik
+⚠️ Karın şişliği
+
+**ACİL:** Hemen veterinere!
+- Bağırsak tıkanması
+- Cerrahi gerekebilir
+- Hayati tehlike
+
+## Beslenme ve Tüy Sağlığı
+
+### Tüy Sağlığı İçin Besinler
+
+**1. Protein (En Önemli)**
+- Tüyün %95'i proteindir
+- Kaliteli et bazlı mama
+- Minimum %30 protein
+- Tavuk, balık, kırmızı et
+
+**2. Omega-3 Yağ Asitleri**
+- Parlak, yumuşak tüy
+- Anti-inflamatuar
+- Deri sağlığı
+- **Kaynaklar:** Somon, sardalya, balık yağı
+
+**3. Omega-6 Yağ Asitleri**
+- Tüy büyümesi
+- Deri bariyeri
+- **Kaynaklar:** Tavuk yağı, ayçiçek yağı
+
+**4. Biotin (Vitamin B7)**
+- Tüy köklerini güçlendirir
+- Dökülmeyi azaltır
+- **Kaynaklar:** Yumurta sarısı, karaciğer
+
+**5. Çinko**
+- Tüy pigmentasyonu
+- Sağlıklı büyüme
+- **Kaynaklar:** Kırmızı et, balık
+
+**6. Vitamin E**
+- Antioksidan
+- Deri sağlığı
+- **Kaynaklar:** Balık yağı, fındık
+
+### Takviye Ürünler
+
+**Balık Yağı Kapsülleri:**
+- Omega-3 kaynağı
+- Günde 1 kapsül (kedi boyu için)
+- Mama üzerine delip sıkın
+
+**Biotin Takviyeleri:**
+- Tüy dökülmesini azaltır
+- Veteriner önerisiyle
+- Doğru doz önemli
+
+**Multivitamin:**
+- Genel sağlık
+- Eksiklikleri giderir
+- Kaliteli marka seçin
+
+## Tüy Bakımında Sık Hatalar
+
+**HATA 1: Düğümleri Zorla Çekmek**
+❌ Acı verir
+❌ Deriye zarar
+❌ Kediyi korkutur
+✅ Sabırla nazikçe çözün
+
+**HATA 2: Yalnızca Döküm Sezonunda Taramak**
+❌ Yıl boyunca gerekli
+❌ Düğümler oluşur
+✅ Düzenli rutin oluşturun
+
+**HATA 3: Karnı Taramaya Zorlamak**
+❌ Hassas bölge
+❌ Strese neden olur
+✅ Kedi izin verirse yapın
+
+**HATA 4: Aynı Tarağı Tüm Kedilerde Kullanmak**
+❌ Parazit/enfeksiyon yayılır
+✅ Her kediye özel tarak
+✅ Veya her kullanımda dezenfekte edin
+
+**HATA 5: Islak Kediyi Taramak**
+❌ Düğümler kötüleşir
+❌ Tüy kopar
+✅ Tamamen kuruduktan sonra
+
+## Yaşa Göre Tüy Bakımı
+
+### Yavru Kediler (0-12 Ay)
+
+**Özellikler:**
+- Yumuşak, ince tüy
+- Kolay dolaşır
+- Alıştırma dönemi
+
+**Bakım:**
+- Günlük 2-3 dakika
+- Yumuşak fırça
+- Pozitif deneyim
+- Ödül verin
+
+### Yetişkin Kediler (1-10 Yaş)
+
+**Özellikler:**
+- Kalın, sağlıklı tüy
+- Rutin oturmuş
+- Kendi bakımını yapar
+
+**Bakım:**
+- Irka göre sıklık
+- 5-20 dakika
+- Düzenli rutin
+
+### Yaşlı Kediler (10+ Yaş)
+
+**Özellikler:**
+- Eklem ağrısı: Kendini yalamakta zorlanır
+- İnce, kırılgan tüy
+- Daha fazla yardım gerekir
+
+**Bakım:**
+- Daha sık tarama (günlük)
+- Çok nazik
+- Kısa sürelerle
+- Ekstra sabır
+
+## Tüy Bakımını Keyifli Hale Getirme
+
+### Alıştırma Teknikleri
+
+**1. Hafta: Tanıştırma**
+- Tarakları gösterin
+- Koklasın
+- Oyuncak gibi sunun
+- Ödül verin
+
+**2. Hafta: Kısa Dokunuşlar**
+- 10-20 saniye tara
+- Sevdiği yerlerden başlayın
+- Hemen ödül
+- Günde 2-3 kez
+
+**3-4. Hafta: Süreyi Artırma**
+- 1-2 dakika
+- Tüm vücudu kapsayın
+- Ritm oluşturun
+
+**1+ Ay: Tam Rutin**
+- Normal süre
+- Rahat ve mutlu
+- Alışkanlık olmuş
+
+### Direnen Kediler İçin İpuçları
+
+**Stres Azaltma:**
 - Sakin ortam
-- Grup halinde tutun
+- Yumuşak ses tonu
+- Ara verin (ısrar etmeyin)
 
-**Ekipman:**
-- Kırkma makinesi
-- Yedek bıçak
-- Yağlayıcı
-- İlk yardım malzemeleri
+**Pozitif Bağlantı:**
+- En sevdiği ödül
+- Sevdiği saatte
+- Sevdiği yerde
 
-## Kırpım Tekniği
+**Kademeli İlerleme:**
+- Önce sadece baş
+- Sonra sırt
+- Son olarak hassas yerler
+
+**Alternatif:**
+- Profesyonel groomer
+- Veteriner yardımı (sedasyon)
+
+## Profesyonel Grooming
+
+### Ne Zaman Gerekir?
+
+**Durumlar:**
+- Ciddi düğümler/matlaşma
+- Evcil tarama imkansız
+- Tıbbi traş (ameliyat öncesi)
+- Mevsimsel derin bakım
+
+**Sıklık:**
+- Uzun tüylü: 2-3 ayda bir
+- Orta tüylü: 4-6 ayda bir
+- Kısa tüylü: Yıllık veya ihtiyaç halinde
+
+### Hizmetler
+
+**Temel Paket:**
+- Tam tarama
+- Düğüm açma
+- Tırnak kesimi
+- Kulak temizliği
+- Fiyat: 150-300 TL
+
+**Premium Paket:**
+- Banyo
+- Föne çekme
+- Traş (isteğe bağlı)
+- Koku giderme
+- Fiyat: 300-600 TL
+
+## Ev Temizliği: Tüy Yönetimi
+
+**Günlük:**
+- Kauçuk eldiven ile mobilya silme
+- Tüy toplayıcı silindir kullanma
+- Kedi yatağını silkeleme
+
+**Haftalık:**
+- Elektrikli süpürge (HEPA filtreli)
+- Kedi yatak örtülerini yıkama
+- Köşeleri temizleme
+
+**Aylık:**
+- Derin temizlik
+- Perde yıkama
+- Havalandırma
+
+**Araçlar:**
+- Tüy toplayıcı silindir
+- HEPA filtreli süpürge
+- Elektrostatik bez
+- Kauçuk eldiven
+
+## Sonuç ve Tavsiyeler
+
+Düzenli tüy bakımı:
+✅ Kedinizin sağlığını korur
+✅ Tüy yumağı problemini önler
+✅ Bağınızı güçlendirir
+✅ Evi temiz tutar
+✅ Deri problemlerini erken tespit eder
+
+**Altın Kurallar:**
+1. Irka uygun sıklık belirleyin
+2. Kaliteli araçlar kullanın
+3. Sabırlı ve nazik olun
+4. Pozitif deneyim yaratın
+5. Beslenmeye dikkat edin
+6. Veteriner kontrollerini aksatmayın
+
+**Unutmayın:** Her kedi bireyseldir. Bazıları taramayı sever, bazıları tolere eder, bazıları direnir. Kedinizin karakterine uygun yaklaşım geliştirin ve her zaman sakin, pozitif kalın. Tüy bakımı bir zorunluluk değil, birlikte geçirilen kaliteli bir zaman olmalıdır!`,
+    categoryTags: ["kedi", "bakım", "tüy bakımı", "grooming", "sağlık"],
+    readTime: 18,
+    published: true,
+  },
+
+  {
+    title: "Kedi Tırmık Eğitimi ve Tırnak Bakımı",
+    slug: "kedi-tirmik-egitimi-tirnak-bakimi",
+    excerpt: "Mobilyalarınızı koruyun ve kedinizin doğal davranışını yönlendirin. Tırmık eğitimi ve tırnak kesimi rehberi.",
+    content: `# Kedi Tırmık Eğitimi ve Tırnak Bakımı: Eksiksiz Kılavuz
+
+Kedilerin tırmalama davranışı içgüdüseldir ve asla tamamen ortadan kaldırılamaz. Ancak doğru eğitim ve araçlarla mobilyalarınızı koruyabilir, kedinizin bu ihtiyacını sağlıklı şekilde karşılayabilirsiniz.
+
+## Kediler Neden Tırmalar?
+
+### Biyolojik Nedenler
+
+**1. Tırnak Bakımı**
+- Dış katmanı döker (yenilenir)
+- Sivri ucu korur
+- Sağlıklı büyüme
+- Avcılık için keskin tutar
+
+**2. Egzersiz**
+- Pençe kaslarını çalıştırır
+- Ön bacak kaslarını güçlendirir
+- Germe hareketi (stretching)
+- Esneklik sağlar
+
+**3. Bölge İşaretleme**
+- Pati yastıklarında koku bezleri var
+- "Burası benim" mesajı
+- Görsel işaret bırakır
+- Stres azaltır
+
+**4. Duygusal İfade**
+- Heyecan/mutluluk
+- Stres atma
+- Enerji boşaltma
+- Dikkat çekme
+
+### Yasaklanamaz!
+
+❌ **Yapılmaması Gerekenler:**
+- Ceza vermek
+- Su sıkmak (korkuya neden olur)
+- Bağırmak
+- Fiziksel müdahale
+- Pençe alma operasyonu (declawing - hayvan haklarına aykırı, Türkiye'de yasaklı olmasa da şiddetle kınanır)
+
+✅ **Yapılması Gerekenler:**
+- Alternatif sunmak (tırmık tahtası)
+- Yönlendirmek
+- Ödüllendirmek
+- Tırnakları kesmek
+- Tırmalama ihtiyacını anlamak
+
+## Tırmık Tahtası/Direği Seçimi
+
+### Tırmık Tahtası Çeşitleri
+
+**1. Dikey Direk (Scratching Post)**
+- **Yükseklik:** Minimum 70 cm (kedi boyunun 1.5 katı)
+- **Malzeme:** Sisal ip, sisal kumaş
+- **Avantaj:** Germe hareketi yapabilir
+- **İdeal:** Çoğu kedi için
+
+**2. Yatay Tahta (Scratching Pad)**
+- **Malzeme:** Karton, halı, sisal
+- **Avantaj:** Oyun ile birleştirilebilir
+- **İdeal:** Yere yakın tırmalayanlar
+
+**3. Eğimli Rampa**
+- **Açı:** 30-45 derece
+- **Avantaj:** Hem yatay hem dikey
+- **İdeal:** Seçici kediler
+
+**4. Kedi Ağacı (Cat Tree)**
+- **Özellik:** Çok fonksiyonlu
+- **İçerir:** Direk + platform + yuva
+- **Avantaj:** Tırmalama + tırmanma + dinlenme
+- **Fiyat:** 500-3000 TL
+
+### Malzeme Seçimi
+
+**Sisal İp:**
+- En dayanıklı
+- Doğal
+- Kediler sever
+- Uzun ömürlü
+- Fiyat: Yüksek (200-800 TL)
+
+**Sisal Kumaş:**
+- Çok dayanıklı
+- Pürüzsüz yüzey
+- Kolay temizlik
+- Fiyat: Orta-Yüksek (150-500 TL)
+
+**Karton (Oluklu):**
+- Ekonomik
+- Değiştirilebilir
+- Catnip ile birleştirilebilir
+- Ömrü kısa (2-6 ay)
+- Fiyat: Düşük (30-150 TL)
+
+**Halı/Kumaş:**
+- Yumuşak
+- Mobilya hissi (dikkat!)
+- Temizlik zor
+- Fiyat: Düşük-Orta (50-200 TL)
+
+**Ağaç Kabuğu:**
+- Doğal
+- Sağlam
+- Estetik
+- Fiyat: Yüksek (300-1000 TL)
+
+### Tırmık Tahtası Özellikleri
+
+**Stabilite (En Önemli!):**
+✅ Sallanmamalı
+✅ Devrilmemeli
+✅ Ağır taban
+✅ Duvara monte edilebilir
+
+**Kedi Tırmalırken:**
+- Tüm ağırlığını verir
+- Güçlü çeker
+- Sallanırsa korkup bırakır
+- Bir daha denemez
+
+**Doğru Yükseklik:**
+- Kedi tam boy uzanabilmeli
+- İki arka ayakta durabilmeli
+- Minimum: 70 cm
+- İdeal: 80-100 cm
+
+**Konum:**
+✅ Mobilyanın yakınına (alternatif olarak)
+✅ Kedinizin sık geçtiği yerlere
+✅ Yatağın yakınına (uyandıktan sonra tırmalar)
+✅ Pencere kenarına
+❌ Köşeye saklı
+❌ Ulaşılmaz yerler
+
+## Tırmık Eğitimi Adım Adım
+
+### 1. Hafta: Tanıştırma
+
+**İlk Gün:**
+1. Tırmık tahtasını stratejik yere koyun
+2. Kedinizi yakına getirin (kucaklamayın)
+3. Kendi keşfetmesini bekleyin
+4. Koklamasına izin verin
+
+**İlk Tırmalama Teşviki:**
+- Catnip sürtün/püskürtün
+- İpli oyuncak ile dikkatini çekin
+- Tırmık tahtası üzerinde oyuncağı hareket ettirin
+- Kendi tırmalarsa HEMEN ödüllendirin
+
+**Ödül Türleri:**
+- En sevdiği mama/ödül
+- Coşkulu övgü ("Aferin!")
+- Sevdiği oyun
+- Okşama/kucaklama
+
+### 2-3. Hafta: Alışkanlık Oluşturma
+
+**Düzenli Teşvik:**
+- Günde 3-4 kez tırmık tahtasına götürün
+- Oyun ile birleştirin
+- Her kullanımda ödül
+
+**Mobilyaya Tırmalama Engelleme:**
+❌ **Hata:** Ceza vermek
+✅ **Doğru:** Yönlendirmek
+
+**Mobilyaya Tırmalarsa:**
+1. Sessizce kaldırın
+2. Tırmık tahtasına taşıyın
+3. Orada tırmalasını teşvik edin
+4. Başarırsa ödüllendirin
+
+**Mobilyayı Koruma:**
+- Çift taraflı bant (yapışkan)
+- Folyo (kediler sevmez)
+- Mobilya koruyucu örtüler
+- Caydırıcı spreyle
+
+### 4+ Hafta: Pekiştirme
+
+**Artık:**
+- Kedi kendi tırmalar
+- Ödül sıklığını azaltın
+- Zaman zaman ödüllendirin
+- Alışkanlık oturmuştur
+
+**Yeni Mobilya:**
+- İlk günden koruyun
+- Yakınına tırmık tahtası
+- Caydırıcı önlemler
+
+## Birden Fazla Kedi İçin
+
+**Tırmık Tahtası Sayısı:**
+Formül: Kedi sayısı + 1
+
+- 1 kedi = 2 tırmık tahtası
+- 2 kedi = 3 tırmık tahtası
+- 3 kedi = 4 tırmık tahtası
+
+**Neden Fazla?**
+- Rekabet azalır
+- Her kedinin tercihi farklı
+- Bölge paylaşımı
+- Stres azalır
+
+**Farklı Tiplerde:**
+- Dikey direk
+- Yatay tahta
+- Kedi ağacı
+- Çeşitlilik sunar
+
+## Tırnak Kesimi
+
+### Neden Tırnak Kesilmeli?
+
+**Faydaları:**
+✅ Tırmalama hasarını azaltır
+✅ Mobilyayı korur
+✅ Kaza ile çizmemeyi önler
+✅ Tırnağın aşırı büyümesini önler
+✅ Tırnağın pati yastığına batmasını engeller
+
+**Kesim Sıklığı:**
+- Ev kedileri: 2-4 haftada bir
+- Aktif kediler: 4-6 haftada bir
+- Yaşlı kediler: Daha sık (büyüme hızlı olabilir)
+
+### Tırnak Anatomisi
+
+**Yapısı:**
+- **Hızlı (Quick):** İçteki pembe kısım, kan damarı ve sinir içerir
+- **Keratinli Kabuk:** Dıştaki beyaz/saydam kısım
+- **Pençe:** Geri çekilebilir
+
+**Kesim Bölgesi:**
+✅ Sadece uç kısım (2-3 mm)
+✅ Hızlıdan 2 mm önce
+❌ Hızlıyı KESMEYİN (kanar, acır)
+
+### Tırnak Kesimi Araçları
+
+**1. Kedi Tırnak Makası (Scissor Style)**
+- Makas şeklinde
+- Kolay kontrol
+- Yeni başlayanlar için
+- Fiyat: 30-100 TL
+
+**2. Giyotin Tipi Makas**
+- Delik içinden tırnak geçer
+- Kol ile basınç
+- Hızlı kesim
+- Fiyat: 40-120 TL
+
+**3. Pense Tipi (Plier Style)**
+- Profesyonel
+- Güçlü
+- Kalın tırnaklar için
+- Fiyat: 60-200 TL
+
+**4. Elektrikli Tırnak Törpüsü**
+- Kesim değil, törpüleme
+- Daha güvenli
+- Gürültülü (alışma gerekir)
+- Fiyat: 100-300 TL
+
+**Yardımcı:**
+- Stiptik toz/kalem (kan durdurucu)
+- Pamuk
+- El feneri (hızlıyı görmek için)
+
+### Tırnak Kesimi Adım Adım
+
+**Hazırlık (1-2 Hafta Önceden):**
+
+**Pati Dokunuşu Alıştırması:**
+1. Gün: Sadece patiye dokunun, ödül verin
+2. Gün: Patileri tutun 5 sn, ödül
+3. Gün: Parmakla pati yastığına basın, ödül
+4-7. Gün: Tırnakları açığa çıkarın (bastırarak), ödül
+
+**Makasa Alıştırma:**
+- Makası gösterin
+- Koklatın
+- Patinin yanına getirin (kesmeyin)
+- Makas sesini duyursun (havada bir kez kırpın)
+
+**Kesim Günü:**
+
+**1. Zamanlama:**
+- Kedi sakin ve uykulu
+- Tok ve rahat
+- Oyun sonrası enerji attıktan sonra
+
+**2. Pozisyon:**
+- Kedinizi kucağınıza alın
+- Veya yumuşak yüzeye oturtun
+- Sakin ortam
+- Yalnız olun (dikkat dağılmaması için)
+
+**3. İlk Tırnak:**
+- Bir patiden başlayın
+- Pati yastığına nazikçe basın
+- Tırnak çıkacaktır
+- İyi aydınlatma altında kontrol edin
+
+**4. Hızlıyı Belirleyin:**
+- Pembe kısım (kan damarı)
+- Beyaz kısımdan kesin
+- Hızlıdan 2 mm uzak durun
+
+**5. Kesim:**
+- Hızlı, net bir hareket
+- Tırnağın ucundan 2-3 mm
+- Dik açıyla DEĞİL, pençenin eğimine uygun
+
+**6. Tüm Tırnaklar:**
+- Ön patilerde 5 tırnak (5. tırnak iç parmakta)
+- Arka patilerde 4 tırnak
+- Toplam 18 tırnak
+
+**7. Ödül:**
+- Her pati sonrası ödül
+- Bitince ekstra ödül ve övgü
+
+### İlk Kez İçin İpuçları
+
+**Tek Seferde Tümünü Kesmeyin:**
+- İlk gün: Sadece 2-3 tırnak
+- Pozitif deneyim bırakın
+- Ertesi gün devam edin
+
+**Kedi Direnir:**
+- Ara verin
+- Zorlarsanız travma olur
+- Sonraki sefere daha zor olur
+
+**Yardımcı İsteme:**
+- Birisi kediyi tutar
+- Siz kesersiniz
+- İlk zamanlarda faydalı
+
+**Profesyonel Yardım:**
+- Veteriner
+- Groomer
+- İlk kesimde göstersinler
+
+### Hızlıyı Keserse (Kanarsa)
+
+**PANIK YAPMAYIN:**
 
 **Adımlar:**
-1. Koyunu yere yatırın
-2. Karın ve bacaklardan başlayın
-3. Sırt ve yanlar
-4. Baş ve boyun (dikkatli)
-5. Bir parça halinde çıkarın
+1. Sakin kalın
+2. Stiptik toz/kalem uygulayın
+3. Veya mısır nişastası
+4. 2-3 dakika bastırarak tutun
+5. Kan duracaktır
 
-**Dikkat Edilecekler:**
-- Derinize kesmeyin
-- Yavaş ve düzenli hareketler
-- Panik yaratmayın
-- Yaralanmayı önleyin
+**Sonrası:**
+- Kediyi rahatlatın
+- Ödül verin
+- Özür dileyin (ses tonu önemli)
+- Bir sonraki kesimde daha dikkatli olun
 
-## Yaralanma ve Tedavi
+**Veterinere:**
+- Kan 10 dakikada durmadıysa
+- Şişlik/enfeksiyon belirtisi
+- Kedi acı çekiyorsa
 
-**Küçük Kesikler:**
-- Antiseptik sprey
-- Kanama durdu rsa bandaj gerekmez
+## Tırmalama Problemleri ve Çözümleri
 
-**Derin Yaralar:**
-- Veteriner çağırın
-- Baskı ile kanama durdurun
+### Problem 1: Tırmık Tahtasını Kullanmıyor
+
+**Olası Nedenler:**
+- Yanlış konum
+- Sallanıyor/devrilliyor
+- Yanlış malzeme
+- Yeterli yükseklikte değil
+
+**Çözümler:**
+✅ Mobilyanın yanına taşıyın
+✅ Tabana ağırlık ekleyin/duvara monte edin
+✅ Farklı malzeme deneyin
+✅ Daha yüksek direk alın
+✅ Catnip püskürtün
+✅ Oyunla birleştirin
+
+### Problem 2: Hala Mobilyayı Tırmalıyor
+
+**Yaklaşım:**
+- Sabırlı olun (alışma 4-8 hafta sürebilir)
+- Mobilya koruyucular devam etsin
+- Her mobilya tırmalama = tırmık tahtasına yönlendir
+- Tutarlı olun
+
+**Ek Önlemler:**
+- Mobilyaya Feliway spray (koku işaretini bastırır)
+- Mobilya köşelerine tırmık koruyucu plastik
+- Tırmık tahtasını daha çekici hale getirin
+
+### Problem 3: Geceleri Kapıyı Tırmalıyor
+
+**Neden:**
+- Dikkat çekmek istiyor
+- Açılmasını istiyor
+- Bölgeyi işaretliyor
+
+**Çözüm:**
+- Kapıya dikey tırmık tahtası monte edin
+- Veya kapının yanına koyun
+- Ödüllendirin
+- Kapıya cevap vermeyin (öğrenmeli ki işe yaramıyor)
+
+### Problem 4: Saldırgan Tırmalama
+
+**Belirtiler:**
+- İnsanlara tırmalar
+- Oyun sırasında çizer
+- Patlayıcı davranış
+
+**Neden:**
+- Aşırı uyarım
+- Yönlendirilmemiş enerji
+- Yeterli oyun yok
+
+**Çözüm:**
+✅ Günde 2x 15 dakika interaktif oyun
+✅ Oyuncakla oynayın (elinizle değil)
+✅ Aşırı uyarım belirtilerini öğrenin (kuyruk sallama, kulak geriye)
+✅ Enerji atma fırsatları
+✅ Tırnak düzenli kesin
+
+## Tırnak Bakımında Sık Hatalar
+
+**HATA 1: İnsan Tırnak Makası Kullanmak**
+❌ Tırnağı ezer
+❌ Yarılmaya neden olur
+❌ Kedi-spesifik makas şart
+
+**HATA 2: Çok Derine Kesmek**
+❌ Hızlıyı keser
+❌ Kanar, acır
+❌ Travma oluşur
+✅ Az kesin (2-3 mm uç)
+
+**HATA 3: Körpe Makas**
+❌ Ezik yapar
+❌ Tırnak kırılır
+✅ Keskin makas kullanın
+
+**HATA 4: Zorlama**
+❌ Korkutur
+❌ Sonraki seferlerde daha zor
+✅ Kademeli alıştırın
+
+**HATA 5: Tırnak Kapaklarını Uzun Süre Kullanmak**
+(Tırnak kapakları: Tırnağa yapıştırılan yumuşak plastik kılıflar)
+❌ Tırmalama içgüdüsünü engellemez
+❌ 4-6 haftada düşer
+❌ Sürekli yenileme gerekir
+❌ Pahalı
+
+## Alternatif Çözümler
+
+### Tırnak Kapakları (Soft Claws / Nail Caps)
+
+**Ne İşe Yarar:**
+- Tırnağın ucuna yapıştırılan plastik kılıf
+- Zarar vermeden tırmalamayı sağlar
+- Mobilyayı korur
+
+**Uygulama:**
+- Veteriner veya ev uygulaması
+- Özel yapıştırıcı
+- 4-6 hafta kalır
+- Düştükçe yenilenir
+
+**Artıları:**
+✅ Mobilyayı korur
+✅ Ağrısız
+✅ Tırmalama içgüdüsünü bastırmaz
+
+**Eksileri:**
+❌ Sürekli yenileme gerekir
+❌ Maliyetli (aylık 50-150 TL)
+❌ Bazı kediler rahatsız olur
+❌ Dış mekan kedilerine uygun değil (korumasız kalır)
+
+### Feromom Spreyler (Feliway)
+
+**Ne İşe Yarar:**
+- Sentetik yanak feromonları
+- Kedi sakinleşir
+- Tırmalama isteği azalır
+
+**Kullanım:**
+- Mobilyaya püskürtün
+- Günde 1-2 kez
+- 4 hafta sürekli kullanım
+
+**Fiyat:** 150-300 TL (50ml)
+
+## Özel Durumlar
+
+### Declawing (Pençe Alma) - ASLA!
+
+**Ne İşe Yarar:**
+- Tırnakların cerrahi çıkarılması
+- Son falanksın (parmak ucunun) kesilmesi
+
+**Neden ASLA:**
+❌ Hayvan haklarına aykırı
+❌ Aşırı ağrılı
+❌ Kalıcı acı (fantom ağrı)
+❌ Davranış problemleri (saldırganlık, tuvalet dışı işeme)
+❌ Yürüme problemleri
+❌ Psikolojik travma
+❌ Birçok ülkede yasak
+
+**Türkiye'de:**
+- Yasal olarak yasak değil ama
+- Veteriner Hekim etik kurallarına aykırı
+- Ciddi veterinerler yapmaz
+
+**Alternatifler:**
+✅ Tırnak kesimi
+✅ Tırmık tahtası eğitimi
+✅ Tırnak kapakları
+✅ Mobilya koruyucular
+
+### Yaşlı Kediler
+
+**Özellikler:**
+- Tırnaklar kalınlaşır
+- Daha hızlı büyür
+- Pati yastığına batabilir
 - Enfeksiyon riski
 
-## Yün Kalitesi
+**Bakım:**
+- Daha sık kesim (2 haftada bir)
+- Dikkatle kontrol
+- İçe doğru büyüme izleme
+- Veteriner yardımı
 
-**Faktörler:**
-- Irk
-- Beslenme
-- Yaş
-- Sağlık durumu
+### Polidaktil Kediler (Fazla Parmaklı)
 
-**Saklama:**
-- Kuru ortam
-- Hava alması
-- Kirli bölümleri ayırın
-- Balyalama
+**Özellik:**
+- Normal 18 yerine 20-28 tırnak
+- Ekstra parmaklar
 
-## Kırpım Sonrası Bakım
+**Bakım:**
+- Tüm tırnakları kontrol edin
+- Gizli tırnakları unutmayın
+- Daha uzun süre alır
 
-- İlk günler serin hava riski
-- Barınakta tutun
-- Güneşten koruyun
-- Beslenmeyi artırın
+## Sık Sorulan Sorular
 
-Profesyonel kırpım = Kaliteli yün + Sağlıklı koyun!`,
-    categoryTags: ["küçükbaş", "koyun", "yün", "bakım"],
-    readTime: 4,
+**S: Tırnak kesmek acı verir mi?**
+C: Hayır, doğru kesildiğinde (hızlıdan uzak) ağrısızdır. Tıpkı insan tırnağı gibi.
+
+**S: Kediniz tırnaklarını göstermek istemiyorsa?**
+C: Kademeli alıştırma yapın. Günlük pati dokunuşu ile başlayın, sonra makasa geçin.
+
+**S: Ne sıklıkta kesilmeli?**
+C: Ev kedileri 2-4 haftada bir. Tırnakları kontrol edin, çok uzunsa kesin.
+
+**S: Sadece ön patileri kesmek yeterli mi?**
+C: Ön patiler daha çok hasar verir ama arka patiler de uzar. İdeali tümünü kesmek.
+
+**S: Tırmık tahtası pahalı, alternatif?**
+C: Karton tırmık tahtaları ekonomik (30-100 TL). Kendin yap projeleri de var (sisal ip + tahta).
+
+**S: Birden fazla tırmık tahtası şart mı?**
+C: Şart değil ama önerilen. En az 2 adet, farklı tiplerde ideal.
+
+## Sonuç ve Öneriler
+
+Başarılı tırmık eğitimi:
+✅ Doğru araçlarla başlar
+✅ Sabır gerektirir
+✅ Pozitif pekiştirme kullanır
+✅ Tırmalamanın doğal olduğunu kabul eder
+✅ Yönlendirme yapar, yasaklamaz
+
+**Altın Kurallar:**
+1. Kaliteli, stabil tırmık tahtası
+2. Doğru konumlandırma
+3. Catnip ve oyun ile teşvik
+4. Mobilyaya tırmalarsa yönlendir
+5. Düzenli tırnak kesimi
+6. Asla ceza verme
+7. Sabırlı ol
+
+**Unutmayın:** Tırmalama kedinin biyolojik ihtiyacıdır. Amacınız durdurmak değil, doğru yöne kanalize etmektir. Doğru yaklaşımla hem kediniiz mutlu olur, hem de mobilyalarınız korunur!`,
+    categoryTags: ["kedi", "eğitim", "tırmık", "davranış", "tırnak bakımı"],
+    readTime: 20,
     published: true,
   },
+
   {
-    title: "Küçükbaş Hayvanlarda Ayak Bakımı",
-    slug: "kucukbas-ayak-bakimi-tirnak",
-    excerpt: "Tırnak bakımı yapılmaz ise topallamalar ve enfeksiyonlar oluşur. Düzenli bakım şarttır.",
-    content: `# Küçükbaş Ayak Bakımı
+    title: "Kedilerde Sağlık Kontrolleri ve Hastalık Belirtileri",
+    slug: "kedilerde-saglik-kontrolleri-belirtiler",
+    excerpt: "Kediler acıyı gizleme eğilimindedir. Hastalık belirtilerini erken fark etmek hayat kurtarır.",
+    content: `# Kedilerde Sağlık Kontrolleri ve Hastalık Belirtileri: Kapsamlı Rehber
 
-Tırnak bakımı küçükbaş hayvancılıkta çok ihmal edilen ama çok önemli bir konudur. Topallık verim kaybına yol açar.
+Kediler evrimsel olarak zayıflık göstermemeye programlanmış hayvanlardır. Yırtıcı olsalar da aynı zamanda avdırlar, bu yüzden hasta olduklarını belli etmezler. Bu nedenle hastalık belirtilerini erken tespit etmek hayati önem taşır.
 
-## Tırnak Anatomisi ve Büyüme
+## Ev İçi Sağlık Kontrolü
 
-**Yapı:**
-- Dış duvar (sert)
-- İç topuk (yumuşak)
-- Sürekli büyür (ayda 5-7 mm)
+### Günlük Gözlem
 
-**Normal Tırnak:**
-- Ön ve arka dengeli
-- Düz taban
-- Ağrısız
+**Davranış Değişiklikleri:**
+✓ Normal enerji seviyesi mi?
+✓ Oyun oynama isteği var mı?
+✓ Saklanma/izolasyon var mı?
+✓ Agresyon artışı var mı?
+✓ Aşırı miyavlama/sessizlik?
 
-## Ne Zaman Kesilmeli?
+**Yemek İçmek:**
+✓ İştahı normal mi?
+✓ Su tüketimi azaldı/arttı mı?
+✓ Yemek yerken zorluk var mı?
+✓ Kilo kaybı/artışı?
 
-**Düzenli:**
-- 6 ayda bir (minimum)
-- 3-4 ayda bir (ideal)
-- Yumuşak zeminlerde daha sık
+**Tuvalet Alışkanlıkları:**
+✓ Tuvalet sıklığı normal mi?
+✓ İdrar renginde değişiklik?
+✓ Kabızlık/ishal var mı?
+✓ Tuvalete giderken acı çekiyor mu?
+✓ Tuvalet dışına işeme?
 
-**Acil Durumlar:**
-- Topallık
-- Aşırı uzama
-- Çatlak/kırık
+### Haftalık Fiziksel Kontrol
 
-## Kesim Tekniği
+**1. Gözler**
+✅ Normal: Parlak, berrak, tam açık
+❌ Anormal: 
+- Akıntı (yeşil, sarı, kahverengi)
+- Kızarıklık
+- Şişlik
+- Bulanıklık
+- Üçüncü göz kapağı görünür
 
-**Ekipman:**
-- Özel tırnak makası/kerpeteni
-- Keskin olmalı
-- Rasp (törpü)
-
-**Adımlar:**
-1. Hayvanı sabit tutun
-2. Ayağı kaldırın ve temizleyin
-3. Fazla kısmı kesin
-4. Düz taban hedefleyin
-5. Kanayan kısma dikkat (pembe bölge)
-
-**Kesim Sınırları:**
-- Çok derin kesmeyin
-- Kanama olursa: Antiseptik + baskı
-- Dengeli kesim
-
-## Ayak Hastalıkları
-
-**Ayak Çürüğü:**
+**2. Kulaklar**
+✅ Normal: Pembe, temiz, kokusuz
+❌ Anormal:
 - Koku
-- Akıntı
-- Topallık
-- Bulaşıcı
+- Koyu kahverengi/siyah akıntı
+- Kızarıklık
+- Şişlik
+- Baş sallama
+- Kaşıma
 
-**Tedavi:**
-- Tırnak kesimi
-- Antiseptik banyo
-- Antibiyotik (ciddi durumlarda)
-- İzolasyon
+**3. Burun**
+✅ Normal: Hafif nemli, temiz
+❌ Anormal:
+- Yoğun akıntı
+- Renkli sümük (yeşil/sarı)
+- Tıkanma/horultu
+- Kabuklanma
+- Kanama
+
+**4. Ağız ve Dişler**
+✅ Normal: Pembe diş eti, beyaz dişler, nötr koku
+❌ Anormal:
+- Kötü koku
+- Kırmızı/kanamalı diş eti
+- Sarı/kahverengi diş taşı
+- Salya akıntısı
+- Yemek yerken zorluk
+
+**5. Deri ve Tüy**
+✅ Normal: Parlak tüy, pürüzsüz deri, kuru
+❌ Anormal:
+- Mat tüy
+- Aşırı dökülme
+- Kel bölgeler
+- Kabuklar, yaralar
+- Kızarıklık
+- Şişlikler/kitleler
+- Aşırı yağlanma
+
+**6. Pati ve Tırnaklar**
+✅ Normal: Temiz pati yastıkları, normal uzunlukta tırnak
+❌ Anormal:
+- Topallama
+- Şişlik
+- Yaralar
+- Aşırı uzun tırnaklar
+- Kırık tırnak
+- Pati yalama
+
+**7. Vücut Kondisyonu**
+✅ Normal: Kaburga hafifçe hissedilir, bel çizgisi var
+❌ Anormal:
+- Aşırı zayıf (kemikler belirgin)
+- Obez (kaburgalar hissedilmez)
+- Ani kilo değişimi
+
+### Aylık Detaylı Kontrol
+
+**Karın Palpasyonu:**
+- Nazikçe dokunun
+- Sert kitle var mı?
+- Hassasiyet/ağrı var mı?
+- Şişlik var mı?
+
+**Lenf Düğümleri:**
+- Çene altı
+- Boyun
+- Kasık bölgesi
+- Şişlik kontrolü
+
+**Nabız ve Solunum:**
+- **Normal nabız:** 140-220 atım/dakika
+- **Normal solunum:** 20-30 nefes/dakika
+- Düzenli ritim
+- Zorluk yok
+
+**Vücut Sıcaklığı:**
+- **Normal:** 38-39°C
+- **Ateş:** 39.5°C+
+- **Hipotermi:** 37.5°C altı
+(Rektal termometre ile ölçülür)
+
+## Ciddi Hastalık Belirtileri (ACİL!)
+
+### HEMEN Veterinere
+
+**Solunum Problemleri:**
+⚠️ Ağızdan nefes alma
+⚠️ Hızlı solunum (40+ /dk)
+⚠️ Mavi dil/diş eti
+⚠️ Nefes alamama
+⚠️ Boğulma sesi
+
+**Nörolojik Belirtiler:**
+⚠️ Nöbet/titreme
+⚠️ Bilinç kaybı
+⚠️ Aşırı dengesizlik
+⚠️ Bayılma
+⚠️ Felç/güçsüzlük
+
+**Travma:**
+⚠️ Düşme/çarpma
+⚠️ Kırık şüphesi
+⚠️ Kanama
+⚠️ Şok belirtileri
+
+**İdrar Problemi:**
+⚠️ 24 saattir idrar yapmıyor
+⚠️ İdrar yapmaya çalışıyor ama çıkmıyor
+⚠️ Kanlı idrar
+⚠️ Acıyla miyavlama
+
+**Zehirlenme:**
+⚠️ Aşırı salya
+⚠️ Kusma/ishal
+⚠️ Titreme
+⚠️ Nöbet
+⚠️ Pupil büyüklüğü değişikliği
+
+**Dolaşım:**
+⚠️ Uçlarda soğukluk
+⚠️ Soluk diş eti
+⚠️ Zayıf nabız
+⚠️ Aşırı hızlı/yavaş kalp atışı
+
+### 24 Saat İçinde Veterinere
+
+**Sindirim:**
+- Sürekli kusma (4+ kez/gün)
+- İshal (2+ gün)
+- Kabızlık (3+ gün)
+- İştahsızlık (2+ gün)
+- Karın şişliği
+
+**Davranış:**
+- Aşırı saklanma
+- Agresyon artışı
+- Uyuşukluk
+- Dengesizlik
+- Kafa eğimi
+
+**Ağrı Belirtileri:**
+- Topallama
+- Dokunmaya hassasiyet
+- Miyavlama (özellikle dokunulduğunda)
+- Pozisyon değiştirme zorluğu
+- Hareket istememe
+
+## Sık Görülen Kedi Hastalıkları
+
+### 1. İdrar Yolu Enfeksiyonu (UTI)
+
+**Belirtiler:**
+- Sık sık tuvalete gitme
+- Az miktarda idrar
+- Kanlı idrar
+- Tuvalet dışına işeme
+- İdrar yaparken acı çekme
+- Genital bölgeyi yalama
+
+**Risk Faktörleri:**
+- Erkek kediler (dar üretra)
+- Obezite
+- Düşük su tüketimi
+- Stres
+- Kuru mama besleme
 
 **Önleme:**
-- Kuru zemin
-- Düzenli kesim
-- Hijyen
-- Ayak banyoları
+✅ Bol su sunun
+✅ Islak mama verin
+✅ Çoklu su kabı
+✅ Tuvalet hijyeni
+✅ Stres azaltın
 
-## Ayak Banyosu
+### 2. Böbrek Hastalığı (Kronik Böbrek Yetmezliği)
 
-**Formaldehit veya Çinko Sülfat:**
-- Haftada 1-2 kez
-- Sürü geçişinde
-- 10-15 cm derinlik
-- 5-10 dakika bekleme
+**Belirtiler:**
+- Aşırı su içme
+- Sık idrara çıkma
+- Kilo kaybı
+- İştahsızlık
+- Kusma
+- Kötü nefes kokusu
+- Ağız ülserleri
 
-Düzenli bakım = Sağlıklı ayaklar = Verimli sürü!`,
-    categoryTags: ["küçükbaş", "ayak bakımı", "tırnak", "sağlık"],
-    readTime: 4,
+**Risk Faktörleri:**
+- Yaş (7+ yaş)
+- Genetik (Persian, Abyssinian)
+- Kronik dehidrasyon
+- Yüksek proteinli beslenme
+
+**Yönetim:**
+- Özel böbrek diyeti
+- Alt protein, fosfor
+- Bol su
+- Kan basıncı kontrolü
+- Düzenli kan testi
+
+### 3. Hipertiroidi
+
+**Belirtiler:**
+- Kilo kaybı (iştah iyi olsa da)
+- Aşırı aktivite/huzursuzluk
+- Kusma/ishal
+- Aşırı su içme
+- Tüy kalitesinde bozulma
+- Hızlı kalp atışı
+
+**Teşhis:**
+- Kan testi (T4 hormonu)
+- Veteriner muayenesi
+- Genelde 7+ yaş
+
+**Tedavi:**
+- İlaç (Methimazole)
+- Radyoaktif iyot tedavisi
+- Özel diyet (y/d)
+- Cerrahi (tiroid çıkarma)
+
+### 4. Diyabet
+
+**Belirtiler:**
+- Aşırı su içme
+- Sık idrara çıkma
+- Aşırı iştah ama kilo kaybı
+- Halsizlik
+- Arka bacak zayıflığı
+- Bulanık gözler (katarakt)
+
+**Risk Faktörleri:**
+- Obezite
+- Erkek kediler
+- Yaş (7+ yaş)
+- Hareketsizlik
+
+**Yönetim:**
+- Günlük insülin enjeksiyonu
+- Düşük karbonhidratlı diyet
+- Kilo kontrolü
+- Düzenli kan şekeri testi
+
+### 5. Astım/Alerjik Bronşit
+
+**Belirtiler:**
+- Öksürük
+- Hırıltılı solunum
+- Nefes darlığı
+- Ağızdan nefes alma
+- Hızlı solunum
+
+**Tetikleyiciler:**
+- Sigara dumanı
+- Toz
+- Parfüm
+- Temizlik ürünleri
+- Polen
+- Kedi kumu tozu
+
+**Tedavi:**
+- Kortikosteroid
+- Bronkodilatör
+- İnhaler (kedi özel)
+- Tetikleyici eliminasyonu
+
+### 6. İltihaplı Bağırsak Hastalığı (IBD)
+
+**Belirtiler:**
+- Kronik kusma
+- Kronik ishal
+- Kilo kaybı
+- İştah azalması
+- Karın ağrısı
+
+**Teşhis:**
+- Veteriner muayenesi
+- Kan testi
+- Ultrasound
+- Biyopsi (kesin tanı)
+
+**Tedavi:**
+- Özel diyet (hipoalerjenik)
+- Kortikosteroid
+- İmmünsüpresif ilaç
+- Probiyotik
+
+### 7. Üst Solunum Yolu Enfeksiyonu
+
+**Belirtiler:**
+- Hapşırma
+- Burun akıntısı
+- Göz akıntısı
+- Ateş
+- İştahsızlık
+- Ağız ülserleri
+
+**Nedenler:**
+- Feline Herpesvirus (FHV-1)
+- Feline Calicivirus (FCV)
+- Bakteriyel enfeksiyon (ikincil)
+
+**Tedavi:**
+- Destek tedavisi
+- Antibiyotik (bakteriyel varsa)
+- Antiviral
+- Nemli ortam
+- Burun temizliği
+- Zorunlu besleme
+
+### 8. Pankreatit
+
+**Belirtiler:**
+- Ani iştahsızlık
+- Kusma
+- Karın ağrısı
+- Halsizlik
+- Ateş
+- Dehidrasyon
+
+**Neden:**
+- Genellikle bilinmeyen
+- Yüksek yağlı diyet
+- Travma
+- Enfeksiyon
+
+**Tedavi:**
+- Hastaneye yatış
+- IV sıvı
+- Ağrı kesici
+- Antiemetik (kusma önleyici)
+- Beslenme desteği
+
+## Yaşlı Kedi Sağlığı (7+ Yaş)
+
+### Yaşlanma Belirtileri
+
+**Normal Yaşlanma:**
+- Enerji azalması
+- Daha uzun uyku
+- Eklem sertliği (sabahları)
+- Daha az oyun
+- Duyularda azalma
+
+**Anormal (Hastalık):**
+- Ani kilo kaybı
+- Aşırı su içme
+- Tuvalet problemleri
+- Zihinsel bulanıklık
+- Aşırı miyavlama (özellikle gece)
+
+### Yaşlı Kedi Kontrolleri
+
+**6 Ayda Bir Veteriner:**
+- Fizik muayene
+- Kilo kontrolü
+- Diş kontrolü
+
+**Yıllık Kan Testi:**
+- Tam kan sayımı
+- Biyokimya paneli
+- Tiroid hormonu (T4)
+- İdrar analizi
+
+**Ek Testler (İhtiyaca Göre):**
+- Tansiyon
+- EKG
+- Röntgen
+- Ultrason
+
+### Yaşlı Kedi Bakımı
+
+**Çevre Düzenlemesi:**
+- Alçak kenarlı tuvalet
+- Yumuşak yatak
+- Kolay erişilebilir mama/su
+- Rampalar (kedi ağacı yerine)
+- Kaymaz yüzeyler
+
+**Beslenme:**
+- Yaşlı kedi mamması
+- Küçük öğünler (günde 3-4)
+- Yumuşak/ıslak mama
+- Bol su
+
+**Konfor:**
+- Sıcak ortam
+- Kolay ulaşılır
+- Stres azaltma
+- Daha fazla dikkat
+
+## Veteriner Ziyaretleri
+
+### Rutin Kontrol Sıklığı
+
+**Yavru Kediler (0-1 Yaş):**
+- İlk 6 ay: Aylık
+- 6-12 ay: 3 ayda bir
+- Aşı takibi
+
+**Yetişkin Kediler (1-7 Yaş):**
+- Yıllık kontrol
+- Aşı rapelleri
+- Parazit kontrolleri
+
+**Yaşlı Kediler (7+ Yaş):**
+- 6 ayda bir
+- Yıllık kapsamlı kan testi
+- Daha sık kontrol
+
+### Veteriner Ziyareti Hazırlığı
+
+**Öncesinde:**
+- Rant alın
+- Aşı karnesini alın
+- Değişiklikleri not edin
+- Sorularınızı yazın
+- Taşıma çantası
+
+**Ziyaret Sırasında:**
+- Sakin kalın (kediler stresi hisseder)
+- Tüm soruları sorun
+- Notlar alın
+- Tedavi planını anlayın
+
+**Sonrasında:**
+- İlaç/tedavi talimatlarına uyun
+- Yan etki gözlemlemi
+- Gerekirse kontrol randevusu
+- Değişiklikleri kaydedin
+
+## Sağlıklı Yaşam İçin Öneriler
+
+### Beslenme
+
+✅ Kaliteli, yaşa uygun mama
+✅ Porsiyon kontrolü
+✅ Bol taze su
+✅ Snack sınırlaması
+✅ Yasaklı yiyeceklerden uzak (çikolata, soğan, üzüm)
+
+### Egzersiz ve Oyun
+
+✅ Günde 15-20 dakika aktif oyun
+✅ İnteraktif oyuncaklar
+✅ Tırmanma/tırmalama fırsatları
+✅ Zihinsel uyarı (puzzle feeders)
+
+### Stres Yönetimi
+
+✅ Güvenli alanlar
+✅ Rutin programlar
+✅ Yeterli tuvalet (n+1 kural)
+✅ Sakin ortam
+✅ Feromop difüzörler (Feliway)
+
+### Hijyen
+
+✅ Günlük tuvalet temizliği
+✅ Haftalık tam temizlik
+✅ Tüy bakımı (özellikle uzun tüylüler)
+✅ Tırnak kesimi
+✅ Diş fırçalama
+
+### Parazit Korunması
+
+✅ Aylık pire/kene ilacı
+✅ 3 ayda bir iç parazit ilacı
+✅ Ev temizliği
+✅ Kapalı alan yaşam (mümkünse)
+
+## Ev Sağlık Kayıtları
+
+### Tutulması Gerekenler
+
+**Günlük:**
+- Yemek miktarı
+- Su tüketimi
+- Tuvalet sıklığı
+- Genel davranış
+
+**Haftalık:**
+- Kilo (obez/zayıf kediler için)
+- Fiziksel kontrol notları
+- Fark edilen değişiklikler
+
+**Aylık:**
+- İlaç/takviye kayıtları
+- Parazit kontrol tarihleri
+- Özel gözlemler
+
+**Yıllık:**
+- Veteriner ziyaretleri
+- Aşılar
+- Kan testi sonuçları
+- Hastalık geçmişi
+
+## Acil Durum Hazırlığı
+
+### Ev İlk Yardım Kiti
+
+**İçermeli:**
+- Gazlı bez
+- Antiseptik (klorheksidin)
+- Bant/sargı bezi
+- Makas
+- Cımbız
+- Dijital termometre
+- Steril eldiven
+- Veteriner telefonu (hızlı arama)
+- Taşıma çantası
+
+**İlaçlar (Veteriner Onaylı):**
+- Antihistaminik
+- Kan durdurucu toz
+- Göz damlası
+- Kulak temizleyici
+
+### Acil Durum Planı
+
+**Veteriner Bilgileri:**
+- Normal veteriner: İsim, telefon, adres
+- Acil veteriner: 7/24 hizmet, telefon, adres
+- Yedek veteriner
+
+**Bilgiler:**
+- Kedi kimlik bilgileri
+- Aşı karnesi fotokopisi
+- Tıbbi geçmiş özeti
+- Alerji/özel durumlar
+- İlaç listesi
+
+## Sık Sorulan Sorular
+
+**S: Ne sıklıkla veterinere götürmeliyim?**
+C: Yetişkin kedi yıllık, yaşlı kedi (7+) 6 ayda bir. Hastalık varsa daha sık.
+
+**S: Evde kalsa da veteriner gerekli mi?**
+C: Evet! Aşılar, parazit kontrolü ve genel sağlık kontrolü şarttır.
+
+**S: Kedim yemek yemiyor, ne kadar beklemeliyim?**
+C: 24 saat iştahsızlık veteriner ziyareti gerektirir. 48 saat acildir!
+
+**S: Normal vücut sıcaklığı ne olmalı?**
+C: 38-39°C normal. 39.5°C+ ateş, veterinere gidin.
+
+**S: Kedim kusuyor, ne zaman endişelenmeliyim?**
+C: Tek seferlik tüy yumağı normal. Günde 2+ kez veya 2+ gün üst üste veterinere.
+
+**S: Parazit ilacı ne sıklıkla?**
+C: Dış parazit (pire/kene): Aylık. İç parazit: 3 ayda bir.
+
+## Sonuç ve Öneriler
+
+Kedilerin sağlığını korumak:
+✅ Günlük gözlem gerektirir
+✅ Erken teşhis hayat kurtarır
+✅ Rutin veteriner kontrolleri şarttır
+✅ Kayıt tutmak yardımcıdır
+✅ Değişikliklere dikkat edilmelidir
+
+**Altın Kurallar:**
+1. Kediyi iyi tanıyın (normal davranışları)
+2. Günlük gözlem yapın
+3. Küçük değişiklikleri not edin
+4. Kuşku duyduğunuzda veterinere danışın
+5. Rutin kontrolleri aksatmayın
+6. Ev sağlık kayıtları tutun
+7. Acil durum hazırlığı yapın
+
+**Unutmayın:** Kediler acıyı ve hastalığı gizleme konusunda ustadd ır. Sizin dikkatiniz onların sağlıklı yaşamasının anahtarıdır. "İyilik halinde görünmek" her zaman sağlıklı olmak anlamına gelmez. Düzenli kontroller ve dikkatli gözlem hayat kurtarır!`,
+    categoryTags: ["kedi", "sağlık", "veteriner", "hastalık", "kontrol"],
+    readTime: 22,
     published: true,
   },
+
+  {
+    title: "Kedilerde Yaşa Göre Bakım Gereksinimleri",
+    slug: "kedilerde-yasa-gore-bakim",
+    excerpt: "Her yaş grubunun farklı ihtiyaçları vardır. Yavrudan yaşlıya kapsamlı bakım rehberi.",
+    content: `# Kedilerde Yaşa Göre Bakım Gereksinimleri: Yaşam Boyu Rehber
+
+Kedilerin bakım ihtiyaçları yaşları ile birlikte değişir. Yavru bir kedinin enerjik oyun ihtiyacından yaşlı bir kedinin özel beslenme gereksinimlerine kadar, her yaş grubuna özgü bakım kriterleri vardır.
+
+## Kedi Yaş Kategorileri
+
+### İnsan Yılı Dönüşümü
+
+| Kedi Yaşı | İnsan Eşdeğeri | Kategori |
+|-----------|---------------|----------|
+| 0-1 ay | 0-1 yaş | Yeni doğan |
+| 2-3 ay | 2-4 yaş | Bebek |
+| 4-6 ay | 6-10 yaş | Çocuk |
+| 7-12 ay | 12-15 yaş | Genç |
+| 1-2 yaş | 15-24 yaş | Genç yetişkin |
+| 3-6 yaş | 28-40 yaş | Yetişkin |
+| 7-10 yaş | 44-56 yaş | Orta yaş |
+| 11-14 yaş | 60-72 yaş | Yaşlı |
+| 15+ yaş | 76+ yaş | İleri yaş |
+
+## Yavru Kediler (0-12 Ay)
+
+### 0-4 Hafta: Yeni Doğan Dönemi
+
+**Fizyolojik Özellikler:**
+- Gözler kapalı (10-14 gün açılır)
+- Kulaklar kapalı (2-3 hafta açılır)
+- Vücut ısısı düzenleyemez
+- Tamamen anneye bağımlı
+- Ağırlık: 85-115 gram (doğumda)
+
+**Beslenme:**
+- **Anne sütü:** İdeal
+- 2-3 saatte bir emzir
+- Anne yoksa: Kedi özel süt tozu
+- BİBERONla besleme
+- İNSAN SÜTÜ VERMEYİN (laktoz)
+
+**Bakım:**
+- Sıcak tutun (29-32°C)
+- Isı yastığı/battaniye
+- Her beslenmeden sonra göbek/genital uyarımı (anne yalanması simülasyonu)
+- Hijyen (temiz yatak)
+- Günlük kilo kontrolü (10-15g/gün artmalı)
+
+**Veteriner:**
+- İlk kontrol: 2 haftalık
+- Parazit kontrolü
+- Genel sağlık
+
+### 4-8 Hafta: Sosyalizasyon Başlangıcı
+
+**Gelişim:**
+- Yürüme başlar (3-4 hafta)
+- Oyun davranışı
+- Dişler çıkar (2-6 hafta)
+- Tuvalet eğitimine başlangıç
+- Merak ve keşif
+
+**Beslenme:**
+- 4. hafta: Katı yiyeceğe geçiş başlar
+- Yumuşak yavru mamması
+- Anne sütü devam eder
+- Günde 4-6 öğün
+- Bol su sunun
+
+**Sosyalizasyon:**
+- İnsan dokunuşu (günde 15-20 dk)
+- Farklı sesler
+- Farklı dokular
+- Diğer hayvanlarla tanışma
+- Pozitif deneyimler
+
+**Bakım:**
+- Güvenli oyun alanı
+- Tuvalet kabı (alçak kenarlı)
+- Tırmalama tahtası tanıtımı
+- Nazik oyunlar
+- İlk banyo (gerekirse)
+
+### 8-12 Hafta: Aşı Dönemi
+
+**Aşılar:**
+- 8-9 hafta: FVRCP 1. doz
+  - Feline Viral Rhinotracheitis
+  - Calicivirus  
+  - Panleukopenia
+- 12 hafta: FVRCP 2. doz
+
+**Beslenme:**
+- Tam katı mamaya geçiş
+- Yavru mamması (high protein)
+- Günde 4 öğün
+- Serbest besleme tartışmalı (obezite riski)
+
+**Eğitim:**
+- Tuvalet eğitimi (genelde doğal öğrenirler)
+- İsim eğitimi
+- Temel komutlar (gel, hayır)
+- Oyuncakla oynama (el değil!)
+- Tırmalama tahtası alıştırma
+
+**Sosyal:**
+- Yoğun sosyalizasyon penceresi
+- Farklı insanlar
+- Farklı ortamlar (sesler, kokular)
+- Diğer kedilerle oynama
+
+### 3-6 Ay: Genç Kedi
+
+**Fiziksel:**
+- Hızlı büyüme
+- Süt dişleri dökülür (3-4 ay)
+- Kalıcı dişler gelir (4-6 ay)
+- Cinsiyet belirginleşir
+
+**Aşılar:**
+- 16 hafta: FVRCP 3. doz
+- Kuduz (yasal gereklilik - 12-16 hafta)
+- FeLV (Feline Leukemia) - Önerilen
+
+**Beslenme:**
+- Yavru mamması devam
+- Günde 3-4 öğün
+- Porsiyon kontrolü başlatın
+- Obeziteyi önleyin
+
+**Eğitim:**
+- Oyun kuralları
+- Isırmama
+- Tırmık alıştırma
+- Taşıma çantası alıştırma
+- Diş fırçalama başlangıcı
+
+**Sağlık:**
+- Kısırlaştırma düşünün (5-6 ay)
+- Parazit kontrolü
+- İlk diş kontrolü
+
+### 6-12 Ay: Ergenlik
+
+**Davranış:**
+- Cinsel olgunluk (6-9 ay)
+- Kızgınlık (dişi, kısırlaştırılmamışsa)
+- Bölge işaretleme (erkek, kısırlaştırılmamışsa)
+- Aşırı enerji
+- Merak artışı
+- Bağımsızlık
+
+**Kısırlaştırma:**
+- **İdeal Zaman:** 5-6 ay
+- İstenmeyen davranışları önler
+- Sağlık yararları (kanser riski azalır)
+- Popülasyon kontrolü
+
+**Beslenme:**
+- 12 ayda yetişkin mamasına geçiş
+- Günde 2-3 öğün
+- Porsiyon kontrolü
+- Kiloya dikkat
+
+**Aktivite:**
+- Günde 20-30 dakika aktif oyun
+- Tırmanma/tırmalama
+- Av oyunları
+- Puzzle feeder
+- Zihinsel uyarı
+
+## Yetişkin Kediler (1-6 Yaş)
+
+### 1-2 Yaş: Genç Yetişkin
+
+**Karakteristikler:**
+- Hala enerjik
+- Oyun sevgisi
+- Meraklı
+- Bağımsız
+- Kişilik oturur
+
+**Beslenme:**
+- Yetişkin mamması
+- Günde 2 öğün
+- Kilo kontrolü (ortalama 4-5 kg)
+- Su tüketimi önemli
+
+**Aktivite:**
+- Günde 15-20 dakika oyun
+- Tırmanma fırsatları
+- Pencere manzarası
+- Zihinsel uyarı
+- Dış mekan (güvenliyse)
+
+**Sağlık:**
+- Yıllık veteriner kontrolü
+- Yıllık aşı rapeli
+- 6 ayda bir parazit ilacı
+- Diş kontrolü
+- Kilo takibi
+
+### 3-6 Yaş: Olgun Yetişkin
+
+**Karakteristikler:**
+- Sakin ve dengeli
+- Rutin sever
+- Daha az enerjik
+- Bağımsız ama sevecen
+- Sağlam sağlık
+
+**Beslenme:**
+- Kaliteli yetişkin mamması
+- Porsiyon kontrolü (obezite riski!)
+- Günde 2 öğün
+- Kısırlaştırılmışsa düşük kalorili
+- Bol su
+
+**Aktivite:**
+- Günde 10-15 dakika oyun
+- Daha az yoğun
+- Rahat alan önemli
+- Tırmalama/tırmanma devam
+
+**Sağlık:**
+- Yıllık kontrol
+- Diş temizliği (gerekirse)
+- Kilo kontrolü
+- Davranış değişikliği izleme
+
+## Yaşlı Kediler (7-10 Yaş)
+
+### Orta Yaş
+
+**Fiziksel Değişiklikler:**
+- Metabolizma yavaşlar
+- Kilo alma eğilimi
+- Eklem sertliği (sabahları)
+- Enerji azalması
+- Uyku artışı
+
+**Beslenme:**
+- Yaşlı kedi mamması (7+)
+- Düşük kalori (obezite riski)
+- Yüksek protein (kas kaybı önleme)
+- Kolay sindirilir
+- Eklem sağlığı (glucosamine)
+
+**Sağlık:**
+- 6 ayda bir veteriner
+- Yıllık kan testi
+- Tiroid kontrolü (hipertiroidi)
+- Böbrek fonksiyonları
+- Diş kontrolü (tartar birikimi)
+
+**Çevre Düzenlemesi:**
+- Daha yumuşak yatak
+- Kolay erişilebilir mama/su
+- Alçak kenarlı tuvalet
+- Rampa (yüksek yerlere)
+- Sıcak ortam
+
+**Aktivite:**
+- Daha sakin oyunlar
+- Kısa süreli (5-10 dakika)
+- Zorlamayın
+- Zihinsel uyarı devam
+
+## İleri Yaşlı Kediler (11+ Yaş)
+
+### Geriatrik Bakım
+
+**Yaşlanma Belirtileri:**
+- Zihinsel bulanıklık
+- Duyularda azalma (işitme, görme)
+- Eklem ağrısı (osteoartrit)
+- Kas kaybı
+- Organ fonksiyon azalması
+- Bağışıklık zayıflaması
+
+**Sık Görülen Hastalıklar:**
+- Kronik böbrek yetmezliği
+- Hipertiroidi
+- Diyabet
+- Kalp hastalığı
+- Kanser
+- Diş hastalıkları
+
+### Özel Bakım İhtiyaçları
+
+**Beslenme:**
+- Yaşlı kedi formülü
+- Yumuşak/ıslak mama (diş sorunları için)
+- Küçük öğünler (günde 3-4)
+- Bol su (böbrek sağlığı)
+- Takviyeler (veteriner önerisiyle)
+  - Omega-3 (eklem sağlığı)
+  - Glucosamine/Chondroitin
+  - Probiyotik
+
+**Sağlık Kontrolü:**
+- 6 ayda bir veteriner
+- 6 ayda bir kan testi
+- Böbrek/karaciğer fonksiyonları
+- Tiroid hormonu
+- Tansiyon
+- İdrar analizi
+
+**Çevre Düzenlemesi:**
+- **Tuvalet:**
+  - Alçak kenarlı (5-7 cm)
+  - Kolay erişilebilir
+  - Her katta bir adet
+  - Artrit için büyük boy
+
+- **Beslenme:**
+  - Yerde (eğilmeye gerek yok)
+  - Birden fazla nokta
+  - Geniş, sığ kap (bıyık yorgunluğu önler)
+
+- **Yatak:**
+  - Ortopedik yatak
+  - Isı yastığı
+  - Sessiz, sakin yer
+  - Kolay ulaşılır
+
+- **Erişilebilirlik:**
+  - Rampa (kedi ağacı, kanepe, yatak)
+  - Kaymaz yüzeyler
+  - Gece ışığı (görme azalması)
+  - Yüksek yerleri azaltın
+
+**Hijyen Yardımı:**
+- Eklem ağrısı: Kendini yalayamayabilir
+- Günlük ıslak havlu ile silme
+- Arka bölge temizliği
+- Tüy bakımı (günlük)
+- Tırnak kesimi (daha sık)
+
+**Konfor ve Kalite:**
+- Ağrı yönetimi (veteriner ilaç)
+- Sıcak tutma
+- Rahat çevre
+- Stres azaltma
+- Öngörülebilir rutin
+
+### Kognitif Disfonksiyon (Kedi Demansı)
+
+**Belirtiler:**
+- Dezoryantasyon (kaybolma)
+- Gece miyavlaması
+- Tuvalet dışına işeme
+- Aktivite azalması
+- Sosyal etkileşim azalması
+- Uyku düzeni değişikliği
+
+**Yönetim:**
+- Basit çevre
+- Rutin programlar
+- Gece ışıkları
+- Ek dikkat/sevgi
+- Takviye (Omega-3, antioksidanlar)
+- Veteriner ilaç (gerekirse)
+
+## Özel Durumlar
+
+### Obez Kediler
+
+**Risk Faktörleri:**
+- Kısırlaştırma
+- Kapalı alan yaşamı
+- Aşırı besleme
+- Yaş (3+ yaş)
+
+**Sağlık Riskleri:**
+- Diyabet
+- Eklem problemleri
+- Karaciğer yağlanması
+- Kalp hastalığı
+- Ömür kısalması
+
+**Kilo Verme:**
+- Veteriner gözetiminde
+- Yavaş (haftada 1-2% vücut ağırlığı)
+- Düşük kalorili mama
+- Porsiyon kontrolü
+- Artan aktivite
+- Puzzle feeder
+
+### Kronik Hastalıklı Kediler
+
+**Diyabet:**
+- Günlük insülin
+- Düşük karbonhidrat diyet
+- Düzenli kan şekeri testi
+- Veteriner takibi
+
+**Böbrek Yetmezliği:**
+- Özel böbrek diyeti
+- Alt protein/fosfor
+- Bol su
+- İlaç (gerekirse)
+- Sık kontrol
+
+**Hipertiroidi:**
+- Günlük ilaç
+- Özel diyet (y/d)
+- Yıllık tiroid testi
+- Alternatif: Radyoaktif iyot tedavisi
+
+## Yaşam Boyu Sağlık Takvimi
+
+### Yavru (0-12 Ay)
+
+**0-4 Hafta:**
+- Haftalık kilo kontrolü
+- Anne ile birlikte
+
+**4-8 Hafta:**
+- 2 haftalık: İlk veteriner
+- 4 haftalık: Parazit ilacı
+
+**8-16 Hafta:**
+- 8 hafta: FVRCP 1. doz
+- 12 hafta: FVRCP 2. doz
+- 12-16 hafta: Kuduz
+
+**3-6 Ay:**
+- 16 hafta: FVRCP 3. doz
+- 5-6 ay: Kısırlaştırma
+
+**6-12 Ay:**
+- 6 ayda bir parazit ilacı
+- Diş kontrolü
+- Genel sağlık
+
+### Yetişkin (1-6 Yaş)
+
+**Yıllık:**
+- Veteriner kontrolü
+- Aşı rapeli (FVRCP, Kuduz)
+- Kilo kontrolü
+- Diş kontrolü
+
+**6 Ayda Bir:**
+- Parazit ilacı (iç)
+- Pire/kene ilacı (aylık)
+
+### Yaşlı (7+ Yaş)
+
+**6 Ayda Bir:**
+- Veteriner kontrolü
+- Kan testi
+- İdrar analizi
+- Tansiyon
+
+**Yıllık:**
+- Aşı rapeli
+- Diş temizliği (gerekirse)
+
+## Beslenme Rehberi (Yaşa Göre)
+
+### Yavru (0-12 Ay)
+
+**Kalori İhtiyacı:** 200-250 kcal/kg
+- Yüksek protein (%35-50)
+- Yüksek yağ (%20-30)
+- DHA (beyin gelişimi)
+- Günde 3-4 öğün
+
+### Yetişkin (1-6 Yaş)
+
+**Kalori İhtiyacı:** 70-80 kcal/kg
+- Protein: %30-40
+- Yağ: %15-25
+- Günde 2 öğün
+- Porsiyon kontrolü
+
+### Yaşlı (7+ Yaş)
+
+**Kalori İhtiyacı:** 60-70 kcal/kg
+- Yüksek protein (kas kaybı önleme)
+- Düşük fosfor (böbrek sağlığı)
+- Eklem desteği (glucosamine)
+- Kolay sindirilebilir
+- Günde 2-3 küçük öğün
+
+## Sonuç ve Öneriler
+
+Her yaş grubunun kendine özgü ihtiyaçları vardır:
+✅ Yavru: Aşı, sosyalizasyon, eğitim
+✅ Yetişkin: Kilo kontrolü, aktivite, rutin
+✅ Yaşlı: Sağlık kontrolü, konfor, özel bakım
+
+**Altın Kurallar:**
+1. Yaşa uygun besleme
+2. Düzenli veteriner kontrolleri
+3. Çevre düzenlemesi (yaşa göre)
+4. Aktivite seviyesi ayarlama
+5. Erken teşhis (yaşlı kediler)
+6. Kalite yaşam önceliği
+
+**Unutmayın:** Kediler hızlı yaşlanır. 1 yıl = 4-7 insan yılı. Bu nedenle yıllık veteriner kontrolü bizim için "her 5-7 yılda bir doktora gitmek" gibidir. Düzenli kontroller ve yaşa uygun bakım, kedilerin uzun ve sağlıklı yaşamasının anahtarıdır!`,
+    categoryTags: ["kedi", "bakım", "yaşlı kedi", "yavru kedi", "sağlık"],
+    readTime: 24,
+    published: true,
+  },
+
   {
     title: "Küçükbaş Beslenmede Mineral ve Vitamin Takviyesi",
-    slug: "kucukbas-mineral-vitamin-takviyesi",
-    excerpt: "Dengeli mineral ve vitamin alımı verim ve sağlık için kritiktir. Eksiklikleri tanıyın.",
-    content: `# Mineral ve Vitamin Takviyesi
+    slug: "kucukbas-beslenmede-mineral-vitamin-takviyesi",
+    excerpt: "Koyun ve keçilerin sağlıklı büyümesi için mineral ve vitamin takviyeleri hayati önem taşır. Doğru takviye programı ile verim artışı sağlayın.",
+    content: `# Küçükbaş Beslenmede Mineral ve Vitamin Takviyesi: Kapsamlı Rehber
 
-Kaba yem ve konsantre yem tek başına yetmez. Mineral ve vitamin takviyeleri optimal sağlık ve verim için şarttır.
+Küçükbaş hayvanların (koyun ve keçi) sağlıklı yaşaması, verimli üretim yapabilmesi ve hastalıklara karşı dirençli olması için dengeli beslenme şarttır. Temel yemlerin yanı sıra mineral ve vitamin takviyeleri, özellikle yoğun üretim dönemlerinde kritik öneme sahiptir.
 
-## Önemli Mineraller
+## Mineral ve Vitaminler Neden Önemlidir?
 
-**Kalsiyum (Ca):**
-- Kemik gelişimi
-- Süt üretimi
-- Kasılmalar
-- Eksiklik: Süt humması
+### Temel Fonksiyonlar
 
-**Fosfor (P):**
+**Mineraller:**
+- Kemik ve diş oluşumu
+- Kan yapımı
+- Sinir ve kas fonksiyonları
+- Metabolik reaksiyonlar
+- Bağışıklık sistemi
+- Üreme sağlığı
+- Süt ve et verimi
+
+**Vitaminler:**
+- Metabolizma düzenleyici
+- Büyüme ve gelişme
+- Bağışıklık güçlendirici
+- Üreme performansı
+- Görme sağlığı
 - Kemik sağlığı
-- Enerji metabolizması
-- Ca:P oranı 2:1 olmalı
 
-**Magnezyum (Mg):**
-- Kas fonksiyonu
-- Sinir sistemi
-- Eksiklik: Çayır tetanisi (ölümcül)
+### Eksiklik Belirtileri
 
-**Tuz (NaCl):**
-- Su dengesi
-- Sindirim
-- Serbest erişim (tuz taşı)
+**Genel Semptomlar:**
+- Büyüme geriliği
+- Zayıflık, cılızlık
+- Tüy/yün kalitesinde bozulma
+- İştahsızlık
+- Üreme problemleri
+- Hastalıklara yatkınlık
+- Verim düşüklüğü
 
-**Bakır (Cu):**
-- Kan oluşumu
+## Makro Mineraller
+
+### Kalsiyum (Ca)
+
+**Fonksiyonlar:**
+- Kemik ve diş yapısı (%99'u kemiklerde)
+- Kas kasılması
+- Kan pıhtılaşması
+- Sinir iletimi
+- Süt üretimi
+
+**İhtiyaç:**
+- Kuzular/oğlaklar: %0.4-0.8
+- Yetişkin: %0.3-0.5
+- Gebe/laktasyon: %0.5-0.8
+- Oranı: Ca:P = 1.2-2:1 (ideal)
+
+**Kaynaklar:**
+- Kireçtaşı
+- Kemik unu
+- Kalsiyum karbonat
+- Yonca (alfalfa)
+- Kuru ot
+
+**Eksiklik:**
+- Süt humması (laktasyon sonrası)
+- Raşitizm (yavrularda)
+- Osteomalazi (yetişkinlerde)
+- Kemik kırılganlığı
+- Süt verimi düşüklüğü
+
+### Fosfor (P)
+
+**Fonksiyonlar:**
+- Kemik yapısı (%80'i kemiklerde)
+- Enerji metabolizması (ATP)
+- DNA/RNA yapısı
+- Yem değerlendirme
+- Üreme
+
+**İhtiyaç:**
+- Kuzular/oğlaklar: %0.3-0.6
+- Yetişkin: %0.2-0.4
+- Gebe/laktasyon: %0.4-0.6
+
+**Kaynaklar:**
+- Tahıl taneleri
+- Kepekler
+- Dikalsiyum fosfat
+- Monoamonyum fosfat
+- Kemik unu
+
+**Eksiklik:**
+- Pica (tuhaf madde yeme)
+- Kemik yemek
+- İştahsızlık
+- Kısırlık
+- Büyüme geriliği
+
+### Magnezyum (Mg)
+
+**Fonksiyonlar:**
+- Kemik yapısı
+- Enzim aktivasyonu
+- Sinir-kas fonksiyonu
+- Protein sentezi
+
+**İhtiyaç:**
+- Tüm kategoriler: %0.12-0.18
+
+**Kaynaklar:**
+- Yeşil yemler
+- Tahıl kepeği
+- Magnezyum oksit
+- Magnezyum sülfat
+
+**Eksiklik:**
+- Çayır tetanisi (otlatma mevsimi)
+- Kas titremeleri
+- Hiperaktivite
+- Ani ölüm (ciddi vakalarda)
+
+### Sodyum (Na) ve Klor (Cl)
+
+**Fonksiyonlar:**
+- Sıvı dengesi
+- Asit-baz dengesi
+- Sinir uyarımı
+- Besin emilimi
+
+**İhtiyaç:**
+- Sodyum: %0.1-0.2
+- Klor: %0.15-0.25
+
+**Kaynak:**
+- Sofra tuzu (NaCl)
+- Yalama taşı
+
+**Eksiklik:**
+- Tuz (NaCl) açlığı
+- İştah kaybı
+- Süt verimi düşüklüğü
+- Kilo kaybı
+- Pica
+
+**Not:** Koyun ve keçiler tuz yalama davranışı gösterir, bu normal ve gereklidir!
+
+### Kükürt (S)
+
+**Fonksiyonlar:**
+- Protein sentezi (aminoasitler)
+- Vitamin B1 yapısı
+- Rumen mikroflorası
 - Yün/tüy kalitesi
+
+**İhtiyaç:**
+- %0.14-0.26
+
+**Kaynaklar:**
+- Proteinli yemler
+- Kükürt tozu
+- Amonyum sülfat
+
+## Mikro Mineraller (İz Elementler)
+
+### Demir (Fe)
+
+**Fonksiyonlar:**
+- Hemoglobin yapısı (oksijen taşıma)
+- Enzim sistemleri
 - Bağışıklık
 
-**Selenyum (Se):**
+**İhtiyaç:**
+- 30-50 mg/kg (kuru madde)
+
+**Kaynaklar:**
+- Yeşil yemler
+- Demir sülfat
+- Demir oksit
+
+**Eksiklik:**
+- Anemi (özellikle yavrularda)
+- Solukluk
+- Halsizlik
+- Büyüme geriliği
+
+### Bakır (Cu)
+
+**Fonksiyonlar:**
+- Demir metabolizması
+- Pigmentasyon (yün/tüy rengi)
+- Kemik gelişimi
 - Bağışıklık
 - Üreme
-- Kas sağlığı
-- Eksiklik: Beyaz kas hastalığı
 
-**Çinko (Zn):**
-- Cilt sağlığı
+**İhtiyaç:**
+- Koyun: 7-11 mg/kg
+- Keçi: 8-10 mg/kg
+
+**Kaynaklar:**
+- Bakır sülfat
+- Bakır oksit
+- Yeşil yemler
+
+**Eksiklik:**
+- Anemi
+- Yün/tüy kırılganlığı
+- Eklem problemleri (yavrularda)
+- Ataksi (sinir sistemi)
+- Depigmentasyon (renk solması)
+
+**DİKKAT:** Koyunlar bakıra çok hassastır! Aşırı bakır toksisitesi öldürücüdür.
+
+### Çinko (Zn)
+
+**Fonksiyonlar:**
+- Protein sentezi
+- Enzim sistemleri
+- Deri ve yün/tüy sağlığı
+- Üreme
 - Yara iyileşmesi
+
+**İhtiyaç:**
+- 20-33 mg/kg
+
+**Kaynaklar:**
+- Çinko oksit
+- Çinko sülfat
+- Tahıl ürünleri
+
+**Eksiklik:**
+- Deri lezyonları (kabuklanma)
+- Yün/tüy kaybı
+- Parakkeratoz
+- Üreme problemleri
+- Topallama
+
+### Mangan (Mn)
+
+**Fonksiyonlar:**
+- Kemik oluşumu
+- Üreme
+- Yumurta kabuğu (keçilerde)
+- Enzim aktivasyonu
+
+**İhtiyaç:**
+- 20-40 mg/kg
+
+**Kaynaklar:**
+- Mangan oksit
+- Mangan sülfat
+- Yem taneleri
+
+**Eksiklik:**
+- Kemik deformasyonu (yavrular)
+- Kısırlık
+- Düşük doğum
+- Eklem şişliği
+
+### İyot (I)
+
+**Fonksiyonlar:**
+- Tiroid hormonları (T3, T4)
+- Metabolizma düzenlemesi
+- Büyüme
+
+**İhtiyaç:**
+- 0.1-0.8 mg/kg
+
+**Kaynaklar:**
+- İyotlu tuz
+- Potasyum iyodür
+- Kalsiyum iyodat
+
+**Eksiklik:**
+- Guatr (tiroid bezi şişmesi)
+- Yavru ölümleri
+- Zayıf yavrular (ölü doğum)
+- Yün/tüy kaybı
+
+### Selenyum (Se)
+
+**Fonksiyonlar:**
+- Antioksidan (Vitamin E ile birlikte)
 - Bağışıklık
+- Kas sağlığı
+- Üreme
+
+**İhtiyaç:**
+- 0.1-0.3 mg/kg
+
+**Kaynaklar:**
+- Sodyum selenit
+- Selenyum maya
+- Bazı topraklar (bölgeye bağlı)
+
+**Eksiklik:**
+- Beyaz kas hastalığı (yavrularda)
+- Ani ölüm
+- Üreme problemleri
+- Ölü doğum/zayıf yavru
+
+**DİKKAT:** Toksisite sınırı düşüktür! Aşırı Se zehirleyicidir.
+
+### Kobalt (Co)
+
+**Fonksiyonlar:**
+- Vitamin B12 yapısı
+- Rumen bakterileri için gerekli
+- Enerji metabolizması
+
+**İhtiyaç:**
+- 0.1-0.2 mg/kg
+
+**Kaynaklar:**
+- Kobalt karbonat
+- Kobalt sülfat
+
+**Eksiklik:**
+- İştahsızlık
+- Anemi
+- Zayıflama
+- Yün/tüy kalite düşüklüğü
 
 ## Vitaminler
 
-**Vitamin A:**
+### Yağda Eriyen Vitaminler
+
+**Vitamin A (Retinol)**
+
+**Fonksiyonlar:**
 - Görme
+- Deri ve mukoza sağlığı
+- Bağışıklık
+- Üreme
+
+**İhtiyaç:**
+- Koyun: 1200-2400 IU/kg (kuru madde)
+- Keçi: 2000-3000 IU/kg
+
+**Kaynaklar:**
+- Yeşil yemler (beta-karoten)
+- Havuç
+- Balık yağı
+- Vitamin A sentetik
+
+**Eksiklik:**
+- Gece körlüğü
+- Üst solunum yolu enfeksiyonu
+- Kısırlık
+- Ölü doğum
+
+**Vitamin D (Kalsiferol)**
+
+**Fonksiyonlar:**
+- Kalsiyum-fosfor emilimi
+- Kemik oluşumu
+
+**İhtiyaç:**
+- 150-300 IU/kg
+
+**Kaynaklar:**
+- Güneş ışığı (deri sentezi)
+- Balık yağı
+- Vitaminli yemler
+
+**Eksiklik:**
+- Raşitizm (yavrularda)
+- Osteomalazi (yetişkinlerde)
+- Kemik kırılganlığı
+
+**Vitamin E (Tokoferol)**
+
+**Fonksiyonlar:**
+- Antioksidan
+- Selenyum ile birlikte çalışır
 - Üreme
 - Bağışıklık
-- Eksiklik: Gece körlüğü
+
+**İhtiyaç:**
+- 15-60 IU/kg
+
+**Kaynaklar:**
+- Yeşil yemler
+- Tahıl embriyosu
+- Vitamin E sentetik
+
+**Eksiklik:**
+- Beyaz kas hastalığı
+- Üreme problemleri
+- Bağışıklık zayıflaması
+
+**Vitamin K**
+
+**Fonksiyonlar:**
+- Kan pıhtılaşması
+- Kemik metabolizması
+
+**İhtiyaç:**
+- Genellikle rumen sentezi yeterli
+
+**Kaynaklar:**
+- Yeşil yemler
+- Rumen bakterileri (sentez)
+
+**Eksiklik:**
+- Kanama bozuklukları (nadir)
+
+### Suda Eriyen Vitaminler (B Grubu)
+
+**Genel:**
+- Rumen bakterileri sentez yapar
+- Yetişkinler genelde eksiklik yaşamaz
+- Yavrular (henüz rumen gelişmemiş) ihtiyaç duyabilir
+
+**B1 (Thiamin):**
+- Enerji metabolizması
+- Eksiklik: Polioencephalomalacia (beyin iltihabı)
+
+**B2 (Riboflavin):**
+- Enerji metabolizması
+- Eksiklik: Büyüme geriliği
+
+**B12 (Cobalamin):**
+- Kan yapımı
+- Kobalt gerektirir (yapı taşı)
+- Eksiklik: Anemi, iştahsızlık
+
+**Niacin, Pantotenik Asit, Biotin:**
+- Genel metabolizma
+- Rumen sentezi genelde yeterli
+
+## Takviye Programları
+
+### Yalama Taşı (Mineral Blok)
+
+**İçerik:**
+- Sodyum klorür (NaCl): %95-98
+- Kalsiyum, Fosfor, Magnezyum
+- İz elementler: Fe, Cu, Zn, Mn, I, Co, Se
+- Bazen vitaminler
+
+**Kullanım:**
+- Serbest erişim (yaylım alanı/ahır)
+- Hava koşullarına dayanıklı yerleştirin
+- Sürekli mevcut olsun
+
+**Avantajlar:**
+- Kolay uygulan
+- Hayvanlar kendi ihtiyacına göre tüketir
+- Ekonomik
+
+**Dezavantajlar:**
+- Tüketim kontrolsüz
+- Bazı hayvanlar yeterli tüketmeyebilir
+- Yağmurda eriyebilir
+
+### Premiks Yem Katkıları
+
+**Çeşitler:**
+- Vitamin-mineral premiks
+- Sadece mineral premiks
+- Dönem özel (gebe, laktasyon, besi)
+
+**Kullanım:**
+- Konsantre yeme katılır
+- Doz: Genellikle %0.5-1 (yem ağırlığına)
+- Homojen karıştırma önemli
+
+**Avantajlar:**
+- Kontrollü doz
+- Tüm hayvanlara eşit
+- Çeşitli formülasyonlar
+
+**Markaları (Türkiye):**
+- MAYSO (Tarım Kredi)
+- Feedvit
+- EnergyBox
+- Biokap
+- Agromar
+
+### Enjektabl Takviyeler
+
+**Ne Zaman:**
+- Acil durumlarda
+- Şiddetli eksiklik
+- Yavru ölümleri
+- Hastalık sonrası destek
+
+**Örnekler:**
+- ADE vitamini (yağda eriyen)
+- B-Kompleks
+- Selenyum-Vitamin E
+- Demir preparatları (anemi)
+
+**Dikkat:**
+- Veteriner tavsiyesi
+- Doğru doz
+- Enjeksiyon tekniği (kas içi/deri altı)
+
+### Oral Takviyeler
+
+**Jeller/Pastalar:**
+- Yeni doğan yavru için
+- Enerji + vitamin-mineral
+- Doğum sonrası anne için
+
+**Tozlar:**
+- Yeme karıştırılır
+- Suya katılabilir
+
+## Dönem Bazlı Takviye Programı
+
+### Gebelik Dönemi
+
+**İhtiyaçlar Artar:**
+- Son 6-8 hafta kritik
+- Yavru iskelet gelişimi
+- Anne vücut hazırlığı
+
+**Önemli Mineraller:**
+- Kalsiyum (kemik gelişimi)
+- Fosfor
+- Magnezyum (çayır tetanisi önleme)
+- Selenyum-Vitamin E (beyaz kas hastalığı önleme)
+- İyot (tiroid)
+
+**Program:**
+- Vitamin-mineral premiks (%1 oranda konsantre yemde)
+- Yalama taşı serbest
+- Doğumdan 2-4 hafta önce Selenyum-VitE enjeksiyonu (veteriner)
+
+### Laktasyon Dönemi
+
+**İhtiyaçlar Zirve:**
+- Süt üretimi maksimum mineral çeker
+- Vücut rezervleri tükenir
+
+**Kritik:**
+- Kalsiyum (süt humması riski!)
+- Fosfor
+- Magnezyum
+- Selenyum-VitE
+- Sodyum
+
+**Program:**
+- Yüksek kalsiyum takviyesi
+- Vitamin-mineral premiks (%1.5)
+- Yalama taşı
+- Kaliteli kaba yem (yonca)
+- Ekstra enerji
+
+### Besi Dönemi
+
+**Hedef:**
+- Hızlı kilo alımı
+- Yem değerlendirme
+
+**Önemli:**
+- Fosfor (enerji metabolizması)
+- Çinko (büyüme)
+- Bakır
+- Kobalt (iştah)
+
+**Program:**
+- Besi tipi premiks
+- Yüksek enerji + protein
+- Mineral blok
+
+### Yavru Büyüme
+
+**0-3 Ay:**
+- Henüz rumen gelişmemiş
+- Anne sütü + kreep yem
+- B vitaminleri gerekebilir
+- Demir (anemi önleme)
+
+**Program:**
+- Doğumda: Selenyum-VitE (ağızdan veya enjeksiyon)
+- 2 haftalık: Demir enjeksiyonu (gerekirse)
+- Kreep yeminde starter premiks
+
+**3+ Ay:**
+- Rumen çalışır
+- Normal takviye programı
+
+## Bölgesel Eksiklikler
+
+### Türkiye'de Yaygın Eksiklikler
+
+**Selenyum:**
+- Karadeniz, Marmara, Ege kıyı bölgeleri
+- Beyaz kas hastalığı yaygın
+
+**Kobalt:**
+- İç Anadolu, bazı platolar
+- İştahsızlık, zayıflama
+
+**İyot:**
+- Dağlık bölgeler
+- Guatr vakalaleri
+
+**Bakır:**
+- Bazı meralar (yüksek Mo/S topraklar)
+- Anemi, yün problemleri
+
+**Çözüm:**
+- Bölgesel toprak ve yem analizi
+- Uygun takviye programı
+- Veteriner/ziraat uzmanı danışma
+
+## Toksisite ve Aşırı Doz Riskleri
+
+### Dikkatli Olunması Gerekenler
+
+**Bakır (Koyunlarda!):**
+- Koyunlar bakıra ÇOK hassas
+- Aşırı doz: Karaciğer hasarı, hemoliz, ölüm
+- Keçiler daha dayanıklı
+- **Önerilen Max:** 15-25 mg/kg (koyun)
+
+**Selenyum:**
+- Toksisite sınırı düşük
+- Kronik: Tırnak/t üy dökülmesi, topallama
+- Akut: Solunum güçlüğü, ölüm
+- **Güvenli Aralık:** 0.1-0.3 mg/kg
+
+**Vitamin A:**
+- Aşırı doz: Kemik deformasyonu, dermatit
+- Özellikle enjektabl formlar dikkat
 
 **Vitamin D:**
-- Kalsiyum emilimi
-- Kemik sağlığı
-- Güneş ışığı üretir
+- Aşırı: Kalsifikasyon (yumuşak dokularda kireçlenme)
+- Böbrek, kalp hasarı
 
-**Vitamin E:**
-- Antioksidan
-- Selenyum ile birlikte
-- Kas sağlığı
+**Demir:**
+- Genelde düşük risk
+- Aşırı: Karaciğer hasarı
 
-**B Vitamini:**
-- İşkembe bakterileri üretir
-- Takviye genelde gerekmez
+**İyot:**
+- Aşırı: Tiroid fonksiyon bozukluğu
+- Nadir
 
-## Eksiklik Belirtileri
+## Yem Analizi ve Takip
 
-- Zayıflama
-- Tüy/yün kalitesizliği
-- Üreme problemleri
-- Topallık
-- Düşük süt verimi
-- Bağışıklık zayıflığı
+### Ne Zaman Analiz Gerekir?
 
-## Takviye Yöntemleri
+**Durumlar:**
+- Açıklanamayan verim düşüklüğü
+- Hastalık vakaları artışı
+- Yeni mera kullanımı
+- Yem kaynağı değişikliği
+- Bölgesel eksiklik şüphesi
 
-**Tuz/Mineral Taşı:**
-- Serbest erişim
-- Her zaman mevcut
-- Rüzgar/yağmurdan korunmalı
+**Analiz Türleri:**
+- Kaba yem mineral analizi
+- Konsantre yem analizi
+- Su analizi (mineral içeriği)
+- Kan analizi (hayvan durumu)
 
-**Yem Katkısı:**
-- Konsantreye karıştırın
-- Düzenli alım garantisi
-- Doz kontrolü kolay
+**Nereye:**
+- Üniversite laboratuvarları
+- Tarım İl Müdürlüğü
+- Özel laboratuvarlar
 
-**Enjeksiyon:**
-- Eksiklik durumunda
-- Veteriner önerisi
-- Selenyum + Vit E yaygın
+### Kayıt Tutma
 
-Dengeli beslenme = Sağlıklı ve verimli hayvan!`,
-    categoryTags: ["küçükbaş", "beslenme", "mineral", "vitamin"],
-    readTime: 4,
+**Takip Edilecekler:**
+- Takviye tüketim miktarı
+- Verim kayıtları (süt, kilo alımı)
+- Hastalık vakalar
+- Üreme performansı
+- Ölüm oranları
+
+## Pratik Öneriler
+
+### Serbest Erişim Sistemi
+
+**Mineral Blok:**
+✅ Her zaman mevcut
+✅ Yağmurdan korunmuş
+✅ Temiz, ulaşılabilir
+✅ Düzenli kontrol (bitince yenile)
+
+**Su:**
+✅ Temiz, taze su sürekli
+✅ Mineral emilimi için gerekli
+
+### Karma Yem Sistemi
+
+**Konsantre Yem:**
+✅ Premiks eklenmiş (%0.5-1.5)
+✅ Homojen karışım
+✅ Doğru doz
+
+**Dönem Uygunluğu:**
+✅ Gebe: Gebe premiks
+✅ Laktasyon: Süt premiks
+✅ Besi: Besi premiks
+
+### Yavru Bakımı
+
+**Doğumda:**
+✅ Kolostrum (ilk süt) mutlaka
+✅ Göbek dezenfeksiyonu
+✅ Selenyum-VitE (ağızdan/enjeksiyon)
+
+**İlk Hafta:**
+✅ Demir takviyesi (gerekirse)
+✅ Anne sütü yeterli mi kontrol
+
+**Sütten Kesim:**
+✅ Kademeli geçiş
+✅ Kaliteli kreep yem
+✅ Vitamin-mineral desteği
+
+## Sık Sorulan Sorular
+
+**S: Yalama taşı yeterli mi, ekstra takviye gerekir mi?**
+C: Yalama taşı temel ihtiyaçları karşılar ama yoğun dönemlerde (gebe, laktasyon) yem premiksi şarttır.
+
+**S: Hangi marka premiks iyi?**
+C: MAYSO, Feedvit, EnergyBox gibi tanınmış markalar kalitelidir. Döneme uygun seçin (gebe, süt, besi).
+
+**S: Ne kadar süreyle takviye verilmeli?**
+C: Sürekli (yalama taşı) veya dönemsel (gebe son 2 ay, laktasyon 3 ay). Kesilmemeli.
+
+**S: Fazla takviye zarar verir mi?**
+C: Bazı mineraller (Cu, Se) aşırı dozda toksiktir. Önerilen dozlara uyun.
+
+**S: Yavru kaç aylıkken takviye başlanır?**
+C: Doğumda Selenyum-VitE, 2 haftalık demir. Kreep yemde (2-3 haftalık) mineral premiks.
+
+**S: Koyun ve keçi takviyesi aynı mı?**
+C: Genel olarak benzer ama koyunlar bakıra daha hassas. Koyun özel formül tercih edin.
+
+**S: Organik mi sentetik mi daha iyi?**
+C: Her ikisi de etkilidir. Organik (chelated) emilim biraz daha iyi olabilir ama pahalıdır.
+
+## Sonuç ve Öneriler
+
+Dengeli mineral-vitamin takviyesi:
+✅ Verim artışı sağlar
+✅ Hastalıklara direnci artırır
+✅ Üreme başarısını yükseltir
+✅ Yavrı canlı kalımını artırır
+✅ Ekonomik kazanç getirir
+
+**Altın Kurallar:**
+1. Sürekli yalama taşı sunun
+2. Döneme uygun premiks kullanın
+3. Koyunlarda bakır dozuna dikkat
+4. Selenyum aşırı dozdan kaçının
+5. Gebe son dönemde ekstra destek
+6. Yavru doğumda Se-VitE verin
+7. Bölgesel eksiklikleri öğrenin
+8. Veteriner/uzman danışın
+
+**Unutmayın:** Mineral ve vitamin takviyeleri "ekstra maliyet" değil, "yatırım"dır. Doğru beslenen hayvanlar daha sağlıklı, daha verimli ve daha karlıdır. Eksiklik belirtileri ortaya çıkmadan önlem almak, sonradan tedavi etmekten çok daha ucuz ve etkilidir!`,
+    categoryTags: ["küçükbaş", "koyun", "keçi", "beslenme", "mineral", "vitamin", "takviye"],
+    readTime: 26,
     published: true,
   },
 
-  // At Bakımı (6 yazı) - devam edecek...
-  // Token limiti nedeniyle kalan yazıları da ekleyip seed.ts'i güncelleyeceğim
+  {
+    title: "Küçükbaş Hayvanlarda Ayak Bakımı ve Topallama Önlemi",
+    slug: "kucukbas-hayvanlarda-ayak-bakimi",
+    excerpt: "Ayak sağlığı küçükbaş hayvanlarda verim ve hareket kabiliyetinin temelidir. Düzenli tırnak bakımı ve hastalık önlemi rehberi.",
+    content: `# Küçükbaş Hayvanlarda Ayak Bakımı: Kapsamlı Rehber
+
+Koyun ve keçilerin ayak sağlığı, genel sağlık ve verimliliğin temel taşlarından biridir. Ayak problemleri topallama, ağrı, kilo kaybı, süt verimi düşüklüğü ve hatta ölüme kadar gidebilir. Düzenli bakım ve önleyici tedbirlerle bu sorunların çoğu önlenebilir.
+
+## Neden Ayak Bakımı Önemlidir?
+
+### Ayak Problemlerinin Etkileri
+
+**Ekonomik Kayıplar:**
+- Kilo kaybı (günlük 100-500 gram)
+- Süt verimi düşüklüğü (%10-30)
+- Üreme problemleri
+- Tedavi maliyetleri
+- İşgücü kaybı
+- İlaç ve veteriner giderleri
+
+**Hayvan Refahı:**
+- Şiddetli ağrı
+- Hareket güçlüğü
+- Yem ve suya erişim zorluğu
+- Sosyal izolasyon (sürüden geri kalma)
+- Stres
+
+**Yaygınlık:**
+- Küçükbaş sürülerde %5-20 oranında
+- Nemli, ıslak koşullarda daha yüksek
+- Yoğun yetiştirmede artış
+
+## Ayak Anatomisi
+
+### Temel Yapı
+
+**Tırnak (Hoof):**
+- Dış duvar (horn): Sert, koruyucu katman
+- Taban: Yumuşak, darbe emici
+- İki parmak (didaktil): İç ve dış tırnak
+- Arasındaki (interdigital) bölge: Hassas deri
+
+**Parmaklar:**
+- İç tırnak (medial claw)
+- Dış tırnak (lateral claw)
+- İkisi de yük taşır
+- Dengeli olmalı
+
+**Eklemler:**
+- Tırnak eklemi
+- Paça eklemi
+- Diz eklemi
+- Kalça eklemi
+
+### Normal Ayak Yapısı
+
+**Sağlıklı Tırnak:**
+- Düz, düzgün duvar
+- Eşit uzunluk (iki parmak)
+- Temiz, kuru taban
+- Yumuşak, pembe interdigital deri
+- Ağrısız hareket
+
+## Sık Görülen Ayak Hastalıkları
+
+### 1. Topallık (Foot Rot / Ayak Çürümesi)
+
+**Nedir?**
+- Bakteriyel enfeksiyon
+- İnterdigital dermatit + nekroz
+- Çok bulaşıcı
+- En yaygın topallama nedeni
+
+**Nedenler:**
+- **Dichelobacter nodosus** (ana patojen)
+- **Fusobacterium necrophorum** (ikincil)
+- Nemli, kirli koşullar
+- Tırnak yırtılması/hasarı
+
+**Belirtiler:**
+- **Erken:**
+  - Hafif topallama
+  - İnterdigital kızarıklık
+  - Şişlik
+  - Sıcaklık
+- **İlerlemiş:**
+  - Şiddetli topallama
+  - Ayağı kaldırarak yürüme
+  - Pis koku (çürümüş et)
+  - Derin yaralar
+  - Tırnak ayrılması
+
+**Tedavi:**
+- Ayağı temizleyin (su + fırça)
+- İlaçlı ayak banyosu (formol, çinko sülfat, bakır sülfat)
+- Antibiyotik (oksitetrasiklin, penisilin)
+- İzolasyon (bulaşıcı!)
+- Kuru, temiz barınak
+
+**Önleme:**
+- Düzenli ayak banyosu (haftada 1-2)
+- Kuru barındırma
+- Tırnak bakımı
+- Aşı (Footvax, bölgeye göre)
+
+### 2. Seröz Pododermatit (Çürük Tırnak / Scald)
+
+**Nedir?**
+- İnterdigital dermatit
+- Foot rot'tan daha hafif
+- Sık görülür
+
+**Nedenler:**
+- Nemli, ıslak zemin
+- Kirli barındırma
+- Bakteriyel (F. necrophorum)
+
+**Belirtiler:**
+- Hafif-orta topallama
+- İnterdigital kızarıklık
+- Nemli, beyaz deri
+- Şişlik
+- Pis koku yok
+
+**Tedavi:**
+- Ayak banyosu
+- Kuru ortam
+- Antibiyotik sprey
+- Hafif vakalar kendiliğinden iyileşir
+
+**Önleme:**
+- Kuru barınak
+- İyi drenaj
+- Temizlik
+
+### 3. Tırnak Deformasyonu (Overgrown Hoof)
+
+**Nedir?**
+- Aşırı uzamış tırnak
+- Şekil bozukluğu
+- Yürüme güçlüğü
+
+**Nedenler:**
+- Düzenli kesim yapılmaması
+- Yumuşak zemin (az aşınma)
+- Genetik
+- Beslenme (protein, çinko eksikliği)
+
+**Belirtiler:**
+- Çok uzun tırnak
+- Kıvrık, yukarı kıvrılmış
+- Tabanı görmek imkansız
+- Eşit olmayan yük dağılımı
+- Hafif topallama
+- Duruş bozukluğu
+
+**Tedavi:**
+- Düzenli tırnak kesimi
+- Doğru açı sağlama
+- Denge düzeltme
+
+**Önleme:**
+- 3-6 ayda bir tırnak bakımı
+- Taşlı/kaba zeminde otlatma (aşınma)
+
+### 4. White Line Disease (Beyaz Çizgi Hastalığı)
+
+**Nedir?**
+- Tırnak duvarı ile taban arasında ayrılma
+- Bakteri/kir girişi
+- Apse oluşumu
+
+**Nedenler:**
+- Nemli koşullar
+- Taşlı zemin (tırnak hasarı)
+- Beslenme bozukluğu (biotin eksikliği)
+
+**Belirtiler:**
+- Topallama
+- Tırnak duvarı ayrılması
+- Koku
+- Apse (irin)
+- Şişlik
+
+**Tedavi:**
+- Hasarlı kısmı kesin
+- Temizleyin
+- Antibiyotik
+- Kuru tutun
+
+**Önleme:**
+- Biotin takviyesi
+- Tırnak bakımı
+- Kuru barındırma
+
+### 5. Foot Abscess (Ayak Apsesi)
+
+**Nedir?**
+- İrin kesesi
+- Tırnak veya yumuşak dokuda
+- Çok ağrılı
+
+**Nedenler:**
+- Yaralanma (diken, taş, tel)
+- Enfeksiyon
+- White line hastalığı
+
+**Belirtiler:**
+- Ani, şiddetli topallama
+- Ayağı kaldıramama
+- Şişlik
+- Sıcaklık
+- Hassasiyet
+
+**Tedavi:**
+- Apseyi drene edin (veteriner)
+- Antibiyotik
+- Ağrı kesici
+- Sargı/bandaj
+- İzolasyon
+
+**Önleme:**
+- Temiz zemin
+- Sivri nesneleri temizleyin
+- Düzenli kontrol
+
+### 6. Contagious Ovine Digital Dermatitis (CODD)
+
+**Nedir?**
+- Bulaşıcı tırnak hastalığı
+- Treponema bakterisi
+- Yeni tanımlanmış (2000'ler)
+- Şiddetli topallama
+
+**Belirtiler:**
+- Tırnak çevresi lezyonlar
+- Tırnak kabuğu ayrılması
+- Çok ağrılı
+- Hızlı yayılma
+
+**Tedavi:**
+- Antibiyotik (oksitetrasiklin)
+- İzolasyon
+- Veteriner!
+
+**Önleme:**
+- Yeni hayvan karantinası
+- Biyogüvenlik
+
+### 7. Laminitis (Tırnak İltihabı)
+
+**Nedir?**
+- Tırnak altı iltihabı
+- Genelde beslenme kaynaklı
+- Nadir ama ciddi
+
+**Nedenler:**
+- Aşırı tahıl (karbonhidrat) tüketimi
+- Ani yem değişikliği
+- Mastitis/metritis (ikincil)
+
+**Belirtiler:**
+- Dört ayakta topallama
+- Dizler üstü yürüme
+- Ayakta durmama
+- Ateş
+- Tırnak sıcak
+
+**Tedavi:**
+- Anti-enflamatuar
+- Yumuşak zemin
+- Yem değişikliği
+- Veteriner!
+
+**Önleme:**
+- Dengeli beslenme
+- Kademeli yem geçişi
+- Aşırı tahıl vermeme
+
+## Tırnak Kesimi (Trimming)
+
+### Ne Zaman Kesilmeli?
+
+**Sıklık:**
+- Genel: 6 ayda bir (Bahar, Sonbahar)
+- Sık topallama vakaları: 3-4 ayda bir
+- Yaşlı hayvanlar: 4 ayda bir
+- Yumuşak zeminde: Daha sık
+
+**İdeal Zamanlar:**
+- İlkbahar (Nisan-Mayıs): Otlatma öncesi
+- Sonbahar (Eylül-Ekim): Kışa hazırlık
+- Kuru hava (islak tırnak kesimi zor)
+
+### Gerekli Araçlar
+
+**Temel:**
+- Tırnak makası (küçükbaş özel)
+- Tırnak bıçağı (hoof knife)
+- Törpü (düzeltme için)
+- Bakım sehpası/sandık (hayvan tutma)
+
+**Yardımcı:**
+- Fırça (temizlik)
+- Su kovası
+- Dezenfektan
+- Sprey (bakteriyel)
+
+**İş Güvenliği:**
+- Eldiven
+- Diz koruyucu
+- Güçlü yardımcı (hayvan tutma)
+
+### Kesim Tekniği
+
+**Hazırlık:**
+1. Hayvanı sakinleştirin
+2. Ayakları temizleyin (fırça + su)
+3. Topallık kontrolü
+4. Sehpaya veya tutma sistemine yerleştirin
+
+**Adımlar:**
+
+**1. Dış Duvarı Kısaltın:**
+- Tırnağın uzun kısmını kesin
+- Parmaklar eşit olsun
+- Tabanla 10° açı
+
+**2. Tabanı Düzeltin:**
+- İnce bir katman alın
+- Pembe dokuya yaklaşmayın (kanama riski)
+- Düz, pürüzsüz yüzey
+
+**3. Topuğu Ayarlayın:**
+- Fazla boynuzu kesin
+- Arka kısım hafifçe yüksek
+
+**4. İki Parmağı Dengelein:**
+- Eşit uzunluk
+- Eşit genişlik
+- Yük dengeli dağılsın
+
+**5. İnterdigital Bölgeyi Temizleyin:**
+- Aşırı dokuyu kesin
+- Nemli/çürük kısımları çıkarın
+
+**Kontrol:**
+✓ İki parmak eşit
+✓ Düz taban
+✓ Kanama yok
+✓ İnterdigital temiz
+✓ Hayvan rahat yürüyor
+
+### Sık Yapılan Hatalar
+
+❌ **Aşırı Kesim:**
+- Pembe dokuyu kesmek (kanama, ağrı)
+- Enfeksiyon riski
+- İyileşme 2-4 hafta
+
+❌ **Yetersiz Kesim:**
+- Problem devam eder
+- Tekrar topallama
+
+❌ **Dengesiz Kesim:**
+- Bir parmak uzun
+- Eklem zorlanması
+
+❌ **Kirli Araçlar:**
+- Enfeksiyon yayılımı
+- Hastalık bulaşması
+
+✅ **Doğru:**
+- Keskin araçlar
+- Temiz çalışma
+- Dengeli kesim
+- Kanama varsa hemen durdur
+
+## Ayak Banyosu (Foot Bath)
+
+### Neden Gerekli?
+
+**Faydalar:**
+- Enfeksiyonu önler
+- Mevcut hastalığı tedavi eder
+- Bakterileri öldürür
+- Tırnağı sertleştirir
+- Topallama azalır
+
+### Ayak Banyosu Çeşitleri
+
+**1. Bakır Sülfat (Copper Sulfate)**
+- **Konsantrasyon:** %5-10
+- **Süre:** Haftada 1-2 kez
+- **Avantaj:** Etkili, ekonomik
+- **Dezavantaj:** Çevre kirliliği, toksik atık
+
+**2. Çinko Sülfat (Zinc Sulfate)**
+- **Konsantrasyon:** %10-20
+- **Süre:** Haftada 2 kez
+- **Avantaj:** Çevre dostu, sertleştirici
+- **Dezavantaj:** Pahalı
+
+**3. Formaldehit (Formalin)**
+- **Konsantrasyon:** %3-5
+- **Süre:** Haftada 1 kez
+- **Avantaj:** Çok etkili
+- **Dezavantaj:** Kanserojen, tehlikeli, yasaklanıyor
+
+**4. Organik Asitler:**
+- Salisilik asit, laktik asit
+- Daha güvenli
+- Etkililik orta
+
+### Uygulama
+
+**Havuz Özellikleri:**
+- Uzunluk: 3-4 metre
+- Genişlik: 0.5-0.8 metre
+- Derinlik: 10-15 cm
+- Çıkış: Drenaj platformu (ek 2-3 metre)
+
+**Prosedür:**
+1. Hayvanları yavaşça yürütün
+2. Her ayak 2-4 adım atmalı (çözelti içinde)
+3. Çıkışta 5 dakika bekletin (emilim)
+4. Kuru alana gönderin
+
+**Sıklık:**
+- Problemli sürü: Haftada 2 kez
+- Önleme: 2 haftada bir
+- Kuru sezon: Ayda 1 kez
+
+**Dikkat:**
+- Yeni kesim sonrası 24 saat bekleyin (kanama riski)
+- Hamile hayvanlar dikkatle
+- Çözeltiy düzenli değiştirin (300-500 hayvan sonrası)
+
+## Barındırma ve Önleme
+
+### İdeal Barınak Koşulları
+
+**Zemin:**
+✅ Kuru
+✅ İyi drenaj
+✅ Taşlı/betonlu alan (aşınma sağlar)
+✅ Nemli köşeler yok
+✅ Gübre temizliği günlük
+
+**Nem Kontrolü:**
+✅ İyi havalandırma
+✅ Su sızıntısı yok
+✅ Çatı tamiri
+✅ Yağmur sularını yönlendirin
+
+**Temizlik:**
+✅ Günlük gübre temizleme
+✅ Dezenfeksiyon (periyodik)
+✅ Kireçleme
+✅ Yatak malzemesi (kuru saman)
+
+### Otlak Yönetimi
+
+**Nemli Otlaklar:**
+❌ Sürekli kullanım
+✅ Rotasyon (dinlendirme)
+✅ Drenaj iyileştirme
+✅ Aşırı otlatmadan kaçının
+
+**Taşlı Alanlar:**
+✅ Doğal tırnak aşınması
+✅ Tırnak güçlendirir
+❌ Aşırı keskin taşlar (yaralanma)
+
+### Beslenme
+
+**Önemli Besinler:**
+- **Biotin:** Tırnak sağlığı, sertlik
+- **Çinko:** Tırnak gelişimi
+- **Protein:** Keratin yapımı
+- **Kalsiyum-Fosfor:** Kemik-tırnak dengesi
+
+**Takviye:**
+- Biotin: 10-20 mg/gün
+- Çinko: Mineral bloklarda
+- Kaliteli yem
+
+## Aşılama
+
+### Footvax (Foot Rot Aşısı)
+
+**Ne İşe Yarar?**
+- D. nodosus'a karşı
+- Enfeksiyonu önler/azaltır
+- %50-90 koruma
+
+**Program:**
+- İlk aşı: 2 doz (4 hafta arayla)
+- Rapel: Yılda 1-2 kez
+- Yüksek riskli sürü: 6 ayda bir
+
+**Dikkat:**
+- Tüm sürüye uygulanmalı
+- Diğer önlemlerle birlikte (ayak banyosu, temizlik)
+- Tek başına yeterli değil
+
+## Topallama Skorlaması
+
+### 0-5 Skala Sistemi
+
+**Skor 0:** Normal
+- Rahat yürüme
+- Ağrı yok
+- Ayaklar dengeli
+
+**Skor 1:** Çok Hafif
+- Hafif dengesizlik
+- Yürüme devam eder
+- Tedavi gerekmiyor
+
+**Skor 2:** Hafif Topallama
+- Belirgin aksama
+- Ağırlığı diğer ayağa verir
+- İnceleme gerekli
+
+**Skor 3:** Orta Topallama
+- Açık aksama
+- Üç bacakla yürüme
+- Tedavi acil
+
+**Skor 4:** Şiddetli Topallama
+- Ayağı yerden kaldırır
+- Yürüyemez/zar zor
+- Acil tedavi
+
+**Skor 5:** Çok Şiddetli
+- Hareket edemez
+- Uzanmış kalır
+- Acil veteriner
+
+**Yönetim:**
+- Skor 2+: Müdahale
+- Skor 3+: Acil tedavi
+- Haftalık kontrol
+- Kayıt tutun
+
+## Sürü Sağlık Programı
+
+### Rutin Kontroller
+
+**Aylık:**
+- Genel topallama gözlemi
+- Yeni vakaları tespit
+- Tedavi takibi
+
+**3-6 Ayda Bir:**
+- Tırnak kesimi
+- Ayak banyosu yoğunlaştırma
+- Veteriner kontrolü
+
+**Yıllık:**
+- Footvax rapel
+- Barınak değerlendirmesi
+- Beslenme gözden geçirme
+
+### Kayıt Tutma
+
+**İzlenmesi Gerekenler:**
+- Topallama vakaları (sayı, tarih)
+- Tedavi edilen hayvanlar
+- Tırnak kesim tarihleri
+- Ayak banyosu uygulamaları
+- Veteriner müdahaleleri
+- Maliyet
+
+**Değerlendirme:**
+- Yıllık topallama oranı
+- Tekrarlayan vakalar
+- Risk faktörleri
+- Tedavi başarısı
+
+## Ekonomik Analiz
+
+### Maliyet Hesabı
+
+**Önleme (Yıllık/100 Baş):**
+- Tırnak kesimi (2x): 500-1000 TL
+- Ayak banyosu malzemesi: 300-600 TL
+- Footvax aşısı: 400-800 TL
+- Toplam: ~1700 TL
+
+**Tedavi (Topallama Vakası Başına):**
+- Antibiyotik: 30-50 TL
+- Sprey/merhem: 20-30 TL
+- Veteriner: 100-200 TL (gerekirse)
+- İşgücü: 50-100 TL
+- Toplam: ~200-380 TL/vaka
+
+**Verim Kaybı:**
+- Kilo kaybı: 5-10 kg/hayvan = 250-500 TL
+- Süt kaybı: %20 düşüş = 200-400 TL
+- Toplam dolaylı: 450-900 TL/vaka
+
+**Sonuç:**
+Önleme (17 TL/hayvan) << Tedavi + Kayıp (650-1280 TL/vaka)
+
+## Sık Sorulan Sorular
+
+**S: Ne sıklıkla tırnak kesilmeli?**
+C: Genelde 6 ayda bir (ilkbahar, sonbahar). Topallama sık olan sürülerde 3-4 ayda bir.
+
+**S: Hangi ayak banyosu kimyasalı en iyi?**
+C: Çinko sülfat (%10-20) etkili ve çevre dostu. Bakır sülfat ekonomik ama çevre sorunu yaratır.
+
+**S: Footvax aşısı şart mı?**
+C: Şart değil ama yüksek riskli bölgelerde şiddetle önerilir. Diğer önlemlerle birlikte kullanılmalı.
+
+**S: Topallayan hayvan kesime gönderilmeli mi?**
+C: Hafif vakalar tedavi edilebilir. Kronik, tedaviye dirençli, zayıf hayvanlar kesime gönder ilebilir.
+
+**S: Tırnak kesiminde kanama olursa?**
+C: Hemen basınç uygulayın, sprey/toz ile durdurUN, 24 saat ayak banyosu yapmayın.
+
+**S: Keçi ve koyun ayak bakımı aynı mı?**
+C: Genel prensipler aynı ama keçiler daha aktif, tırnak daha hızlı aşınabilir. Keçilerde tırmalama da önemli.
+
+## Sonuç ve Öneriler
+
+Sağlıklı ayaklar, sağlıklı sürü demektir:
+✅ Verim artar
+✅ Hayvan refahı iyileşir
+✅ Tedavi maliyetleri düşer
+✅ İşgücü azalır
+✅ Karlılık artar
+
+**Altın Kurallar:**
+1. 6 ayda bir tırnak kesimi
+2. Düzenli ayak banyosu (haftada 1-2)
+3. Kuru, temiz barındırma
+4. Footvax aşısı (riskli bölge)
+5. Erken müdahale (topallama görüldüğünde)
+6. Kayıt tutma
+7. Veteriner işbirliği
+
+**Unutmayın:** Ayak bakımı "ekstra iş" değil, temel yönetim uygulamasıdır. Önleme her zaman tedaviden ucuz ve etkilidir. Sürünüzdeki topallama oranı %5'in üzerindeyse sistem gözden geçirilmelidir!`,
+    categoryTags: ["küçükbaş", "koyun", "keçi", "ayak bakımı", "topallama", "sağlık"],
+    readTime: 28,
+    published: true,
+  },
+
+  {
+    title: "Koyun Kırpımı ve Yün Yönetimi: Pratik Rehber",
+    slug: "koyun-kirpimi-yun-yonetimi",
+    excerpt: "Koyun kırpımı doğru zamanda, doğru teknikle yapılmalıdır. Yün kalitesi ve hayvan sağlığı için kapsamlı kırkım rehberi.",
+    content: `# Koyun Kırpımı ve Yün Yönetimi: Kapsamlı Rehber
+
+Koyun kırpımı, hem hayvan sağlığı hem de ekonomik getiri açısından kritik bir yönetim uygulamasıdır. Doğru zamanlama, uygun teknik ve hijyenik koşullar, hem yün kalitesini artırır hem de koyunların konforunu sağlar.
+
+## Koyun Kırpımının Önemi
+
+### Neden Kırpılmalı?
+
+**Hayvan Sağlığı:**
+- **Sıcak Stresi Önleme:** Yaz sıcağında uzun yün aşırı ısınmaya neden olur
+- **Parazit Kontrolü:** Pirelabuk, kene, bit barınakları azalır
+- **Hijyen:** Arka bölge temiz kalır, ishalde kirlenme önlenir
+- **Hareket Serbestliği:** Yün ağırlığı azalır, rahat hareket ederler
+
+**Ekonomik Fayda:**
+- **Yün Geliri:** Bir koyundan 2-6 kg yün (ırka göre)
+- **Fiyat:** 10-50 TL/kg (kalite ve piyasaya göre)
+- **Yıllık Gelir:** Koyun başına 50-200 TL
+- **Verim Artışı:** Konforlu koyun daha iyi beslenir, gelişir
+
+**Üreme ve Laktasyon:**
+- Gebe koyunlarda rahatlık
+- Doğum öncesi hijyen
+- Kuzuların anneye erişimi kolay
+
+### Kırpılmazsa Ne Olur?
+
+**Sağlık Sorunları:**
+❌ Sıcak çarpması (yazın)
+❌ Parazit yükü artışı
+❌ Kirli yün (dışkı, idrar)
+❌ Deri hastalıkları
+❌ Hareket kısıtlılığı
+
+**Ekonomik Kayıp:**
+❌ Yün değersizleşir (kirli, dolaşmış)
+❌ Verim düşer
+❌ Hastalık tedavi masrafları
+
+## Kırpım Zamanı
+
+### İlkbahar Kırpımı (ANA KIRKIM)
+
+**İdeal Zaman:** Nisan-Mayıs
+
+**Neden İlkbahar?**
+✅ Havalar ısınmış (soğuktan etkilenmez)
+✅ Yaz sıcağı öncesi rahatlar
+✅ Mera otlatması başlıyor (enerji artışı)
+✅ Yün 1 yıllık büyümüş (optimum uzunluk)
+✅ Kış boyunca biriken kir çıkar
+
+**Dikkat:**
+- Çok erken kırkım: Soğuk gecelerde üşüme riski
+- Çok geç kırkım: Sıcakta koyun bunalır
+
+**İklime Göre:**
+- Akdeniz/Ege: Nisan başı
+- İç Anadolu: Nisan sonu-Mayıs
+- Doğu Anadolu: Mayıs-Haziran
+
+### Sonbahar Kırpımı (İKİNCİL)
+
+**İdeal Zaman:** Eylül-Ekim (Opsiyonel)
+
+**Kimler Yapar?**
+- Sıcak bölgeler (Akdeniz kıyısı)
+- Yün ırkları (Merino vb.)
+- Yılda 2 kırpım yapanlar
+
+**Avantajlar:**
+✅ Kış öncesi temizlik
+✅ Yılda 2 kez yün geliri
+✅ Parazit kontrolü
+
+**Dezavantajlar:**
+❌ Kışın soğuk (yeterince uzamamışsa)
+❌ Ekstra işgücü
+
+**Dikkat:**
+- Kış şartları sert ise yapılmamalı
+- En az 10-12 haftalık büyüme süresi bırakılmalı (kış öncesi)
+
+### Kırpım Yapılmaması Gereken Zamanlar
+
+❌ **Kış (Kasım-Mart):**
+- Soğuktan hastalanma riski
+- Hipotermid
+- Özellikle yağışlı, rüzgarlı bölgeler tehlikeli
+
+❌ **Çok Sıcak Günler:**
+- Taze kırkılmış koyun güneş çarpması yaşayabilir
+- Sabah erken veya akşam kırkın
+
+❌ **Islak/Yağmurlu Hava:**
+- Yün ıslak kesilemez (makine zarar görür)
+- Koyun üşür
+- Deri enfeksiyon riski
+
+❌ **Doğum Öncesi Son 1 Ay:**
+- Stres doğum sorunlarına yol açabilir
+- Doğumdan 2-3 hafta önce kırkılırsa ideal (hijyen için)
+
+## Kırpım Teknikleri
+
+### Geleneksel El Makası
+
+**Özellikler:**
+- Manuel, elle çalışan makas
+- Yavaş ama sessiz
+- Küçük sürüler için
+- Pratik gerektiriri
+
+**Avantajlar:**
+✅ Elektrik gerektirmez
+✅ Sessiz (koyunları korkutmaz)
+✅ Ucuz
+✅ Taşınabilir
+
+**Dezavantajlar:**
+❌ Çok yavaş (koyun başına 15-20 dk)
+❌ Yorucu
+❌ Büyük sürüde impraktik
+
+**Maliyet:** 100-200 TL (kaliteli makas)
+
+### Elektrikli Kırpma Makinesi
+
+**Özellikler:**
+- Elektrikli motor
+- Hızlı kesim
+- Profesyonel kullanım
+- Farklı başlıklar (bıçak seti)
+
+**Avantajlar:**
+✅ Hızlı (koyun başına 3-7 dk)
+✅ Düzgün kesim
+✅ Büyük sürüler için ideal
+✅ Yorgunluk az
+
+**Dezavantajlar:**
+❌ Pahalı (1500-5000 TL)
+❌ Elektrik gerekir (jeneratör seçeneği)
+❌ Gürültülü
+❌ Bakım gerektirir
+
+**Markalar (Dünya):**
+- Heiniger (İsviçre) - Profesyonel
+- Lister (UK)
+- Oster (ABD)
+- Supershear (Yeni Zelanda)
+
+**Türkiye'de:**
+- Yerli markalar: 1500-3000 TL
+- İthal: 3000-5000+ TL
+
+### Kırpım Sırası ve Teknik
+
+**Hazırlık:**
+1. Koyunları toplayın (gece öncesi)
+2. Aç bırakın (12-24 saat, kusma önleme)
+3. Kuru, temiz platform/çadır
+4. Araçları hazırlayın
+
+**Kırpım Adımları:**
+
+**1. Koyunu Yatırın:**
+- Yan/sırt üstü (tercihe göre)
+- Sakin tutun (bağlamayın, stres yaratır)
+- Bacaklar hafif tutulur
+
+**2. Karın Bölgesi:**
+- Göğüs altından başlayın
+- Bacak içleri
+- Genital bölge (dikkatli!)
+- Meme/testis çevresi nazik
+
+**3. Bacaklar:**
+- Ön bacaklar
+- Arka bacaklar
+- Tırnaktan ekleme kadar
+
+**4. Yan Gövde:**
+- Karından sırta doğru
+- Uzun, düz çekimler
+- Yünü bir parça halinde çıkarın (ideal)
+
+**5. Sırt ve Boyun:**
+- Sırt ortasından
+- Omuzlar
+- Boyun
+- Baş çevresi (dikkat: kulak, göz)
+
+**6. Kontrol:**
+- Kesik var mı?
+- Tam kırpıldı mı?
+- Yün tek parça mı?
+
+**Püf Noktaları:**
+- **Gergin Deri:** Serbest elinizle deriyi gerin (pürüz önler)
+- **Uzun Vuruşlar:** Kısa kesmeler yerine uzun çekimler (düz yün)
+- **Bıçak Yönü:** Deriye 5-10° açıyla yaklaşın (kesik riski azalır)
+- **Terleme:** Makinenin aşırı ısınmasına izin vermeyin (deri yanığı)
+
+## Yün Sınıflandırma ve Değerlendirme
+
+### Yün Kalitesi Faktörleri
+
+**1. İncelik (Fineness):**
+- İnce yün > Kalın yün
+- Mikron cinsinden ölçülür
+- Merino: 17-25 mikron (en ince)
+- Yerli ırklar: 25-40 mikron
+
+**2. Uzunluk (Staple Length):**
+- İdeal: 7-12 cm (yıllık)
+- Çok kısa: İşlenmesi zor
+- Çok uzun: Dolaşabilir
+
+**3. Temizlik:**
+- Kirli yün: Değer kaybı (%20-50)
+- Vegetative madde (saman, diken): Sorun
+- Yağ oranı: %10-25 (lanolin, normal)
+
+**4. Renk:**
+- Beyaz: En değerli (boyanabilir)
+- Kahverengi, siyah: Daha az değerli
+
+**5. Mukavemet (Strength):**
+- Güçlü lif > Zayıf lif
+- Kırılmayan yün tercih
+
+### Yün Sınıfları
+
+**1. Sınıf Yün (En İyi):**
+- Temiz, beyaz
+- İnce, eşit lif
+- Uzunluk uygun
+- Dolaşık değil
+- **Fiyat:** 30-50 TL/kg
+
+**2. Sınıf Yün:**
+- Az kirli
+- Orta incelik
+- Hafif dolaşık
+- **Fiyat:** 20-30 TL/kg
+
+**3. Sınıf Yün (Düşük):**
+- Kirli
+- Kalın lif
+- Çok dolaşık
+- Renkli
+- **Fiyat:** 10-20 TL/kg
+
+**Kirli Yün (Çöp):**
+- İşe yaramaz kısımlar
+- Dışkı, idrar bulaşmış
+- **Fiyat:** 1-5 TL/kg veya çöp
+
+### Yün Saklama
+
+**Kırpım Sonrası:**
+1. Yünü açın (kontrolü)
+2. Kirli kısımları ayırın (karın, bacak)
+3. Sınıflara ayırın
+4. Yuvarlayın (rulo)
+5. Presleme (opsiyonel)
+
+**Depolama:**
+- Kuru, havadar yer
+- Nem düşman (küf, çürüme)
+- Balyalama (satışa kadar)
+- Haşerelerden koruyun
+
+**Satış:**
+- Toplu alıcılara (yün tüccarı)
+- Kooperatif aracılığı
+- Doğrudan tekstil fabrikası
+- Online platformlar
+
+## Kırpım Sonrası Bakım
+
+### Koyun Bakımı
+
+**İlk 24-48 Saat:**
+✅ Güneşten koruyun (gölge sağlayın)
+✅ Soğuktan koruyun (kapalı alan, kış kırpımında)
+✅ Yağmurdan koruyun
+✅ Stres minimumda
+
+**Beslenme:**
+- İştah geçici azalabilir (normal)
+- Kaliteli yem sunun
+- Bol su
+
+**Gözlem:**
+- Kesikler enfekte olmuş mu?
+- Topallama var mı?
+- Uyuşukluk?
+
+**Tedavi:**
+- Küçük kesikler: Sprey antiseptik
+- Derin yara: Veteriner
+- Ateş, enfeksiyon: Antibiyotik
+
+### Hijyen ve Dezenfeksiyon
+
+**Makine Bakımı:**
+- Her kullanımdan sonra temizleyin
+- Bıçakları dezenfekte edin (alkol, dezenfektan)
+- Yağlama (paslanma önleme)
+- Keskin bıçaklar (düzenli bileme)
+
+**Alan Temizliği:**
+- Yün artıklarını toplayın
+- Dışkı temizliği
+- Dezenfeksiyon
+- Bir sonraki sezon için hazırlık
+
+## Özel Durumlar
+
+### Hamile Koyunlar
+
+**Önerilen:**
+- Doğumdan 2-3 hafta önce kırk (hijyen)
+- Veya doğumdan 4-6 hafta sonra
+
+**Dikkat:**
+- Stres minimumda
+- Nazik davranın
+- Yorucu pozisyonlar vermein
+
+**Fayda:**
+- Temiz doğum ortamı
+- Kuzuların memeye erişimi kolay
+- Annenin rahatı
+
+### Hasta/Zayıf Koyunlar
+
+**Değerlendirme:**
+- Çok zayıf: Erteleyin (enerji kaybı)
+- Hasta: İyileşene kadar bekleyin
+- Hafif sorunlar: Dikkatle kırkın
+
+**Önlem:**
+- Veteriner onayı
+- Ekstra nazik davranış
+
+### Yaşlı Koyunlar
+
+**Dikkat:**
+- Deri ince, hassas
+- Eklem sorunları (pozisyon zorluğu)
+- Daha sakin yaklaşım
+
+### Kuzu ve Toklu
+
+**İlk Kırpım:**
+- 1 yaşında (ilk yaz)
+- Nazik giriş
+- Stres azaltma
+
+**Teknik:**
+- Deneyimli kırpıcı
+- Sakin koyun ile alıştırma
+
+## Sürü Yönetimi
+
+### Kırpım Planlaması
+
+**Küçük Sürü (10-50 baş):**
+- 1-2 günde bitirilebilir
+- El makası veya elektrikli
+- Aile işgücü yeterli
+
+**Orta Sürü (50-200 baş):**
+- 3-5 gün
+- Elektrikli makine şart
+- 2-3 kişi ekip
+- Günlük 30-50 koyun/kişi
+
+**Büyük Sürü (200+ baş):**
+- Profesyonel kırpıcı kiralama (tavsiye)
+- Ekip çalışması
+- Hafta boyu
+- Organize sistem
+
+### Profesyonel Kırpıcı
+
+**Ne Zaman Kiralayın?**
+- Büyük sürü (zaman kazanır)
+- Deneyimsizlik
+- Kaliteli iş istiyorsanız
+
+**Maliyet:**
+- Koyun başına: 5-15 TL
+- Veya günlük ücret: 500-1500 TL
+
+**Avantajlar:**
+✅ Hızlı
+✅ Profesyonel
+✅ Yün kalitesi yüksek
+✅ Kesik riski düşük
+
+**Seçim Kriterleri:**
+- Deneyim
+- Referanslar
+- Makine kalitesi
+- Fiyat
+
+### Kayıt Tutma
+
+**İzlenenler:**
+- Kırpım tarihi
+- Koyun sayısı
+- Toplam yün miktarı (kg)
+- Yün sınıfları (kg)
+- İşçilik maliyeti
+- Yün satış fiyatı
+- Kar/zarar
+
+**Değerlendirme:**
+- Yıllık yün verimi trend
+- Koyun başına verim
+- Ekonomik analiz
+
+## Ekonomik Hesaplama
+
+### Gelir (100 Koyun Örnek)
+
+**Yün Verimi:**
+- Ortalama: 3.5 kg/koyun
+- Toplam: 350 kg
+
+**Sınıflandırma:**
+- 1. Sınıf (60%): 210 kg x 35 TL = 7,350 TL
+- 2. Sınıf (30%): 105 kg x 25 TL = 2,625 TL
+- 3. Sınıf (10%): 35 kg x 15 TL = 525 TL
+- **Toplam Gelir:** 10,500 TL
+
+### Gider
+
+**Kırpıcı:**
+- 100 koyun x 10 TL = 1,000 TL
+
+**Makine (varsa):**
+- Amortisman: 300 TL/yıl
+
+**İşçilik:**
+- Yardımcı iş (2 kişi, 3 gün): 1,500 TL
+
+**Diğer:**
+- Antiseptik, ilaç: 200 TL
+
+**Toplam Gider:** 3,000 TL
+
+### Kar
+
+**Net:** 10,500 - 3,000 = 7,500 TL
+**Koyun Başına:** 75 TL
+
+**Not:** Bu et, süt verimine ek gelirdir!
+
+## Yün Dışı Faydalar
+
+**Sağlık:**
+- Parazit azalması (pire, kene)
+- Sıcak stresinden korunma
+- Deri sağlığı
+
+**Verim:**
+- Rahat koyun daha iyi besleniry
+- Süt verimi artabilir (%5-10)
+- Kuzular daha iyi gelişir
+
+**Yönetim:**
+- Gözlem kolaylaşır (zayıflık, topallama görülür)
+- Sağlık kontrolü pratik
+- Aşı, ilaç uygulaması kolay
+
+## Sık Sorulan Sorular
+
+**S: Koyun yılda kaç kez kırkılmalı?**
+C: Genelde yılda 1 kez (ilkbahar). Sıcak bölgelerde ve yün ırkları yılda 2 kez (ilkbahar + sonbahar).
+
+**S: Hangi mevsim kırkım en iyisidir?**
+C: İlkbahar (Nisan-Mayıs). Hava ısınmış, yün 1 yıllık, yaz sıcağı öncesi.
+
+**S: Islak koyun kırkılır mı?**
+C: Hayır! Islak yün kesilemez, makine bozulur, koyun üşür. Kuru, temiz koyun kırkılmalı.
+
+**S: El makası mı elektrikli makine mi?**
+C: Küçük sürü (10-20): El makası yeterli. Orta-büyük sürü: Elektrikli şart (hız, kalite).
+
+**S: Kırpımdan sonra koyun üşür mü?**
+C: İlkbaharda kırkılırsa sorun olmaz. Kışın veya soğuk gecelerde ise barınak sağlayın.
+
+**S: Kırpım yaparken kesik olursa ne yapılmalı?**
+C: Küçük: Antiseptik sprey. Derin: Dikiş gerekebilir, veteriner.
+
+**S: Yün nasıl satılır?**
+C: Yün tüccarı, kooperatif, tekstil fabrikası, online. Temiz, sınıflandırılmış yün daha değerli.
+
+## Sonuç ve Öneriler
+
+Koyun kırpımı:
+✅ Hayvan sağlığını korur
+✅ Ek gelir sağlar
+✅ Verim artışı
+✅ Yönetimi kolaylaştırır
+
+**Altın Kurallar:**
+1. İlkbahar kırk (Nisan-Mayıs)
+2. Kuru, temiz koyun kırk
+3. Keskin araçlar kullan
+4. Hijyen ve dezenfeksiyon
+5. Kırpım sonrası koruma
+6. Yünü sınıflandır
+7. Kayıt tut
+
+**Unutmayın:** Koyun kırpımı sadece yün elde etmek değil, hayvan refahı ve sağlığıdır. Doğru zamanda, doğru teknikle yapılan kırpım hem koyununuzun hem de cüzdanınızın sağlığını korur!`,
+    categoryTags: ["koyun", "kırpım", "yün", "küçükbaş", "yönetim"],
+    readTime: 22,
+    published: true,
+  },
+
+  {
+    title: "Keçi Yetiştirme: Süt Üretimi ve Bakım Rehberi",
+    slug: "keci-yetistirme-sut-uretimi-bakim",
+    excerpt: "Süt keçisi yetiştiriciliği karlı ve sürdürülebilir bir hayvancılık dalıdır. Verimli süt üretimi için kapsamlı bakım rehberi.",
+    content: `# Keçi Yetiştirme: Süt Üretimi ve Bakım: Kapsamlı Rehber
+
+Süt keçisi yetiştiriciliği, Türkiye'de giderek popülerleşen, karlı ve sürdürülebilir bir hayvancılık dalıdır. Keçi sütünün besleyiciliği, az alerjik oluşu ve yüksek piyasa değeri, bu alanı cazip kılmaktadır.
+
+## Neden Süt Keçisi?
+
+### Avantajlar
+
+**Ekonomik:**
+- **Yüksek Fiyat:** Keçi sütü 20-40 TL/litre (inek sütü: 8-12 TL)
+- **Düşük Yatırım:** Keçi < İnek (alan, yem, barınak)
+- **Hızlı Döngü:** Keçi 7-8 aylık gebe, inek 9 ay
+- **Yan Ürünler:** Peynir, yoğurt, tulum (katma değer)
+
+**Beslenme:**
+- **Az Alerjik:** İnek sütü alerjisine alternatif
+- **Kolay Sindirim:** Yağ partikülleri küçük
+- **Besleyici:** Kalsiyum, A-D vitamin, protein zengin
+- **Tedavi Edici:** Solunum, sindirim sorunlarına iyi gelir
+
+**Yönetim:**
+- **Küçük Alan:** 100 keçi için 5-10 dönüm (inek: 20-30 dönüm)
+- **Çeşitli Yem:** Çalı, ağaç yaprakları yiyebilir
+- **Dayanıklı:** Hastalıklara dirençli
+- **Uysal:** Kolay yönetim
+
+### Dezavantajlar
+
+❌ **Özel Pazar:** Keçi sütü pazarı küçük (tüketici eğitimi gerekli)
+❌ **Koku:** Teke kokusu (ayrı barındırma şart)
+❌ **Kaçma:** Çit atlar, gezmeyi sever
+❌ **Mevsimsellik:** Kızgınlık mevsimseldir (sonbahar)
+
+## Süt Keçisi Irkları
+
+### Saanen (En Popüler)
+
+**Orijin:** İsviçre
+
+**Özellikler:**
+- Beyaz/krem renk
+- Kulaksız veya küçük kulak
+- Ağırlık: 50-90 kg (dişi), 70-120 kg (erkek)
+- Uzun, geniş gövde
+
+**Süt Verimi:**
+- **Laktasyon:** 280-305 gün
+- **Günlük:** 3-5 litre
+- **Yıllık:** 800-1200 litre
+- **Yağ:** %3-4
+
+**Avantajlar:**
+✅ En yüksek süt verimi
+✅ Uysal, yönetimi kolay
+✅ Türkiye şartlarına adaptedoldu
+
+### Alpine (Alp Keçisi)
+
+**Orijin:** Fransa (Alpler)
+
+**Özellikler:**
+- Çok renkli (kahverengi, siyah, beyaz kombinasyon)
+- Orta boy kulaklı
+- Ağırlık: 55-80 kg (dişi), 75-110 kg (erkek)
+
+**Süt Verimi:**
+- Günlük: 2.5-4 litre
+- Yıllık: 700-1000 litre
+- Yağ: %3.5-4
+
+**Avantajlar:**
+✅ Dayanıklı
+✅ Sert iklim adaptasyonu
+
+### Kıl Keçisi (Yerli)
+
+**Bölge:** Türkiye (Anadolu)
+
+**Özellikler:**
+- Siyah, kahverengi, beyaz
+- Uzun, kaba tüy
+- Ağırlık: 35-50 kg (dişi), 50-70 kg (erkek)
+- Boynuzlu
+
+**Süt Verimi:**
+- Günlük: 0.5-1.5 litre
+- Yıllık: 100-200 litre
+- **Düşük verim** (et-tiftik odaklı)
+
+**Kullanım:**
+- Tiftik (kıl) üretimi
+- Et üretimi
+- Süt (ikincil)
+
+### Murciana-Granadina
+
+**Orijin:** İspanya
+
+**Özellikler:**
+- Koyu kahverengi/siyah
+- Kısa tüy
+- Ağırlık: 45-65 kg (dişi)
+
+**Süt Verimi:**
+- Günlük: 2.5-4 litre
+- Yağ: %5-6 (ÇOK YÜKSEK!)
+- Peynir için ideal
+
+### Toggenburg
+
+**Orijin:** İsviçre
+
+**Özellikler:**
+- Kahverengi, beyaz şeritler
+- Orta boy
+- Ağırlık: 50-70 kg
+
+**Süt Verimi:**
+- Günlük: 2.5-3.5 litre
+- Yıllık: 700-900 litre
+
+**Avantaj:**
+✅ Soğuk iklime dayanıklı
+
+## Sürü Oluşturma
+
+### Başlangıç
+
+**İlk Sürü Büyüklüğü:**
+- Hobi/Aile: 5-10 dişi + 1 teke
+- Ticari (Küçük): 20-50 dişi + 2 teke
+- Ticari (Orta): 100-200 dişi + 4-6 teke
+
+**Satın Alma:**
+- **Gebe Düve:** 2000-4000 TL (Saanen)
+- **Laktasyonda:** 2500-5000 TL
+- **Teke:** 3000-8000 TL (damızlık kalite)
+
+**Seçim Kriterleri:**
+
+**Dişi:**
+✓ Vücut yapısı: Geniş göğüs, derin gövde
+✓ Meme: Simetrik, yumuşak, 2 meme başı
+✓ Bacaklar: Düz, güçlü
+✓ Yaş: 1-4 yaş ideal
+✓ Sağlık: Aktif, parlak göz, temiz burun
+
+**Teke:**
+✓ Güçlü yapı
+✓ Soy kütüğü (verim kaydı)
+✓ Testisler: Eşit, sağlam
+✓ Karakter: Sakin ama dominant
+
+**HAYIR:**
+❌ Asimetrik meme
+❌ Sert, küçük meme
+❌ Topallama
+❌ Zayıf, cılız
+❌ Hastalık belirtisi
+
+## Barındırma
+
+### Barınak Gereksinimleri
+
+**Alan:**
+- Dişi: 2-3 m²/baş (kapalı)
+- Teke: Ayrı bölme (4-5 m²)
+- Oğlak: 1-1.5 m²/baş
+
+**Yapı:**
+- **Zemin:** Beton veya sıkıştırılmış toprak
+- **Yatak:** Saman, talaş (kuru tutun)
+- **Havalandırma:** İyi (nemden kaçının)
+- **Işık:** Doğal ışık (pencere)
+- **Sıcaklık:** 10-20°C ideal (kışın 5°C altına düşmesin)
+
+**Donanım:**
+- **Yemlik:** Her keçiye 40-50 cm (baş başa kavga önleme)
+- **Suluk:** Temiz, taze su sürekli
+- **Sağım platformu:** Yükseltilmiş, rahat
+- **Tırmanma/Dinlenme:** Keçiler yüksekte seviyorlar (platformlar)
+
+**Teke Barınağı:**
+- Ana sürüden AYRI (koku, agresif davranış)
+- Güçlü çit
+- Asgari 20 metre uzak
+
+### Çitleme
+
+**Özellikler:**
+- **Yükseklik:** Minimum 1.2-1.5 metre
+- **Malzeme:** Tel örgü (sağlam) veya panel
+- **Tırmanma Önleme:** Keçiler atletiktir!
+
+**Dikkat:**
+❌ Dikenli tel (yaralanma)
+✓ Düz, sağlam panel/tel örgü
+
+### Otlak
+
+**Alan:**
+- 10-15 keçi/dönüm (mera kalitesine göre)
+- Rotasyon (dinlendirme)
+
+**Bitki:**
+- Çalı, ağaç yaprakları (favori)
+- Ot, yonca
+- Toksik bitkilerden uzak (defne, zakkum)
+
+## Beslenme Programı
+
+### Temel İhtiyaçlar
+
+**Kuru Madde İhtiyacı:**
+- %3-4 (canlı ağırlığa göre)
+- 50 kg keçi: 1.5-2 kg kuru madde/gün
+
+**Protein:**
+- Süt verimi yüksek: %16-18
+- Kuru dönem: %12-14
+
+**Enerji:**
+- Laktasyon: Yüksek (tahıl bazlı)
+- Kuru dönem: Orta (kaba yem)
+
+### Laktasyon Dönemi Rasyonu
+
+**Kaba Yem (50-60%):**
+- Yonca kuru otu: 1-1.5 kg
+- Çayır otu: 0.5-1 kg
+- Silaj: 1-2 kg (opsiyonel)
+
+**Konsantre Yem (40-50%):**
+- Arpa/Mısır: 0.5-1 kg
+- Kepek: 0.3-0.5 kg
+- Soya küspesi/pamuk küspesi: 0.2-0.3 kg
+- **Toplam:** 1-2 kg (süt verimine göre)
+
+**Takviye:**
+- Mineral-vitamin premiks: 20-30 g
+- Tuz (yalama taşı): Serbest erişim
+
+**Su:**
+- 3-5 litre/gün (süt verimine göre 10+ litre)
+
+### Gebelik Dönemi
+
+**İlk 3 Ay:**
+- Normal bakım rasyonu
+- Fazla yağlanma önleme
+
+**Son 2 Ay:**
+- Konsantre yem artırın (%20-30)
+- Yüksek protein
+- Flushing (doğum öncesi enerjilendirme)
+
+### Kuru Dönem
+
+**Süt Kesimi Sonrası:**
+- Konsantre azaltın (0.3-0.5 kg)
+- Kaba yem odaklı
+- Kilo kontrolü (obezite önleme)
+
+### Oğlak Beslenmesi
+
+**0-3 Gün:**
+- **Kolostrum** (ağız sütü) mutlaka!
+- İlk 24 saat içinde en az 4-6 kez
+- Toplam: Vücut ağırlığının %10-15'i
+
+**0-2 Ay:**
+- Anne sütü veya süt ikamesi
+- Günde 3-4 kez, 200-300 ml/kez
+- 2. haftadan kreep yem sunun (alfalfa, az tahıl)
+
+**2-4 Ay:**
+- Süt azaltın (kademeli)
+- Kreep yem, kaba yem artırın
+- 3. ayda sütten kesin
+
+**4+ Ay:**
+- Normal genç keçi rasyonu
+- Büyüme için protein (%14-16)
+
+## Üreme Yönetimi
+
+### Kızgınlık (Östrus)
+
+**Mevsimsellik:**
+- **Aktif:** Eylül-Şubat (kısa gün)
+- **Pasif:** Mart-Ağustos (uzun gün)
+
+**Kızgınlık Süresi:**
+- 18-21 gün periyot
+- Kızgınlık: 24-48 saat
+
+**Belirtiler:**
+- Kuyruk sallama
+- Vulva şişliği
+- Huzursuzluk
+- Tekeyi arar
+- Azalan süt (geçici)
+
+### Çiftleşme
+
+**Yaş:**
+- İlk çiftleşme: 7-9 ay (25-30 kg)
+- İdeal: 12-14 ay
+
+**Teke Oranı:**
+- 1 teke : 25-40 dişi
+
+**Yöntemler:**
+
+**1. Serbest Çiftleşme:**
+- Teke sürü ile
+- Kolay ama kayıt zor
+
+**2. Elle Çiftleşme:**
+- Kızgın dişi tekeye götürülür
+- Kayıt tutulur
+- Doğum tarihi hesaplanır
+
+**3. Senkronizasyon:**
+- Hormonal (veteriner)
+- Tüm sürü birlikte kızgına gelir
+- Organize üretim
+
+### Gebelik
+
+**Süre:** 145-155 gün (ortalama 150 gün = 5 ay)
+
+**Teşhis:**
+- Ultrason: 30-45 gün (veteriner)
+- Doğum öncesi meme büyümesi
+
+**Bakım:**
+- İlk 3 ay normal
+- Son 2 ay artan enerji/protein
+- Aşı (Clostridial: doğumdan 3-4 hafta önce)
+
+### Doğum
+
+**Hazırlık:**
+- Temiz, kuru doğum bölmesi
+- Dezenfekte edilmiş alan
+- Havlu, iplik (göbek), iyot
+
+**Doğum Belirtileri:**
+- Huzursuzluk
+- Meme dolgunluğu
+- Vulva gevşemesi
+- Su koyuvermesi
+
+**Doğum:**
+- Genelde kolay, müdahale gerektirmez
+- 1-3 oğlak (genelde ikiz)
+- Süre: 30-60 dakika
+
+**Müdahale Gereken Durumlar:**
+⚠️ 2+ saat zorlanma
+⚠️ Anormal pozisyon
+⚠️ Zayıf kasılmalar
+**-> Veteriner!**
+
+**Doğum Sonrası:**
+1. Oğlağın burun/ağzını temizleyin
+2. Nefes almasını sağlayın
+3. Annenin yalatmasına izin verin
+4. Göbek kesimi (5-7 cm bırak) + iyot
+5. Kolostrum sunun (ilk 1-2 saat içinde)
+
+## Sağım ve Süt Üretimi
+
+### Sağım Rutini
+
+**Sıklık:**
+- İlk 2-3 ay: Günde 2 kez (sabah-akşam)
+- 3+ ay: Günde 1 kez (düşük verim)
+
+**Zaman:**
+- Düzenli saatler (07:00, 19:00)
+- 12 saat arayla
+
+**Hijyen (ÖNEMLİ!):**
+
+**Öncesi:**
+1. Memeyi ılık su ile yıkayın
+2. Kurulayın (yumuşak havlu)
+3. İlk birkaç fışkırtmayı atın (bakteri temizliği)
+
+**Sağım:**
+- **Elle:** Başparmak + işaret parmağı ile sıkın (yukarıdan aşağı)
+- **Makine:** Süt keçisi özel (hassas ayar)
+
+**Sonrası:**
+1. Meme başlarını dezenfekte edin (dip spray/iyot)
+2. Keçiyi dinlendirin (30 dk ayakta - meme başı kapanması)
+
+**Süt Saklama:**
+- Hemen soğutun (4°C)
+- Paslanmaz çelik/cam kap
+- 2-3 günde kullanın veya dondurma
+
+### Süt Verimi Takibi
+
+**Kayıt:**
+- Günlük keçi başına litre
+- Haftalık/aylık toplam
+- Laktasyon eğrisi
+
+**Verim Eğrisi:**
+- **Zirve:** Doğumdan 4-6 hafta sonra
+- **Plato:** 2-3 ay sürer
+- **Düşüş:** Kademeli (5-6. aydan itibaren)
+
+**Düşük Verim Nedenleri:**
+- Yetersiz beslenme
+- Stres
+- Hastalık
+- Yaşlılık
+- Gebelik (son 2 ay)
+
+## Sağlık Yönetimi
+
+### Rutin Sağlık Uygulamaları
+
+**Aşılar:**
+- Clostridial (Tetanos, Enterotoksemi): Yıllık
+- Brucella: Genç dişilere (veteriner programı)
+
+**Parazit Kontrolü:**
+- **İç:** 3 ayda bir (mide-bağırsak kurdu)
+- **Dış:** Gerektiğinde (bit, pire, kene)
+
+**Tırnak Kesimi:**
+- 3-6 ayda bir
+- Topallama önleme
+
+### Sık Görülen Hastalıklar
+
+**1. Mastitis (Meme İltihabı):**
+- **Belirtiler:** Sıcak, şişmiş meme, pıhtılı süt
+- **Neden:** Bakteriyel enfeksiyon
+- **Tedavi:** Antibiyotik (intramammar)
+- **Önleme:** Hijyen!
+
+**2. Enterotoksemi:**
+- **Belirtiler:** Ani ölüm, ishal
+- **Neden:** Clostridium bakterisi (aşırı tahıl)
+- **Önleme:** Aşı, dengeli beslenme
+
+**3. Pnömoni:**
+- **Belirtiler:** Öksürük, burun akıntısı, ateş
+- **Tedavi:** Antibiyotik
+- **Önleme:** İyi havalandırma
+
+**4. Ayak Çürümesi:**
+- **Belirtiler:** Topallama, pis koku
+- **Tedavi:** Ayak banyosu, antibiyotik
+- **Önleme:** Kuru barınak, tırnak bakımı
+
+## Ürün İşleme
+
+### Keçi Peyniri
+
+**Tulum Peyniri:**
+- Tulum içinde olgunlaşma
+- 2-6 ay
+- Piyasa: 150-300 TL/kg
+
+**Lor Peyniri:**
+- Taze, yumuşak
+- Kısa ömürlü
+- Piyasa: 80-120 TL/kg
+
+**Çökelek:**
+- Taze peynir
+- Kahvaltılık
+- Piyasa: 60-100 TL/kg
+
+### Yoğurt
+
+**Keçi Yoğurdu:**
+- Probiyotik zengin
+- Az alerjik
+- Piyasa: 25-40 TL/kg
+
+### Taze Süt
+
+**Satış:**
+- Doğrudan tüketici
+- Market (paketli)
+- Piyasa: 20-40 TL/litre
+
+## Ekonomik Analiz
+
+### Gelir (50 Keçi Örnek)
+
+**Süt Üretimi:**
+- Keçi başına: 800 litre/yıl
+- Toplam: 40,000 litre
+
+**Satış:**
+- Taze süt: 40,000 x 25 TL = 1,000,000 TL
+- Veya peynir (1:6 oran): 6,600 kg x 180 TL = 1,188,000 TL
+
+**Oğlak Satışı:**
+- 80 oğlak/yıl x 800 TL = 64,000 TL
+
+**Toplam Gelir:** ~1,150,000 TL
+
+### Gider
+
+- Yem: 350,000 TL
+- İşçilik: 200,000 TL
+- Veteriner/ilaç: 50,000 TL
+- Enerji/su: 30,000 TL
+- Diğer: 70,000 TL
+**Toplam:** 700,000 TL
+
+### Kar
+
+**Net:** 450,000 TL/yıl
+**Keçi Başına:** 9,000 TL
+
+## Sonuç ve Öneriler
+
+Süt keçisi yetiştiriciliği:
+✅ Karlı ve sürdürülebilir
+✅ Küçük yatırımla başlanır
+✅ Yüksek pazar değeri
+✅ Çevre dostu
+
+**Altın Kurallar:**
+1. Kaliteli ırkla başlayın (Saanen)
+2. Hijyen şart (süt kalitesi)
+3. Dengeli beslenme
+4. Düzenli sağlık kontrolü
+5. Pazarlama planı yapın
+6. Kayıt tutun
+
+**Unutmayın:** Süt keçisi yetiştiriciliği titizlik ister. Hijyen, beslenme ve sağlık yönetimi ihmal edilemez. Başarılı bir işletme için bilgi, emek ve sabır gereklidir!`,
+    categoryTags: ["keçi", "süt üretimi", "yetiştiricilik", "küçükbaş", "hayvancılık"],
+    readTime: 25,
+    published: true,
+  },
+
+  {
+    title: "Koyun ve Keçilerde Aşı Programı ve Sağlık Takibi",
+    slug: "koyun-kecilerde-asi-programi-saglik-takibi",
+    excerpt: "Küçükbaş hayvanlarda hastalıklardan korunmanın en etkili yolu düzenli aşılama ve sağlık izlemedir. Kapsamlı aşı takvimi ve takip rehberi.",
+    content: `# Koyun ve Keçilerde Aşı Programı ve Sağlık Takibi: Kapsamlı Rehber
+
+Küçükbaş hayvancılıkta başarının anahtarlarından biri, etkili bir sağlık yönetim programıdır. Düzenli aşılama, parazit kontrolü ve hastalık takibi, hem hayvan refahını hem de ekonomik verimliliği artırır.
+
+## Aşılamanın Önemi
+
+### Neden Aşılama?
+
+**Hastalık Önleme:**
+- Ölümcül hastalıklardan korur
+- Salgın riskini azaltır
+- Sürü bağışıklığı sağlar
+- Kronik hastalıkları engeller
+
+**Ekonomik Fayda:**
+- Tedavi masraflarını azaltır
+- Verim kaybını önler (süt, et, yün)
+- Ölüm oranını düşürür
+- Uzun vadede kar artışı
+
+**Halk Sağlığı:**
+- Zoonoz hastalıkları önler (brucella, şarbon)
+- Gıda güvenliği
+- İnsan-hayvan sağlığı bağlantısı
+
+**Yasal Zorunluluk:**
+- Bazı aşılar devlet tarafından zorunludur (Şap, Brucella)
+- Hareket izni için gerekli
+- İhracat şartı
+
+### Aşılamanın Temelleri
+
+**Bağışıklık Tipi:**
+- **Aktif:** Aşı ile antikor üretimi (uzun süreli)
+- **Pasif:** Kolostrum, serum (kısa süreli)
+
+**Aşı Türleri:**
+- **Canlı Zayıflatılmış:** Güçlü bağışıklık, yan etki riski
+- **Ölü/İnaktif:** Güvenli, tekrar doz gerekir
+- **Toksinoid:** Toksinlere karşı (tetanos, clostridial)
+
+**Etkinlik Faktörleri:**
+✓ Doğru depolama (2-8°C)
+✓ Uygun doz
+✓ Doğru uygulama yolu (IM/SC)
+✓ Sağlıklı hayvan
+✓ Stressiz ortam
+
+## Zorunlu Aşılar
+
+### 1. Şap Hastalığı (FMD - Foot and Mouth Disease)
+
+**Hastalık:**
+- Virüs (Picornavirus)
+- Çok bulaşıcı
+- Ağız, ayak, meme yaralaları
+- Ateş, iştahsızlık, topallama
+- Süt-et verimi düşüşü
+
+**Aşı Programı:**
+- **İlk Aşı:** 3 aylık
+- **Rapel:** 3 hafta sonra
+- **Tekrar:** 6 ayda bir (yaşam boyu)
+- **Acil Aşı:** Salgın durumunda
+
+**Uygulama:**
+- IM (Kas içi): Boyun kasına
+- Doz: Üretici talimatına göre (genelde 2 ml)
+
+**Not:** Türkiye'de Tarım Bakanlığı kampanyası ile ücretsiz
+
+### 2. Brucelloz (Malta Humması)
+
+**Hastalık:**
+- Bakteri (Brucella melitensis)
+- Zoonoz (insana geçer!)
+- Düşük yapma
+- İnfertilite
+- Eklem iltihabı
+
+**Aşı Programı:**
+- **Yaş:** 3-6 aylık DİŞİ oğlak/kuzu
+- **Aşı:** Rev-1 (canlı)
+- **Tek Doz:** Ömür boyu koruma
+- **Erkekler:** Aşılanmaz!
+
+**Uygulama:**
+- SC (Deri altı): Boyun bölgesi
+- Doz: 1 ml
+
+**Dikkat:**
+⚠️ Hamile hayvanlara ASLA
+⚠️ Aşı sonrası geçici ateş normal
+⚠️ İnsan temas riski (dikkatli kullanım)
+
+**Not:** Devlet veterineri tarafından zorunlu, ücretsiz
+
+### 3. Şarbon (Anthrax)
+
+**Hastalık:**
+- Bakteri (Bacillus anthracis)
+- Zoonoz
+- Ani ölüm
+- Kanama (burdan, ağızdan)
+- Toprak sporları (yıllarca canlı)
+
+**Aşı Programı:**
+- **İlk Aşı:** 4-6 aylık
+- **Tekrar:** Yıllık (ilkbaharda)
+- **Risk Bölgesi:** 6 ayda bir
+
+**Uygulama:**
+- SC (Deri altı): Boyun
+- Doz: 1 ml
+
+**Dikkat:**
+⚠️ Hamile son 2 ay dikkatli
+⚠️ Aşı sonrası 7 gün kesime göndermein
+
+## Önerilen/Opsiyonel Aşılar
+
+### 4. Clostridial Hastalıklar (Kombine)
+
+**Hastalıklar:**
+- Enterotoksemi (Aşırı yemlenme hastalığı)
+- Tetanos (Kazıkl humma)
+- Kara Şarbon (Blackleg)
+- Böbrek iltihabı
+- Bradsot
+
+**Aşı:** 7-8'li Clostridium aşısı (hepsi bir arada)
+
+**Aşı Programı:**
+**Yavru:**
+- 1. Doz: 6-8 haftalık
+- 2. Doz: 4 hafta sonra
+- Rapel: 6-12 ayda bir
+
+**Yetişkin:**
+- İlk: 2 doz (4 hafta arayla)
+- Rapel: Yıllık
+
+**Gebe Hayvan:**
+- Doğumdan 3-4 hafta önce (anne korur, yavru pasif bağışıklık)
+
+**Uygulama:**
+- SC: Boyun, koltukaltı
+- Doz: 2-5 ml (ürüne göre)
+
+**Markalar:**
+- Covexin 8 (Zoetis)
+- Lambdox 8 (İntervet)
+- Polybac (Türkiye)
+
+### 5. Pasteurelloz (Solunum Hastalığı)
+
+**Hastalık:**
+- Bakteri (Pasteurella, Mannheimia)
+- Pnömoni
+- Öksürük, burun akıntısı
+- Ateş
+- Stres tetikleyici (taşıma, hava değişimi)
+
+**Aşı Programı:**
+- **İlk:** 2 doz (3-4 hafta arayla)
+- **Rapel:** 6-12 ayda bir
+- **Risk Zamanı:** Sonbahar, erken ilkbahar
+
+**Uygulama:**
+- IM veya SC
+- Doz: 2 ml
+
+### 6. Koyun Variola (Koyun Çiçeği)
+
+**Hastalık:**
+- Virüs (Poxvirus)
+- Deri lezyonları (yüz, meme, genital)
+- Yavru ölümleri
+- Süt veriminde düşüş
+
+**Aşı Programı:**
+- **İlk:** 2-3 aylık
+- **Rapel:** Yıllık
+- **Salgın Riski:** 6 ayda bir
+
+**Uygulama:**
+- Kuyruk altı deri (skarifiye)
+- Özel aplikatör
+
+**Not:** Endemik bölgelerde önerilir
+
+### 7. Koyunlarda Orf (Bulaşıcı Ekstima)
+
+**Hastalık:**
+- Virüs (Parapoxvirus)
+- Ağız çevresi kabarık yaralar
+- Memede lezyonlar
+- Kuzularda beslenmeve güçlük
+- Zoonoz (insana geçer, hafif)
+
+**Aşı Programı:**
+- **Canlı Aşı:** Risk durumunda
+- **Yaş:** 2+ aylık
+- **Tek Doz:** Yıllık
+
+**Dikkat:**
+⚠️ Aşı lezyona neden olur (normal)
+⚠️ Aşılı hayvandan insana geçiş riski
+
+## Aşı Takvimi (Yıllık Örnek)
+
+### Yeni Doğan Kuzu/Oğlak
+
+| Yaş | Aşı |
+|-----|-----|
+| 0-3 gün | Kolostrum (pasif bağışıklık) |
+| 6-8 hafta | Clostridial 1. doz |
+| 10-12 hafta | Clostridial 2. doz, Şap 1. doz |
+| 3-4 ay | Şap 2. doz (rapel) |
+| 3-6 ay | Brucella (dişi), Şarbon |
+| 6 ay | Pasteurelloz (risk varsa) |
+
+### Yetişkin (Bakım Aşıları)
+
+| Mevsim | Aşı |
+|--------|-----|
+| İlkbahar (Mart-Nisan) | Şap, Şarbon, Clostridial |
+| Yaz (Haziran-Temmuz) | - |
+| Sonbahar (Eylül-Ekim) | Şap (6 ay sonra), Pasteurelloz |
+| Kış (Aralık-Ocak) | - |
+
+### Gebe Hayvan
+
+| Dönem | Aşı |
+|-------|-----|
+| Çiftleşme Öncesi | Tüm rutin aşılar güncel olmalı |
+| Gebelik Başlangıcı (0-3 ay) | Ek aşı gerektirmez |
+| Gebelik Ortası (3-4 ay) | Şap (gerekirse) |
+| Doğum Öncesi (1 ay) | Clostridial (yavruya pasif koruma) |
+
+## Aşı Uygulaması
+
+### Uygulama Yolları
+
+**1. İntramusküler (IM - Kas İçi):**
+- **Bölge:** Boyun kasları
+- **İğne:** 18-20G, 2.5 cm
+- **Kullanım:** Şap, bazı clostridial
+
+**2. Subkutan (SC - Deri Altı):**
+- **Bölge:** Boyun, koltukaltı, kasık
+- **İğne:** 18-20G, 1.5-2 cm
+- **Kullanım:** Brucella, şarbon, çoğu aşı
+
+**3. İntradermal (ID - Deri İçi):**
+- **Bölge:** Kuyruk altı
+- **Kullanım:** Variola, orf
+
+### Uygulama Adımları
+
+**Hazırlık:**
+1. Aşıyı buzdolabından çıkarın (30 dk önceden, oda sıcaklığı)
+2. Son kullanma tarihini kontrol edin
+3. İyi çalkalayın (sulandırılmışsa)
+4. Temiz şırınga, yeni iğne
+
+**Uygulama:**
+1. Hayvanı sabitleyin (stres minimum)
+2. Bölgeyi temizleyin (alkol gerekmez, kuru olsun)
+3. Deriyi gerin (SC için) veya kas tutun (IM)
+4. Hızlı sokun, yavaş enjekte edin
+5. İğneyi çekin, hafif bası (kanamayı durdur)
+
+**Sonrası:**
+1. Hayvanı gözlemleyin (alerjik reaksiyon nadir)
+2. Aşı şişesini soğuk zincirde tutun
+3. Kayıt edin (tarih, aşı, hayvan)
+
+### Sık Hatalar
+
+❌ **Yanlış Depolama:** Aşı dondu/ısındı -> Etki yok
+❌ **Eski Aşı:** Son kullanma geçmiş
+❌ **Kirli İğne:** Enfeksiyon, apse
+❌ **Yanlış Doz:** Az/çok -> Etkisiz/yan etki
+❌ **Stresli Hayvan:** Bağışıklık zayıf, aşı tutmaz
+❌ **Hasta Hayvan:** Aşılamayın!
+❌ **Aynı İğne:** Hastalık yayılımı
+
+## Parazit Kontrolü
+
+### İç Parazitler (Bağırsak Kurdu)
+
+**Türleri:**
+- Mide kurdu (Haemonchus)
+- Bağırsak kurdu (Trichostrongylus, Cooperia)
+- Tenya (Moniezia)
+- Karaciğer kelebeği (Fasciola)
+
+**Belirtiler:**
+- Zayıflama
+- İshal
+- Anemi (göz kapağı soluk)
+- Yün/kılkuru
+- Verim düşüşü
+
+**İlaçlama:**
+- **Sıklık:** 3-4 ayda bir (mevsime göre)
+- **Yoğun:** İlkbahar, Sonbahar (larva yüksek)
+- **Dönemsel:** Yemleme sonrası, otlatma öncesi
+
+**İlaçlar:**
+- **Benzimidazoller:** Albendazole, Fenbendazole
+- **İmidazothiazoller:** Levamisole
+- **Makrolaktik Laktonlar:** Ivermectin, Moxidectin
+
+**Uygulama:**
+- Ağızdan (oral): Sıvı, bolus, pasta
+- Enjeksiyon: Ivermectin (SC)
+- Doz: Canlı ağırlığa göre
+
+**Rotasyon:**
+- Her yıl farklı aktif madde (direnç önleme)
+- Kombinasyon kullanımı
+
+### Dış Parazitler
+
+**Pire, Bit, Kene:**
+- **İlaç:** Pour-on, sprey, banyo
+- **Sıklık:** Gerektiğinde (genelde ilkbahar-yaz)
+- **Aktif Madde:** Pyrethroid, Amitraz, Fipronil
+
+**Uyuz:**
+- **Belirtiler:** Kaşınma, tüy kaybı, kabuklanma
+- **İlaç:** Ivermectin (enjeksiyon), Amitraz (banyo)
+- **Tekrar:** 10-14 gün sonra
+
+**Karasinekler (Myiasis):**
+- **Önleme:** Hijyen, yara kontrolü
+- **Tedavi:** Larvları temizle + antibiyotik + repellant
+
+## Sağlık Takibi
+
+### Rutin Kontroller
+
+**Günlük Gözlem:**
+✓ Yem-su tüketimi
+✓ Geviş getirme
+✓ Dışkı kıvamı
+✓ Topallama
+✓ Huzursuzluk
+✓ İzolasyon (sürüden ayrı)
+
+**Haftalık:**
+✓ Vücut kondisyonu (1-5 skala)
+✓ Gözler (renk, akıntı)
+✓ Burun (akıntı)
+✓ Tüy/yün kalitesi
+
+**Aylık:**
+✓ Tartım (büyüme izleme)
+✓ Tırnak kontrolü
+✓ Dış parazit kontrolü
+✓ Genel sağlık durumu
+
+**3-6 Ayda Bir:**
+✓ Dışkı analizi (parazit yumurtası)
+✓ Kan testi (anemi, beslenme)
+✓ Tırnak kesimi
+✓ Aşı rapelleri
+
+### Vücut Kondisyon Skorlaması (BCS)
+
+**Skala:** 1-5
+
+**Skor 1 (Çok Zayıf):**
+- Kemikler belirgin
+- Kas yok
+- Acil beslenme gerekli
+
+**Skor 2 (Zayıf):**
+- Kemikler hissediliyor
+- Az kas
+- Besleme artırılmalı
+
+**Skor 3 (İdeal):**
+- Kemikler hafif hissediliyor
+- Yeterli kas
+- Hedef skor
+
+**Skor 4 (Şişman):**
+- Kemikler zor hissediliyor
+- Yağ birikimi
+- Beslenme azaltılmalı
+
+**Skor 5 (Obez):**
+- Kemikler hissedilmiyor
+- Aşırı yağ
+- Sağlık riski
+
+**Hedef:**
+- Genel: 3-3.5
+- Gebelik sonu: 3.5
+- Laktasyon: 2.5-3 (normal)
+- Kuru dönem: 3-3.5
+
+### Kayıt Tutma
+
+**Bireysel Kayıt:**
+- Küpe numarası
+- Doğum tarihi
+- Irk
+- Ebeveynler
+- Aşı tarihleri
+- Hastalık geçmişi
+- Doğum kayıtları
+- Tartım kayıtları
+
+**Sürü Kayıtları:**
+- Toplam sayı
+- Doğum/ölüm oranı
+- Hastalık vakaları
+- İlaç/aşı stokları
+- Veteriner ziyaretleri
+- Maliyet takibi
+
+**Dijital Sistemler:**
+- Excel/Google Sheets
+- Özel yazılımlar (SürüPro, FarmPro)
+- Mobil uygulamalar
+
+## Sık Görülen Hastalıklar ve Önlemler
+
+### 1. İshal (Gastroenterit)
+
+**Nedenler:**
+- Parazitler
+- Bakteri (E. coli, Salmonella)
+- Ani yem değişikliği
+- Aşırı tahıl
+
+**Önleme:**
+✅ Temiz su
+✅ Parazit kontrolü
+✅ Kademeli yem geçişi
+✅ Hijyen
+
+### 2. Pnömoni (Akciğer İltihabı)
+
+**Nedenler:**
+- Virus, bakteri
+- Kötü havalandırma
+- Stres, soğuk
+- Nem
+
+**Önleme:**
+✅ İyi havalandırma
+✅ Kuru barınak
+✅ Pasteurelloz aşısı
+✅ Stres azaltma
+
+### 3. Mastitis (Meme İltihabı)
+
+**Nedenler:**
+- Bakteriyel enfeksiyon
+- Kir, travma
+- Fazla süt (sütten kesilmiş kuzu)
+
+**Önleme:**
+✅ Temiz yatak
+✅ Sağım hijyeni
+✅ Erken teşhis
+
+### 4. Ayak Çürümesi
+
+**Nedenler:**
+- Bakteri (Dichelobacter)
+- Nemli zemin
+
+**Önleme:**
+✅ Kuru barınak
+✅ Ayak banyosu
+✅ Tırnak bakımı
+✅ Aşı (Footvax)
+
+### 5. Ketoaz (Gebelik Toksemisi)
+
+**Neden:**
+- Enerji eksikliği (gebe son dönem)
+- Aşırı yağlı
+
+**Önleme:**
+✅ Dengeli beslenme (son 2 ay)
+✅ Vücut kondisyonu (ideal 3-3.5)
+✅ Egzersiz
+✅ Kademeli yem artışı
+
+## Veteriner İşbirliği
+
+### Ne Zaman Veteriner?
+
+**ACİL:**
+⚠️ Nefes darlığı
+⚠️ Şişkinlik (şişme hastalığı)
+⚠️ Doğum güçlüğü
+⚠️ Ani ölümler
+⚠️ Yüksek ateş (40+°C)
+⚠️ Kanlı ishal
+⚠️ Felç
+
+**Rutin:**
+- 6 ayda bir genel kontrol
+- Aşı danışmanlığı
+- Parazit program
+- Beslenme tavsiyesi
+- Hastalık teşhis
+
+**Sürü Veterineri:**
+- Düzenli ziyaretler
+- Sağlık programı
+- Acil durumda hızlı erişim
+- Ekonomik analiz
+
+## Biyogüvenlik
+
+### Yeni Hayvan Girişi
+
+**Karantina (Zorunlu):**
+- 21-30 gün ayrı barındırma
+- Sağlık kontrol
+- Aşı/ilaç güncellemesi
+- Dışkı/kan testi
+
+**Kontrol Edilecekler:**
+- Hastalık belirtisi
+- Parazitler
+- Bulaşıcı hastalıklar (brucella, şap)
+
+### Ziyaretçi Kontrolü
+
+**Önlemler:**
+- Giriş-çıkış kayıt
+- Ayak dezenfeksiyonu
+- Koruyucu giysi (tulum, çizme)
+- Hayvan teması sınırlı
+
+### Araç Dezenfeksiyonu
+
+- Taşıma kamyonu
+- Yem kamyonu
+- Veteriner araçları
+- Dezenfektan banyo/spray
+
+## Ekonomik Hesaplama
+
+### Sağlık Program Maliyeti (100 Baş Örnek)
+
+**Aşılar:**
+- Şap (yıllık 2x): 100 baş x 2 x 5 TL = 1,000 TL
+- Clostridial (yıllık): 100 x 8 TL = 800 TL
+- Pasteurelloz: 100 x 6 TL = 600 TL
+**Toplam Aşı:** 2,400 TL
+
+**Parazit İlaçları:**
+- İç parazit (4x/yıl): 100 x 4 x 3 TL = 1,200 TL
+- Dış parazit (2x/yıl): 100 x 2 x 2 TL = 400 TL
+**Toplam Parazit:** 1,600 TL
+
+**Veteriner:**
+- Rutin kontrol (2x): 500 TL
+- Acil vakalar: 500 TL (ortalama)
+**Toplam Veteriner:** 1,000 TL
+
+**TOPLAM MALİYET:** 5,000 TL/yıl
+**Hayvan Başına:** 50 TL
+
+### Fayda
+
+**Önlenebilir Kayıplar:**
+- Ölüm önleme: 5 hayvan x 2,000 TL = 10,000 TL
+- Verim artışı: 15% x 50,000 TL = 7,500 TL
+- Tedavi maliyeti azalışı: 3,000 TL
+
+**TOPLAM FAYDA:** 20,500 TL
+**Net Kazanç:** 15,500 TL
+
+**ROI:** %310!
+
+## Sonuç ve Öneriler
+
+Etkili sağlık yönetimi:
+✅ Hastalıkları önler
+✅ Verim artırır
+✅ Maliyetleri düşürür
+✅ Hayvan refahı sağlar
+✅ Karlılık artırır
+
+**Altın Kurallar:**
+1. Aşı programına uyun
+2. Düzenli parazit kontrolü
+3. Günlük gözlem yapın
+4. Kayıt tutun
+5. Veteriner işbirliği
+6. Biyogüvenlik sağlayın
+7. Erken müdahale
+
+**Unutmayın:** Hastalık önleme her zaman tedaviden ucuz ve etkilidir. İyi planlanmış bir sağlık programı, sürünüzün en değerli sigortasıdır!`,
+    categoryTags: ["koyun", "keçi", "aşı", "sağlık", "küçükbaş", "veteriner"],
+    readTime: 27,
+    published: true,
+  },
+
+  {
+    title: "Büyükbaş Hayvanlarda Aşı Takvimi ve Hastalık Kontrolü",
+    slug: "buyukbas-hayvanlarda-asi-takvimi-hastalik-kontrolu",
+    excerpt: "Sığır yetiştiriciliğinde sağlıklı sürü için kapsamlı aşılama programı. Zorunlu ve önerilen aşılar, hastalık kontrolü ve sağlık takibi.",
+    content: `# Büyükbaş Hayvanlarda Aşı Takvimi ve Hastalık Kontrolü: Kapsamlı Rehber
+
+Büyükbaş hayvancılıkta başarı, sağlıklı hayvanlarla başlar. Düzenli aşılama, parazit kontrolü ve etkili hastalık yönetimi, hem ekonomik verimliliği hem de hayvan refahını garanti altına alır.
+
+## Büyükbaş Aşılamanın Önemi
+
+### Neden Aşılama Kritik?
+
+**Hastalık Maliyeti:**
+- Ölümler: Hayvan başına 10,000-30,000 TL kayıp
+- Tedavi: 500-5,000 TL/vaka
+- Süt kaybı: Günlük 10-20 litre/hasta
+- Verim düşüşü: %20-40
+- İlaç, veteriner, işgücü
+
+**Aşı Yatırımı:**
+- Hayvan başına: 100-300 TL/yıl
+- ROI (Yatırım Getirisi): %500-1000
+
+**Halk Sağlığı:**
+- Zoonoz hastalıklar (Brucella, Şarbon, Tüberküloz)
+- Gıda güvenliği
+- Süt-et kalitesi
+
+**Yasal Gereklilik:**
+- Şap: Zorunlu
+- Brucella: Zorunlu
+- LSD: Zorunlu (bölgesel)
+- Hareket belgesi için gerekli
+
+## Zorunlu Aşılar (Türkiye)
+
+### 1. Şap Hastalığı (FMD - Foot and Mouth Disease)
+
+**Hastalık:**
+- **Etken:** Picornavirus (7 serotip: O, A, C, Asia-1, SAT 1-3)
+- **Bulaşma:** Hava, temas, süt, dışkı
+- **Belirtiler:** 
+  - Yüksek ateş (40-41°C)
+  - Ağız, dil, diş eti kabarcıkları
+  - Tırnak araları lezyonlar
+  - Aşırı salya
+  - Topallama
+  - Meme yaralaması
+  - Süt verimi %50-90 düşüş
+- **Ölüm:** Yetişkin düşük (<%5), buzağılarda yüksek (%50)
+
+**Aşı Programı:**
+| Yaş/Durum | Aşı | Tekrar |
+|-----------|-----|--------|
+| 2-3 aylık buzağı | 1. doz | - |
+| 3 hafta sonra | 2. doz (rapel) | - |
+| 6 ayda bir | Rapel | Yaşam boyu |
+| Gebe düve | Doğumdan 1 ay önce | - |
+| Salgın | Tüm sürü | Acil |
+
+**Uygulama:**
+- **Yol:** IM (Kas içi) - Boyun kasına
+- **Doz:** 2-5 ml (ürüne göre)
+- **Marka:** Aftovaxpur (Türkiye), Bioveta FMD (Çekya)
+
+**Önemli:**
+✅ En kritik aşı
+✅ Devlet kampanyası (ücretsiz)
+✅ 6 ayda bir mutlaka
+✅ Hareket izni için şart
+
+### 2. Brucelloz (Malta Humması)
+
+**Hastalık:**
+- **Etken:** Brucella abortus
+- **Zoonoz:** İnsana geçer!
+- **Belirtiler:**
+  - Düşük yapma (5-8. ay)
+  - Ölü doğum
+  - Meme iltihabı
+  - Artrit (eklem şişliği)
+  - İnfertilite
+- **Ekonomik Kayıp:** Düşük + süt kaybı = 15,000+ TL/hayvan
+
+**Aşı Programı:**
+| Yaş | Aşı Türü | Tekrar |
+|-----|----------|--------|
+| 3-8 aylık DİŞİ buzağı | RB-51 veya S19 | Tek doz (ömür boyu) |
+| Yetişkin dişi | Aşılanmaz (sadece genç) | - |
+| Erkek | Aşılanmaz | - |
+
+**Uygulama:**
+- **Yol:** SC (Deri altı) - Boyun/omuz
+- **Doz:** 2 ml
+- **Aşı:** RB-51 (canlı, zayıflatılmış)
+
+**Önemli:**
+⚠️ SADECE dişi buzağılara
+⚠️ Gebe hayvanlara ASLA
+⚠️ Devlet veterineri (zorunlu, ücretsiz)
+⚠️ Kayıt tutulur (kulak küpesi)
+
+### 3. Lumpy Skin Disease (LSD - Topak Deri Hastalığı)
+
+**Hastalık:**
+- **Etken:** Capripoxvirus
+- **Bulaşma:** Haşereler (sinekler, keneler)
+- **Belirtiler:**
+  - Vücutta 2-5 cm nodüller (topaklar)
+  - Ateş (40+°C)
+  - İştahsızlık
+  - Süt düşüşü (%80-100)
+  - Deri nekrozu
+  - Lenfler şişkinliği
+- **Ölüm:** %1-5 ama verim felaketi
+
+**Aşı Programı:**
+| Yaş | Aşı | Tekrar |
+|-----|-----|--------|
+| 3-6 aylık | 1. doz | - |
+| Yıllık | Rapel | Her yıl (ilkbahar) |
+| Acil/Salgın | Tüm yaşlar | Hemen |
+
+**Uygulama:**
+- **Yol:** SC veya ID (deri içi)
+- **Doz:** 1 ml
+- **Zaman:** İlkbahar (sinek mevsimi öncesi)
+
+**Markalar:**
+- Lumpivax (Türkiye)
+- MSD LSD (İthal)
+
+**Önemli:**
+✅ 2014'ten beri zorunlu
+✅ Devlet kampanyası (ücretsiz)
+✅ Haşere kontrolü ile birlikte
+
+## Önerilen/Opsiyonel Aşılar
+
+### 4. Clostridial Hastalıklar (Kombine)
+
+**Hastalıklar:**
+- **Blackleg (Kara Şarbon):** Kas nekrozu, ani ölüm
+- **Tetanos (Kazıklı Humma):** Yara enfeksiyonu, kas kasılması
+- **Enterotoksemi:** Aşırı yemlenme, sindirim şoku
+- **Böbrek iltihabı**
+- **Karaciğer iltihabı**
+
+**Aşı:** 7-8'li Clostridium (hepsi bir arada)
+
+**Aşı Programı:**
+| Yaş/Durum | Aşı | Tekrar |
+|-----------|-----|--------|
+| 2-4 haftalık buzağı | 1. doz | - |
+| 4 hafta sonra | 2. doz | - |
+| 6-12 ayda bir | Rapel | Yaşam boyu |
+| Gebe düve | Doğumdan 3 hafta önce | Pasif koruma (buzağıya) |
+
+**Uygulama:**
+- **Yol:** SC - Boyun, omuz
+- **Doz:** 5 ml
+
+**Markalar:**
+- Covexin 8 (Zoetis)
+- Ultrabac 8 (Pfizer)
+- Cavalry 9 (Merck)
+
+**Fayda:**
+✅ Çok etkili (ani ölüm önleme)
+✅ Ekonomik (tek aşı, çoklu koruma)
+✅ Özellikle yaylım, risk bölgeleri şart
+
+### 5. Bovine Viral Diarrhea (BVD) ve Infectious Bovine Rhinotracheitis (IBR)
+
+**Hastalıklar:**
+- **BVD:** İshal, solunum, düşük, immünsupresyon
+- **IBR:** Solunum, genital, sinir sistemi
+
+**Aşı:** Kombine BVD-IBR
+
+**Aşı Programı:**
+| Yaş | Aşı | Tekrar |
+|-----|-----|--------|
+| 6 aylık+ buzağı | 1. doz | - |
+| 3-4 hafta sonra | 2. doz | - |
+| Yıllık | Rapel | Her yıl |
+| Çiftleşme öncesi | Rapel (damızlık) | - |
+
+**Uygulama:**
+- **Yol:** IM veya SC
+- **Doz:** 2-5 ml
+
+**Markalar:**
+- Bovilis BVD-IBR (MSD)
+- Rispoval (Pfizer)
+
+**Önemli:**
+✅ Damızlık sürülerde şart
+✅ Üreme başarısını artırır
+✅ Erken embriyonik ölüm azalır
+
+### 6. Pasteurelloz / Solunum Kompleksi
+
+**Hastalık:**
+- **Etken:** Mannheimia haemolytica, Pasteurella multocida
+- **Belirtiler:** Pnömoni, öksürük, ateş, burun akıntısı
+- **Risk:** Taşıma, hava değişimi, stres
+
+**Aşı Programı:**
+| Yaş/Durum | Aşı | Tekrar |
+|-----------|-----|--------|
+| 2-4 aylık | 1. doz | - |
+| 3 hafta sonra | 2. doz | - |
+| 6-12 ayda bir | Rapel | Risk dönemleri |
+| Taşıma öncesi | 2 hafta önceden | - |
+
+**Uygulama:**
+- **Yol:** SC veya IM
+- **Doz:** 2-5 ml
+
+**Markalar:**
+- Bovilis MH+IBR (MSD)
+- Once PMH (Merck)
+
+### 7. Şarbon (Anthrax)
+
+**Hastalık:**
+- **Etken:** Bacillus anthracis
+- **Zoonoz:** İnsana geçer!
+- **Belirtiler:** Ani ölüm, kanama (burun, ağız, anüs)
+- **Risk:** Toprak sporları, yıllarca canlı
+
+**Aşı Programı:**
+| Dönem | Aşı | Tekrar |
+|-------|-----|--------|
+| İlkbahar (Nisan) | Tüm sürü | Yıllık |
+| Risk bölgesi | 6 ayda bir | - |
+
+**Uygulama:**
+- **Yol:** SC - Boyun
+- **Doz:** 1 ml
+
+**Önemli:**
+✅ Endemik bölgelerde zorunlu
+✅ Devlet kampanyası (ücretsiz)
+⚠️ 7 gün kesime göndermeme
+
+### 8. E. coli (Buzağı İshali)
+
+**Hastalık:**
+- **Etken:** E. coli (K99 suşu)
+- **Belirtiler:** Sarı, sulu ishal, dehidrasyon, ölüm
+- **Risk:** 0-7 günlük buzağı
+
+**Aşı Programı:**
+| Dönem | Aşı | Amac |
+|-------|-----|------|
+| İneğe, doğumdan 2 ay önce | 1. doz | - |
+| 2 hafta sonra | 2. doz | - |
+| Her doğum öncesi | Rapel | Kolostrum antikorları |
+
+**Uygulama:**
+- **Yol:** IM - İneğe
+- **Doz:** 2 ml
+
+**Markalar:**
+- Rotavec Corona (MSD)
+- Scourguard 4KC (Zoetis)
+
+**Önemli:**
+✅ Buzağı ölümlerini %70-90 azaltır
+✅ Kolostrum önemli!
+
+## Aşı Takvimi (Yıllık Örnek)
+
+### Buzağı (0-12 Ay)
+
+| Yaş | Aşı |
+|-----|-----|
+| Doğum | Kolostrum (4-6 litre ilk 6 saat) |
+| 2-4 hafta | Clostridial 1. doz |
+| 6-8 hafta | Clostridial 2. doz |
+| 2-3 ay | Şap 1. doz, Pasteurelloz 1. doz |
+| 3-4 ay | Şap 2. doz, Pasteurelloz 2. doz |
+| 3-6 ay | Brucella (dişi), LSD |
+| 6 ay | BVD-IBR 1. doz |
+| 7 ay | BVD-IBR 2. doz |
+| 9 ay | Şap rapel |
+
+### Yetişkin Sığır (Yıllık Bakım)
+
+| Mevsim | Aşı |
+|--------|-----|
+| **İlkbahar (Mart-Nisan)** | Şap, LSD, Şarbon, Clostridial |
+| **Yaz (Haziran-Temmuz)** | - |
+| **Sonbahar (Eylül-Ekim)** | Şap rapel (6 ay sonra), BVD-IBR |
+| **Kış (Aralık-Ocak)** | - |
+
+### Gebe İnek
+
+| Dönem | Aşı |
+|-------|-----|
+| Çiftleşme öncesi | Tüm aşılar güncel |
+| Gebelik başı (0-3 ay) | Rutin aşılar |
+| Gebelik ortası (3-6 ay) | Şap (gerekirse) |
+| Doğum öncesi (2 ay) | E. coli (1. doz) |
+| Doğum öncesi (6 hafta) | E. coli (2. doz) |
+| Doğum öncesi (3 hafta) | Clostridial (pasif koruma) |
+
+## Aşı Uygulaması
+
+### Doğru Teknik
+
+**Uygulama Yolları:**
+
+**1. İntramusküler (IM):**
+- **Bölge:** Boyun kasları (tercih), but kasları (alternatif)
+- **İğne:** 16-18G, 3-4 cm
+- **Avantaj:** Hızlı emilim
+- **Dezavantaj:** Et kalitesi (enjeksiyon bölgesi sert)
+
+**2. Subkutan (SC):**
+- **Bölge:** Boyun derisi (gevşek deri)
+- **İğne:** 16-18G, 2-3 cm
+- **Avantaj:** Güvenli, kolay
+- **Tercih:** Çoğu aşı
+
+**Uygulama Adımları:**
+1. Sığırı sabitleyin (boyunduruk, sıkıştırma koridoru)
+2. Aşıyı hazırlayın (oda sıcaklığı, çalkalayın)
+3. Bölgeyi alkol ile sil (opsiyonel, kuru olsun)
+4. Hızlı sokun, yavaş enjekte edin
+5. Çekin, hafif masaj
+
+### Güvenli Aşı Yönetimi
+
+**Depolama:**
+✅ 2-8°C buzdolabı
+✅ Işıktan korunmuş
+✅ DONDURMAMA!
+✅ Son kullanma kontrolü
+
+**Soğuk Zincir:**
+✅ Aşıyı soğutmalı çantada taşıma
+✅ Buz aküleri kullanma
+✅ Sıcak arabada bırakmama
+✅ 30 dk içinde kullanma (dışarı çıkınca)
+
+**Hijyen:**
+✅ Temiz şırınga (her hayvan için yeni!)
+✅ İğne değiştirme (her 10-15 hayvan)
+✅ Dezenfeksiyon
+
+### Yan Etkiler ve Yönetimi
+
+**Normal Reaksiyonlar:**
+- Enjeksiyon bölgesinde şişlik (2-3 gün)
+- Hafif ateş (1-2 gün)
+- Geçici iştahsızlık
+
+**Alerjik Reaksiyon (NADİR):**
+⚠️ Hızlı solunum
+⚠️ Titreme
+⚠️ Çöküntü
+**-> ACİL: Adrenalin, veteriner!**
+
+**Enfeksiyon/Apse:**
+- Kirli iğne
+- **Önleme:** Temiz ekipman, doğru teknik
+
+## Parazit Kontrolü
+
+### İç Parazitler
+
+**Mide-Bağırsak Kurdu:**
+- **Türler:** Ostertagia, Cooperia, Haemonchus
+- **Belirtiler:** Zayıflama, ishal, anemi, düşük verim
+
+**İlaçlama Programı:**
+| Mevsim | İlaç | Sebep |
+|--------|------|-------|
+| İlkbahar (Nisan) | Geniş spektrum | Kış sonrası temizlik |
+| Yaz ortası (Temmuz) | Tekrar | Mera enfestasyonu |
+| Sonbahar (Ekim) | Tekrar | Kış öncesi |
+| Kış (iç barınak) | Gerekirse | Kapalı dönem |
+
+**İlaçlar:**
+- **Benzimidazoller:** Albendazole, Fenbendazole
+- **Makrolaktik Laktonlar:** Ivermectin, Doramectin, Moxidectin
+
+**Uygulama:**
+- Ağızdan (drench, bolus)
+- Enjeksiyon (ivermectin SC)
+- Pour-on (sırt üzerine)
+
+**Rotasyon:** Her yıl farklı aktif madde (direnç önleme)
+
+### Dış Parazitler
+
+**Keneler:**
+- **Hastalık:** Babesiosis (kırmızı su), Theileriosis, Anaplasmosis
+- **Kontrol:** Pour-on (Pyrethroid, Amitraz), banyo, elle toplama
+
+**Pirelabuklar:**
+- **Problem:** Rahatsızlık, kan emme, anemi
+- **Kontrol:** Pour-on, kulak küpesi (insektisit salınımlı)
+
+**Sinekler:**
+- **Problem:** Stres, LSD vektörü, yaralar (miyaz)
+- **Kontrol:** Repellent sprey, tuzaklar, hijyen
+
+### Karaciğer Kelebeği (Fasciola)
+
+**Risk Bölgesi:** Sulak, bataklık alanlar
+
+**İlaçlama:**
+- **Sonbahar:** Erişkin kelebek öldürme (Triclabendazole)
+- **İlkbahar:** Temizlik (Closantel)
+
+## Sağlık Takibi
+
+### Günlük Gözlem
+
+**Kontrol Edilecekler:**
+✓ Yem-su tüketimi
+✓ Geviş getirme (dk başına 40-60)
+✓ Dışkı kıvamı
+✓ Süt verimi (ani düşüş)
+✓ Topallama
+✓ Huzursuzluk
+✓ İzolasyon
+
+### Haftalık Kontroller
+
+✓ Vücut kondisyonu (1-5 skala)
+✓ Meme sağlığı (CMT testi)
+✓ Ayak kontrolü
+✓ Solunum (öksürük, burun akıntısı)
+
+### Aylık Kontroller
+
+✓ Tartım (büyüme eğrisi)
+✓ Süt analizi (hücre sayısı, yağ, protein)
+✓ Dışkı analizi (parazit)
+✓ Gebelik kontrolü (transrektal USG)
+
+### Sürü Sağlık İndikatörleri
+
+**Hedef Değerler:**
+- **Buzağı ölüm oranı:** <%5
+- **Doğum aralığı:** 365-400 gün
+- **Gebelik oranı:** >85%
+- **Mastitis oranı:** <%15
+- **Topallama oranı:** <%10
+- **Düşük oranı:** <%5
+
+## Sık Görülen Hastalıklar
+
+### 1. Mastitis (Meme İltihabı)
+
+**Nedenler:**
+- Bakteri (E. coli, Staph, Strep)
+- Kötü sağım hijyeni
+- Travma
+
+**Önleme:**
+✅ Temiz barınak
+✅ Sağım hijyeni (teat dip)
+✅ Makine bakımı
+✅ CMT testi (rutin)
+
+### 2. Topallama
+
+**Nedenler:**
+- Ayak çürümesi
+- Tırnak aşınması
+- Laminitis (aşırı tahıl)
+
+**Önleme:**
+✅ Kuru zemin
+✅ Ayak banyosu (bakır sülfat)
+✅ Tırnak kesimi (6-12 ay)
+✅ Dengeli rasyon
+
+### 3. Ketoaz (Aşırı Yağlanma Hastalığı)
+
+**Neden:**
+- Enerji eksikliği (yüksek verimli inekler)
+- Doğum sonrası negatif enerji dengesi
+
+**Önleme:**
+✅ Vücut kondisyonu (doğumda 3.5)
+✅ Geçiş rasyonu (doğum öncesi 3 hafta)
+✅ Propilen glikol takviyesi
+
+### 4. Süt Humması (Hipokalsemi)
+
+**Neden:**
+- Düşük kan kalsiyumu (doğum sonrası)
+- Yüksek verimli inekler
+
+**Önleme:**
+✅ Kuru dönem düşük kalsiyum
+✅ Doğum öncesi anyon salts
+✅ Kalsiyum enjeksiyonu (gerekirse)
+
+## Kayıt Tutma ve Analiz
+
+**Bireysel Kayıt:**
+- Kulak küpesi/tattoo numarası
+- Doğum tarihi, ebeveynler
+- Aşı geçmişi (tarih, tip)
+- Hastalık geçmişi
+- Üreme kayıtları
+- Süt verimi
+- Tartım kayıtları
+
+**Sürü Analizi:**
+- Topallık prevalansı
+- Mastitis insidansı
+- Döl tutma oranı
+- Ortalama laktasyon süresi
+- Maliyetler (veteriner, ilaç, aşı)
+
+**Dijital Sistemler:**
+- Excel/Google Sheets
+- Farm software (BouMatic, DairyComp)
+- Mobil uygulamalar
+
+## Ekonomik Analiz
+
+### Sağlık Programı Maliyeti (50 Baş Örnek)
+
+**Aşılar:**
+- Şap (2x/yıl): 50 x 2 x 15 TL = 1,500 TL
+- Brucella (genç): 10 x 20 TL = 200 TL
+- LSD (yıllık): 50 x 12 TL = 600 TL
+- Clostridial (yıllık): 50 x 25 TL = 1,250 TL
+- BVD-IBR (yıllık): 50 x 30 TL = 1,500 TL
+**Toplam Aşı:** 5,050 TL
+
+**Parazit İlaçları:**
+- İç (3x/yıl): 50 x 3 x 20 TL = 3,000 TL
+- Dış (2x/yıl): 50 x 2 x 15 TL = 1,500 TL
+**Toplam Parazit:** 4,500 TL
+
+**Veteriner Hizmetleri:**
+- Rutin kontrol: 2,000 TL
+- Acil vakalar: 3,000 TL
+**Toplam Veteriner:** 5,000 TL
+
+**TOPLAM MALİYET:** 14,550 TL/yıl
+**Hayvan Başına:** ~291 TL
+
+### Fayda
+
+**Önlenebilir Kayıplar:**
+- Ölüm önleme: 2 hayvan x 20,000 TL = 40,000 TL
+- Süt verimi artışı: %10 x 250,000 TL = 25,000 TL
+- Tedavi maliyeti azalma: 10,000 TL
+- Döl verimi artışı: 15,000 TL
+
+**TOPLAM FAYDA:** 90,000 TL
+**Net Kazanç:** 75,450 TL
+**ROI:** %518!
+
+## Sonuç ve Öneriler
+
+Başarılı büyükbaş sağlık yönetimi:
+✅ Sistematik aşılama
+✅ Düzenli parazit kontrolü
+✅ Erken hastalık teşhisi
+✅ Hijyen ve biyogüvenlik
+✅ Kayıt tutma ve analiz
+
+**Altın Kurallar:**
+1. Aşı takvimi oluşturun ve uygulayın
+2. 6 ayda bir Şap mutlaka
+3. Buzağılara kolostrum şart
+4. Günlük gözlem yapın
+5. Veteriner işbirliği kurun
+6. Biyogüvenlik sağlayın
+7. Kayıt tutun ve analiz edin
+
+**Unutmayın:** Büyükbaş hayvancılıkta sağlık yönetimi, karlılığın temelidir. Önleyici sağlık programı, tedaviden her zaman daha ucuz ve etkilidir. İyi planlanmış bir aşı ve sağlık programı, sürünüzün geleceğini garanti altına alır!`,
+    categoryTags: ["büyükbaş", "sığır", "aşı", "sağlık", "veteriner", "hastalık kontrolü"],
+    readTime: 30,
+    published: true,
+  },
 ];
