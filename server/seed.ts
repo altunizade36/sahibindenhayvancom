@@ -108,61 +108,92 @@ export async function seedDatabase() {
       console.log(`   - ${turkeyLocations.filter(l => l.type === 'koy').length.toLocaleString()} villages`);
     }
     
-    // Seed blog posts (with veterinarian author)
-    if (existingBlogPosts.length === 0) {
-      console.log("📝 Seeding blog posts...");
+    // Seed blog posts (with veterinarian author) - Always check and add missing ones
+    console.log("📝 Checking blog posts...");
+    
+    // Check if veterinarian author already exists
+    let veterinarianAuthor = await db.query.users.findFirst({
+      where: eq(users.email, "veteriner@sahibindenhayvan.com"),
+    });
+    
+    if (!veterinarianAuthor) {
+      console.log("Creating veterinarian author...");
+      const hashedPassword = await bcrypt.hash("veteriner123", 10);
+      const [newAuthor] = await db
+        .insert(users)
+        .values({
+          username: "drayse",
+          email: "veteriner@sahibindenhayvan.com",
+          password: hashedPassword,
+          fullName: "Dr. Ayşe Yılmaz",
+          role: "vet",
+          phone: "(0532) 123 45 67",
+          city: "İstanbul",
+          district: "Kadıköy",
+          bio: "15 yıllık deneyime sahip veteriner hekim. Hayvan sağlığı ve bakımı konusunda uzmanlaşmış, pek çok hayvansevere danışmanlık vermiştir.",
+        })
+        .returning()
+        .execute();
+      veterinarianAuthor = newAuthor;
+      console.log("✅ Veterinarian author created");
+    } else {
+      console.log("✅ Veterinarian author already exists");
+    }
+    
+    // Get all existing blog posts
+    const allExistingBlogs = await db.query.blogPosts.findMany();
+    
+    console.log(`Found ${allExistingBlogs.length} existing blog posts in DB, syncing with ${blogPostsData.length} from file...`);
+    
+    // Upsert all blog posts (insert new, update existing)
+    let addedCount = 0;
+    let updatedCount = 0;
+    const existingSlugs = new Set(allExistingBlogs.map(b => b.slug));
+    
+    for (const post of blogPostsData) {
+      const isNew = !existingSlugs.has(post.slug);
       
-      // Check if veterinarian author already exists
-      let veterinarianAuthor = await db.query.users.findFirst({
-        where: eq(users.email, "veteriner@sahibindenhayvan.com"),
-      });
-      
-      if (!veterinarianAuthor) {
-        console.log("Creating veterinarian author...");
-        const hashedPassword = await bcrypt.hash("veteriner123", 10);
-        const [newAuthor] = await db
-          .insert(users)
-          .values({
-            username: "drayse",
-            email: "veteriner@sahibindenhayvan.com",
-            password: hashedPassword,
-            fullName: "Dr. Ayşe Yılmaz",
-            role: "vet",
-            phone: "(0532) 123 45 67",
-            city: "İstanbul",
-            district: "Kadıköy",
-            bio: "15 yıllık deneyime sahip veteriner hekim. Hayvan sağlığı ve bakımı konusunda uzmanlaşmış, pek çok hayvansevere danışmanlık vermiştir.",
-          })
-          .returning()
-          .execute();
-        veterinarianAuthor = newAuthor;
-        console.log("✅ Veterinarian author created");
-      } else {
-        console.log("✅ Veterinarian author already exists");
-      }
-      
-      // Insert blog posts
-      console.log(`Inserting ${blogPostsData.length} blog posts...`);
-      for (const post of blogPostsData) {
-        await db
-          .insert(blogPosts)
-          .values({
-            authorId: veterinarianAuthor.id,
+      await db
+        .insert(blogPosts)
+        .values({
+          authorId: veterinarianAuthor.id,
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          content: post.content,
+          categoryTags: post.categoryTags,
+          readTime: post.readTime,
+          published: post.published,
+        })
+        .onConflictDoUpdate({
+          target: blogPosts.slug,
+          set: {
             title: post.title,
-            slug: post.slug,
             excerpt: post.excerpt,
             content: post.content,
             categoryTags: post.categoryTags,
             readTime: post.readTime,
             published: post.published,
-          })
-          .onConflictDoNothing()
-          .execute();
-      }
+          },
+        })
+        .execute();
       
-      console.log(`✅ Blog posts seeded (${blogPostsData.length} posts)`);
-    } else {
-      console.log("✅ Blog posts already exist, skipping");
+      if (isNew) {
+        addedCount++;
+        console.log(`  ➕ Added: ${post.title}`);
+      } else {
+        updatedCount++;
+        console.log(`  🔄 Updated: ${post.title}`);
+      }
+    }
+    
+    console.log(`✅ Blog posts synced: ${addedCount} new, ${updatedCount} updated, ${blogPostsData.length} total`);
+    
+    // Clean up any orphaned blog posts not in the file
+    const fileSlugs = new Set(blogPostsData.map(p => p.slug));
+    const orphanedBlogs = allExistingBlogs.filter(b => !fileSlugs.has(b.slug));
+    if (orphanedBlogs.length > 0) {
+      console.log(`⚠️  Found ${orphanedBlogs.length} orphaned blog posts in DB (not in file):`, orphanedBlogs.map(b => b.slug).join(", "));
     }
     
     console.log("✅ Database seeded successfully");
