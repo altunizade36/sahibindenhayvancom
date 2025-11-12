@@ -630,13 +630,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Blog Routes ============
   app.get("/api/blog", async (req: Request, res: Response) => {
     try {
-      // Read blog posts directly from database (seeded data)
+      // Read blog posts directly from database (seeded data) with author info
       const published = req.query.published !== "false";
       const posts = await db.query.blogPosts.findMany({
         where: published ? eq(blogPosts.published, true) : undefined,
         orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+        with: {
+          author: true,
+        },
       });
-      res.json(posts);
+
+      // Sanitize passwords from author objects
+      const sanitizedPosts = posts.map((post) => {
+        if (post.author) {
+          const { password: _, ...safeAuthor } = post.author;
+          return { ...post, author: safeAuthor };
+        }
+        return post;
+      });
+
+      res.json(sanitizedPosts);
     } catch (error) {
       console.error("Blog API error:", error);
       res.status(500).json({ message: "Failed to fetch blog posts" });

@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { 
   pgTable, 
   text, 
@@ -479,3 +479,12 @@ export const insertStreamMuteSchema = createInsertSchema(streamMutes).omit({
 
 export type InsertStreamMute = z.infer<typeof insertStreamMuteSchema>;
 export type StreamMute = typeof streamMutes.$inferSelect;
+
+// ============ Relations ============
+
+export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
+  author: one(users, {
+    fields: [blogPosts.authorId],
+    references: [users.id],
+  }),
+}));
