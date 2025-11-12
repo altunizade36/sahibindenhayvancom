@@ -127,8 +127,8 @@ export default function ListingList() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Tüm İlanlar</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Tüm İlanlar</h1>
+            <p className="text-muted-foreground" data-testid="text-listing-count">
               {filteredAndSortedListings.length} ilan bulundu
             </p>
           </div>
@@ -237,6 +237,7 @@ export default function ListingList() {
                     <button
                       onClick={() => setSelectedCategory("")}
                       className="ml-2 hover:text-destructive"
+                      data-testid="button-remove-category-filter"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -249,6 +250,7 @@ export default function ListingList() {
                     <button
                       onClick={() => setSelectedLocation("")}
                       className="ml-2 hover:text-destructive"
+                      data-testid="button-remove-location-filter"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -326,11 +328,11 @@ export default function ListingList() {
                           {listing.description}
                         </p>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-lg font-bold text-primary">
+                          <div className="flex items-center gap-1 text-lg font-bold text-primary" data-testid={`text-price-${listing.id}`}>
                             <DollarSign className="w-5 h-5" />
                             {parseFloat(listing.price as string).toLocaleString("tr-TR")}₺
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-location-${listing.id}`}>
                             <MapPin className="w-3 h-3" />
                             <span>{listing.location?.name || "Konum belirtilmemiş"}</span>
                           </div>

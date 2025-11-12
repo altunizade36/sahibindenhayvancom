@@ -8,6 +8,7 @@ import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import rateLimit from "express-rate-limit";
 import {
   insertUserSchema,
   insertListingSchema,
@@ -29,6 +30,35 @@ if (!process.env.SESSION_SECRET) {
 }
 
 const JWT_SECRET = process.env.SESSION_SECRET;
+
+// ============ Rate Limiting Configuration ============
+// Strict rate limiter for auth endpoints (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per 15 minutes
+  message: "Çok fazla giriş denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false, // Count successful requests too
+});
+
+// Moderate rate limiter for resource creation
+const createLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests per minute
+  message: "Çok fazla istek gönderdiniz. Lütfen bir dakika bekleyin.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General API rate limiter
+const generalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+  message: "Çok fazla istek gönderdiniz. Lütfen bekleyin.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Extend Express Request to include user
 declare global {
@@ -84,12 +114,29 @@ function optionalAuthMiddleware(req: Request, res: Response, next: Function) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: "/ws",
+    maxPayload: 100 * 1024, // 100KB max message size
+    perMessageDeflate: false, // Disable compression for better performance
+  });
 
-  // WebSocket connection handling
+  // WebSocket connection handling with limits
   const clients = new Map<string, WebSocket>();
+  const MAX_CONNECTIONS = 50000; // Limit concurrent connections
+  const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+  const CONNECTION_TIMEOUT = 60000; // 60 seconds idle timeout
+  
+  // Heartbeat tracking
+  const heartbeats = new Map<string, NodeJS.Timeout>();
   
   wss.on("connection", (ws: WebSocket, req) => {
+    // Check connection limit
+    if (clients.size >= MAX_CONNECTIONS) {
+      ws.close(1008, "Server at capacity");
+      return;
+    }
+
     const url = new URL(req.url || "", `http://${req.headers.host}`);
     const token = url.searchParams.get("token");
     
@@ -100,10 +147,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-      clients.set(decoded.userId, ws);
+      const userId = decoded.userId;
+      
+      // Close existing connection for this user
+      const existingWs = clients.get(userId);
+      if (existingWs && existingWs.readyState === WebSocket.OPEN) {
+        existingWs.close(1000, "New connection established");
+      }
+      
+      clients.set(userId, ws);
+      
+      // Setup heartbeat for this connection
+      const heartbeat = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.ping();
+        } else {
+          clearInterval(heartbeat);
+          heartbeats.delete(userId);
+        }
+      }, HEARTBEAT_INTERVAL);
+      heartbeats.set(userId, heartbeat);
+      
+      // Setup idle timeout
+      let idleTimeout = setTimeout(() => {
+        ws.close(1000, "Connection idle timeout");
+      }, CONNECTION_TIMEOUT);
+      
+      // Reset timeout on activity
+      const resetTimeout = () => {
+        clearTimeout(idleTimeout);
+        idleTimeout = setTimeout(() => {
+          ws.close(1000, "Connection idle timeout");
+        }, CONNECTION_TIMEOUT);
+      };
 
       ws.on("message", async (data) => {
+        resetTimeout(); // Reset idle timeout on message
+        
         try {
+          // Validate message size
+          if (data.toString().length > 10000) {
+            ws.send(JSON.stringify({ type: "error", message: "Message too large" }));
+            return;
+          }
+          
           const message = JSON.parse(data.toString());
           
           // Handle different message types
@@ -171,8 +258,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      ws.on("close", async () => {
-        clients.delete(decoded.userId);
+      ws.on("pong", () => {
+        resetTimeout(); // Reset timeout on pong
+      });
+      
+      ws.on("close", () => {
+        clients.delete(userId);
+        clearInterval(heartbeat);
+        heartbeats.delete(userId);
+        clearTimeout(idleTimeout);
+      });
+      
+      ws.on("error", (error) => {
+        console.error(`WebSocket error for user ${userId}:`, error);
+        ws.close(1011, "Internal error");
       });
     } catch (error) {
       ws.close(1008, "Invalid token");
@@ -180,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Auth Routes ============
-  app.post("/api/auth/register", async (req: Request, res: Response) => {
+  app.post("/api/auth/register", authLimiter, async (req: Request, res: Response) => {
     try {
       const data = insertUserSchema.parse(req.body);
       
@@ -217,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", async (req: Request, res: Response) => {
+  app.post("/api/auth/login", authLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
 
@@ -454,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/listings", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/listings", createLimiter, authMiddleware, async (req: Request, res: Response) => {
     try {
       const parsedData = insertListingSchema.parse({
         ...req.body,
@@ -848,7 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Object Storage Routes ============
   
   // Get upload URL for object
-  app.post("/api/objects/upload", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/objects/upload", createLimiter, authMiddleware, async (req: Request, res: Response) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
