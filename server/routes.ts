@@ -21,6 +21,7 @@ import {
   insertFavoriteSchema,
   type User,
 } from "@shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 // Validate critical environment variables
 if (!process.env.SESSION_SECRET) {
@@ -807,6 +808,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Favorite removed" });
     } catch (error) {
       res.status(400).json({ message: "Failed to remove favorite", error });
+    }
+  });
+
+  // ============ Object Storage Routes ============
+  
+  // Get upload URL for object
+  app.post("/api/objects/upload", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ message: "Failed to get upload URL" });
+    }
+  });
+
+  // Serve uploaded objects (listing images - public read access for now)
+  // TODO: Implement ACL policy for granular access control per listing
+  app.get("/objects/:objectPath(*)", async (req: Request, res: Response) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Serve public assets
+  app.get("/public-objects/:filePath(*)", async (req: Request, res: Response) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 

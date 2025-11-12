@@ -1,54 +1,10 @@
 import { db } from "./db";
 import { categories, locations, users, blogPosts } from "@shared/schema";
-import { sql } from "drizzle-orm";
+import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
+import { categoriesData, subCategoriesData } from "./data/categories";
 import bcrypt from "bcryptjs";
-
-const defaultCategories = [
-  {
-    name: "Evcil Hayvanlar",
-    slug: "evcil-hayvanlar",
-    icon: "PawPrint",
-    parentId: null,
-    order: 0,
-  },
-  {
-    name: "Çiftlik Hayvanları",
-    slug: "ciftlik-hayvanlari",
-    icon: "Tractor",
-    parentId: null,
-    order: 1,
-  },
-  {
-    name: "Kuşlar",
-    slug: "kuslar",
-    icon: "Bird",
-    parentId: null,
-    order: 2,
-  },
-  {
-    name: "Akvaryum",
-    slug: "akvaryum",
-    icon: "Fish",
-    parentId: null,
-    order: 3,
-  },
-  {
-    name: "Atlar",
-    slug: "atlar",
-    icon: "Horse",
-    parentId: null,
-    order: 4,
-  },
-  {
-    name: "Arıcılık",
-    slug: "aricilik",
-    icon: "Honeycomb",
-    parentId: null,
-    order: 5,
-  },
-];
 
 export async function seedDatabase() {
   console.log("🌱 Seeding database...");
@@ -64,17 +20,74 @@ export async function seedDatabase() {
       return;
     }
     
-    // Seed categories
+    // Seed categories (two-phase: roots first, then children with resolved parentIds and depth/path)
     if (existingCategories.length === 0) {
       console.log("📁 Seeding categories...");
-      for (const category of defaultCategories) {
+      
+      // Phase 1: Insert/update root categories and capture their IDs by slug
+      const slugToIdMap: Record<string, string> = {};
+      
+      for (const category of categoriesData) {
         await db
           .insert(categories)
-          .values(category)
-          .onConflictDoNothing()
+          .values({
+            ...category,
+            depth: 0,
+            path: [],
+          })
+          .onConflictDoUpdate({
+            target: categories.slug,
+            set: {
+              name: category.name,
+              description: category.description,
+              icon: category.icon,
+              order: category.order,
+              depth: 0,
+              path: [],
+            },
+          })
           .execute();
       }
-      console.log("✅ Categories seeded");
+      
+      // Load all root categories to get their IDs
+      const rootCategories = await db.query.categories.findMany({
+        where: isNull(categories.parentId),
+      });
+      
+      for (const cat of rootCategories) {
+        slugToIdMap[cat.slug] = cat.id;
+      }
+      
+      // Phase 2: Insert/update subcategories with resolved parentIds, depth, and path
+      for (const subCategory of subCategoriesData) {
+        const parentId = slugToIdMap[subCategory.parentSlug];
+        if (parentId) {
+          const { parentSlug, ...rest } = subCategory;
+          await db
+            .insert(categories)
+            .values({
+              ...rest,
+              parentId,
+              depth: 1,
+              path: [parentId],
+            })
+            .onConflictDoUpdate({
+              target: categories.slug,
+              set: {
+                name: rest.name,
+                description: rest.description,
+                icon: rest.icon,
+                order: rest.order,
+                parentId,
+                depth: 1,
+                path: [parentId],
+              },
+            })
+            .execute();
+        }
+      }
+      
+      console.log(`✅ Categories seeded (${categoriesData.length} root + ${subCategoriesData.length} subcategories)`);
     }
     
     // Seed locations (51k+ locations)
