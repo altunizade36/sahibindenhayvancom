@@ -644,24 +644,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/blog/:slug", async (req: Request, res: Response) => {
-    const post = await storage.getBlogPostBySlug(req.params.slug);
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+    try {
+      // Read from database directly (seeded data)
+      const post = await db.query.blogPosts.findFirst({
+        where: (posts, { eq }) => eq(posts.slug, req.params.slug),
+      });
+      
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      // Get author from database
+      const author = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, post.authorId),
+      });
+
+      // Sanitize author object
+      let sanitizedAuthor = null;
+      if (author) {
+        const { password: _, ...safe } = author;
+        sanitizedAuthor = safe;
+      }
+
+      res.json({
+        ...post,
+        author: sanitizedAuthor,
+      });
+    } catch (error) {
+      console.error("Blog detail API error:", error);
+      res.status(500).json({ message: "Failed to fetch blog post" });
     }
-
-    const author = await storage.getUser(post.authorId);
-
-    // Sanitize author object
-    let sanitizedAuthor = null;
-    if (author) {
-      const { password: _, ...safe } = author;
-      sanitizedAuthor = safe;
-    }
-
-    res.json({
-      ...post,
-      author: sanitizedAuthor,
-    });
   });
 
   app.post("/api/blog", authMiddleware, async (req: Request, res: Response) => {
