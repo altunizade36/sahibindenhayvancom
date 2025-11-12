@@ -109,10 +109,11 @@ export async function seedDatabase() {
       const [veterinarianAuthor] = await db
         .insert(users)
         .values({
+          username: "drayse",
           email: "veteriner@sahibindenhayvan.com",
-          passwordHash: hashedPassword,
+          password: hashedPassword,
           fullName: "Dr. Ayşe Yılmaz",
-          role: "veterinarian",
+          role: "vet",
           phone: "(0532) 123 45 67",
           city: "İstanbul",
           district: "Kadıköy",
