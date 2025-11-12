@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Clock, User, ArrowLeft, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
 import type { BlogPost } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
@@ -108,7 +108,7 @@ export default function BlogDetail() {
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {format(new Date(post.createdAt), "d MMMM yyyy", { locale: tr })}
+                  {post.createdAt && format(parseISO(post.createdAt.toString()), "d MMMM yyyy", { locale: tr })}
                 </span>
               </div>
             </div>
