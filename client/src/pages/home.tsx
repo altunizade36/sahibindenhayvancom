@@ -7,7 +7,7 @@ import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { ArrowRight, Gavel } from "lucide-react";
+import { ArrowRight, Gavel, TrendingUp } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
 
 interface ListingsResponse {
@@ -35,6 +35,14 @@ export default function Home() {
     queryKey: ["/api/auctions", { status: "live" }],
   });
 
+  const { data: hotListings = [] } = useQuery<Listing[]>({
+    queryKey: ["/api/listings/hot"],
+  });
+
+  const { data: categoryStats = [] } = useQuery<{ categoryId: string; count: number }[]>({
+    queryKey: ["/api/categories/stats"],
+  });
+
   return (
     <div className="min-h-screen">
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20">
@@ -60,11 +68,40 @@ export default function Home() {
               En çok aranan hayvan kategorilerine göz atın
             </p>
           </div>
-          <CategoryGrid categories={categories.filter(c => c.parentId === null).slice(0, 6)} />
+          <CategoryGrid 
+            categories={categories.filter(c => c.parentId === null).slice(0, 6)} 
+            stats={categoryStats}
+          />
         </div>
       </section>
 
-      <section className="py-16 bg-background">
+      {hotListings.length > 0 && (
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-primary" />
+                <div>
+                  <h2 className="text-3xl font-bold">Popüler İlanlar</h2>
+                  <p className="text-muted-foreground mt-1">En çok görüntülenen ilanlar</p>
+                </div>
+              </div>
+              <Link href="/ilanlar">
+                <Button variant="ghost" data-testid="link-all-listings">
+                  Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {hotListings.slice(0, 8).map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
