@@ -3,6 +3,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seed";
+import { initializeRedis, cache } from "./cache";
 
 const app = express();
 
@@ -60,6 +61,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize Redis cache
+  initializeRedis();
+  
   // Seed database on startup
   await seedDatabase();
   

@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
+import { cache, cacheKeys, cacheTTL } from "./cache";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, vetServices, transportServices, reviews } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -427,11 +428,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Category Routes ============
   app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
+      // Check cache first (24h TTL - categories rarely change)
+      const cacheKey = cacheKeys.categories();
+      const cached = await cache.get<any[]>(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
       // Get all categories from PostgreSQL, ordered by order
       const allCategories = await db
         .select()
         .from(categories)
         .orderBy(categories.order);
+      
+      // Cache for 24 hours
+      await cache.set(cacheKey, allCategories, cacheTTL.categories);
       
       res.json(allCategories);
     } catch (error) {
@@ -442,6 +454,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/categories/tree", async (_req: Request, res: Response) => {
     try {
+      // Check cache first (24h TTL - tree structure rarely changes)
+      const cacheKey = cacheKeys.categoryTree();
+      const cached = await cache.get<any[]>(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
       // Get all categories from PostgreSQL
       const allCategories = await db
         .select()
@@ -469,6 +489,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       });
+      
+      // Cache for 24 hours
+      await cache.set(cacheKey, rootCategories, cacheTTL.categories);
       
       res.json(rootCategories);
     } catch (error) {
@@ -958,6 +981,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Blog Routes ============
   app.get("/api/blog", async (req: Request, res: Response) => {
     try {
+      // Check cache first (1h TTL - blog posts don't change frequently)
+      const cacheKey = cacheKeys.blogPosts();
+      const cached = await cache.get<any[]>(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
       // Read blog posts directly from database (seeded data) with author info
       const published = req.query.published !== "false";
       const posts = await db.query.blogPosts.findMany({
@@ -976,6 +1007,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return post;
       });
+
+      // Cache for 1 hour
+      await cache.set(cacheKey, sanitizedPosts, cacheTTL.blogPosts);
 
       res.json(sanitizedPosts);
     } catch (error) {
