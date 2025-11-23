@@ -104,7 +104,13 @@ export function Navbar() {
 
                   {isAuthenticated ? (
                     <>
-                      <div className="border-t pt-4 mt-4">
+                      <div className="border-t pt-4 mt-4 space-y-3">
+                        <Link href="/ilan-ver">
+                          <Button className="w-full text-lg h-12" onClick={closeMobileMenu} data-testid="mobile-link-add-listing">
+                            <Plus className="w-5 h-5 mr-2" />
+                            İlan Ver
+                          </Button>
+                        </Link>
                         <Link href="/panel">
                           <Button variant="ghost" className="w-full justify-start text-lg h-12" onClick={closeMobileMenu} data-testid="mobile-link-dashboard">
                             <User className="w-5 h-5 mr-2" />
@@ -228,16 +234,6 @@ export function Navbar() {
                 </>
               )}
             </div>
-
-            {/* Mobile "İlan Ver" Button (always visible) */}
-            {isAuthenticated && (
-              <Link href="/ilan-ver">
-                <Button size="sm" className="md:hidden" data-testid="mobile-button-add-listing">
-                  <Plus className="w-4 h-4 md:mr-2" />
-                  <span className="hidden sm:inline">İlan Ver</span>
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
       </div>
