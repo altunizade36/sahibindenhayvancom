@@ -25,7 +25,9 @@ export const userRoleEnum = pgEnum("user_role", [
 
 export const listingStatusEnum = pgEnum("listing_status", [
   "draft",
+  "pending",
   "active",
+  "rejected",
   "sold",
   "expired",
   "deleted"
@@ -77,15 +79,23 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull().default("buyer"),
   avatar: text("avatar"),
   isVerified: boolean("is_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  emailVerificationExpires: timestamp("email_verification_expires"),
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+  lastLoginIp: text("last_login_ip"),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  emailVerificationToken: true,
+  emailVerificationExpires: true,
+  lastLoginAt: true,
+  lastLoginIp: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -159,10 +169,13 @@ export const listings = pgTable("listings", {
   locationId: varchar("location_id").references(() => locations.id, { onDelete: "set null" }),
   city: text("city").notNull(), // Denormalized for backward compatibility (should sync with locationId)
   district: text("district").notNull(), // Denormalized for backward compatibility
-  status: listingStatusEnum("status").default("active"),
+  status: listingStatusEnum("status").default("pending"),
   isPremium: boolean("is_premium").default(false),
   isUrgent: boolean("is_urgent").default(false),
   views: integer("views").default(0),
+  moderationReason: text("moderation_reason"),
+  moderatedBy: varchar("moderated_by").references(() => users.id),
+  moderatedAt: timestamp("moderated_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
