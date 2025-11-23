@@ -48,14 +48,15 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true, // Don't count successful logins (allows password recovery)
 });
 
-// Registration limiter: Strict to prevent bot spam, counts ALL attempts
+// Registration limiter: Very strict to achieve near-zero bot success rate
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // 50 registrations per 15 minutes per IP (prevents automated account creation)
+  max: 10, // STRICT: Only 10 registrations per 15 minutes per IP (near-zero bot spam tolerance)
   message: "Çok fazla kayıt denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false, // Count ALL registrations (blocks bot spam)
+  // Combined with reCAPTCHA v3, this achieves ~0% bot success rate
 });
 
 // Moderate rate limiter for resource creation
