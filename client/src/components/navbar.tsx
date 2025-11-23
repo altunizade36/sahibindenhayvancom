@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -72,6 +73,9 @@ export function Navbar() {
                     <PawPrint className="w-6 h-6 text-primary" />
                     sahibinden<span className="text-primary">hayvan</span>
                   </SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Navigasyon menüsü
+                  </SheetDescription>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 mt-8">
                   <Link href="/ilanlar">
