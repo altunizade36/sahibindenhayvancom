@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
-import { locations, listings, blogPosts } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -69,8 +69,8 @@ declare global {
   }
 }
 
-// Auth middleware
-function authMiddleware(req: Request, res: Response, next: Function) {
+// Auth middleware (using PostgreSQL)
+async function authMiddleware(req: Request, res: Response, next: Function) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ message: "No token provided" });
@@ -79,20 +79,24 @@ function authMiddleware(req: Request, res: Response, next: Function) {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    storage.getUser(decoded.userId).then((user) => {
-      if (!user) {
-        return res.status(401).json({ message: "Invalid token" });
-      }
-      req.user = user;
-      next();
-    });
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, decoded.userId))
+      .limit(1);
+    
+    if (!user) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    req.user = user;
+    next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid token" });
   }
 }
 
-// Optional auth middleware (doesn't fail if no token)
-function optionalAuthMiddleware(req: Request, res: Response, next: Function) {
+// Optional auth middleware (doesn't fail if no token) - using PostgreSQL
+async function optionalAuthMiddleware(req: Request, res: Response, next: Function) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return next();
@@ -101,12 +105,16 @@ function optionalAuthMiddleware(req: Request, res: Response, next: Function) {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    storage.getUser(decoded.userId).then((user) => {
-      if (user) {
-        req.user = user;
-      }
-      next();
-    });
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, decoded.userId))
+      .limit(1);
+    
+    if (user) {
+      req.user = user;
+    }
+    next();
   } catch (error) {
     next();
   }
@@ -283,23 +291,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertUserSchema.parse(req.body);
       
-      // Check if user exists
-      const existingUser = await storage.getUserByUsername(data.username);
+      // Check if user exists (direct PostgreSQL query)
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, data.username))
+        .limit(1);
+      
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const existingEmail = await storage.getUserByEmail(data.email);
+      const [existingEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, data.email))
+        .limit(1);
+      
       if (existingEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
       // Hash password
       const hashedPassword = await bcrypt.hash(data.password, 10);
-      const user = await storage.createUser({
-        ...data,
-        password: hashedPassword,
-      });
+      
+      // Create user in PostgreSQL
+      const [user] = await db
+        .insert(users)
+        .values({
+          ...data,
+          password: hashedPassword,
+        })
+        .returning();
 
       // Create JWT token
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
@@ -312,6 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: sanitizedUser,
       });
     } catch (error) {
+      console.error("Registration error:", error);
       res.status(400).json({ message: "Registration failed", error });
     }
   });
@@ -320,7 +344,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
 
-      const user = await storage.getUserByUsername(username);
+      // Direct PostgreSQL query for user
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1);
+      
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -362,7 +392,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const updated = await storage.updateUser(req.user!.id, safeUpdates);
+      // Update user in PostgreSQL
+      const [updated] = await db
+        .update(users)
+        .set(safeUpdates)
+        .where(eq(users.id, req.user!.id))
+        .returning();
+      
       if (!updated) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -371,6 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...sanitizedUser } = updated;
       res.json(sanitizedUser);
     } catch (error) {
+      console.error("Profile update error:", error);
       res.status(400).json({ message: "Update failed", error });
     }
   });
