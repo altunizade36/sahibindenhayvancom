@@ -41,6 +41,7 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
 - ✅ Scalability Ready: In-memory cache, health checks, Prometheus metrics
 - ✅ Category System: 459 hierarchical categories across 14 domains
 - ✅ **Mobile Responsive Design:**
+  - **Full-screen mobile menu** (w-full on <640px, 320px sidebar on tablet+)
   - Hamburger navigation menu (Sheet/Drawer) with full auth controls
   - Touch-friendly UI (44px minimum button/input heights)
   - Responsive typography (text-lg md:text-2xl patterns)
