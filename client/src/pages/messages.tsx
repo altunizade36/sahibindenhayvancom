@@ -88,7 +88,7 @@ export default function Messages() {
     if (!user || !token) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}?token=${token}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
     
     const websocket = new WebSocket(wsUrl);
 

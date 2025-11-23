@@ -62,8 +62,9 @@ export const cache = {
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     try {
       if (redisClient) {
+        // Upstash REST API uses { ex: ttl } instead of setex()
         if (ttl) {
-          await redisClient.setex(key, ttl, value);
+          await redisClient.set(key, value, { ex: ttl });
         } else {
           await redisClient.set(key, value);
         }
@@ -76,7 +77,17 @@ export const cache = {
         expires: ttl ? Date.now() + ttl * 1000 : Infinity,
       });
     } catch (error) {
-      console.error(`Cache set error (${key}):`, error);
+      // Silently fallback to in-memory cache on Redis permission errors
+      if (error instanceof Error && error.message.includes('NOPERM')) {
+        // Disable Redis client to avoid repeated permission errors
+        redisClient = null;
+      }
+      
+      // Fallback to in-memory cache
+      memoryCache.set(key, {
+        value,
+        expires: ttl ? Date.now() + ttl * 1000 : Infinity,
+      });
     }
   },
 

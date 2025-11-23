@@ -291,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .returning();
 
             // Broadcast bid only to clients subscribed to this auction
-            for (const clientInfo of clients.values()) {
+            for (const clientInfo of Array.from(clients.values())) {
               if (clientInfo.ws.readyState === WebSocket.OPEN && clientInfo.auctionId === message.auctionId) {
                 clientInfo.ws.send(JSON.stringify({
                   type: "new_bid",
@@ -969,7 +969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .update(auctions)
         .set({
           currentPrice: bidAmount.toString(),
-          totalBids: auction.totalBids + 1,
+          totalBids: (auction.totalBids || 0) + 1,
         })
         .where(eq(auctions.id, req.params.id));
 
@@ -1122,8 +1122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Stream is not live" });
       }
 
-      const newViewerCount = stream.viewerCount + 1;
-      const newPeakViewers = Math.max(stream.peakViewers, newViewerCount);
+      const newViewerCount = (stream.viewerCount || 0) + 1;
+      const newPeakViewers = Math.max(stream.peakViewers || 0, newViewerCount);
 
       const [updated] = await db
         .update(liveStreams)
@@ -1153,7 +1153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      const newViewerCount = Math.max(0, stream.viewerCount - 1);
+      const newViewerCount = Math.max(0, (stream.viewerCount || 0) - 1);
 
       const [updated] = await db
         .update(liveStreams)
