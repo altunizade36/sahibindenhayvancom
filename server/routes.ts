@@ -337,16 +337,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Auth Routes ============
   app.post("/api/auth/register", authLimiter, async (req: Request, res: Response) => {
     try {
-      const data = insertUserSchema.parse(req.body);
-      
-      // Validate reCAPTCHA token (optional - requires RECAPTCHA_SECRET_KEY)
+      // SECURITY: Validate reCAPTCHA before any processing
       const recaptchaToken = req.body.recaptchaToken;
-      if (recaptchaToken) {
+      if (process.env.RECAPTCHA_SECRET_KEY) {
+        // Production: reCAPTCHA required
+        if (!recaptchaToken) {
+          return res.status(400).json({ message: "reCAPTCHA doğrulaması gereklidir" });
+        }
         const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
         if (!isValid) {
-          return res.status(400).json({ message: "reCAPTCHA doğrulaması başarısız" });
+          return res.status(400).json({ message: "Bot koruması doğrulaması başarısız" });
         }
       }
+
+      const data = insertUserSchema.parse(req.body);
       
       // Check if user exists (direct PostgreSQL query)
       const [existingUser] = await db
@@ -377,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const verificationExpires = new Date();
       verificationExpires.setHours(verificationExpires.getHours() + 24);
       
-      // Create user in PostgreSQL (unverified)
+      // Create user in PostgreSQL (UNVERIFIED - no immediate access)
       const [user] = await db
         .insert(users)
         .values({
@@ -389,24 +393,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .returning();
 
-      // Send verification email
-      try {
-        await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
-      } catch (emailError) {
-        console.error("Failed to send verification email:", emailError);
-        // Continue registration even if email fails
-      }
+      // Send verification email (MUST succeed for security)
+      await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
 
-      // Create JWT token
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
-
-      // Sanitize user object - remove password and token
-      const { password: _, emailVerificationToken: __, ...sanitizedUser } = user;
-
+      // SECURITY FIX: Do NOT return JWT until email verified
+      // User must verify email before getting access
       res.json({
-        token,
-        user: sanitizedUser,
-        message: "Kayıt başarılı! Lütfen email adresinizi doğrulayın.",
+        message: "Kayıt başarılı! Email adresinize gönderilen doğrulama linkine tıklayın.",
+        email: user.email,
+        requiresVerification: true,
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -532,10 +527,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.id, user.id))
         .returning();
 
+      // SECURITY FIX: Issue JWT ONLY after verification
+      const authToken = jwt.sign({ userId: updated.id }, JWT_SECRET, { expiresIn: "7d" });
+
       const { password: _, emailVerificationToken: __, ...sanitizedUser } = updated;
 
       res.json({
-        message: "Email adresiniz başarıyla doğrulandı!",
+        message: "Email adresiniz başarıyla doğrulandı! Artık giriş yapabilirsiniz.",
+        token: authToken,
         user: sanitizedUser,
       });
     } catch (error) {
@@ -1064,34 +1063,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // SPAM FILTER: Check for duplicate listings (same title in last hour)
+      // SPAM FILTER: Check for duplicate listings (normalized title, ignore rejected/deleted)
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const [duplicateListing] = await db
+      const normalizedTitle = req.body.title.toLowerCase().trim();
+      
+      const duplicates = await db
         .select()
         .from(listings)
         .where(
           and(
             eq(listings.sellerId, user.id),
-            eq(listings.title, req.body.title),
-            gte(listings.createdAt, oneHourAgo)
+            sql`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
+            gte(listings.createdAt, oneHourAgo),
+            // Ignore rejected/deleted listings
+            sql`${listings.status} NOT IN ('rejected', 'deleted')`
           )
         )
         .limit(1);
 
-      if (duplicateListing) {
+      if (duplicates.length > 0) {
         return res.status(429).json({
           message: "Aynı başlıkla kısa süre önce ilan oluşturdunuz. Lütfen 1 saat bekleyin.",
         });
       }
 
-      // SPAM FILTER: Max 5 listings per hour per user
+      // SPAM FILTER: Max 5 ACTIVE/PENDING listings per hour per user (exclude rejected/deleted)
       const recentListings = await db
         .select({ count: count() })
         .from(listings)
         .where(
           and(
             eq(listings.sellerId, user.id),
-            gte(listings.createdAt, oneHourAgo)
+            gte(listings.createdAt, oneHourAgo),
+            sql`${listings.status} NOT IN ('rejected', 'deleted')`
           )
         );
 
@@ -2150,23 +2154,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update listing status (admin only - approve/reject)
+  // Update listing status (admin only - approve/reject with strict validation)
   app.patch("/api/admin/listings/:id/status", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const { status, reason } = req.body;
 
-      if (!['active', 'rejected'].includes(status)) {
-        return res.status(400).json({ message: "Geçersiz durum" });
+      // SECURITY: Only allow approved transitions
+      const allowedStatuses = ['active', 'rejected'] as const;
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Geçersiz durum. Sadece 'active' veya 'rejected' kullanılabilir.",
+        });
       }
 
+      // SECURITY: Require reason for rejection
       if (status === 'rejected' && !reason) {
-        return res.status(400).json({ message: "Red için neden belirtilmelidir" });
+        return res.status(400).json({ message: "Red nedeni zorunludur" });
       }
 
+      // Get current listing
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      // Only allow moderation on pending listings
+      if (listing.status !== 'pending') {
+        return res.status(400).json({
+          message: `Bu işlem sadece bekleyen ilanlar için yapılabilir. Mevcut durum: ${listing.status}`,
+        });
+      }
+
+      // Update with full audit trail
       const [updated] = await db
         .update(listings)
         .set({
-          status: status as any,
+          status: status,
           moderatedBy: req.user!.id,
           moderatedAt: new Date(),
           moderationReason: reason || null,
@@ -2174,13 +2202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(listings.id, req.params.id))
         .returning();
 
-      if (!updated) {
-        return res.status(404).json({ message: "İlan bulunamadı" });
-      }
-
       res.json({
         ...updated,
-        message: status === 'active' ? 'İlan onaylandı' : 'İlan reddedildi',
+        message: status === 'active' ? 'İlan başarıyla onaylandı' : 'İlan reddedildi',
       });
     } catch (error) {
       console.error("Error updating listing status:", error);
