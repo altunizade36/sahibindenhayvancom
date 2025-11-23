@@ -459,6 +459,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Category Routes ============
+  // Get category statistics (listing count per category) - BEFORE parametric routes
+  app.get("/api/categories/stats", async (_req: Request, res: Response) => {
+    try {
+      // Get listing counts per category
+      const stats = await db
+        .select({
+          categoryId: listings.categoryId,
+          count: count(),
+        })
+        .from(listings)
+        .where(eq(listings.status, 'active'))
+        .groupBy(listings.categoryId);
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching category stats:", error);
+      res.status(500).json({ message: "Failed to fetch category stats" });
+    }
+  });
+
   app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
       // Check cache first (24h TTL - categories rarely change)
@@ -622,7 +642,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conditions = [];
       
       if (categoryId) {
-        conditions.push(eq(listings.categoryId, categoryId as string));
+        // Get all categories from cache or DB (single query)
+        const cacheKey = cacheKeys.categories();
+        let allCategories = await cache.get<any[]>(cacheKey);
+        
+        if (!allCategories) {
+          allCategories = await db
+            .select()
+            .from(categories)
+            .orderBy(categories.order);
+          await cache.set(cacheKey, allCategories, cacheTTL.categories);
+        }
+        
+        // Build in-memory parent-child map
+        const childMap = new Map<string, string[]>();
+        allCategories.forEach(cat => {
+          if (cat.parentId) {
+            const siblings = childMap.get(cat.parentId) || [];
+            siblings.push(cat.id);
+            childMap.set(cat.parentId, siblings);
+          }
+        });
+        
+        // Get all descendant IDs (in-memory recursive traversal)
+        const getAllDescendants = (catId: string): string[] => {
+          const children = childMap.get(catId) || [];
+          let descendants = [catId]; // Include the category itself
+          for (const childId of children) {
+            descendants = [...descendants, ...getAllDescendants(childId)];
+          }
+          return descendants;
+        };
+        
+        const categoryIds = getAllDescendants(categoryId as string);
+        
+        // Filter by category OR any of its descendants
+        if (categoryIds.length > 1) {
+          conditions.push(sql`${listings.categoryId} IN (${sql.join(categoryIds.map(id => sql`${id}`), sql`, `)})`);
+        } else {
+          conditions.push(eq(listings.categoryId, categoryId as string));
+        }
       }
       
       if (city) {
@@ -693,6 +752,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching listings:", error);
       res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  // Get hot/trending listings (most viewed/favorited in last 7 days)
+  app.get("/api/listings/hot", async (_req: Request, res: Response) => {
+    try {
+      const cacheKey = cacheKeys.hotListings();
+      const cached = await cache.get<any[]>(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+
+      // Get listings sorted by views (last 7 days would need createdAt filter)
+      const hotListings = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.status, 'active'))
+        .orderBy(desc(listings.views))
+        .limit(12);
+
+      await cache.set(cacheKey, hotListings, cacheTTL.hotListings);
+      res.json(hotListings);
+    } catch (error) {
+      console.error("Error fetching hot listings:", error);
+      res.status(500).json({ message: "Failed to fetch hot listings" });
     }
   });
 
