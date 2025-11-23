@@ -10,11 +10,12 @@ async function seedTestData() {
   for (let i = 1; i <= 50; i++) {
     const hashedPassword = await bcrypt.hash("test123", 10);
     const [user] = await db.insert(users).values({
+      username: `testuser${i}`,
       email: `testuser${i}@example.com`,
       password: hashedPassword,
       fullName: `Test User ${i}`,
       phone: `+905${String(i).padStart(9, '0')}`,
-      role: i === 1 ? "admin" : (i <= 5 ? "veterinarian" : "buyer"),
+      role: i === 1 ? "admin" : (i <= 5 ? "vet" : "buyer"),
     }).returning();
     testUsers.push(user);
   }
@@ -46,6 +47,7 @@ async function seedTestData() {
       categoryId: randomCategory.id,
       sellerId: randomUser.id,
       city: randomCity,
+      district: "Test District",
       status: i % 10 === 0 ? "sold" : "active",
       age: Math.floor(Math.random() * 60).toString(),
       gender: genders[Math.floor(Math.random() * genders.length)] as any,
