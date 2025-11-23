@@ -25,6 +25,7 @@ import {
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { emailService, generateVerificationToken } from "./email";
+import { verifyRecaptcha } from "./recaptcha";
 
 // Validate critical environment variables
 if (!process.env.SESSION_SECRET) {
@@ -338,11 +339,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertUserSchema.parse(req.body);
       
-      // TODO: Validate reCAPTCHA token
-      // const recaptchaToken = req.body.recaptchaToken;
-      // if (!recaptchaToken || !(await verifyRecaptcha(recaptchaToken))) {
-      //   return res.status(400).json({ message: "Invalid reCAPTCHA" });
-      // }
+      // Validate reCAPTCHA token (optional - requires RECAPTCHA_SECRET_KEY)
+      const recaptchaToken = req.body.recaptchaToken;
+      if (recaptchaToken) {
+        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
+        if (!isValid) {
+          return res.status(400).json({ message: "reCAPTCHA doğrulaması başarısız" });
+        }
+      }
       
       // Check if user exists (direct PostgreSQL query)
       const [existingUser] = await db
@@ -2076,7 +2080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin middleware
   async function adminMiddleware(req: Request, res: Response, next: Function) {
     if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access required" });
+      return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
     next();
   }
@@ -2087,15 +2091,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [usersCount] = await db.select({ count: count() }).from(users);
       const [listingsCount] = await db.select({ count: count() }).from(listings);
       const [activeListings] = await db.select({ count: count() }).from(listings).where(eq(listings.status, "active"));
+      const [pendingListings] = await db.select({ count: count() }).from(listings).where(eq(listings.status, "pending"));
+      const [verifiedUsers] = await db.select({ count: count() }).from(users).where(eq(users.isVerified, true));
 
       res.json({
         totalUsers: Number(usersCount.count),
+        verifiedUsers: Number(verifiedUsers.count),
         totalListings: Number(listingsCount.count),
         activeListings: Number(activeListings.count),
+        pendingListings: Number(pendingListings.count),
       });
     } catch (error) {
       console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch stats" });
+      res.status(500).json({ message: "İstatistikler getirilemedi" });
     }
   });
 
@@ -2109,9 +2117,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conditions.push(eq(listings.status, status as any));
       }
 
+      // Get listings with seller info
       const allListings = await db
-        .select()
+        .select({
+          id: listings.id,
+          title: listings.title,
+          description: listings.description,
+          price: listings.price,
+          categoryId: listings.categoryId,
+          images: listings.images,
+          city: listings.city,
+          district: listings.district,
+          status: listings.status,
+          createdAt: listings.createdAt,
+          moderatedAt: listings.moderatedAt,
+          moderationReason: listings.moderationReason,
+          sellerId: listings.sellerId,
+          sellerUsername: users.username,
+          sellerEmail: users.email,
+          sellerIsVerified: users.isVerified,
+        })
         .from(listings)
+        .leftJoin(users, eq(listings.sellerId, users.id))
         .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(desc(listings.createdAt))
         .limit(100);
@@ -2119,29 +2146,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(allListings);
     } catch (error) {
       console.error("Error fetching listings for admin:", error);
-      res.status(500).json({ message: "Failed to fetch listings" });
+      res.status(500).json({ message: "İlanlar getirilemedi" });
     }
   });
 
   // Update listing status (admin only - approve/reject)
   app.patch("/api/admin/listings/:id/status", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
     try {
-      const { status } = req.body;
+      const { status, reason } = req.body;
+
+      if (!['active', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+
+      if (status === 'rejected' && !reason) {
+        return res.status(400).json({ message: "Red için neden belirtilmelidir" });
+      }
 
       const [updated] = await db
         .update(listings)
-        .set({ status: status as any })
+        .set({
+          status: status as any,
+          moderatedBy: req.user!.id,
+          moderatedAt: new Date(),
+          moderationReason: reason || null,
+        })
         .where(eq(listings.id, req.params.id))
         .returning();
 
       if (!updated) {
-        return res.status(404).json({ message: "Listing not found" });
+        return res.status(404).json({ message: "İlan bulunamadı" });
       }
 
-      res.json(updated);
+      res.json({
+        ...updated,
+        message: status === 'active' ? 'İlan onaylandı' : 'İlan reddedildi',
+      });
     } catch (error) {
       console.error("Error updating listing status:", error);
-      res.status(500).json({ message: "Failed to update listing" });
+      res.status(500).json({ message: "Durum güncellenemedi" });
     }
   });
 
