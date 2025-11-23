@@ -36,14 +36,14 @@ if (!process.env.SESSION_SECRET) {
 const JWT_SECRET = process.env.SESSION_SECRET;
 
 // ============ Rate Limiting Configuration ============
-// Strict rate limiter for auth endpoints (brute-force protection)
+// Optimized rate limiter for auth endpoints (balances security with user experience)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per 15 minutes
+  max: 100, // 100 attempts per 15 minutes per IP (allows legitimate traffic bursts)
   message: "Çok fazla giriş denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false, // Count successful requests too
+  skipSuccessfulRequests: true, // Don't count successful logins against limit
 });
 
 // Moderate rate limiter for resource creation
