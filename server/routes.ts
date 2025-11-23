@@ -1,7 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
 import { db } from "./db";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, vetServices, transportServices, reviews } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
@@ -203,12 +202,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Handle different message types
           if (message.type === "chat") {
-            const newMessage = await storage.createMessage({
-              senderId: decoded.userId,
-              receiverId: message.receiverId,
-              listingId: message.listingId || null,
-              content: message.content,
-            });
+            // Create message in PostgreSQL
+            const [newMessage] = await db
+              .insert(messages)
+              .values({
+                senderId: decoded.userId,
+                receiverId: message.receiverId,
+                listingId: message.listingId || null,
+                content: message.content,
+              })
+              .returning();
 
             // Send to receiver if online
             const receiverWs = clients.get(message.receiverId);
@@ -225,8 +228,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               message: newMessage,
             }));
           } else if (message.type === "bid") {
-            // Handle auction bid
-            const auction = await storage.getAuction(message.auctionId);
+            // Handle auction bid - Get auction from PostgreSQL
+            const [auction] = await db
+              .select()
+              .from(auctions)
+              .where(eq(auctions.id, message.auctionId))
+              .limit(1);
+            
             if (!auction) {
               ws.send(JSON.stringify({ type: "error", message: "Auction not found" }));
               return;
@@ -244,11 +252,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return;
             }
 
-            const bid = await storage.createBid({
-              auctionId: message.auctionId,
-              bidderId: decoded.userId,
-              amount: message.amount,
-            });
+            // Create bid in PostgreSQL
+            const [bid] = await db
+              .insert(bids)
+              .values({
+                auctionId: message.auctionId,
+                bidderId: decoded.userId,
+                amount: message.amount,
+              })
+              .returning();
 
             // Broadcast bid to all connected clients
             wss.clients.forEach((client) => {
@@ -574,8 +586,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If user is authenticated, check favorites
       let listingsWithFavorites = listingsData;
       if (req.user) {
-        const favorites = await storage.getFavoritesByUser(req.user.id);
-        const favoriteIds = new Set(favorites.map(f => f.listingId));
+        // Get favorites from PostgreSQL
+        const userFavorites = await db
+          .select()
+          .from(favorites)
+          .where(eq(favorites.userId, req.user.id));
+        
+        const favoriteIds = new Set(userFavorites.map(f => f.listingId));
         
         listingsWithFavorites = listingsData.map(listing => ({
           ...listing,
@@ -614,13 +631,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({ views: sql`${listings.views} + 1` })
         .where(eq(listings.id, req.params.id));
 
-      // Get seller info
-      const seller = await storage.getUser(listing.sellerId);
+      // Get seller info from PostgreSQL
+      const [seller] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, listing.sellerId))
+        .limit(1);
 
       // Check if favorited
       let isFavorite = false;
       if (req.user) {
-        isFavorite = await storage.isFavorite(req.user.id, listing.id);
+        const [favorite] = await db
+          .select()
+          .from(favorites)
+          .where(
+            and(
+              eq(favorites.userId, req.user.id),
+              eq(favorites.listingId, listing.id)
+            )
+          )
+          .limit(1);
+        
+        isFavorite = !!favorite;
       }
 
       // Sanitize seller object
