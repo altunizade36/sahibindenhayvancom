@@ -79,8 +79,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
   };
 
   return (
-    <Link href={`/acik-artirma/${auction.id}`} data-testid={`card-auction-${auction.id}`}>
-      <Card className="hover-elevate active-elevate-2 h-full cursor-pointer transition-all">
+      <Card className="h-full opacity-60 cursor-not-allowed" data-testid={`card-auction-${auction.id}`}>
         <CardHeader className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <Badge className={`${statusColors[auction.status]} text-white`} data-testid={`badge-status-${auction.status}`}>
@@ -143,13 +142,12 @@ function AuctionCard({ auction }: { auction: Auction }) {
         </CardContent>
 
         <CardFooter>
-          <Button variant="outline" className="w-full" data-testid={`button-view-auction-${auction.id}`}>
+          <Button variant="outline" className="w-full" disabled data-testid={`button-view-auction-${auction.id}`}>
             <Gavel className="h-4 w-4 mr-2" />
             Detayları Gör
           </Button>
         </CardFooter>
       </Card>
-    </Link>
   );
 }
 

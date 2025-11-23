@@ -42,8 +42,7 @@ function StreamCard({ stream }: { stream: LiveStream }) {
   };
 
   return (
-    <Link href={`/canli-yayin/${stream.id}`} data-testid={`card-stream-${stream.id}`}>
-      <Card className="hover-elevate active-elevate-2 h-full cursor-pointer transition-all overflow-hidden">
+      <Card className="h-full opacity-60 cursor-not-allowed overflow-hidden" data-testid={`card-stream-${stream.id}`}>
         <div className="relative aspect-video bg-muted">
           {stream.thumbnailUrl ? (
             <img src={stream.thumbnailUrl} alt={stream.title} className="object-cover w-full h-full" />
@@ -102,13 +101,12 @@ function StreamCard({ stream }: { stream: LiveStream }) {
         </CardContent>
 
         <CardFooter>
-          <Button variant={stream.status === "live" ? "default" : "outline"} className="w-full" data-testid={`button-view-stream-${stream.id}`}>
+          <Button variant={stream.status === "live" ? "default" : "outline"} className="w-full" disabled data-testid={`button-view-stream-${stream.id}`}>
             <Play className="h-4 w-4 mr-2" />
             {stream.status === "live" ? "İzle" : "Detayları Gör"}
           </Button>
         </CardFooter>
       </Card>
-    </Link>
   );
 }
 
