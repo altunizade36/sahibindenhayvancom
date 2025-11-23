@@ -61,13 +61,13 @@ export function Navbar() {
 
           <div className="flex items-center gap-2 md:gap-3">
             {/* Mobile Menu Button */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={true}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden" data-testid="button-mobile-menu">
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80">
+              <SheetContent side="left" className="w-full sm:w-80 overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <PawPrint className="w-6 h-6 text-primary" />
