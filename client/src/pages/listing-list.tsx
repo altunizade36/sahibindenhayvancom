@@ -24,8 +24,8 @@ type ListingWithDetails = Listing & {
 
 export default function ListingList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "price-low" | "price-high">("newest");
   const [showFilters, setShowFilters] = useState(true);
@@ -58,11 +58,11 @@ export default function ListingList() {
       );
     }
 
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== "all") {
       filtered = filtered.filter((listing) => listing.categoryId === selectedCategory);
     }
 
-    if (selectedLocation) {
+    if (selectedLocation && selectedLocation !== "all") {
       filtered = filtered.filter((listing) => listing.locationId === selectedLocation);
     }
 
@@ -91,16 +91,16 @@ export default function ListingList() {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCategory("");
-    setSelectedLocation("");
+    setSelectedCategory("all");
+    setSelectedLocation("all");
     setPriceRange([0, 100000]);
     setSortBy("newest");
   };
 
   const hasActiveFilters =
     searchQuery ||
-    selectedCategory ||
-    selectedLocation ||
+    (selectedCategory && selectedCategory !== "all") ||
+    (selectedLocation && selectedLocation !== "all") ||
     priceRange[0] !== 0 ||
     priceRange[1] !== 100000;
 
@@ -185,7 +185,7 @@ export default function ListingList() {
                         <SelectValue placeholder="Tüm Kategoriler" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tüm Kategoriler</SelectItem>
+                        <SelectItem value="all">Tüm Kategoriler</SelectItem>
                         {categories?.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {cat.name}
@@ -202,7 +202,7 @@ export default function ListingList() {
                         <SelectValue placeholder="Tüm Konumlar" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tüm Konumlar</SelectItem>
+                        <SelectItem value="all">Tüm Konumlar</SelectItem>
                         {locations?.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id}>
                             {loc.name}
