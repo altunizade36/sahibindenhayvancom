@@ -242,9 +242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .returning();
 
             // Send to receiver if online
-            const receiverWs = clients.get(message.receiverId);
-            if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
-              receiverWs.send(JSON.stringify({
+            const receiverClient = clients.get(message.receiverId);
+            if (receiverClient && receiverClient.ws.readyState === WebSocket.OPEN) {
+              receiverClient.ws.send(JSON.stringify({
                 type: "chat",
                 message: newMessage,
               }));
@@ -291,15 +291,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .returning();
 
             // Broadcast bid only to clients subscribed to this auction
-            clients.forEach((client) => {
-              if (client.ws.readyState === WebSocket.OPEN && client.auctionId === message.auctionId) {
-                client.ws.send(JSON.stringify({
+            for (const clientInfo of clients.values()) {
+              if (clientInfo.ws.readyState === WebSocket.OPEN && clientInfo.auctionId === message.auctionId) {
+                clientInfo.ws.send(JSON.stringify({
                   type: "new_bid",
-                  bid,
+                  bid: {
+                    id: bid.id,
+                    auctionId: bid.auctionId,
+                    bidderId: bid.bidderId,
+                    amount: bid.amount,
+                    createdAt: bid.createdAt,
+                  },
                   auctionId: message.auctionId,
                 }));
               }
-            });
+            }
           }
         } catch (error) {
           console.error("WebSocket message error:", error);
