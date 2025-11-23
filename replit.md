@@ -7,7 +7,7 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
 - ✅ 20+ Database Indexes: Optimized query performance
 - ✅ Security Hardening: Rate limiting, JWT auth, bcrypt passwords
 - ✅ **Phase 1 Scalability Complete**: Redis distributed cache (Upstash), Node.js cluster mode, health checks, Prometheus metrics
-- ✅ **Comprehensive Category System**: 800+ hierarchical categories across 14 main domains with 3-4 depth levels
+- ✅ **Comprehensive Category System**: 459 hierarchical categories across 14 main domains with up to 3 depth levels (Nov 2025 update)
 - ⚠️  Capacity Unknown: Load testing required to determine concurrent user limits
 - 📋 Scale to 200k+ Users: Requires CDN, read replicas, advanced pooling - See `PRODUCTION_SCALABILITY.md`
 

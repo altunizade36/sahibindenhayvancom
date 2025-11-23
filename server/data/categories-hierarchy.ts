@@ -604,17 +604,66 @@ categoriesHierarchy.push(egitim);
 
 // ========== 7. Mağazalar ==========
 
-["Petshop Mağazası", "Yem & Mama Üreticisi", "Çiftlik Ekipmanı Satıcısı", "Veteriner Kliniği", "Nakliye & Lojistik Firması"].forEach((type, i) => {
+const petshopMagazasi = createCategory("Petshop Mağazası", "petshop-magazasi", "Store", 0, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(petshopMagazasi);
+
+["Kedi & Köpek Mağazası", "Akvaryum Mağazası", "Kuş Mağazası", "Kemirgen Mağazası", "Sürüngen Mağazası"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(
-      type,
-      type.toLowerCase().replace(/ /g, "-").replace(/&/g, ""),
-      "Store",
-      i,
-      magazalar.id,
-      1,
-      [magazalar.id]
-    )
+    createCategory(type, `petshop-${type.toLowerCase().replace(/ /g, "-").replace(/&/g, "")}`, "Store", i, petshopMagazasi.id, 2, [magazalar.id, petshopMagazasi.id])
+  );
+});
+
+const yemMamaUretici = createCategory("Yem & Mama Üreticisi", "yem-mama-uretici", "Wheat", 1, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(yemMamaUretici);
+
+["Köpek Maması Üreticisi", "Kedi Maması Üreticisi", "Çiftlik Hayvanı Yemi Üreticisi", "Kuş Yemi Üreticisi", "Balık Yemi Üreticisi"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `yem-${type.toLowerCase().replace(/ /g, "-")}`, "Wheat", i, yemMamaUretici.id, 2, [magazalar.id, yemMamaUretici.id])
+  );
+});
+
+const ciftlikEkipmanSatici = createCategory("Çiftlik Ekipmanı Satıcısı", "ciftlik-ekipman-satici", "Tractor", 2, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(ciftlikEkipmanSatici);
+
+["Kümes Ekipmanı", "Ahır Ekipmanı", "Sulama Sistemleri", "Hayvan Barınak Yapımı"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `magazalar-${type.toLowerCase().replace(/ /g, "-")}`, "Tractor", i, ciftlikEkipmanSatici.id, 2, [magazalar.id, ciftlikEkipmanSatici.id])
+  );
+});
+
+const vetKlinik = createCategory("Veteriner Kliniği", "magazalar-vet-klinik", "Stethoscope", 3, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(vetKlinik);
+
+["24 Saat Acil Klinik", "Uzman Veteriner Kliniği", "Mobil Veteriner", "Cerrahi Klinik"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `magazalar-vet-${type.toLowerCase().replace(/ /g, "-")}`, "Stethoscope", i, vetKlinik.id, 2, [magazalar.id, vetKlinik.id])
+  );
+});
+
+const nakliyeLojistik = createCategory("Nakliye & Lojistik Firması", "nakliye-lojistik-firma", "Truck", 4, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(nakliyeLojistik);
+
+["Pet Taşımacılık", "Çiftlik Hayvanı Nakliyesi", "Uluslararası Pet Kargo", "At Nakliyesi"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `magazalar-nakliye-${type.toLowerCase().replace(/ /g, "-")}`, "Truck", i, nakliyeLojistik.id, 2, [magazalar.id, nakliyeLojistik.id])
+  );
+});
+
+const aricilikMalzeme = createCategory("Arıcılık Malzeme Mağazası", "aricilik-malzeme-magazasi", "Honeycomb", 5, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(aricilikMalzeme);
+
+["Kovan Satıcısı", "Bal Süzme Ekipmanı", "Arıcılık Kıyafeti", "Bal Ambalaj Malzemesi"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `magazalar-aricilik-${type.toLowerCase().replace(/ /g, "-")}`, "Honeycomb", i, aricilikMalzeme.id, 2, [magazalar.id, aricilikMalzeme.id])
+  );
+});
+
+const atBinicilikMagazasi = createCategory("At & Binicilik Mağazası", "at-binicilik-magazasi", "Horse", 6, magazalar.id, 1, [magazalar.id]);
+categoriesHierarchy.push(atBinicilikMagazasi);
+
+["Eyer Satıcısı", "At Maması Satıcısı", "Binicilik Kıyafeti", "At Bakım Ürünleri"].forEach((type, i) => {
+  categoriesHierarchy.push(
+    createCategory(type, `magazalar-at-${type.toLowerCase().replace(/ /g, "-")}`, "Horse", i, atBinicilikMagazasi.id, 2, [magazalar.id, atBinicilikMagazasi.id])
   );
 });
 
