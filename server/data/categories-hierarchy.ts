@@ -185,7 +185,7 @@ categoriesHierarchy.push(evcilKusEkipmanlari);
   categoriesHierarchy.push(
     createCategory(
       eq,
-      eq.toLowerCase().replace(/ /g, "-"),
+      `kus-${eq.toLowerCase().replace(/ /g, "-")}`,
       "Package",
       i,
       evcilKusEkipmanlari.id,
@@ -295,12 +295,12 @@ categoriesHierarchy.push(amfibiler);
 const evcilEgzotikHayvanlar = createCategory("Egzotik Hayvanlar", "evcil-egzotik-hayvanlar", "Sparkles", 7, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(evcilEgzotikHayvanlar);
 
-const exoticTypes = ["Kirpi", "Rakun", "Tilki", "Lemur", "Maymun", "Kakadu", "Marmoset", "Sülün", "Koati"];
+const exoticTypes = ["Kirpi", "Rakun", "Tilki", "Lemur", "Maymun", "Marmoset", "Koati"];
 exoticTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
       type,
-      type.toLowerCase(),
+      `evcil-${type.toLowerCase()}`,
       "Sparkles",
       i,
       evcilEgzotikHayvanlar.id,
@@ -378,7 +378,7 @@ poultryTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
       type,
-      type.toLowerCase(),
+      `ciftlik-${type.toLowerCase()}`,
       "Egg",
       i,
       kumes.id,
@@ -489,7 +489,7 @@ categoriesHierarchy.push(evcilEkipman);
   categoriesHierarchy.push(
     createCategory(
       type,
-      type.toLowerCase().replace(/ /g, "-"),
+      `ekipman-${type.toLowerCase().replace(/ /g, "-")}`,
       "Package",
       i,
       evcilEkipman.id,
@@ -506,7 +506,7 @@ categoriesHierarchy.push(ciftlikEkipman);
   categoriesHierarchy.push(
     createCategory(
       type,
-      type.toLowerCase().replace(/ /g, "-"),
+      `ciftlik-${type.toLowerCase().replace(/ /g, "-")}`,
       "Wrench",
       i,
       ciftlikEkipman.id,
@@ -627,7 +627,7 @@ categoriesHierarchy.push(tatliSuBaliklari);
 const freshwaterFish = ["Sazan", "Turna", "Alabalık", "Yayın Balığı", "Gökkuşağı Alabalığı", "Levrek", "Tilapya", "Kadife Balığı"];
 freshwaterFish.forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Fish", i, tatliSuBaliklari.id, 2, [baliklar.id, tatliSuBaliklari.id])
+    createCategory(type, `tatli-${type.toLowerCase().replace(/ /g, "-")}`, "Fish", i, tatliSuBaliklari.id, 2, [baliklar.id, tatliSuBaliklari.id])
   );
 });
 
@@ -637,7 +637,7 @@ categoriesHierarchy.push(denizBaliklari);
 const saltwaterFish = ["Çipura", "Levrek", "Mercan", "Kefal", "Lüfer", "Barbun", "Mezgit", "Sardalye", "Hamsi"];
 saltwaterFish.forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Fish", i, denizBaliklari.id, 2, [baliklar.id, denizBaliklari.id])
+    createCategory(type, `deniz-${type.toLowerCase().replace(/ /g, "-")}`, "Fish", i, denizBaliklari.id, 2, [baliklar.id, denizBaliklari.id])
   );
 });
 
@@ -651,31 +651,31 @@ categoriesHierarchy.push(surunseli);
 });
 
 // ========== 4. Atlar ve Binicilik (Ana Kategori) ==========
-const atIrklari = createCategory("At Irkları", "at-irklari", "Horse", 0, atlar.id, 1, [atlar.id]);
+const atIrklari = createCategory("At Irkları", "ana-at-irklari", "Horse", 0, atlar.id, 1, [atlar.id]);
 categoriesHierarchy.push(atIrklari);
 
 const horseBreeds = ["Arap Atı", "İngiliz Atı", "Akhal-Teke", "Thoroughbred", "Quarter Horse", "Appaloosa", "Friesian", "Andalusian", "Haflinger", "Clydesdale"];
 horseBreeds.forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Horse", i, atIrklari.id, 2, [atlar.id, atIrklari.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Horse", i, atIrklari.id, 2, [atlar.id, atIrklari.id])
   );
 });
 
-const binicilikEkipmanlari = createCategory("Binicilik Ekipmanları", "binicilik-ekipmanlari", "Package", 1, atlar.id, 1, [atlar.id]);
+const binicilikEkipmanlari = createCategory("Binicilik Ekipmanları", "ana-binicilik-ekipmanlari", "Package", 1, atlar.id, 1, [atlar.id]);
 categoriesHierarchy.push(binicilikEkipmanlari);
 
 ["Eyer", "Koşum Takımı", "Dizgin", "Başlık", "Nal", "At Battaniyesi", "Binicilik Ayakkabısı", "Kask", "Kamçı", "Üzengi"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Package", i, binicilikEkipmanlari.id, 2, [atlar.id, binicilikEkipmanlari.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Package", i, binicilikEkipmanlari.id, 2, [atlar.id, binicilikEkipmanlari.id])
   );
 });
 
-const atBakimi = createCategory("At Bakımı", "at-bakimi", "Scissors", 2, atlar.id, 1, [atlar.id]);
+const atBakimi = createCategory("At Bakımı", "ana-at-bakimi", "Scissors", 2, atlar.id, 1, [atlar.id]);
 categoriesHierarchy.push(atBakimi);
 
 ["Tımar Seti", "At Şampuanı", "Tırnak Makası", "At Vitamini", "Yara Bandı"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Scissors", i, atBakimi.id, 2, [atlar.id, atBakimi.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Scissors", i, atBakimi.id, 2, [atlar.id, atBakimi.id])
   );
 });
 
@@ -708,114 +708,114 @@ categoriesHierarchy.push(balUrunleri);
 });
 
 // ========== 6. Kümes ve Süs Kuşları (Ana Kategori) ==========
-const kumesHayvanlari = createCategory("Kümes Hayvanları", "kumes-ana-kategori", "Egg", 0, kuslar.id, 1, [kuslar.id]);
+const kumesHayvanlari = createCategory("Kümes Hayvanları", "ana-kumes-hayvanlari", "Egg", 0, kuslar.id, 1, [kuslar.id]);
 categoriesHierarchy.push(kumesHayvanlari);
 
 ["Tavuk", "Horoz", "Hindi", "Ördek", "Kaz", "Bıldırcın", "Sülün", "Keklik", "Emu", "Devekuşu"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase(), "Egg", i, kumesHayvanlari.id, 2, [kuslar.id, kumesHayvanlari.id])
+    createCategory(type, `ana-${type.toLowerCase()}`, "Egg", i, kumesHayvanlari.id, 2, [kuslar.id, kumesHayvanlari.id])
   );
 });
 
-const susKuslari = createCategory("Süs Kuşları", "sus-kuslari", "Bird", 1, kuslar.id, 1, [kuslar.id]);
+const susKuslari = createCategory("Süs Kuşları", "ana-sus-kuslari", "Bird", 1, kuslar.id, 1, [kuslar.id]);
 categoriesHierarchy.push(susKuslari);
 
 ["Muhabbet Kuşu", "Papağan", "Kanarya", "Cennet Papağanı", "Kakadu", "Jako", "Amazon Papağanı", "Ara Papağan", "Sultan Papağanı", "Güvercin", "Kumru"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Bird", i, susKuslari.id, 2, [kuslar.id, susKuslari.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bird", i, susKuslari.id, 2, [kuslar.id, susKuslari.id])
   );
 });
 
 // ========== 7. Sürüngenler ve Amfibiler (Ana Kategori) ==========
-const yilanlar = createCategory("Yılanlar", "yilanlar", "Bug", 0, surungenler.id, 1, [surungenler.id]);
+const yilanlar = createCategory("Yılanlar", "ana-yilanlar", "Bug", 0, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(yilanlar);
 
 ["Python", "Boa", "Mısır Yılanı", "Kral Yılanı", "Anaconda", "Boa Constrictor"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Bug", i, yilanlar.id, 2, [surungenler.id, yilanlar.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, yilanlar.id, 2, [surungenler.id, yilanlar.id])
   );
 });
 
-const kaplumbagalar = createCategory("Kaplumbağalar", "kaplumbagalar", "Turtle", 1, surungenler.id, 1, [surungenler.id]);
+const kaplumbagalar = createCategory("Kaplumbağalar", "ana-kaplumbagalar", "Turtle", 1, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(kaplumbagalar);
 
 ["Kara Kaplumbağası", "Su Kaplumbağası", "Hermann Kaplumbağası", "İbrikçi Kaplumbağası", "Rus Kaplumbağası", "Leopar Kaplumbağası"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Turtle", i, kaplumbagalar.id, 2, [surungenler.id, kaplumbagalar.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Turtle", i, kaplumbagalar.id, 2, [surungenler.id, kaplumbagalar.id])
   );
 });
 
-const kertenkeleler = createCategory("Kertenkeleler", "kertenkeleler", "Bug", 2, surungenler.id, 1, [surungenler.id]);
+const kertenkeleler = createCategory("Kertenkeleler", "ana-kertenkeleler", "Bug", 2, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(kertenkeleler);
 
 ["İguana", "Geko", "Bukalemun", "Kertenkele", "Bearded Dragon", "Tegu", "Skink", "Ejder Kertenkele"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Bug", i, kertenkeleler.id, 2, [surungenler.id, kertenkeleler.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, kertenkeleler.id, 2, [surungenler.id, kertenkeleler.id])
   );
 });
 
-const amfibiAna = createCategory("Amfibiler", "amfibi-ana", "Fish", 3, surungenler.id, 1, [surungenler.id]);
+const amfibiAna = createCategory("Amfibiler", "ana-amfibi", "Fish", 3, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(amfibiAna);
 
 ["Kurbağa", "Aksolotl", "Semender", "Triton", "Ağaç Kurbağası", "Zehirli Ok Kurbağası"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Fish", i, amfibiAna.id, 2, [surungenler.id, amfibiAna.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Fish", i, amfibiAna.id, 2, [surungenler.id, amfibiAna.id])
   );
 });
 
 // ========== 8. Kemirgenler ve Küçük Hayvanlar (Ana Kategori) ==========
-const hamsterlar = createCategory("Hamsterlar", "hamsterlar", "Rabbit", 0, kemirgenler.id, 1, [kemirgenler.id]);
+const hamsterlar = createCategory("Hamsterlar", "ana-hamsterlar", "Rabbit", 0, kemirgenler.id, 1, [kemirgenler.id]);
 categoriesHierarchy.push(hamsterlar);
 
 ["Syrian Hamster", "Dwarf Hamster", "Roborovski", "Campbell", "Winter White"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Rabbit", i, hamsterlar.id, 2, [kemirgenler.id, hamsterlar.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Rabbit", i, hamsterlar.id, 2, [kemirgenler.id, hamsterlar.id])
   );
 });
 
-const tavsan = createCategory("Tavşanlar", "tavsanlar", "Rabbit", 1, kemirgenler.id, 1, [kemirgenler.id]);
+const tavsan = createCategory("Tavşanlar", "ana-tavsanlar", "Rabbit", 1, kemirgenler.id, 1, [kemirgenler.id]);
 categoriesHierarchy.push(tavsan);
 
 ["Lop Tavşan", "Rex Tavşan", "Angora Tavşan", "Hollanda Tavşanı", "Himalaya Tavşanı", "Cüce Tavşan", "New Zealand Tavşanı"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Rabbit", i, tavsan.id, 2, [kemirgenler.id, tavsan.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Rabbit", i, tavsan.id, 2, [kemirgenler.id, tavsan.id])
   );
 });
 
-const diger = createCategory("Diğer Kemirgenler", "diger-kemirgenler", "Rabbit", 2, kemirgenler.id, 1, [kemirgenler.id]);
+const diger = createCategory("Diğer Kemirgenler", "ana-diger-kemirgenler", "Rabbit", 2, kemirgenler.id, 1, [kemirgenler.id]);
 categoriesHierarchy.push(diger);
 
 ["Ginepig", "Çinçilla", "Gerbil", "Fare", "Sincap", "Huron", "Degu", "Prairie Dog"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Rabbit", i, diger.id, 2, [kemirgenler.id, diger.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Rabbit", i, diger.id, 2, [kemirgenler.id, diger.id])
   );
 });
 
 // ========== 9. Egzotik Hayvanlar (Ana Kategori) ==========
-const egzotikMemeli = createCategory("Egzotik Memeliler", "egzotik-memeliler", "Sparkles", 0, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
+const egzotikMemeli = createCategory("Egzotik Memeliler", "ana-egzotik-memeliler", "Sparkles", 0, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
 categoriesHierarchy.push(egzotikMemeli);
 
 ["Kirpi", "Rakun", "Tilki", "Lemur", "Marmoset", "Koati", "Kinkajou", "Kapibara", "Şinşilla"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Sparkles", i, egzotikMemeli.id, 2, [egzotikHayvanlar.id, egzotikMemeli.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Sparkles", i, egzotikMemeli.id, 2, [egzotikHayvanlar.id, egzotikMemeli.id])
   );
 });
 
-const egzotikKus = createCategory("Egzotik Kuşlar", "egzotik-kuslar", "Bird", 1, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
+const egzotikKus = createCategory("Egzotik Kuşlar", "ana-egzotik-kuslar", "Bird", 1, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
 categoriesHierarchy.push(egzotikKus);
 
-["Tavuskuşu", "Flamingo", "Tukan", "Kakapo", "Kiwi Kuşu", "Ara Papağan", "Kakadu"].forEach((type, i) => {
+["Tavuskuşu", "Flamingo", "Tukan", "Kakapo", "Kiwi Kuşu"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Bird", i, egzotikKus.id, 2, [egzotikHayvanlar.id, egzotikKus.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bird", i, egzotikKus.id, 2, [egzotikHayvanlar.id, egzotikKus.id])
   );
 });
 
-const egzotikBocek = createCategory("Egzotik Böcekler ve Akrepler", "egzotik-bocekler", "Bug", 2, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
+const egzotikBocek = createCategory("Egzotik Böcekler ve Akrepler", "ana-egzotik-bocekler", "Bug", 2, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
 categoriesHierarchy.push(egzotikBocek);
 
 ["Tarantula", "Akrep", "Solucan", "Mantis", "At Böceği", "Dev Afrika Sümüklüböceği"].forEach((type, i) => {
   categoriesHierarchy.push(
-    createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Bug", i, egzotikBocek.id, 2, [egzotikHayvanlar.id, egzotikBocek.id])
+    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, egzotikBocek.id, 2, [egzotikHayvanlar.id, egzotikBocek.id])
   );
 });
 

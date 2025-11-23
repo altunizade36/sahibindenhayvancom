@@ -3,7 +3,7 @@ import { categories, locations, users, blogPosts } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
-import { categoriesData, subCategoriesData } from "./data/categories";
+import { categoriesHierarchy } from "./data/categories-hierarchy";
 import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
@@ -15,74 +15,52 @@ export async function seedDatabase() {
     const existingLocations = await db.query.locations.findMany({ limit: 1 });
     const existingBlogPosts = await db.query.blogPosts.findMany({ limit: 1 });
     
-    // Seed categories (two-phase: roots first, then children with resolved parentIds and depth/path)
-    if (existingCategories.length === 0) {
-      console.log("📁 Seeding categories...");
+    // Seed categories from hierarchical structure (force re-seed to update)
+    const categoryCount = await db.query.categories.findMany({});
+    console.log(`📁 Current categories in DB: ${categoryCount.length}, will seed ${categoriesHierarchy.length} categories`);
+    
+    // Force re-seed to ensure all 431 categories are loaded
+    if (categoryCount.length < categoriesHierarchy.length) {
+      console.log(`📁 Seeding/updating categories (${categoriesHierarchy.length} total)...`);
       
-      // Phase 1: Insert/update root categories and capture their IDs by slug
-      const slugToIdMap: Record<string, string> = {};
-      
-      for (const category of categoriesData) {
+      // Insert all categories with their pre-calculated hierarchy info
+      // Batch insert for performance
+      const batchSize = 100;
+      for (let i = 0; i < categoriesHierarchy.length; i += batchSize) {
+        const batch = categoriesHierarchy.slice(i, i + batchSize);
         await db
           .insert(categories)
-          .values({
-            ...category,
-            depth: 0,
-            path: [],
-          })
+          .values(batch)
           .onConflictDoUpdate({
             target: categories.slug,
             set: {
-              name: category.name,
-              description: category.description,
-              icon: category.icon,
-              order: category.order,
-              depth: 0,
-              path: [],
+              name: sql`excluded.name`,
+              description: sql`excluded.description`,
+              icon: sql`excluded.icon`,
+              order: sql`excluded.order`,
+              parentId: sql`excluded.parent_id`,
+              depth: sql`excluded.depth`,
+              path: sql`excluded.path`,
             },
           })
           .execute();
-      }
-      
-      // Load all root categories to get their IDs
-      const rootCategories = await db.query.categories.findMany({
-        where: isNull(categories.parentId),
-      });
-      
-      for (const cat of rootCategories) {
-        slugToIdMap[cat.slug] = cat.id;
-      }
-      
-      // Phase 2: Insert/update subcategories with resolved parentIds, depth, and path
-      for (const subCategory of subCategoriesData) {
-        const parentId = slugToIdMap[subCategory.parentSlug];
-        if (parentId) {
-          const { parentSlug, ...rest } = subCategory;
-          await db
-            .insert(categories)
-            .values({
-              ...rest,
-              parentId,
-              depth: 1,
-              path: [parentId],
-            })
-            .onConflictDoUpdate({
-              target: categories.slug,
-              set: {
-                name: rest.name,
-                description: rest.description,
-                icon: rest.icon,
-                order: rest.order,
-                parentId,
-                depth: 1,
-                path: [parentId],
-              },
-            })
-            .execute();
+        
+        if ((i + batchSize) % 200 === 0 || i + batchSize >= categoriesHierarchy.length) {
+          console.log(`  - Inserted ${Math.min(i + batchSize, categoriesHierarchy.length)} / ${categoriesHierarchy.length}`);
         }
       }
       
-      console.log(`✅ Categories seeded (${categoriesData.length} root + ${subCategoriesData.length} subcategories)`);
+      // Count by depth for stats
+      const depth0 = categoriesHierarchy.filter(c => c.depth === 0).length;
+      const depth1 = categoriesHierarchy.filter(c => c.depth === 1).length;
+      const depth2 = categoriesHierarchy.filter(c => c.depth === 2).length;
+      const depth3 = categoriesHierarchy.filter(c => c.depth === 3).length;
+      
+      console.log(`✅ Categories seeded: ${categoriesHierarchy.length} total`);
+      console.log(`   - Depth 0 (Main): ${depth0}`);
+      console.log(`   - Depth 1: ${depth1}`);
+      console.log(`   - Depth 2: ${depth2}`);
+      console.log(`   - Depth 3: ${depth3}`);
     }
     
     // Seed locations (51k+ locations)
