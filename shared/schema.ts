@@ -219,7 +219,11 @@ export const bids = pgTable("bids", {
   bidderId: varchar("bidder_id").notNull().references(() => users.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  auctionIdx: index("bids_auction_idx").on(table.auctionId),
+  bidderIdx: index("bids_bidder_idx").on(table.bidderId),
+  auctionAmountIdx: index("bids_auction_amount_idx").on(table.auctionId, table.amount),
+}));
 
 export const insertBidSchema = createInsertSchema(bids).omit({
   id: true,
@@ -245,7 +249,11 @@ export const liveStreams = pgTable("live_streams", {
   peakViewers: integer("peak_viewers").default(0),
   thumbnailUrl: text("thumbnail_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  statusIdx: index("streams_status_idx").on(table.status),
+  streamerIdx: index("streams_streamer_idx").on(table.streamerId),
+  scheduledIdx: index("streams_scheduled_idx").on(table.scheduledFor),
+}));
 
 export const insertLiveStreamSchema = createInsertSchema(liveStreams).omit({
   id: true,

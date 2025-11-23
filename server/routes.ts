@@ -902,6 +902,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/auctions/:id/bids", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [auction] = await db
+        .select()
+        .from(auctions)
+        .where(eq(auctions.id, req.params.id))
+        .limit(1);
+      
+      if (!auction) {
+        return res.status(404).json({ message: "Auction not found" });
+      }
+
+      if (auction.status !== "live") {
+        return res.status(400).json({ message: "Auction is not active" });
+      }
+
+      const bidAmount = parseFloat(req.body.amount);
+      const currentPrice = parseFloat(auction.currentPrice);
+      const minIncrement = parseFloat(auction.minIncrement);
+
+      if (bidAmount < currentPrice + minIncrement) {
+        return res.status(400).json({ 
+          message: `Bid must be at least ₺${(currentPrice + minIncrement).toFixed(2)}` 
+        });
+      }
+
+      const [bid] = await db
+        .insert(bids)
+        .values({
+          auctionId: req.params.id,
+          bidderId: req.user!.id,
+          amount: bidAmount.toString(),
+        } as any)
+        .returning();
+
+      await db
+        .update(auctions)
+        .set({
+          currentPrice: bidAmount.toString(),
+          totalBids: auction.totalBids + 1,
+        })
+        .where(eq(auctions.id, req.params.id));
+
+      wss.clients.forEach((client: WebSocket) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'new_bid',
+            auctionId: req.params.id,
+            bid: {
+              ...bid,
+              bidder: {
+                id: req.user!.id,
+                fullName: req.user!.fullName,
+              },
+            },
+          }));
+        }
+      });
+
+      res.status(201).json(bid);
+    } catch (error) {
+      console.error("Failed to place bid:", error);
+      res.status(400).json({ message: "Failed to place bid", error });
+    }
+  });
+
   // ============ Live Stream Routes ============
   app.get("/api/streams", async (req: Request, res: Response) => {
     try {
@@ -1001,10 +1067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const [updated] = await db
         .update(liveStreams)
-        .set({
-          ...req.body,
-          updatedAt: new Date(),
-        })
+        .set(req.body)
         .where(eq(liveStreams.id, req.params.id))
         .returning();
       
@@ -1012,6 +1075,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to update stream:", error);
       res.status(400).json({ message: "Failed to update stream", error });
+    }
+  });
+
+  app.post("/api/streams/:id/join", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, req.params.id))
+        .limit(1);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      if (stream.status !== "live") {
+        return res.status(400).json({ message: "Stream is not live" });
+      }
+
+      const newViewerCount = stream.viewerCount + 1;
+      const newPeakViewers = Math.max(stream.peakViewers, newViewerCount);
+
+      const [updated] = await db
+        .update(liveStreams)
+        .set({
+          viewerCount: newViewerCount,
+          peakViewers: newPeakViewers,
+        })
+        .where(eq(liveStreams.id, req.params.id))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to join stream:", error);
+      res.status(500).json({ message: "Failed to join stream" });
+    }
+  });
+
+  app.post("/api/streams/:id/leave", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, req.params.id))
+        .limit(1);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      const newViewerCount = Math.max(0, stream.viewerCount - 1);
+
+      const [updated] = await db
+        .update(liveStreams)
+        .set({
+          viewerCount: newViewerCount,
+        })
+        .where(eq(liveStreams.id, req.params.id))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to leave stream:", error);
+      res.status(500).json({ message: "Failed to leave stream" });
     }
   });
 
