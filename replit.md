@@ -55,14 +55,32 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
   - Fully accessible (ARIA labels, keyboard navigation)
 - 📊 **Current Database**: 0 users, 0 listings, 64 blog posts, 459 categories
 
+**EMAIL SERVICE CONFIGURATION:**
+  - **Development Mode (Default):**
+    - ✅ **AUTO-VERIFY ENABLED**: Users are automatically verified on registration
+    - ✅ No email service required - verification emails logged to console
+    - ✅ Users can immediately log in after registration
+    - ℹ️  Perfect for testing without email infrastructure
+  
+  - **Production Mode (with RESEND_API_KEY):**
+    - 📧 **Resend Email Service** (Recommended): 100 emails/day free tier
+    - ✅ Beautiful HTML email templates with branding
+    - ✅ Email verification + password reset support
+    - ⚠️  Users MUST verify email before login (Security Package B)
+    - Setup: Add `RESEND_API_KEY` secret → Auto-enables production email
+
+  - **Email Provider Options:**
+    - ✅ **Resend** (Recommended): Modern, developer-friendly, 100 free emails/day
+    - Alternative: SendGrid (requires `SENDGRID_API_KEY`)
+    - Alternative: AWS SES (requires `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)
+
 **PRODUCTION DEPLOYMENT CHECKLIST:**
 1. ⚠️  **REQUIRED Environment Variables:**
    - `RECAPTCHA_SECRET_KEY` - Google reCAPTCHA v3 secret key
    - `VITE_RECAPTCHA_SITE_KEY` - Google reCAPTCHA v3 site key (frontend)
-   - Email service credentials (choose one):
-     - SendGrid: `SENDGRID_API_KEY`
-     - AWS SES: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
-     - Resend: `RESEND_API_KEY`
+   - `RESEND_API_KEY` - Resend email service API key (for production email)
+   - Optional: `APP_URL` - Production URL (e.g. https://sahibindenhayvan.com)
+   - Optional: `FROM_EMAIL` - Sender email (default: noreply@sahibindenhayvan.com)
 
 2. ✅ **Pre-configured (Already Set):**
    - `DATABASE_URL` - PostgreSQL connection

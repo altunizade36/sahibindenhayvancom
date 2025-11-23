@@ -24,7 +24,7 @@ import {
   type User,
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { emailService, generateVerificationToken } from "./email";
+import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "./email";
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 
@@ -390,33 +390,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(data.password, 10);
       
-      // Generate email verification token (valid for 24 hours)
-      const verificationToken = generateVerificationToken();
-      const verificationExpires = new Date();
-      verificationExpires.setHours(verificationExpires.getHours() + 24);
+      // Check if auto-verify is enabled (dev mode without email service)
+      const autoVerify = shouldAutoVerifyEmail();
       
-      // Create user in PostgreSQL (UNVERIFIED - no immediate access)
+      // Generate email verification token (valid for 24 hours)
+      const verificationToken = autoVerify ? null : generateVerificationToken();
+      const verificationExpires = autoVerify ? null : (() => {
+        const expires = new Date();
+        expires.setHours(expires.getHours() + 24);
+        return expires;
+      })();
+      
+      // Create user in PostgreSQL
       const [user] = await db
         .insert(users)
         .values({
           ...data,
           password: hashedPassword,
-          isVerified: false,
+          isVerified: autoVerify, // Auto-verify in dev mode
           emailVerificationToken: verificationToken,
           emailVerificationExpires: verificationExpires,
         })
         .returning();
 
-      // Send verification email (MUST succeed for security)
-      await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
+      // Send verification email (or log in dev mode)
+      if (!autoVerify && verificationToken) {
+        await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
+      }
 
-      // SECURITY FIX: Do NOT return JWT until email verified
-      // User must verify email before getting access
-      res.json({
-        message: "Kayıt başarılı! Email adresinize gönderilen doğrulama linkine tıklayın.",
-        email: user.email,
-        requiresVerification: true,
-      });
+      // Response depends on mode
+      if (autoVerify) {
+        // Development mode: Auto-verified, generate JWT immediately
+        const token = jwt.sign(
+          { userId: user.id, username: user.username, role: user.role },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+
+        res.json({
+          message: "Kayıt başarılı! (Development Mode: Email doğrulaması atlandı)",
+          token,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            isVerified: user.isVerified,
+          },
+        });
+      } else {
+        // Production mode: Email verification required
+        res.json({
+          message: "Kayıt başarılı! Email adresinize gönderilen doğrulama linkine tıklayın.",
+          email: user.email,
+          requiresVerification: true,
+        });
+      }
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: "Kayıt başarısız oldu", error });
