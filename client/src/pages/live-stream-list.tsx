@@ -178,7 +178,7 @@ export default function LiveStreamListPage() {
           <p className="text-muted-foreground mb-4">
             Henüz {status !== "all" ? statusLabels[status as keyof typeof statusLabels] : ""} canlı yayın yok
           </p>
-          <Button onClick={() => setLocation("/yayin-baslat")} data-testid="button-create-first-stream">
+          <Button onClick={() => setLocation("/yayin-baslat")} data-testid="button-create-first-stream" disabled>
             İlk Yayını Başlat
           </Button>
         </Card>

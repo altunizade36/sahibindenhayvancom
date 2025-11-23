@@ -218,7 +218,7 @@ export default function AuctionListPage() {
           <p className="text-muted-foreground mb-4">
             Henüz {status !== "all" ? statusLabels[status as keyof typeof statusLabels] : ""} açık artırma yok
           </p>
-          <Button onClick={() => setLocation("/acik-artirma-olustur")} data-testid="button-create-first-auction">
+          <Button onClick={() => setLocation("/acik-artirma-olustur")} data-testid="button-create-first-auction" disabled>
             İlk Açık Artırmayı Oluştur
           </Button>
         </Card>
