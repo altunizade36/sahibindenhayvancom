@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, vetServices, transportServices, reviews } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -811,7 +811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = db.select().from(auctions);
       
       if (status) {
-        query = query.where(eq(auctions.status, status as any));
+        query = query.where(eq(auctions.status, status as any)) as any;
       }
       
       const allAuctions = await query.orderBy(desc(auctions.createdAt));
@@ -902,9 +902,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============ Live Stream Routes (REMOVED - Feature postponed) ============
-  // Live streaming and Agora.io integration removed per user request
-  // Will be re-added in future versions
+  // ============ Live Stream Routes ============
+  app.get("/api/streams", async (req: Request, res: Response) => {
+    try {
+      const status = req.query.status as string;
+      
+      // Get live streams from PostgreSQL
+      let query = db.select().from(liveStreams);
+      
+      if (status) {
+        query = query.where(eq(liveStreams.status, status as any)) as any;
+      }
+      
+      const allStreams = await query.orderBy(desc(liveStreams.createdAt));
+      res.json(allStreams);
+    } catch (error) {
+      console.error("Failed to fetch streams:", error);
+      res.status(500).json({ message: "Failed to fetch streams" });
+    }
+  });
+
+  app.get("/api/streams/:id", async (req: Request, res: Response) => {
+    try {
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, req.params.id))
+        .limit(1);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      // Get streamer info
+      const [streamer] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, stream.streamerId))
+        .limit(1);
+      
+      // Get linked listing if exists
+      let listing = null;
+      if (stream.listingId) {
+        [listing] = await db
+          .select()
+          .from(listings)
+          .where(eq(listings.id, stream.listingId))
+          .limit(1);
+      }
+
+      res.json({
+        ...stream,
+        streamer,
+        listing,
+      });
+    } catch (error) {
+      console.error("Failed to fetch stream:", error);
+      res.status(500).json({ message: "Failed to fetch stream" });
+    }
+  });
+
+  app.post("/api/streams", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const data = insertLiveStreamSchema.parse({
+        ...req.body,
+        streamerId: req.user!.id,
+        channelName: `stream_${Date.now()}_${req.user!.id.substring(0, 8)}`,
+      });
+
+      // Create stream in PostgreSQL
+      const [stream] = await db
+        .insert(liveStreams)
+        .values(data as any)
+        .returning();
+      
+      res.status(201).json(stream);
+    } catch (error) {
+      console.error("Failed to create stream:", error);
+      res.status(400).json({ message: "Failed to create stream", error });
+    }
+  });
+
+  app.patch("/api/streams/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, req.params.id))
+        .limit(1);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      if (stream.streamerId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      const [updated] = await db
+        .update(liveStreams)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(eq(liveStreams.id, req.params.id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update stream:", error);
+      res.status(400).json({ message: "Failed to update stream", error });
+    }
+  });
+
+  // Agora.io RTC Token Generation (requires AGORA_APP_ID and AGORA_APP_CERTIFICATE)
+  app.get("/api/streams/:id/token", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, req.params.id))
+        .limit(1);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      // Check if Agora credentials are configured
+      const appId = process.env.AGORA_APP_ID;
+      const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+      
+      if (!appId || !appCertificate) {
+        return res.status(503).json({ 
+          message: "Live streaming not configured. Agora.io credentials required.",
+          requiresSetup: true 
+        });
+      }
+
+      // Generate Agora RTC token
+      const { RtcTokenBuilder, RtcRole } = await import('agora-access-token');
+      
+      const uid = parseInt(req.user!.id.substring(0, 8), 16); // Convert user ID to number
+      const role = stream.streamerId === req.user!.id ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+      const expirationTimeInSeconds = 3600; // 1 hour
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+      const token = RtcTokenBuilder.buildTokenWithUid(
+        appId,
+        appCertificate,
+        stream.channelName,
+        uid,
+        role,
+        privilegeExpiredTs
+      );
+
+      res.json({
+        token,
+        channelName: stream.channelName,
+        uid,
+        appId,
+      });
+    } catch (error) {
+      console.error("Failed to generate stream token:", error);
+      res.status(500).json({ message: "Failed to generate token" });
+    }
+  });
 
   // ============ Message Routes ============
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
@@ -1089,7 +1252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = db.select().from(vetServices);
       
       if (city) {
-        query = query.where(eq(vetServices.city, city));
+        query = query.where(eq(vetServices.city, city)) as any;
       }
       
       const services = await query.orderBy(desc(vetServices.createdAt));

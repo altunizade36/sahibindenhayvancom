@@ -20,6 +20,12 @@ import Profile from "@/pages/profile";
 import Messages from "@/pages/messages";
 import VetServices from "@/pages/vet-services";
 import TransportServices from "@/pages/transport-services";
+import AuctionList from "@/pages/auction-list";
+import AuctionDetail from "@/pages/auction-detail";
+import AuctionCreate from "@/pages/auction-create";
+import LiveStreamList from "@/pages/live-stream-list";
+import LiveStreamWatch from "@/pages/live-stream-watch";
+import LiveStreamCreate from "@/pages/live-stream-create";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -60,6 +66,12 @@ function NoSidebarLayout() {
           <Route path="/tasima" component={TransportServices} />
           <Route path="/blog" component={BlogList} />
           <Route path="/blog/:slug" component={BlogDetail} />
+          <Route path="/acik-artirmalar" component={AuctionList} />
+          <Route path="/acik-artirma/:id" component={AuctionDetail} />
+          <Route path="/acik-artirma-olustur" component={AuctionCreate} />
+          <Route path="/canli-yayinlar" component={LiveStreamList} />
+          <Route path="/canli-yayin/:id" component={LiveStreamWatch} />
+          <Route path="/yayin-baslat" component={LiveStreamCreate} />
         </Switch>
       </main>
     </div>
@@ -71,6 +83,7 @@ function Router() {
   const isNoSidebarRoute = location.startsWith('/giris') || 
                            location.startsWith('/kayit') || 
                            location.startsWith('/ilan-ver') ||
+                           location.startsWith('/ilan/') ||
                            location.startsWith('/blog') ||
                            location.startsWith('/profil') ||
                            location.startsWith('/panel') ||
@@ -78,7 +91,10 @@ function Router() {
                            location.startsWith('/favoriler') ||
                            location.startsWith('/mesajlar') ||
                            location.startsWith('/veterinerler') ||
-                           location.startsWith('/tasima');
+                           location.startsWith('/tasima') ||
+                           location.startsWith('/acik-artirma') ||
+                           location.startsWith('/canli-yayin') ||
+                           location.startsWith('/yayin-baslat');
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
