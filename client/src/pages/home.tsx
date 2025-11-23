@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { ArrowRight, Gavel, TrendingUp } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
+import { SEOHead, generateOrganizationStructuredData } from "@/components/seo-head";
 
 interface ListingsResponse {
   data: Listing[];
@@ -45,6 +46,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      <SEOHead
+        title="sahibindenhayvan.com - Türkiye'nin En Güvenilir Hayvan İlanları Platformu"
+        description="Evcil hayvanlarınızı bulun, satın alın, sahiplenin. Köpek, kedi, kuş, balık ve daha fazlası için binlerce ilan. Ücretsiz ilan verin!"
+        structuredData={generateOrganizationStructuredData()}
+      />
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-12">

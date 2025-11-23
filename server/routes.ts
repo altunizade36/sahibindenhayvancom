@@ -5,7 +5,7 @@ import { db } from "./db";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews } from "@shared/schema";
-import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
+import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -632,7 +632,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Listing Routes ============
   app.get("/api/listings", optionalAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      const { page = '1', limit = '50', categoryId, city, minPrice, maxPrice, status, search } = req.query;
+      const { 
+        page = '1', 
+        limit = '50', 
+        categoryId, 
+        city, 
+        minPrice, 
+        maxPrice, 
+        status, 
+        search,
+        // Advanced filters
+        minAge,
+        maxAge,
+        gender,
+        breed,
+        healthStatus,
+        vaccinated
+      } = req.query;
       
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
       const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10) || 50)); // Max 100
@@ -678,7 +694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Filter by category OR any of its descendants
         if (categoryIds.length > 1) {
-          conditions.push(sql`${listings.categoryId} IN (${sql.join(categoryIds.map(id => sql`${id}`), sql`, `)})`);
+          conditions.push(inArray(listings.categoryId, categoryIds));
         } else {
           conditions.push(eq(listings.categoryId, categoryId as string));
         }
@@ -696,11 +712,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (minPrice) {
-        conditions.push(sql`${listings.price}::numeric >= ${parseFloat(minPrice as string)}`);
+        const minPriceNum = parseFloat(minPrice as string);
+        if (!isNaN(minPriceNum)) {
+          conditions.push(gte(listings.price, minPriceNum.toString()));
+        }
       }
       
       if (maxPrice) {
-        conditions.push(sql`${listings.price}::numeric <= ${parseFloat(maxPrice as string)}`);
+        const maxPriceNum = parseFloat(maxPrice as string);
+        if (!isNaN(maxPriceNum)) {
+          conditions.push(lte(listings.price, maxPriceNum.toString()));
+        }
       }
       
       if (search) {
@@ -710,17 +732,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
+      // Advanced filters (with sanitization)
+      if (minAge) {
+        const minAgeNum = parseInt(minAge as string, 10);
+        if (!isNaN(minAgeNum)) {
+          conditions.push(sql`CAST(${listings.age} AS INTEGER) >= ${minAgeNum}`);
+        }
+      }
+      
+      if (maxAge) {
+        const maxAgeNum = parseInt(maxAge as string, 10);
+        if (!isNaN(maxAgeNum)) {
+          conditions.push(sql`CAST(${listings.age} AS INTEGER) <= ${maxAgeNum}`);
+        }
+      }
+      
+      if (gender && gender !== 'all') {
+        conditions.push(eq(listings.gender, gender as any));
+      }
+      
+      if (breed && typeof breed === 'string' && breed.trim()) {
+        conditions.push(ilike(listings.breed, `%${breed}%`));
+      }
+      
+      if (healthStatus && healthStatus !== 'all') {
+        conditions.push(eq(listings.healthStatus, healthStatus as any));
+      }
+      
+      if (vaccinated !== undefined && vaccinated !== 'all') {
+        const isVaccinated = vaccinated === 'true' || vaccinated === '1';
+        conditions.push(eq(listings.vaccinated, isVaccinated));
+      }
+      
+      // Filter out undefined conditions before applying
+      const validConditions = conditions.filter(Boolean);
+      
       // Get total count
       const [{ count: totalCount }] = await db
         .select({ count: count() })
         .from(listings)
-        .where(conditions.length > 0 ? and(...conditions) : undefined);
+        .where(validConditions.length > 0 ? and(...validConditions) : undefined);
       
       // Get paginated listings
       const listingsData = await db
         .select()
         .from(listings)
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .where(validConditions.length > 0 ? and(...validConditions) : undefined)
         .orderBy(desc(listings.createdAt))
         .limit(limitNum)
         .offset(offset);
@@ -1847,5 +1904,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ Admin Routes ============
+  // Admin middleware
+  async function adminMiddleware(req: Request, res: Response, next: Function) {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  }
+
+  // Admin dashboard stats
+  app.get("/api/admin/stats", authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const [usersCount] = await db.select({ count: count() }).from(users);
+      const [listingsCount] = await db.select({ count: count() }).from(listings);
+      const [activeListings] = await db.select({ count: count() }).from(listings).where(eq(listings.status, "active"));
+
+      res.json({
+        totalUsers: Number(usersCount.count),
+        totalListings: Number(listingsCount.count),
+        activeListings: Number(activeListings.count),
+      });
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Get all listings for moderation (admin only)
+  app.get("/api/admin/listings", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { status } = req.query;
+      
+      const conditions = [];
+      if (status && status !== 'all') {
+        conditions.push(eq(listings.status, status as any));
+      }
+
+      const allListings = await db
+        .select()
+        .from(listings)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(listings.createdAt))
+        .limit(100);
+        
+      res.json(allListings);
+    } catch (error) {
+      console.error("Error fetching listings for admin:", error);
+      res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  // Update listing status (admin only - approve/reject)
+  app.patch("/api/admin/listings/:id/status", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { status } = req.body;
+
+      const [updated] = await db
+        .update(listings)
+        .set({ status: status as any })
+        .where(eq(listings.id, req.params.id))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating listing status:", error);
+      res.status(500).json({ message: "Failed to update listing" });
+    }
+  });
+
   return httpServer;
 }
+
