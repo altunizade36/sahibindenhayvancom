@@ -41,8 +41,8 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
 - ✅ Scalability Ready: In-memory cache, health checks, Prometheus metrics
 - ✅ Category System: 459 hierarchical categories across 14 domains
 - ✅ **Mobile Responsive Design:**
-  - **Full-screen mobile menu** (w-full on <640px, 320px sidebar on tablet+)
-  - Hamburger navigation menu (Sheet/Drawer) with full auth controls
+  - **Hamburger Menu Button (Mobile)**: Top-left corner button (Menu icon) opens category drawer on mobile (<768px)
+  - **Desktop Collapsible Sidebar**: 320px sidebar with toggle button (X/Menu icons) on desktop (≥768px)
   - **Mobile Category Filter (Sheet)**: Recursive CategoryTreeItem component supporting unlimited hierarchy depth
     - Expand/collapse at any level (ChevronRight icon rotates 90°)
     - Smart sheet behavior: Parent category → keeps sheet open, leaf category → applies filter & closes
@@ -50,7 +50,7 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
     - Wired to categoryId query param, real-time listing updates
   - Touch-friendly UI (44px minimum button/input heights)
   - Responsive typography (text-lg md:text-2xl patterns)
-  - Responsive grids (1-col → 2-col → 4-col breakpoints)
+  - Responsive grids (1-col → 2-col → 3-col → 4-col breakpoints)
   - Mobile-optimized search bar (stacked layout)
   - Fully accessible (ARIA labels, keyboard navigation)
 - 📊 **Current Database**: 0 users, 0 listings, 64 blog posts, 459 categories
