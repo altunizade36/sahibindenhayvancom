@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
-import { locations, listings, blogPosts, users, messages, favorites } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -414,21 +414,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Category Routes ============
   app.get("/api/categories", async (_req: Request, res: Response) => {
-    const categories = await storage.getAllCategories();
-    res.json(categories);
+    try {
+      // Get all categories from PostgreSQL, ordered by order
+      const allCategories = await db
+        .select()
+        .from(categories)
+        .orderBy(categories.order);
+      
+      res.json(allCategories);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
   });
   
   app.get("/api/categories/tree", async (_req: Request, res: Response) => {
-    const tree = await storage.getCategoryTree();
-    res.json(tree);
+    try {
+      // Get all categories from PostgreSQL
+      const allCategories = await db
+        .select()
+        .from(categories)
+        .orderBy(categories.order);
+      
+      // Build tree structure
+      const categoryMap = new Map();
+      const rootCategories: any[] = [];
+      
+      // First pass: create map of all categories
+      allCategories.forEach(cat => {
+        categoryMap.set(cat.id, { ...cat, children: [] });
+      });
+      
+      // Second pass: build tree
+      allCategories.forEach(cat => {
+        const categoryNode = categoryMap.get(cat.id);
+        if (cat.parentId === null) {
+          rootCategories.push(categoryNode);
+        } else {
+          const parent = categoryMap.get(cat.parentId);
+          if (parent) {
+            parent.children.push(categoryNode);
+          }
+        }
+      });
+      
+      res.json(rootCategories);
+    } catch (error) {
+      console.error("Failed to fetch category tree:", error);
+      res.status(500).json({ message: "Failed to fetch category tree" });
+    }
   });
 
   app.get("/api/categories/:slug", async (req: Request, res: Response) => {
-    const category = await storage.getCategoryBySlug(req.params.slug);
-    if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+    try {
+      const [category] = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.slug, req.params.slug))
+        .limit(1);
+      
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Failed to fetch category:", error);
+      res.status(500).json({ message: "Failed to fetch category" });
     }
-    res.json(category);
   });
   
   // ============ Location Routes ============
