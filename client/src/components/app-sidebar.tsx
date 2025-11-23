@@ -27,18 +27,18 @@ const navItems = [
   { title: "İlanlar", url: "/ilanlar", icon: List },
 ];
 
-function hasActiveDescendant(category: Category & { children?: Category[] }, activeSlug?: string): boolean {
-  if (category.slug === activeSlug) return true;
+function hasActiveDescendant(category: Category & { children?: Category[] }, activeCategoryId?: string): boolean {
+  if (category.id === activeCategoryId) return true;
   if (!category.children) return false;
-  return category.children.some(child => hasActiveDescendant(child, activeSlug));
+  return category.children.some(child => hasActiveDescendant(child, activeCategoryId));
 }
 
-function CategoryTreeItem({ category, level = 0, activeCategorySlug }: { category: Category & { children?: Category[] }; level?: number; activeCategorySlug?: string }) {
-  const [, setLocation] = useLocation();
+function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category: Category & { children?: Category[] }; level?: number; activeCategoryId?: string }) {
+  const [location, setLocation] = useLocation();
   
   const hasChildren = category.children && category.children.length > 0;
-  const isActive = category.slug === activeCategorySlug;
-  const shouldBeOpen = hasActiveDescendant(category, activeCategorySlug);
+  const isActive = category.id === activeCategoryId;
+  const shouldBeOpen = hasActiveDescendant(category, activeCategoryId);
   const [isOpen, setIsOpen] = useState(shouldBeOpen);
 
   useEffect(() => {
@@ -46,7 +46,10 @@ function CategoryTreeItem({ category, level = 0, activeCategorySlug }: { categor
   }, [shouldBeOpen]);
 
   const handleNavigate = () => {
-    setLocation(`/kategori/${category.slug}`);
+    // Mevcut query params'ları koru (konum, search vb.)
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    params.set('categoryId', category.id);
+    setLocation(`/ilanlar?${params.toString()}`);
   };
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -105,7 +108,7 @@ function CategoryTreeItem({ category, level = 0, activeCategorySlug }: { categor
                 key={child.id}
                 category={child}
                 level={level + 1}
-                activeCategorySlug={activeCategorySlug}
+                activeCategoryId={activeCategoryId}
               />
             ))}
           </SidebarMenuSub>
@@ -136,7 +139,7 @@ function CategoryTreeItem({ category, level = 0, activeCategorySlug }: { categor
               key={child.id}
               category={child}
               level={level + 1}
-              activeCategorySlug={activeCategorySlug}
+              activeCategoryId={activeCategoryId}
             />
           ))}
         </SidebarMenuSub>
@@ -260,10 +263,9 @@ export function AppSidebar() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract category slug from URL path
-  const activeCategorySlug = location.startsWith('/kategori/') 
-    ? location.split('/kategori/')[1]?.split('?')[0]
-    : undefined;
+  // Extract categoryId from URL query params
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const activeCategoryId = searchParams.get('categoryId') || undefined;
 
   // Fetch category tree
   const { data: categoryTree = [] } = useQuery<Category[]>({
@@ -338,7 +340,7 @@ export function AppSidebar() {
                   <CategoryTreeItem
                     key={rootCategory.id}
                     category={rootCategory}
-                    activeCategorySlug={activeCategorySlug}
+                    activeCategoryId={activeCategoryId}
                   />
                 ))}
               </SidebarMenu>
