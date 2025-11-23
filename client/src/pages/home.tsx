@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search-bar";
 import { ListingCard } from "@/components/listing-card";
+import { CategoryGrid } from "@/components/category-grid";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,18 @@ export default function Home() {
             </p>
             <SearchBar categories={categories} />
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold mb-2">Popüler Kategoriler</h2>
+            <p className="text-muted-foreground">
+              En çok aranan hayvan kategorilerine göz atın
+            </p>
+          </div>
+          <CategoryGrid categories={categories.filter(c => c.parentId === null).slice(0, 6)} />
         </div>
       </section>
 

@@ -26,6 +26,7 @@ import AuctionCreate from "@/pages/auction-create";
 import LiveStreamList from "@/pages/live-stream-list";
 import LiveStreamWatch from "@/pages/live-stream-watch";
 import LiveStreamCreate from "@/pages/live-stream-create";
+import CategoryDetail from "@/pages/category-detail";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -72,6 +73,7 @@ function NoSidebarLayout() {
           <Route path="/canli-yayinlar" component={LiveStreamList} />
           <Route path="/canli-yayin/:id" component={LiveStreamWatch} />
           <Route path="/yayin-baslat" component={LiveStreamCreate} />
+          <Route path="/kategori/:slug" component={CategoryDetail} />
         </Switch>
       </main>
     </div>
@@ -94,7 +96,8 @@ function Router() {
                            location.startsWith('/tasima') ||
                            location.startsWith('/acik-artirma') ||
                            location.startsWith('/canli-yayin') ||
-                           location.startsWith('/yayin-baslat');
+                           location.startsWith('/yayin-baslat') ||
+                           location.startsWith('/kategori/');
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
