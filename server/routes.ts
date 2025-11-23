@@ -849,7 +849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create auction in PostgreSQL
       const [auction] = await db
         .insert(auctions)
-        .values(data)
+        .values(data as any)
         .returning();
       
       res.status(201).json(auction);
@@ -1031,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create blog post in PostgreSQL
       const [post] = await db
         .insert(blogPosts)
-        .values(data)
+        .values(data as any)
         .returning();
       
       res.status(201).json(post);
@@ -1123,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create vet service in PostgreSQL
       const [service] = await db
         .insert(vetServices)
-        .values(data)
+        .values(data as any)
         .returning();
       
       res.status(201).json(service);
@@ -1136,16 +1136,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Transport Service Routes ============
   app.get("/api/transport-services", async (req: Request, res: Response) => {
     try {
-      const city = req.query.city as string;
-      
       // Get transport services from PostgreSQL
-      let query = db.select().from(transportServices);
+      // Note: TransportServices uses serviceAreas (array) not city field
+      const services = await db
+        .select()
+        .from(transportServices)
+        .orderBy(desc(transportServices.createdAt));
       
-      if (city) {
-        query = query.where(eq(transportServices.city, city));
-      }
-      
-      const services = await query.orderBy(desc(transportServices.createdAt));
       res.json(services);
     } catch (error) {
       console.error("Failed to fetch transport services:", error);
@@ -1215,7 +1212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create transport service in PostgreSQL
       const [service] = await db
         .insert(transportServices)
-        .values(data)
+        .values(data as any)
         .returning();
       
       res.status(201).json(service);
