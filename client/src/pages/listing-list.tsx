@@ -8,8 +8,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard } from "@/components/listing-card";
 import { Pagination } from "@/components/pagination";
 import { AdvancedFilters, type FilterValues } from "@/components/advanced-filters";
-import { Search, Plus } from "lucide-react";
-import type { Listing } from "@shared/schema";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Plus, Filter, ChevronRight } from "lucide-react";
+import type { Listing, Category } from "@shared/schema";
 
 interface ListingsResponse {
   data: Listing[];
@@ -24,11 +33,19 @@ export default function ListingList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [filters, setFilters] = useState<FilterValues>({});
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const queryParams = {
     page: currentPage,
     limit: 20,
     search: activeSearch || undefined,
+    categoryId: selectedCategoryId || undefined,
     ...filters
   };
 
@@ -49,14 +66,92 @@ export default function ListingList() {
     setCurrentPage(1);
   };
 
+  const toggleCategoryExpand = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const handleCategorySelect = (categoryId: string, hasChildren: boolean) => {
+    if (!categoryId || !hasChildren) {
+      // Leaf category or "Tüm Kategoriler" → apply filter and close
+      setSelectedCategoryId(categoryId || null);
+      setCurrentPage(1);
+      setCategoryMenuOpen(false);
+    } else {
+      // Parent category with children → just select it (don't close)
+      setSelectedCategoryId(categoryId);
+      setCurrentPage(1);
+    }
+  };
+
   const clearAll = () => {
     setSearchQuery("");
     setActiveSearch("");
     setFilters({});
+    setSelectedCategoryId(null);
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = activeSearch || Object.keys(filters).length > 0;
+  const hasActiveFilters = activeSearch || selectedCategoryId || Object.keys(filters).length > 0;
+
+  const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+  const mainCategories = categories.filter(c => c.parentId === null);
+
+  // Recursive category tree renderer
+  const CategoryTreeItem = ({ category, level = 0 }: { category: Category; level?: number }) => {
+    const subcategories = categories.filter(c => c.parentId === category.id);
+    const isSelected = selectedCategoryId === category.id;
+    const isExpanded = expandedCategories.has(category.id);
+    const hasChildren = subcategories.length > 0;
+
+    return (
+      <div>
+        <div className="flex gap-1">
+          <Button
+            variant={isSelected ? "secondary" : "ghost"}
+            className={`flex-1 justify-start h-11 text-base ${level > 0 ? 'text-sm h-10' : 'font-medium'}`}
+            style={{ paddingLeft: `${level * 1 + 0.75}rem` }}
+            onClick={() => handleCategorySelect(category.id, hasChildren)}
+            data-testid={`button-category-${category.id}`}
+          >
+            {category.name}
+          </Button>
+          {hasChildren && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`${level > 0 ? 'h-10 w-10' : 'h-11 w-11'} shrink-0`}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleCategoryExpand(category.id);
+              }}
+              data-testid={`button-expand-${category.id}`}
+            >
+              <ChevronRight 
+                className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+              />
+            </Button>
+          )}
+        </div>
+        
+        {/* Recursive subcategories */}
+        {isExpanded && subcategories.length > 0 && (
+          <div className="space-y-1">
+            {subcategories.map((sub) => (
+              <CategoryTreeItem key={sub.id} category={sub} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,8 +175,51 @@ export default function ListingList() {
           </Link>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar & Category Filter */}
         <div className="mb-4 md:mb-6">
+          <div className="flex gap-2 mb-3">
+            {/* Mobile Category Button */}
+            <Sheet open={categoryMenuOpen} onOpenChange={setCategoryMenuOpen} modal={true}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="h-11 gap-2" data-testid="button-categories-mobile">
+                  <Filter className="w-4 h-4" />
+                  <span className="text-sm">
+                    {selectedCategory ? selectedCategory.name : "Kategoriler"}
+                  </span>
+                  {selectedCategoryId && (
+                    <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">1</Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full sm:w-96 overflow-y-auto p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle>Kategoriler</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    İlanları kategorilere göre filtrele
+                  </SheetDescription>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-8rem)]">
+                  <div className="px-6 pb-6 space-y-1">
+                    {/* Tüm Kategoriler */}
+                    <Button
+                      variant={!selectedCategoryId ? "secondary" : "ghost"}
+                      className="w-full justify-start h-11 text-base"
+                      onClick={() => handleCategorySelect("", false)}
+                      data-testid="button-all-categories"
+                    >
+                      Tüm Kategoriler
+                    </Button>
+
+                    {/* Recursive Category Tree */}
+                    {mainCategories.map((category) => (
+                      <CategoryTreeItem key={category.id} category={category} level={0} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
+          </div>
+
           <form onSubmit={handleSearch} className="flex gap-2">
             <Input
               type="search"
@@ -110,6 +248,11 @@ export default function ListingList() {
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-6">
             <span className="text-xs md:text-sm text-muted-foreground">Aktif Filtreler:</span>
+            {selectedCategory && (
+              <Badge variant="secondary" className="text-xs">
+                Kategori: {selectedCategory.name}
+              </Badge>
+            )}
             {activeSearch && (
               <Badge variant="secondary" className="text-xs">Arama: {activeSearch}</Badge>
             )}
