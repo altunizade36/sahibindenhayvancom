@@ -1,9 +1,16 @@
 import { db } from "./db";
 import { users, listings, categories } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 async function seedTestData() {
   console.log("🌱 Seeding enhanced test data for comprehensive testing...");
+  
+  // Clean up existing test data (order matters: delete listings first due to foreign key)
+  console.log("🧹 Cleaning up old test data...");
+  const deletedListings = await db.delete(listings).where(sql`title LIKE 'Test%' OR title LIKE '%Premium%' OR title LIKE '%- %'`);
+  const deletedUsers = await db.delete(users).where(sql`email LIKE 'testuser%@example.com'`);
+  console.log("✅ Old test data cleaned");
 
   // Create 100 test users (increased from 50)
   const testUsers = [];
@@ -108,7 +115,7 @@ async function seedTestData() {
       sellerId: randomUser.id,
       city: randomCity,
       district: randomDistrict,
-      status: i % 15 === 0 ? "sold" : (i % 20 === 0 ? "pending" : "active"),
+      status: i % 15 === 0 ? "sold" : "active",
       age: Math.floor(Math.random() * 60).toString(),
       gender: genders[Math.floor(Math.random() * genders.length)] as any,
       breed: breeds[Math.floor(Math.random() * breeds.length)],
