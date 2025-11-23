@@ -6,71 +6,86 @@ import { seedDatabase } from "./seed";
 import { initializeRedis, cache } from "./cache";
 import { setupCluster, setupGracefulShutdown } from "./cluster";
 
-// Check if we should run in cluster mode (production only)
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isClusterPrimary = setupCluster(isDevelopment);
-
-// If primary process in cluster mode, exit here (workers handle requests)
-if (isClusterPrimary) {
-  process.exit(0);
-}
-
-const app = express();
-
-// Enable gzip compression for all responses (bandwidth optimization)
-app.use(compression({
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  },
-  level: 6, // Balance between compression ratio and speed
-}));
-
+// Extend Express Request type for rawBody
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
   }
 }
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+// Check if we should run in cluster mode (production only)
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isClusterPrimary = setupCluster(isDevelopment);
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+// If primary process in cluster mode, keep running to supervise workers
+// (Don't initialize server, workers will do that)
+if (isClusterPrimary) {
+  console.log('🎯 Master process supervising workers...');
+  // Keep process alive - don't exit! Workers need master to stay alive.
+  // Master handles worker lifecycle (crashes, restarts) in cluster.ts
+  process.on('SIGINT', () => {
+    console.log('\n🛑 Master received SIGINT, shutting down cluster...');
+    process.exit(0);
+  });
+  process.on('SIGTERM', () => {
+    console.log('\n🛑 Master received SIGTERM, shutting down cluster...');
+    process.exit(0);
+  });
+} else {
+  // Worker process or development mode - initialize server
+  runServer();
+}
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+async function runServer() {
+  const app = express();
+
+  // Enable gzip compression for all responses (bandwidth optimization)
+  app.use(compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      return compression.filter(req, res);
+    },
+    level: 6, // Balance between compression ratio and speed
+  }));
+  app.use(express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
     }
+  }));
+  app.use(express.urlencoded({ extended: false }));
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+    const path = req.path;
+    let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      capturedJsonResponse = bodyJson;
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      if (path.startsWith("/api")) {
+        let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+        if (capturedJsonResponse) {
+          logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        }
+
+        if (logLine.length > 80) {
+          logLine = logLine.slice(0, 79) + "…";
+        }
+
+        log(logLine);
+      }
+    });
+
+    next();
   });
 
-  next();
-});
-
-(async () => {
   // Initialize Redis cache
   initializeRedis();
   
@@ -111,4 +126,4 @@ app.use((req, res, next) => {
 
   // Setup graceful shutdown
   setupGracefulShutdown(server);
-})();
+}
