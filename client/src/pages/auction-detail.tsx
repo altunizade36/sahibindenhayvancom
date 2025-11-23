@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Gavel, Clock, TrendingUp, User, Tag } from "lucide-react";
+import { Gavel, Clock, TrendingUp, User, Tag, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -221,20 +222,29 @@ export default function AuctionDetailPage() {
     );
   }
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     upcoming: "bg-blue-500",
-    active: "bg-green-500",
-    ended: "bg-gray-500",
+    live: "bg-green-500",
+    completed: "bg-gray-500",
+    cancelled: "bg-red-500",
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     upcoming: "Yaklaşan",
-    active: "Aktif",
-    ended: "Sona Erdi",
+    live: "Aktif",
+    completed: "Sona Erdi",
+    cancelled: "İptal",
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Alert className="mb-6 bg-blue-500/10 border-blue-500">
+        <Sparkles className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-500">
+          <strong>Yakında Gelecek!</strong> Açık artırma özelliği şu anda geliştirme aşamasında. Teklif verme yakında aktif olacak.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">

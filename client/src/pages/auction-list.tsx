@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gavel, Clock, TrendingUp, Eye } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Gavel, Clock, TrendingUp, Eye, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -167,6 +168,13 @@ export default function AuctionListPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Alert className="mb-6 bg-blue-500/10 border-blue-500">
+        <Sparkles className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-500">
+          <strong>Yakında Gelecek!</strong> Açık artırma özelliği şu anda geliştirme aşamasında. Çok yakında kullanıma açılacak.
+        </AlertDescription>
+      </Alert>
+
       <div className="mb-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -175,7 +183,7 @@ export default function AuctionListPage() {
               Canlı açık artırmalara katılın, teklif verin
             </p>
           </div>
-          <Button onClick={() => setLocation("/acik-artirma-olustur")} data-testid="button-create-auction">
+          <Button onClick={() => setLocation("/acik-artirma-olustur")} data-testid="button-create-auction" disabled>
             <Gavel className="h-4 w-4 mr-2" />
             Açık Artırma Oluştur
           </Button>

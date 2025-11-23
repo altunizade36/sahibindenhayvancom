@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Radio, Eye, User, Play } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Radio, Eye, User, Play, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useState } from "react";
@@ -126,6 +127,13 @@ export default function LiveStreamListPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Alert className="mb-6 bg-blue-500/10 border-blue-500">
+        <Sparkles className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-500">
+          <strong>Yakında Gelecek!</strong> Canlı yayın özelliği şu anda geliştirme aşamasında. Agora.io entegrasyonu tamamlandığında aktif olacak.
+        </AlertDescription>
+      </Alert>
+
       <div className="mb-8 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -134,7 +142,7 @@ export default function LiveStreamListPage() {
               Canlı yayınları izleyin veya kendi yayınınızı başlatın
             </p>
           </div>
-          <Button onClick={() => setLocation("/yayin-baslat")} data-testid="button-create-stream">
+          <Button onClick={() => setLocation("/yayin-baslat")} data-testid="button-create-stream" disabled>
             <Radio className="h-4 w-4 mr-2" />
             Yayın Başlat
           </Button>

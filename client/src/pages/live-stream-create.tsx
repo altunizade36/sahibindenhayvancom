@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Radio, AlertCircle } from "lucide-react";
+import { Radio, AlertCircle, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -87,11 +87,11 @@ export default function LiveStreamCreatePage() {
         </p>
       </div>
 
-      <Alert className="mb-6 bg-yellow-500/10 border-yellow-500">
-        <AlertCircle className="h-4 w-4 text-yellow-500" />
-        <AlertDescription className="text-yellow-500">
-          <strong>Not:</strong> Agora.io entegrasyonu henüz yapılandırılmadı. 
-          Yayın altyapısı hazır, AGORA_APP_ID ve AGORA_APP_CERTIFICATE secrets eklendikten sonra aktif olacak.
+      <Alert className="mb-6 bg-blue-500/10 border-blue-500">
+        <Sparkles className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-500">
+          <strong>Yakında Gelecek!</strong> Canlı yayın oluşturma özelliği şu anda geliştirme aşamasında. 
+          Agora.io entegrasyonu tamamlandığında aktif olacak.
         </AlertDescription>
       </Alert>
 

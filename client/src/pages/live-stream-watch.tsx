@@ -131,11 +131,11 @@ export default function LiveStreamWatchPage() {
                 <div className="flex flex-col items-center justify-center h-full text-white">
                   <Radio className="h-16 w-16 mb-4 animate-pulse" />
                   <p className="text-xl font-semibold mb-2">Canlı Yayın Oynatıcısı</p>
-                  <Alert className="mx-8 bg-yellow-500/10 border-yellow-500">
-                    <AlertCircle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription className="text-yellow-500">
-                      Agora.io entegrasyonu henüz yapılandırılmadı. 
-                      Video player altyapısı hazır, credentials eklendikten sonra çalışacak.
+                  <Alert className="mx-8 bg-blue-500/10 border-blue-500">
+                    <AlertCircle className="h-4 w-4 text-blue-500" />
+                    <AlertDescription className="text-blue-500">
+                      <strong>Yakında Gelecek!</strong> Agora.io entegrasyonu henüz yapılandırılmadı. 
+                      Video player altyapısı hazır, AGORA credentials eklendikten sonra aktif olacak.
                     </AlertDescription>
                   </Alert>
                 </div>

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Gavel, Calendar, DollarSign } from "lucide-react";
+import { Gavel, Calendar, DollarSign, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -95,6 +96,13 @@ export default function AuctionCreatePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <Alert className="mb-6 bg-blue-500/10 border-blue-500">
+        <Sparkles className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-500">
+          <strong>Yakında Gelecek!</strong> Açık artırma oluşturma özelliği şu anda geliştirme aşamasında. Çok yakında kullanıma açılacak.
+        </AlertDescription>
+      </Alert>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
           <Gavel className="inline h-8 w-8 mr-2 text-primary" />
