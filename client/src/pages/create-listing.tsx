@@ -117,10 +117,10 @@ export default function CreateListing() {
         recaptchaToken,
       });
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       toast({
         title: "Başarılı!",
-        description: response.message || "İlanınız oluşturuldu ve moderasyon onayı için gönderildi",
+        description: response?.message || "İlanınız oluşturuldu ve moderasyon onayı için gönderildi",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
       navigate("/");
