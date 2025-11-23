@@ -196,7 +196,10 @@ export const auctions = pgTable("auctions", {
   winnerId: varchar("winner_id").references(() => users.id),
   totalBids: integer("total_bids").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  statusEndTimeIdx: index("auctions_status_end_time_idx").on(table.status, table.endTime),
+  listingIdx: index("auctions_listing_idx").on(table.listingId),
+}));
 
 export const insertAuctionSchema = createInsertSchema(auctions).omit({
   id: true,
@@ -324,7 +327,10 @@ export const vetServices = pgTable("vet_services", {
   totalReviews: integer("total_reviews").default(0),
   verified: boolean("verified").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  cityIdx: index("vet_services_city_idx").on(table.city),
+  cityDistrictIdx: index("vet_services_city_district_idx").on(table.city, table.district),
+}));
 
 export const insertVetServiceSchema = createInsertSchema(vetServices).omit({
   id: true,
@@ -373,7 +379,10 @@ export const reviews = pgTable("reviews", {
   rating: integer("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  targetIdx: index("reviews_target_idx").on(table.targetId, table.targetType),
+  reviewerIdx: index("reviews_reviewer_idx").on(table.reviewerId),
+}));
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({
   id: true,
@@ -389,7 +398,10 @@ export const favorites = pgTable("favorites", {
   userId: varchar("user_id").notNull().references(() => users.id),
   listingId: varchar("listing_id").notNull().references(() => listings.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userCreatedIdx: index("favorites_user_created_idx").on(table.userId, table.createdAt),
+  userListingUnique: index("favorites_user_listing_unique").on(table.userId, table.listingId),
+}));
 
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   id: true,
