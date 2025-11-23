@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { PawPrint, Plus, User, LogOut, Settings, Heart, MessageSquare } from "lucide-react";
+import { PawPrint, Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio } from "lucide-react";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -30,6 +30,14 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/ilanlar" className={`hover:text-primary transition-colors ${location === "/ilanlar" ? "text-primary" : ""}`} data-testid="link-listings">
               İlanlar
+            </Link>
+            <Link href="/acik-artirmalar" className={`flex items-center gap-1 hover:text-primary transition-colors ${location.startsWith("/acik-artirma") ? "text-primary" : ""}`} data-testid="link-auctions">
+              <Gavel className="w-4 h-4" />
+              Açık Artırma
+            </Link>
+            <Link href="/canli-yayinlar" className={`flex items-center gap-1 hover:text-primary transition-colors ${location.startsWith("/canli-yayin") || location.startsWith("/yayin-baslat") ? "text-primary" : ""}`} data-testid="link-streams">
+              <Radio className="w-4 h-4" />
+              Canlı Yayın
             </Link>
             <Link href="/blog" className={`hover:text-primary transition-colors ${location === "/blog" ? "text-primary" : ""}`} data-testid="link-blog">
               Blog
