@@ -544,7 +544,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
       }
-      res.json(category);
+
+      // Fetch child categories
+      const childCategories = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.parentId, category.id))
+        .orderBy(categories.order);
+
+      // Recursively fetch grandchildren for each child
+      const categoryWithChildren = {
+        ...category,
+        children: await Promise.all(
+          childCategories.map(async (child) => {
+            const grandchildren = await db
+              .select()
+              .from(categories)
+              .where(eq(categories.parentId, child.id))
+              .orderBy(categories.order);
+            
+            return {
+              ...child,
+              children: grandchildren,
+            };
+          })
+        ),
+      };
+
+      res.json(categoryWithChildren);
     } catch (error) {
       console.error("Failed to fetch category:", error);
       res.status(500).json({ message: "Failed to fetch category" });
