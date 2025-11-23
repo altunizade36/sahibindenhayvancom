@@ -7,6 +7,7 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
 - ✅ 20+ Database Indexes: Optimized query performance
 - ✅ Security Hardening: Rate limiting, JWT auth, bcrypt passwords
 - ✅ **Phase 1 Scalability Complete**: Redis distributed cache (Upstash), Node.js cluster mode, health checks, Prometheus metrics
+- ✅ **Comprehensive Category System**: 800+ hierarchical categories across 14 main domains with 3-4 depth levels
 - ⚠️  Capacity Unknown: Load testing required to determine concurrent user limits
 - 📋 Scale to 200k+ Users: Requires CDN, read replicas, advanced pooling - See `PRODUCTION_SCALABILITY.md`
 
@@ -28,6 +29,17 @@ No specific user preferences were provided in the original document.
 - **Real-time**: WebSocket for messaging and live stream chat.
 - **Core Functionality**:
     - **Animal Listings**: Advanced search, filtering (price, location, breed, age, health), image galleries, document uploads.
+    - **Hierarchical Categories**: 14 main categories with 800+ subcategories including:
+        - Evcil Hayvanlar (Pets): Dogs, cats, birds, fish, rodents, reptiles, amphibians, exotic animals
+        - Çiftlik Hayvanları (Farm): Cattle, sheep, goats, poultry, camels, beekeeping
+        - Balıklar ve Su Ürünleri: Freshwater, saltwater, shellfish
+        - Atlar ve Binicilik: Horse breeds, riding equipment, care
+        - Arıcılık: Bee breeds, equipment, honey products
+        - Kümes ve Süs Kuşları: Poultry, ornamental birds
+        - Sürüngenler ve Amfibiler: Snakes, turtles, lizards, amphibians
+        - Kemirgenler: Hamsters, rabbits, guinea pigs, chinchillas
+        - Egzotik Hayvanlar: Exotic mammals, birds, insects
+        - Plus: Feed/Food, Equipment, Veterinary Services, Documents, Stores
     - **Messaging**: Real-time chat between buyers and sellers, listing-specific threads.
     - **Services**: Veterinary and transportation service listings with profiles, reviews, and ratings.
     - **Blog System**: Animal care articles, veterinary advice, nutrition and training guides by veterinarians.
