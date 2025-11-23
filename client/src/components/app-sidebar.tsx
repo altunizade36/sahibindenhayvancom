@@ -39,13 +39,24 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   const isActive = category.id === activeCategoryId;
 
   const handleClick = () => {
-    // Merge with existing query params
-    const params = new URLSearchParams(location.split('?')[1] || '');
-    params.set('kategori', category.id);
-    setLocation(`/ilanlar?${params.toString()}`);
+    setLocation(`/kategori/${category.slug}`);
   };
 
   if (!hasChildren) {
+    if (level === 0) {
+      return (
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={handleClick}
+            isActive={isActive}
+            data-testid={`category-${category.slug}`}
+          >
+            <span>{category.name}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+    
     return (
       <SidebarMenuSubItem>
         <SidebarMenuSubButton
@@ -59,16 +70,43 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
     );
   }
 
+  if (level === 0) {
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              onClick={handleClick}
+              isActive={isActive}
+              data-testid={`category-${category.slug}`}
+            >
+              <span className="flex-1">{category.name}</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+        </SidebarMenuItem>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {category.children?.map((child) => (
+              <CategoryTreeItem
+                key={child.id}
+                category={child}
+                level={level + 1}
+                activeCategoryId={activeCategoryId}
+              />
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <SidebarMenuSubItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuSubButton
-            onClick={(e) => {
-              if (e.target === e.currentTarget || (e.target as HTMLElement).closest('span')) {
-                handleClick();
-              }
-            }}
+            onClick={handleClick}
             isActive={isActive}
             data-testid={`category-${category.slug}`}
           >
