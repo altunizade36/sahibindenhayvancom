@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { getRecaptchaToken, loadRecaptchaScript } from "@/lib/recaptcha";
 import { PawPrint } from "lucide-react";
 
 const registerSchema = z.object({
@@ -29,6 +30,10 @@ export default function Register() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    loadRecaptchaScript().catch(console.error);
+  }, []);
+
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -44,24 +49,34 @@ export default function Register() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
+      // Get reCAPTCHA token
+      const recaptchaToken = await getRecaptchaToken('register');
+      
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          recaptchaToken,
+        }),
       });
+
+      const result = await response.json();
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Kayıt başarısız");
+        throw new Error(result.message || "Kayıt başarısız");
       }
 
-      const { token, user } = await response.json();
-      login(token, user);
+      // Security fix: No JWT until email verified
       toast({
-        title: "Kayıt başarılı",
-        description: "Hoş geldiniz!",
+        title: "Kayıt başarılı!",
+        description: result.message || "Email adresinizi doğrulamanız gerekmektedir. Lütfen email kutunuzu kontrol edin.",
       });
-      setLocation("/");
+      
+      // Redirect to login page
+      setTimeout(() => {
+        setLocation("/giris");
+      }, 2000);
     } catch (error: any) {
       toast({
         variant: "destructive",

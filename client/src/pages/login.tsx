@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { PawPrint } from "lucide-react";
+import { getRecaptchaToken, loadRecaptchaScript } from "@/lib/recaptcha";
+import { PawPrint, AlertTriangle } from "lucide-react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Kullanıcı adı gerekli"),
@@ -23,6 +25,12 @@ export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showUnverifiedAlert, setShowUnverifiedAlert] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+
+  useEffect(() => {
+    loadRecaptchaScript().catch(console.error);
+  }, []);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -32,21 +40,65 @@ export default function Login() {
     },
   });
 
+  const handleResendVerification = async () => {
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Email Gönderildi",
+          description: "Doğrulama emaili tekrar gönderildi. Lütfen email kutunuzu kontrol edin.",
+        });
+      } else {
+        const error = await response.json();
+        toast({
+          variant: "destructive",
+          description: error.message,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Email gönderilemedi",
+      });
+    }
+  };
+
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
+    setShowUnverifiedAlert(false);
+    
     try {
+      // Get reCAPTCHA token
+      const recaptchaToken = await getRecaptchaToken('login');
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          recaptchaToken,
+        }),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Giriş başarısız");
+        // Check if email not verified
+        if (result.message?.includes('doğrulanmamış') || result.message?.includes('verified')) {
+          setShowUnverifiedAlert(true);
+          setUnverifiedEmail(result.email || '');
+        }
+        throw new Error(result.message || "Giriş başarısız");
       }
 
-      const { token, user } = await response.json();
+      const { token, user } = result;
       login(token, user);
       toast({
         title: "Giriş başarılı",
@@ -77,6 +129,26 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {showUnverifiedAlert && (
+            <Alert className="mb-4 border-yellow-600 bg-yellow-50 dark:bg-yellow-950/20" data-testid="alert-unverified">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-sm">
+                <p className="font-medium mb-2">Email adresiniz doğrulanmamış</p>
+                <p className="text-muted-foreground mb-3">
+                  Giriş yapabilmek için email adresinizi doğrulamanız gerekmektedir.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleResendVerification}
+                  data-testid="button-resend-verification"
+                >
+                  Doğrulama Emaili Tekrar Gönder
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
