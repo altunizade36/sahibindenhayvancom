@@ -1,6 +1,6 @@
 import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronDown, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -27,19 +27,31 @@ const navItems = [
   { title: "İlanlar", url: "/ilanlar", icon: List },
 ];
 
-function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category: Category & { children?: Category[] }; level?: number; activeCategoryId?: string }) {
-  const [location, setLocation] = useLocation();
-  const [isOpen, setIsOpen] = useState(
-    activeCategoryId 
-      ? (category.id === activeCategoryId || (category.path?.includes(activeCategoryId) ?? false))
-      : false
-  );
+function hasActiveDescendant(category: Category & { children?: Category[] }, activeSlug?: string): boolean {
+  if (category.slug === activeSlug) return true;
+  if (!category.children) return false;
+  return category.children.some(child => hasActiveDescendant(child, activeSlug));
+}
+
+function CategoryTreeItem({ category, level = 0, activeCategorySlug }: { category: Category & { children?: Category[] }; level?: number; activeCategorySlug?: string }) {
+  const [, setLocation] = useLocation();
   
   const hasChildren = category.children && category.children.length > 0;
-  const isActive = category.id === activeCategoryId;
+  const isActive = category.slug === activeCategorySlug;
+  const shouldBeOpen = hasActiveDescendant(category, activeCategorySlug);
+  const [isOpen, setIsOpen] = useState(shouldBeOpen);
 
-  const handleClick = () => {
+  useEffect(() => {
+    setIsOpen(shouldBeOpen);
+  }, [shouldBeOpen]);
+
+  const handleNavigate = () => {
     setLocation(`/kategori/${category.slug}`);
+  };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
   };
 
   if (!hasChildren) {
@@ -47,7 +59,7 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
       return (
         <SidebarMenuItem>
           <SidebarMenuButton
-            onClick={handleClick}
+            onClick={handleNavigate}
             isActive={isActive}
             data-testid={`category-${category.slug}`}
           >
@@ -60,7 +72,7 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
     return (
       <SidebarMenuSubItem>
         <SidebarMenuSubButton
-          onClick={handleClick}
+          onClick={handleNavigate}
           isActive={isActive}
           data-testid={`category-${category.slug}`}
         >
@@ -74,16 +86,17 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <SidebarMenuItem>
-          <CollapsibleTrigger asChild>
-            <SidebarMenuButton
-              onClick={handleClick}
-              isActive={isActive}
-              data-testid={`category-${category.slug}`}
-            >
-              <span className="flex-1">{category.name}</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </SidebarMenuButton>
-          </CollapsibleTrigger>
+          <SidebarMenuButton
+            onClick={handleNavigate}
+            isActive={isActive}
+            data-testid={`category-${category.slug}`}
+          >
+            <span className="flex-1">{category.name}</span>
+            <ChevronDown 
+              className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+              onClick={handleToggle}
+            />
+          </SidebarMenuButton>
         </SidebarMenuItem>
         <CollapsibleContent>
           <SidebarMenuSub>
@@ -92,7 +105,7 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
                 key={child.id}
                 category={child}
                 level={level + 1}
-                activeCategoryId={activeCategoryId}
+                activeCategorySlug={activeCategorySlug}
               />
             ))}
           </SidebarMenuSub>
@@ -104,16 +117,17 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <SidebarMenuSubItem>
-        <CollapsibleTrigger asChild>
-          <SidebarMenuSubButton
-            onClick={handleClick}
-            isActive={isActive}
-            data-testid={`category-${category.slug}`}
-          >
-            <span className="flex-1">{category.name}</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-          </SidebarMenuSubButton>
-        </CollapsibleTrigger>
+        <SidebarMenuSubButton
+          onClick={handleNavigate}
+          isActive={isActive}
+          data-testid={`category-${category.slug}`}
+        >
+          <span className="flex-1">{category.name}</span>
+          <ChevronDown 
+            className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            onClick={handleToggle}
+          />
+        </SidebarMenuSubButton>
       </SidebarMenuSubItem>
       <CollapsibleContent>
         <SidebarMenuSub>
@@ -122,7 +136,7 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
               key={child.id}
               category={child}
               level={level + 1}
-              activeCategoryId={activeCategoryId}
+              activeCategorySlug={activeCategorySlug}
             />
           ))}
         </SidebarMenuSub>
@@ -246,9 +260,10 @@ export function AppSidebar() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract category ID from URL params
-  const params = new URLSearchParams(location.split('?')[1] || '');
-  const activeCategoryId = params.get('kategori') || undefined;
+  // Extract category slug from URL path
+  const activeCategorySlug = location.startsWith('/kategori/') 
+    ? location.split('/kategori/')[1]?.split('?')[0]
+    : undefined;
 
   // Fetch category tree
   const { data: categoryTree = [] } = useQuery<Category[]>({
@@ -323,7 +338,7 @@ export function AppSidebar() {
                   <CategoryTreeItem
                     key={rootCategory.id}
                     category={rootCategory}
-                    activeCategoryId={activeCategoryId}
+                    activeCategorySlug={activeCategorySlug}
                   />
                 ))}
               </SidebarMenu>
