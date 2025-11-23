@@ -41,6 +41,16 @@ export default function CategoryDetailPage() {
     enabled: !!category?.id,
   });
 
+  const { data: categoryStats = [] } = useQuery<{ categoryId: string; count: number }[]>({
+    queryKey: ["/api/categories/stats"],
+  });
+
+  const getCategoryCount = (categoryId: string) => {
+    if (!categoryStats) return 0;
+    const stat = categoryStats.find(s => s.categoryId === categoryId);
+    return stat ? stat.count : 0;
+  };
+
   const breadcrumb = [];
   if (category) {
     const findPath = (cats: CategoryWithChildren[], targetId: string, path: Category[] = []): Category[] | null => {
@@ -135,9 +145,16 @@ export default function CategoryDetailPage() {
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold">{subCat.name}</h3>
-                        {subCat.children && subCat.children.length > 0 && (
-                          <p className="text-sm text-muted-foreground">{subCat.children.length} alt kategori</p>
-                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          {getCategoryCount(subCat.id) > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {getCategoryCount(subCat.id)} ilan
+                            </Badge>
+                          )}
+                          {subCat.children && subCat.children.length > 0 && (
+                            <p className="text-sm text-muted-foreground">{subCat.children.length} alt kategori</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

@@ -38,7 +38,8 @@ const iconMap: Record<string, LucideIcon | any> = {
 
 export function CategoryGrid({ categories, stats }: CategoryGridProps) {
   const getCategoryCount = (categoryId: string) => {
-    const stat = stats?.find(s => s.categoryId === categoryId);
+    if (!stats) return 0;
+    const stat = stats.find(s => s.categoryId === categoryId);
     return stat ? stat.count : 0;
   };
 
