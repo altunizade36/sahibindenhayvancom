@@ -14,10 +14,9 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Filter, ChevronRight, Menu, X } from "lucide-react";
+import { Search, Plus, ChevronRight, Menu, X } from "lucide-react";
 import type { Listing, Category } from "@shared/schema";
 
 interface ListingsResponse {
@@ -193,6 +192,17 @@ export default function ListingList() {
           <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
             {/* Header with Toggle Button */}
             <div className="flex items-center gap-4 mb-6 md:mb-8">
+              {/* Mobile Hamburger Menu - Opens Categories */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCategoryMenuOpen(true)}
+                className="md:hidden h-11 w-11 shrink-0"
+                data-testid="button-hamburger-menu"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+
               {/* Desktop Sidebar Toggle */}
               <Button
                 variant="outline"
@@ -224,51 +234,38 @@ export default function ListingList() {
               </div>
             </div>
 
-            {/* Search Bar & Mobile Category Filter */}
-            <div className="mb-4 md:mb-6">
-              <div className="flex gap-2 mb-3">
-                {/* Mobile Category Button */}
-                <Sheet open={categoryMenuOpen} onOpenChange={setCategoryMenuOpen} modal={true}>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="md:hidden h-11 gap-2" data-testid="button-categories-mobile">
-                      <Filter className="w-4 h-4" />
-                      <span className="text-sm">
-                        {selectedCategory ? selectedCategory.name : "Kategoriler"}
-                      </span>
-                      {selectedCategoryId && (
-                        <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">1</Badge>
-                      )}
+            {/* Mobile Category Sheet (controlled by hamburger menu) */}
+            <Sheet open={categoryMenuOpen} onOpenChange={setCategoryMenuOpen} modal={true}>
+              <SheetContent side="left" className="w-full sm:w-96 overflow-y-auto p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle>Kategoriler</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    İlanları kategorilere göre filtrele
+                  </SheetDescription>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-8rem)]">
+                  <div className="px-6 pb-6 space-y-1">
+                    {/* Tüm Kategoriler */}
+                    <Button
+                      variant={!selectedCategoryId ? "secondary" : "ghost"}
+                      className="w-full justify-start h-11 text-base"
+                      onClick={() => handleCategorySelect("", false)}
+                      data-testid="button-all-categories"
+                    >
+                      Tüm Kategoriler
                     </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-96 overflow-y-auto p-0">
-                    <SheetHeader className="p-6 pb-4">
-                      <SheetTitle>Kategoriler</SheetTitle>
-                      <SheetDescription className="sr-only">
-                        İlanları kategorilere göre filtrele
-                      </SheetDescription>
-                    </SheetHeader>
-                    <ScrollArea className="h-[calc(100vh-8rem)]">
-                      <div className="px-6 pb-6 space-y-1">
-                        {/* Tüm Kategoriler */}
-                        <Button
-                          variant={!selectedCategoryId ? "secondary" : "ghost"}
-                          className="w-full justify-start h-11 text-base"
-                          onClick={() => handleCategorySelect("", false)}
-                          data-testid="button-all-categories"
-                        >
-                          Tüm Kategoriler
-                        </Button>
 
-                        {/* Recursive Category Tree */}
-                        {mainCategories.map((category) => (
-                          <CategoryTreeItem key={category.id} category={category} level={0} />
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </SheetContent>
-                </Sheet>
-              </div>
+                    {/* Recursive Category Tree */}
+                    {mainCategories.map((category) => (
+                      <CategoryTreeItem key={category.id} category={category} level={0} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
 
+            {/* Search Bar */}
+            <div className="mb-4 md:mb-6">
               <form onSubmit={handleSearch} className="flex gap-2">
                 <Input
                   type="search"
