@@ -60,20 +60,20 @@ export default function ListingList() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 md:mb-8">
           <div>
-            <h1 className="text-4xl font-bold" data-testid="text-page-title">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" data-testid="text-page-title">
               Tüm İlanlar
             </h1>
             {listingsResponse && (
-              <p className="text-muted-foreground mt-2">
+              <p className="text-sm md:text-base text-muted-foreground mt-2">
                 {listingsResponse.total} ilan bulundu
               </p>
             )}
           </div>
           <Link href="/ilan-ver">
-            <Button data-testid="button-create-listing">
+            <Button className="w-full sm:w-auto h-11" data-testid="button-create-listing">
               <Plus className="w-4 h-4 mr-2" />
               İlan Ver
             </Button>
@@ -81,25 +81,25 @@ export default function ListingList() {
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <form onSubmit={handleSearch} className="flex gap-2">
             <Input
               type="search"
               placeholder="İlan ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
+              className="flex-1 h-11"
               data-testid="input-search"
             />
-            <Button type="submit" data-testid="button-search">
-              <Search className="w-4 h-4 mr-2" />
-              Ara
+            <Button type="submit" className="h-11" data-testid="button-search">
+              <Search className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Ara</span>
             </Button>
           </form>
         </div>
 
         {/* Advanced Filters */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <AdvancedFilters 
             onFilterChange={handleFilterChange} 
             currentFilters={filters}
@@ -108,14 +108,14 @@ export default function ListingList() {
 
         {/* Active Filters */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-sm text-muted-foreground">Aktif Filtreler:</span>
+          <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-6">
+            <span className="text-xs md:text-sm text-muted-foreground">Aktif Filtreler:</span>
             {activeSearch && (
-              <Badge variant="secondary">Arama: {activeSearch}</Badge>
+              <Badge variant="secondary" className="text-xs">Arama: {activeSearch}</Badge>
             )}
             {Object.entries(filters).map(([key, value]) => 
               value && (
-                <Badge key={key} variant="secondary">
+                <Badge key={key} variant="secondary" className="text-xs">
                   {key}: {value}
                 </Badge>
               )
@@ -128,14 +128,14 @@ export default function ListingList() {
 
         {/* Listings Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <Skeleton key={i} className="h-80" />
             ))}
           </div>
         ) : listings.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="grid-listings">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6" data-testid="grid-listings">
               {listings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
@@ -150,19 +150,19 @@ export default function ListingList() {
             )}
           </>
         ) : (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg mb-4" data-testid="text-no-results">
+          <div className="text-center py-12 md:py-16">
+            <p className="text-muted-foreground text-base md:text-lg mb-4" data-testid="text-no-results">
               {hasActiveFilters
                 ? "Arama kriterlerinize uygun ilan bulunamadı"
                 : "Henüz ilan yok"}
             </p>
             {hasActiveFilters ? (
-              <Button onClick={clearAll} variant="outline">
+              <Button onClick={clearAll} variant="outline" className="h-11">
                 Filtreleri Temizle
               </Button>
             ) : (
               <Link href="/ilan-ver">
-                <Button>İlk İlanı Siz Verin</Button>
+                <Button className="h-11">İlk İlanı Siz Verin</Button>
               </Link>
             )}
           </div>

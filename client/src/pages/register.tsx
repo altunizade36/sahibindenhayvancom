@@ -93,10 +93,10 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PawPrint className="w-12 h-12 text-primary" />
+            <PawPrint className="w-10 h-10 md:w-12 md:h-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Üye Ol</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl md:text-2xl">Üye Ol</CardTitle>
+          <CardDescription className="text-sm md:text-base">
             Yeni hesap oluşturun ve platformumuza katılın
           </CardDescription>
         </CardHeader>
@@ -110,7 +110,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Ad Soyad</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ahmet Yılmaz" data-testid="input-fullname" />
+                      <Input {...field} placeholder="Ahmet Yılmaz" className="h-11" data-testid="input-fullname" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -123,7 +123,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Kullanıcı Adı</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="kullaniciadi" data-testid="input-username" />
+                      <Input {...field} placeholder="kullaniciadi" className="h-11" data-testid="input-username" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -136,7 +136,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>E-posta</FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" placeholder="ornek@email.com" data-testid="input-email" />
+                      <Input {...field} type="email" placeholder="ornek@email.com" className="h-11" data-testid="input-email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -149,7 +149,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Şifre</FormLabel>
                     <FormControl>
-                      <Input {...field} type="password" placeholder="••••••••" data-testid="input-password" />
+                      <Input {...field} type="password" placeholder="••••••••" className="h-11" data-testid="input-password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -162,7 +162,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Telefon (Opsiyonel)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="(5XX) XXX XX XX" data-testid="input-phone" />
+                      <Input {...field} placeholder="(5XX) XXX XX XX" className="h-11" data-testid="input-phone" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,7 +176,7 @@ export default function Register() {
                     <FormLabel>Hesap Türü</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-role">
+                        <SelectTrigger className="h-11" data-testid="select-role">
                           <SelectValue placeholder="Hesap türü seçin" />
                         </SelectTrigger>
                       </FormControl>
@@ -193,7 +193,7 @@ export default function Register() {
               />
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-11"
                 disabled={isLoading}
                 data-testid="button-submit"
               >

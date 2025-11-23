@@ -35,19 +35,19 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-4xl">
-      <div className="flex-1 flex gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 w-full max-w-4xl">
+      <div className="flex-1 flex flex-col sm:flex-row gap-2">
         <Input
           type="search"
           placeholder="Hayvan ara..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
+          className="flex-1 h-11"
           data-testid="input-search"
         />
         {categories.length > 0 && (
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-48" data-testid="select-category">
+            <SelectTrigger className="w-full sm:w-48 h-11" data-testid="select-category">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -61,9 +61,9 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
           </Select>
         )}
       </div>
-      <Button type="submit" data-testid="button-search">
-        <Search className="w-4 h-4 mr-2" />
-        Ara
+      <Button type="submit" className="h-11" data-testid="button-search">
+        <Search className="w-4 h-4 sm:mr-2" />
+        <span className="hidden sm:inline">Ara</span>
       </Button>
     </form>
   );

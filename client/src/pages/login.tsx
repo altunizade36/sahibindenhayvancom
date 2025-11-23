@@ -121,10 +121,10 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PawPrint className="w-12 h-12 text-primary" />
+            <PawPrint className="w-10 h-10 md:w-12 md:h-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Giriş Yap</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl md:text-2xl">Giriş Yap</CardTitle>
+          <CardDescription className="text-sm md:text-base">
             Hesabınıza giriş yapın ve hayvan ilanlarına erişin
           </CardDescription>
         </CardHeader>
@@ -161,6 +161,7 @@ export default function Login() {
                       <Input
                         {...field}
                         placeholder="kullaniciadi"
+                        className="h-11"
                         data-testid="input-username"
                       />
                     </FormControl>
@@ -179,6 +180,7 @@ export default function Login() {
                         {...field}
                         type="password"
                         placeholder="••••••••"
+                        className="h-11"
                         data-testid="input-password"
                       />
                     </FormControl>
@@ -188,7 +190,7 @@ export default function Login() {
               />
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-11"
                 disabled={isLoading}
                 data-testid="button-submit"
               >

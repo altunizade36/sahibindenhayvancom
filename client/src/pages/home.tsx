@@ -51,14 +51,14 @@ export default function Home() {
         description="Evcil hayvanlarınızı bulun, satın alın, sahiplenin. Köpek, kedi, kuş, balık ve daha fazlası için binlerce ilan. Ücretsiz ilan verin!"
         structuredData={generateOrganizationStructuredData()}
       />
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-hero-title">
-              Türkiye'nin En Güvenilir <br />
+      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-12 md:py-20">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-4xl mx-auto text-center mb-8 md:mb-12">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4" data-testid="text-hero-title">
+              Türkiye'nin En Güvenilir <br className="hidden sm:block" />
               <span className="text-primary">Hayvan İlanları Platformu</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8" data-testid="text-hero-subtitle">
+            <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8" data-testid="text-hero-subtitle">
               Evcil dostlarınızı bulun, satın alın, sahiplenin. Binlerce ilan arasından aradığınızı bulun.
             </p>
             <SearchBar categories={categories} />
@@ -66,11 +66,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2">Popüler Kategoriler</h2>
-            <p className="text-muted-foreground">
+      <section className="py-12 md:py-16 bg-muted/30">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Popüler Kategoriler</h2>
+            <p className="text-sm md:text-base text-muted-foreground">
               En çok aranan hayvan kategorilerine göz atın
             </p>
           </div>
@@ -82,23 +82,24 @@ export default function Home() {
       </section>
 
       {hotListings.length > 0 && (
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
+        <section className="py-12 md:py-16 bg-background">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-primary" />
+                <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 <div>
-                  <h2 className="text-3xl font-bold">Popüler İlanlar</h2>
-                  <p className="text-muted-foreground mt-1">En çok görüntülenen ilanlar</p>
+                  <h2 className="text-2xl md:text-3xl font-bold">Popüler İlanlar</h2>
+                  <p className="text-sm md:text-base text-muted-foreground mt-1">En çok görüntülenen ilanlar</p>
                 </div>
               </div>
               <Link href="/ilanlar">
-                <Button variant="ghost" data-testid="link-all-listings">
-                  Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
+                <Button variant="ghost" size="sm" className="md:h-10" data-testid="link-all-listings">
+                  <span className="hidden sm:inline">Tümünü Gör</span>
+                  <ArrowRight className="w-4 h-4 sm:ml-2" />
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {hotListings.slice(0, 8).map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
@@ -107,13 +108,13 @@ export default function Home() {
         </section>
       )}
 
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
+      <section className="py-12 md:py-16 bg-muted/30">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
             <div>
-              <h2 className="text-3xl font-bold">Tüm İlanlar</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">Tüm İlanlar</h2>
               {listingsResponse && (
-                <p className="text-muted-foreground mt-2">
+                <p className="text-sm md:text-base text-muted-foreground mt-2">
                   {listingsResponse.total} ilan bulundu
                 </p>
               )}
@@ -122,7 +123,7 @@ export default function Home() {
           
           {featuredListings.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredListings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
@@ -136,9 +137,9 @@ export default function Home() {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">Henüz ilan yok</p>
+              <p className="text-muted-foreground text-base md:text-lg">Henüz ilan yok</p>
               <Link href="/ilan-ver">
-                <Button className="mt-4">İlk İlanı Siz Verin</Button>
+                <Button className="mt-4 h-11">İlk İlanı Siz Verin</Button>
               </Link>
             </div>
           )}
@@ -146,20 +147,21 @@ export default function Home() {
       </section>
 
       {activeAuctions.length > 0 && (
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
+        <section className="py-12 md:py-16 bg-background">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
               <div className="flex items-center gap-3">
-                <Gavel className="w-8 h-8 text-primary" />
-                <h2 className="text-3xl font-bold">Aktif Müzayedeler</h2>
+                <Gavel className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                <h2 className="text-2xl md:text-3xl font-bold">Aktif Müzayedeler</h2>
               </div>
               <Link href="/muzayedeler">
-                <Button variant="ghost" data-testid="link-all-auctions">
-                  Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" />
+                <Button variant="ghost" size="sm" className="md:h-10" data-testid="link-all-auctions">
+                  <span className="hidden sm:inline">Tümünü Gör</span>
+                  <ArrowRight className="w-4 h-4 sm:ml-2" />
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {activeAuctions.slice(0, 3).map((auction: any) => (
                 <Link key={auction.id} href={`/muzayede/${auction.id}`}>
                   <div className="p-6 rounded-lg border border-primary/20 bg-primary/5 hover-elevate cursor-pointer">
