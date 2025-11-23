@@ -36,14 +36,26 @@ if (!process.env.SESSION_SECRET) {
 const JWT_SECRET = process.env.SESSION_SECRET;
 
 // ============ Rate Limiting Configuration ============
-// Optimized rate limiter for auth endpoints (balances security with user experience)
-const authLimiter = rateLimit({
+// Separate limiters for login vs. registration (different security requirements)
+
+// Login limiter: Relaxed for legitimate traffic bursts, skips successful logins
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 attempts per 15 minutes per IP (allows legitimate traffic bursts)
+  max: 100, // 100 attempts per 15 minutes per IP
   message: "Çok fazla giriş denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful logins against limit
+  skipSuccessfulRequests: true, // Don't count successful logins (allows password recovery)
+});
+
+// Registration limiter: Strict to prevent bot spam, counts ALL attempts
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // 50 registrations per 15 minutes per IP (prevents automated account creation)
+  message: "Çok fazla kayıt denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false, // Count ALL registrations (blocks bot spam)
 });
 
 // Moderate rate limiter for resource creation
@@ -336,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Auth Routes ============
-  app.post("/api/auth/register", authLimiter, async (req: Request, res: Response) => {
+  app.post("/api/auth/register", registerLimiter, async (req: Request, res: Response) => {
     try {
       // SECURITY: Validate reCAPTCHA before any processing
       const recaptchaToken = req.body.recaptchaToken;
@@ -410,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", authLimiter, async (req: Request, res: Response) => {
+  app.post("/api/auth/login", loginLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
       const userIp = req.ip || req.socket.remoteAddress;
