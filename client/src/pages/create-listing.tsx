@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
+import { getRecaptchaToken, loadRecaptchaScript } from "@/lib/recaptcha";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -108,20 +109,27 @@ export default function CreateListing() {
 
   const createListingMutation = useMutation({
     mutationFn: async (data: ListingFormData) => {
-      return await apiRequest("POST", "/api/listings", data);
+      // Get reCAPTCHA token before submission
+      const recaptchaToken = await getRecaptchaToken('create_listing');
+      
+      return await apiRequest("POST", "/api/listings", {
+        ...data,
+        recaptchaToken,
+      });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast({
         title: "Başarılı!",
-        description: "İlanınız oluşturuldu",
+        description: response.message || "İlanınız oluşturuldu ve moderasyon onayı için gönderildi",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
       navigate("/");
     },
-    onError: () => {
+    onError: (error: any) => {
+      const errorMessage = error.message || "İlan oluşturulamadı";
       toast({
         title: "Hata",
-        description: "İlan oluşturulamadı",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -135,6 +143,9 @@ export default function CreateListing() {
     if (!user) {
       navigate("/giris");
     }
+    
+    // Load reCAPTCHA script
+    loadRecaptchaScript().catch(console.error);
   }, [user, navigate]);
 
   if (!user) {
