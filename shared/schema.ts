@@ -172,7 +172,11 @@ export const listings = pgTable("listings", {
   statusPremiumIdx: index("listings_status_premium_idx").on(table.status, table.isPremium),
 }));
 
-export const insertListingSchema = createInsertSchema(listings).omit({
+export const insertListingSchema = createInsertSchema(listings, {
+  price: z.union([z.string(), z.number()]).transform(val => String(val)),
+  images: z.array(z.string()).optional().default([]),
+  healthDocuments: z.array(z.string()).optional().default([]),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -201,7 +205,11 @@ export const auctions = pgTable("auctions", {
   listingIdx: index("auctions_listing_idx").on(table.listingId),
 }));
 
-export const insertAuctionSchema = createInsertSchema(auctions).omit({
+export const insertAuctionSchema = createInsertSchema(auctions, {
+  startPrice: z.union([z.string(), z.number()]).transform(val => String(val)),
+  buyNowPrice: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  minIncrement: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+}).omit({
   id: true,
   createdAt: true,
   currentPrice: true,
@@ -225,7 +233,9 @@ export const bids = pgTable("bids", {
   auctionAmountIdx: index("bids_auction_amount_idx").on(table.auctionId, table.amount),
 }));
 
-export const insertBidSchema = createInsertSchema(bids).omit({
+export const insertBidSchema = createInsertSchema(bids, {
+  amount: z.union([z.string(), z.number()]).transform(val => String(val)),
+}).omit({
   id: true,
   createdAt: true,
 });
@@ -368,7 +378,13 @@ export const transportServices = pgTable("transport_services", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertTransportServiceSchema = createInsertSchema(transportServices).omit({
+export const insertTransportServiceSchema = createInsertSchema(transportServices, {
+  pricePerKm: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  minPrice: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  serviceAreas: z.array(z.string()).optional().default([]),
+  vehicleTypes: z.array(z.string()).optional().default([]),
+  animalTypes: z.array(z.string()).optional().default([]),
+}).omit({
   id: true,
   createdAt: true,
   rating: true,
