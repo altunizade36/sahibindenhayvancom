@@ -1,6 +1,14 @@
 ### Overview
 sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform designed for comprehensive listing features with advanced search, filtering, and categorization. The primary goal is user acquisition by offering free listings for pets, livestock, birds, fish, horses, and beekeeping. Future plans include monetization through premium features, advertising, and sales commissions.
 
+**Production Status (Nov 2025):**
+- ✅ MVP Feature-Complete: All core features functional, load testing required before production deployment
+- ✅ Full PostgreSQL Migration: Zero data loss on restart, Neon serverless Pool
+- ✅ 20+ Database Indexes: Optimized query performance
+- ✅ Security Hardening: Rate limiting, JWT auth, bcrypt passwords
+- ⚠️  Scalability Limits: Single Node.js process (capacity unknown - load testing required)
+- 📋 Scale to 50k+: Requires cluster mode, Redis, read replicas - See `PRODUCTION_SCALABILITY.md`
+
 ### User Preferences
 No specific user preferences were provided in the original document.
 
@@ -10,7 +18,7 @@ No specific user preferences were provided in the original document.
 - **UI/UX**: Utilizes Shadcn UI and Tailwind CSS for a modern, responsive design. Features a Turkish marketplace theme with Blue (#0066CC) as primary, Gold/Yellow as secondary, and Inter, Poppins, Space Grotesk fonts. Layouts include responsive grids for listings, categories, and blog posts, with a prominent central search bar and sticky header.
 - **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles, each with specific permissions and features.
 - **Free Platform Model**: All listing, auction, and live streaming features are free to encourage user acquisition. Payment infrastructure has been entirely removed.
-- **Hybrid Storage Approach**: Currently uses in-memory storage for MVP with a defined PostgreSQL schema (Drizzle ORM) for future migration. Seeded blog posts are read from the database.
+- **Full PostgreSQL Storage**: Complete migration to PostgreSQL (Neon serverless) with Drizzle ORM. All features (users, listings, messages, auctions, services, blog) use PostgreSQL with connection pooling.
 - **Security**: Implements JWT authentication, password hashing with bcrypt, password sanitization, privilege escalation prevention via whitelisted profile fields, and secure WebSocket authentication using JWT tokens.
 
 **Technical Implementations:**
@@ -41,7 +49,7 @@ No specific user preferences were provided in the original document.
 - **Server → Client**: `chat`, `chat_sent`, `new_bid`, `stream_message`
 
 ### External Dependencies
-- **Database**: PostgreSQL (planned for full migration; currently in-memory storage for MVP)
+- **Database**: PostgreSQL (Neon serverless) with connection pooling - Full migration complete
 - **Real-time Communication**: WebSocket
 - **UI Components**: Shadcn UI
 - **Styling**: Tailwind CSS
