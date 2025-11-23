@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
-import { locations, listings, blogPosts, users, messages, favorites, categories } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, vetServices, transportServices, reviews } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -744,24 +744,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Auction Routes ============
   app.get("/api/auctions", async (req: Request, res: Response) => {
-    const auctions = await storage.getAllAuctions(req.query.status as string);
-    res.json(auctions);
+    try {
+      const status = req.query.status as string;
+      
+      // Get auctions from PostgreSQL
+      let query = db.select().from(auctions);
+      
+      if (status) {
+        query = query.where(eq(auctions.status, status as any));
+      }
+      
+      const allAuctions = await query.orderBy(desc(auctions.createdAt));
+      res.json(allAuctions);
+    } catch (error) {
+      console.error("Failed to fetch auctions:", error);
+      res.status(500).json({ message: "Failed to fetch auctions" });
+    }
   });
 
   app.get("/api/auctions/:id", async (req: Request, res: Response) => {
-    const auction = await storage.getAuction(req.params.id);
-    if (!auction) {
-      return res.status(404).json({ message: "Auction not found" });
+    try {
+      const [auction] = await db
+        .select()
+        .from(auctions)
+        .where(eq(auctions.id, req.params.id))
+        .limit(1);
+      
+      if (!auction) {
+        return res.status(404).json({ message: "Auction not found" });
+      }
+
+      // Get bids for auction
+      const auctionBids = await db
+        .select()
+        .from(bids)
+        .where(eq(bids.auctionId, req.params.id))
+        .orderBy(desc(bids.amount));
+      
+      // Get listing
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, auction.listingId))
+        .limit(1);
+
+      res.json({
+        ...auction,
+        bids: auctionBids,
+        listing,
+      });
+    } catch (error) {
+      console.error("Failed to fetch auction:", error);
+      res.status(500).json({ message: "Failed to fetch auction" });
     }
-
-    const bids = await storage.getBidsByAuction(req.params.id);
-    const listing = await storage.getListing(auction.listingId);
-
-    res.json({
-      ...auction,
-      bids,
-      listing,
-    });
   });
 
   app.post("/api/auctions", authMiddleware, async (req: Request, res: Response) => {
@@ -769,21 +804,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertAuctionSchema.parse(req.body);
       
       // Verify listing belongs to user
-      const listing = await storage.getListing(data.listingId);
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, data.listingId))
+        .limit(1);
+      
       if (!listing || listing.sellerId !== req.user!.id) {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      const auction = await storage.createAuction(data);
+      // Create auction in PostgreSQL
+      const [auction] = await db
+        .insert(auctions)
+        .values(data)
+        .returning();
+      
       res.status(201).json(auction);
     } catch (error) {
+      console.error("Failed to create auction:", error);
       res.status(400).json({ message: "Failed to create auction", error });
     }
   });
 
   app.get("/api/auctions/:id/bids", async (req: Request, res: Response) => {
-    const bids = await storage.getBidsByAuction(req.params.id);
-    res.json(bids);
+    try {
+      const auctionBids = await db
+        .select()
+        .from(bids)
+        .where(eq(bids.auctionId, req.params.id))
+        .orderBy(desc(bids.amount));
+      
+      res.json(auctionBids);
+    } catch (error) {
+      console.error("Failed to fetch bids:", error);
+      res.status(500).json({ message: "Failed to fetch bids" });
+    }
   });
 
   // ============ Live Stream Routes (REMOVED - Feature postponed) ============
@@ -940,40 +996,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authorId: req.user!.id,
       });
 
-      const post = await storage.createBlogPost(data);
+      // Create blog post in PostgreSQL
+      const [post] = await db
+        .insert(blogPosts)
+        .values(data)
+        .returning();
+      
       res.status(201).json(post);
     } catch (error) {
+      console.error("Failed to create blog post:", error);
       res.status(400).json({ message: "Failed to create post", error });
     }
   });
 
   // ============ Vet Service Routes ============
   app.get("/api/vet-services", async (req: Request, res: Response) => {
-    const services = await storage.getAllVetServices(req.query.city as string);
-    res.json(services);
+    try {
+      const city = req.query.city as string;
+      
+      // Get vet services from PostgreSQL
+      let query = db.select().from(vetServices);
+      
+      if (city) {
+        query = query.where(eq(vetServices.city, city));
+      }
+      
+      const services = await query.orderBy(desc(vetServices.createdAt));
+      res.json(services);
+    } catch (error) {
+      console.error("Failed to fetch vet services:", error);
+      res.status(500).json({ message: "Failed to fetch vet services" });
+    }
   });
 
   app.get("/api/vet-services/:id", async (req: Request, res: Response) => {
-    const service = await storage.getVetService(req.params.id);
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
+    try {
+      const [service] = await db
+        .select()
+        .from(vetServices)
+        .where(eq(vetServices.id, req.params.id))
+        .limit(1);
+      
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      // Get vet user
+      const [vet] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, service.vetId))
+        .limit(1);
+      
+      // Get reviews
+      const serviceReviews = await db
+        .select()
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.targetId, req.params.id),
+            eq(reviews.targetType, "vet_service")
+          )
+        );
+
+      // Sanitize vet object
+      let sanitizedVet = null;
+      if (vet) {
+        const { password: _, ...safe } = vet;
+        sanitizedVet = safe;
+      }
+
+      res.json({
+        ...service,
+        vet: sanitizedVet,
+        reviews: serviceReviews,
+      });
+    } catch (error) {
+      console.error("Failed to fetch vet service:", error);
+      res.status(500).json({ message: "Failed to fetch vet service" });
     }
-
-    const vet = await storage.getUser(service.vetId);
-    const reviews = await storage.getReviewsByTarget(req.params.id, "vet_service");
-
-    // Sanitize vet object
-    let sanitizedVet = null;
-    if (vet) {
-      const { password: _, ...safe } = vet;
-      sanitizedVet = safe;
-    }
-
-    res.json({
-      ...service,
-      vet: sanitizedVet,
-      reviews,
-    });
   });
 
   app.post("/api/vet-services", authMiddleware, async (req: Request, res: Response) => {
@@ -987,40 +1088,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         vetId: req.user!.id,
       });
 
-      const service = await storage.createVetService(data);
+      // Create vet service in PostgreSQL
+      const [service] = await db
+        .insert(vetServices)
+        .values(data)
+        .returning();
+      
       res.status(201).json(service);
     } catch (error) {
+      console.error("Failed to create vet service:", error);
       res.status(400).json({ message: "Failed to create service", error });
     }
   });
 
   // ============ Transport Service Routes ============
   app.get("/api/transport-services", async (req: Request, res: Response) => {
-    const services = await storage.getAllTransportServices(req.query.city as string);
-    res.json(services);
+    try {
+      const city = req.query.city as string;
+      
+      // Get transport services from PostgreSQL
+      let query = db.select().from(transportServices);
+      
+      if (city) {
+        query = query.where(eq(transportServices.city, city));
+      }
+      
+      const services = await query.orderBy(desc(transportServices.createdAt));
+      res.json(services);
+    } catch (error) {
+      console.error("Failed to fetch transport services:", error);
+      res.status(500).json({ message: "Failed to fetch transport services" });
+    }
   });
 
   app.get("/api/transport-services/:id", async (req: Request, res: Response) => {
-    const service = await storage.getTransportService(req.params.id);
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
+    try {
+      const [service] = await db
+        .select()
+        .from(transportServices)
+        .where(eq(transportServices.id, req.params.id))
+        .limit(1);
+      
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      // Get transporter user
+      const [transporter] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, service.transporterId))
+        .limit(1);
+      
+      // Get reviews
+      const serviceReviews = await db
+        .select()
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.targetId, req.params.id),
+            eq(reviews.targetType, "transport_service")
+          )
+        );
+
+      // Sanitize transporter object
+      let sanitizedTransporter = null;
+      if (transporter) {
+        const { password: _, ...safe } = transporter;
+        sanitizedTransporter = safe;
+      }
+
+      res.json({
+        ...service,
+        transporter: sanitizedTransporter,
+        reviews: serviceReviews,
+      });
+    } catch (error) {
+      console.error("Failed to fetch transport service:", error);
+      res.status(500).json({ message: "Failed to fetch transport service" });
     }
-
-    const transporter = await storage.getUser(service.transporterId);
-    const reviews = await storage.getReviewsByTarget(req.params.id, "transport_service");
-
-    // Sanitize transporter object
-    let sanitizedTransporter = null;
-    if (transporter) {
-      const { password: _, ...safe } = transporter;
-      sanitizedTransporter = safe;
-    }
-
-    res.json({
-      ...service,
-      transporter: sanitizedTransporter,
-      reviews,
-    });
   });
 
   app.post("/api/transport-services", authMiddleware, async (req: Request, res: Response) => {
@@ -1034,9 +1180,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transporterId: req.user!.id,
       });
 
-      const service = await storage.createTransportService(data);
+      // Create transport service in PostgreSQL
+      const [service] = await db
+        .insert(transportServices)
+        .values(data)
+        .returning();
+      
       res.status(201).json(service);
     } catch (error) {
+      console.error("Failed to create transport service:", error);
       res.status(400).json({ message: "Failed to create service", error });
     }
   });
@@ -1049,9 +1201,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reviewerId: req.user!.id,
       });
 
-      const review = await storage.createReview(data);
+      // Create review in PostgreSQL
+      const [review] = await db
+        .insert(reviews)
+        .values(data)
+        .returning();
+      
       res.status(201).json(review);
     } catch (error) {
+      console.error("Failed to create review:", error);
       res.status(400).json({ message: "Failed to create review", error });
     }
   });
