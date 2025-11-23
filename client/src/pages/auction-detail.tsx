@@ -307,7 +307,7 @@ export default function AuctionDetailPage() {
                       </p>
                     </div>
                     {auction.status === "live" && (
-                      <Button variant="default" data-testid="button-buy-now">
+                      <Button variant="default" disabled data-testid="button-buy-now">
                         <Tag className="h-4 w-4 mr-2" />
                         Hemen Al
                       </Button>
@@ -404,11 +404,11 @@ export default function AuctionDetailPage() {
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={placeBidMutation.isPending}
+                      disabled
                       data-testid="button-submit-bid"
                     >
                       <Gavel className="h-4 w-4 mr-2" />
-                      {placeBidMutation.isPending ? "Gönderiliyor..." : "Teklif Ver"}
+                      Teklif Ver (Yakında)
                     </Button>
                   </form>
                 </Form>
@@ -434,7 +434,7 @@ export default function AuctionDetailPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full" data-testid="button-view-listing">
+                <Button variant="outline" className="w-full" disabled data-testid="button-view-listing">
                   İlanı Görüntüle
                 </Button>
               </CardFooter>

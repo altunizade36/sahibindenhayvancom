@@ -219,7 +219,7 @@ export default function LiveStreamWatchPage() {
                     ₺{parseFloat(stream.listing.price).toLocaleString('tr-TR')}
                   </p>
                 </div>
-                <Button variant="outline" className="w-full" data-testid="button-view-listing">
+                <Button variant="outline" className="w-full" disabled data-testid="button-view-listing">
                   İlanı Görüntüle
                 </Button>
               </CardContent>
