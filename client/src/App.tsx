@@ -106,10 +106,13 @@ function Router() {
                            location.startsWith('/kategori/') ||
                            location.startsWith('/admin');
   
+  // Mobilde sidebar kapalı, desktop'ta açık olsun
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
       style={{ "--sidebar-width": "20rem" } as React.CSSProperties}
-      defaultOpen={true}
+      defaultOpen={!isMobile}
     >
       <SidebarLayout />
     </SidebarProvider>
