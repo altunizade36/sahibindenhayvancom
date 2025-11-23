@@ -47,7 +47,7 @@ export default function VerifyEmail() {
 
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          setLocation('/login');
+          setLocation('/giris');
         }, 3000);
       } else {
         setStatus('error');
@@ -79,7 +79,7 @@ export default function VerifyEmail() {
           variant: "destructive",
           description: "Lütfen önce giriş yapın",
         });
-        setLocation('/login');
+        setLocation('/giris');
         return;
       }
 
@@ -156,7 +156,7 @@ export default function VerifyEmail() {
               </Button>
               
               <Button
-                onClick={() => setLocation('/login')}
+                onClick={() => setLocation('/giris')}
                 className="w-full"
                 data-testid="button-login"
               >

@@ -431,6 +431,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
       }
 
+      // CRITICAL: Check email verification before allowing login (Package B Security)
+      if (!user.isVerified) {
+        return res.status(403).json({ 
+          message: "Email adresiniz doğrulanmamış. Lütfen email kutunuzu kontrol edin ve doğrulama linkine tıklayın.",
+          email: user.email,
+          requiresVerification: true
+        });
+      }
+
       // Update last login info
       await db
         .update(users)
