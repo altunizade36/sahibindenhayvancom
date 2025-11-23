@@ -24,6 +24,7 @@ import {
   type User,
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { emailService, generateVerificationToken } from "./email";
 
 // Validate critical environment variables
 if (!process.env.SESSION_SECRET) {
@@ -337,6 +338,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertUserSchema.parse(req.body);
       
+      // TODO: Validate reCAPTCHA token
+      // const recaptchaToken = req.body.recaptchaToken;
+      // if (!recaptchaToken || !(await verifyRecaptcha(recaptchaToken))) {
+      //   return res.status(400).json({ message: "Invalid reCAPTCHA" });
+      // }
+      
       // Check if user exists (direct PostgreSQL query)
       const [existingUser] = await db
         .select()
@@ -345,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
       
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "Kullanıcı adı zaten kullanılıyor" });
       }
 
       const [existingEmail] = await db
@@ -355,68 +362,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
       
       if (existingEmail) {
-        return res.status(400).json({ message: "Email already exists" });
+        return res.status(400).json({ message: "Email adresi zaten kullanılıyor" });
       }
 
       // Hash password
       const hashedPassword = await bcrypt.hash(data.password, 10);
       
-      // Create user in PostgreSQL
+      // Generate email verification token (valid for 24 hours)
+      const verificationToken = generateVerificationToken();
+      const verificationExpires = new Date();
+      verificationExpires.setHours(verificationExpires.getHours() + 24);
+      
+      // Create user in PostgreSQL (unverified)
       const [user] = await db
         .insert(users)
         .values({
           ...data,
           password: hashedPassword,
+          isVerified: false,
+          emailVerificationToken: verificationToken,
+          emailVerificationExpires: verificationExpires,
         })
         .returning();
+
+      // Send verification email
+      try {
+        await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Continue registration even if email fails
+      }
 
       // Create JWT token
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
-      // Sanitize user object - remove password
-      const { password: _, ...sanitizedUser } = user;
+      // Sanitize user object - remove password and token
+      const { password: _, emailVerificationToken: __, ...sanitizedUser } = user;
 
       res.json({
         token,
         user: sanitizedUser,
+        message: "Kayıt başarılı! Lütfen email adresinizi doğrulayın.",
       });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(400).json({ message: "Registration failed", error });
+      res.status(400).json({ message: "Kayıt başarısız oldu", error });
     }
   });
 
   app.post("/api/auth/login", authLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
+      const userIp = req.ip || req.socket.remoteAddress;
 
-      // Direct PostgreSQL query for user
+      // Direct PostgreSQL query for user (allow login with username OR email)
       const [user] = await db
         .select()
         .from(users)
-        .where(eq(users.username, username))
+        .where(sql`${users.username} = ${username} OR ${users.email} = ${username}`)
         .limit(1);
       
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
       }
+
+      // Update last login info
+      await db
+        .update(users)
+        .set({
+          lastLoginAt: new Date(),
+          lastLoginIp: userIp,
+        })
+        .where(eq(users.id, user.id));
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
-      // Sanitize user object - remove password
-      const { password: _, ...sanitizedUser } = user;
+      // Sanitize user object - remove password and sensitive data
+      const { password: _, emailVerificationToken: __, ...sanitizedUser } = user;
 
       res.json({
         token,
         user: sanitizedUser,
       });
     } catch (error) {
-      res.status(400).json({ message: "Login failed", error });
+      res.status(400).json({ message: "Giriş başarısız oldu", error });
     }
   });
 
@@ -446,15 +480,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       if (!updated) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
 
-      // Sanitize user object - remove password
-      const { password: _, ...sanitizedUser } = updated;
+      // Sanitize user object - remove password and sensitive data
+      const { password: _, emailVerificationToken: __, ...sanitizedUser } = updated;
       res.json(sanitizedUser);
     } catch (error) {
       console.error("Profile update error:", error);
-      res.status(400).json({ message: "Update failed", error });
+      res.status(400).json({ message: "Güncelleme başarısız oldu", error });
+    }
+  });
+
+  // Email verification endpoint
+  app.get("/api/auth/verify-email", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Geçersiz doğrulama linki" });
+      }
+
+      // Find user with this token
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.emailVerificationToken, token))
+        .limit(1);
+
+      if (!user) {
+        return res.status(400).json({ message: "Geçersiz veya kullanılmış doğrulama linki" });
+      }
+
+      // Check if token expired
+      if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+        return res.status(400).json({ message: "Doğrulama linki süresi dolmuş. Lütfen yeni link isteyin." });
+      }
+
+      // Verify user
+      const [updated] = await db
+        .update(users)
+        .set({
+          isVerified: true,
+          emailVerificationToken: null,
+          emailVerificationExpires: null,
+        })
+        .where(eq(users.id, user.id))
+        .returning();
+
+      const { password: _, emailVerificationToken: __, ...sanitizedUser } = updated;
+
+      res.json({
+        message: "Email adresiniz başarıyla doğrulandı!",
+        user: sanitizedUser,
+      });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      res.status(500).json({ message: "Doğrulama işlemi başarısız oldu" });
+    }
+  });
+
+  // Resend verification email
+  app.post("/api/auth/resend-verification", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+
+      if (user.isVerified) {
+        return res.status(400).json({ message: "Email adresiniz zaten doğrulanmış" });
+      }
+
+      // Generate new token
+      const verificationToken = generateVerificationToken();
+      const verificationExpires = new Date();
+      verificationExpires.setHours(verificationExpires.getHours() + 24);
+
+      // Update user
+      await db
+        .update(users)
+        .set({
+          emailVerificationToken: verificationToken,
+          emailVerificationExpires: verificationExpires,
+        })
+        .where(eq(users.id, user.id));
+
+      // Send email
+      await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
+
+      res.json({ message: "Doğrulama emaili tekrar gönderildi" });
+    } catch (error) {
+      console.error("Resend verification error:", error);
+      res.status(500).json({ message: "Email gönderilemedi" });
     }
   });
 
@@ -935,17 +1050,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/listings", createLimiter, authMiddleware, async (req: Request, res: Response) => {
     try {
+      const user = req.user!;
+
+      // SECURITY: Email verification required to create listings
+      if (!user.isVerified) {
+        return res.status(403).json({
+          message: "İlan oluşturabilmek için email adresinizi doğrulamanız gerekmektedir.",
+          requiresVerification: true,
+        });
+      }
+
+      // SPAM FILTER: Check for duplicate listings (same title in last hour)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const [duplicateListing] = await db
+        .select()
+        .from(listings)
+        .where(
+          and(
+            eq(listings.sellerId, user.id),
+            eq(listings.title, req.body.title),
+            gte(listings.createdAt, oneHourAgo)
+          )
+        )
+        .limit(1);
+
+      if (duplicateListing) {
+        return res.status(429).json({
+          message: "Aynı başlıkla kısa süre önce ilan oluşturdunuz. Lütfen 1 saat bekleyin.",
+        });
+      }
+
+      // SPAM FILTER: Max 5 listings per hour per user
+      const recentListings = await db
+        .select({ count: count() })
+        .from(listings)
+        .where(
+          and(
+            eq(listings.sellerId, user.id),
+            gte(listings.createdAt, oneHourAgo)
+          )
+        );
+
+      if (recentListings[0] && Number(recentListings[0].count) >= 5) {
+        return res.status(429).json({
+          message: "Saatte en fazla 5 ilan oluşturabilirsiniz. Lütfen daha sonra tekrar deneyin.",
+        });
+      }
+
       const parsedData = insertListingSchema.parse({
         ...req.body,
-        sellerId: req.user!.id,
+        sellerId: user.id,
+        status: 'pending', // Always pending for moderation
       });
 
-      // Create listing - completely free, no fees!
+      // Create listing - completely free, but requires admin approval
       const [listing] = await db.insert(listings).values(parsedData as any).returning();
-      res.status(201).json(listing);
+
+      res.status(201).json({
+        ...listing,
+        message: "İlanınız başarıyla oluşturuldu. Admin onayından sonra yayına girecektir.",
+        requiresApproval: true,
+      });
     } catch (error) {
       console.error("Error creating listing:", error);
-      res.status(400).json({ message: "Failed to create listing", error });
+      res.status(400).json({ message: "İlan oluşturulamadı", error });
     }
   });
 
