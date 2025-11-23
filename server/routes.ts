@@ -135,7 +135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // WebSocket connection handling with limits
-  const clients = new Map<string, WebSocket>();
+  type ClientInfo = {
+    ws: WebSocket;
+    userId: string;
+    auctionId?: string;
+    streamId?: string;
+  };
+  
+  const clients = new Map<string, ClientInfo>();
   const MAX_CONNECTIONS = 50000; // Limit concurrent connections
   const HEARTBEAT_INTERVAL = 30000; // 30 seconds
   const CONNECTION_TIMEOUT = 60000; // 60 seconds idle timeout
@@ -150,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return;
     }
 
-    const url = new URL(req.url || "", `http://${req.headers.host}`);
+    const url = new URL(req.url || "?", "http://dummy");
     const token = url.searchParams.get("token");
     
     if (!token) {
@@ -163,12 +170,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = decoded.userId;
       
       // Close existing connection for this user
-      const existingWs = clients.get(userId);
-      if (existingWs && existingWs.readyState === WebSocket.OPEN) {
-        existingWs.close(1000, "New connection established");
+      const existingClient = clients.get(userId);
+      if (existingClient && existingClient.ws.readyState === WebSocket.OPEN) {
+        existingClient.ws.close(1000, "New connection established");
       }
       
-      clients.set(userId, ws);
+      // Create client info
+      const clientInfo: ClientInfo = {
+        ws,
+        userId,
+      };
+      
+      clients.set(userId, clientInfo);
       
       // Setup heartbeat for this connection
       const heartbeat = setInterval(() => {
@@ -207,7 +220,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const message = JSON.parse(data.toString());
           
           // Handle different message types
-          if (message.type === "chat") {
+          if (message.type === "subscribe") {
+            // Subscribe to auction or stream
+            if (message.auctionId) {
+              clientInfo.auctionId = message.auctionId;
+              ws.send(JSON.stringify({ type: "subscribed", auctionId: message.auctionId }));
+            } else if (message.streamId) {
+              clientInfo.streamId = message.streamId;
+              ws.send(JSON.stringify({ type: "subscribed", streamId: message.streamId }));
+            }
+          } else if (message.type === "chat") {
             // Create message in PostgreSQL
             const [newMessage] = await db
               .insert(messages)
@@ -268,10 +290,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
               .returning();
 
-            // Broadcast bid to all connected clients
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
+            // Broadcast bid only to clients subscribed to this auction
+            clients.forEach((client) => {
+              if (client.ws.readyState === WebSocket.OPEN && client.auctionId === message.auctionId) {
+                client.ws.send(JSON.stringify({
                   type: "new_bid",
                   bid,
                   auctionId: message.auctionId,

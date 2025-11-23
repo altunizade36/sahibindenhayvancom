@@ -62,6 +62,7 @@ export default function LiveStreamWatchPage() {
 
     ws.onopen = () => {
       console.log("WebSocket connected for live stream chat");
+      ws.send(JSON.stringify({ type: "subscribe", streamId }));
     };
 
     ws.onmessage = (event) => {

@@ -119,6 +119,7 @@ export default function AuctionDetailPage() {
 
     ws.onopen = () => {
       console.log("WebSocket connected for auction bids");
+      ws.send(JSON.stringify({ type: "subscribe", auctionId }));
     };
 
     ws.onmessage = (event) => {
