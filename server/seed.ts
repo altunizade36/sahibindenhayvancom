@@ -89,33 +89,33 @@ export async function seedDatabase() {
     // Seed blog posts (with veterinarian author) - Always check and add missing ones
     console.log("📝 Checking blog posts...");
     
-    // Check if veterinarian author already exists
+    // Check if blog editor author already exists
     let veterinarianAuthor = await db.query.users.findFirst({
-      where: eq(users.email, "veteriner@sahibindenhayvan.com"),
+      where: eq(users.email, "blog@sahibindenhayvan.com"),
     });
     
     if (!veterinarianAuthor) {
-      console.log("Creating veterinarian author...");
-      const hashedPassword = await bcrypt.hash("veteriner123", 10);
+      console.log("Creating blog editor author...");
+      const hashedPassword = await bcrypt.hash("blog123secure", 10);
       const [newAuthor] = await db
         .insert(users)
         .values({
-          username: "drayse",
-          email: "veteriner@sahibindenhayvan.com",
+          username: "veteriner-editoru",
+          email: "blog@sahibindenhayvan.com",
           password: hashedPassword,
-          fullName: "Dr. Ayşe Yılmaz",
+          fullName: "Veteriner Editörü",
           role: "vet",
-          phone: "(0532) 123 45 67",
+          phone: null,
           city: "İstanbul",
-          district: "Kadıköy",
-          bio: "15 yıllık deneyime sahip veteriner hekim. Hayvan sağlığı ve bakımı konusunda uzmanlaşmış, pek çok hayvansevere danışmanlık vermiştir.",
+          district: null,
+          bio: "Sahibindenhayvan.com blog editör ekibi. İçeriklerimiz veteriner hekimler ve hayvan sağlığı uzmanlarının denetiminde, güncel bilimsel kaynaklardan derlenmiştir.",
         })
         .returning()
         .execute();
       veterinarianAuthor = newAuthor;
-      console.log("✅ Veterinarian author created");
+      console.log("✅ Blog editor author created");
     } else {
-      console.log("✅ Veterinarian author already exists");
+      console.log("✅ Blog editor author already exists");
     }
     
     // Get all existing blog posts
