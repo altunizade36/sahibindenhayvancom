@@ -740,13 +740,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Message Routes ============
   app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
-    const conversations = await storage.getConversations(req.user!.id);
-    res.json(conversations);
+    try {
+      // Get unique conversations from PostgreSQL
+      const userId = req.user!.id;
+      
+      // Get all messages where user is sender or receiver
+      const allMessages = await db
+        .select()
+        .from(messages)
+        .where(
+          sql`${messages.senderId} = ${userId} OR ${messages.receiverId} = ${userId}`
+        )
+        .orderBy(desc(messages.createdAt));
+      
+      // Group by conversation partner
+      const conversationsMap = new Map();
+      for (const msg of allMessages) {
+        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+        if (!conversationsMap.has(partnerId)) {
+          conversationsMap.set(partnerId, {
+            userId: partnerId,
+            lastMessage: msg.content,
+            lastMessageTime: msg.createdAt,
+            unreadCount: 0,
+          });
+        }
+      }
+      
+      res.json(Array.from(conversationsMap.values()));
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
   });
 
   app.get("/api/messages/:userId", authMiddleware, async (req: Request, res: Response) => {
-    const messages = await storage.getMessagesBetweenUsers(req.user!.id, req.params.userId);
-    res.json(messages);
+    try {
+      const currentUserId = req.user!.id;
+      const otherUserId = req.params.userId;
+      
+      // Get messages between two users from PostgreSQL
+      const msgs = await db
+        .select()
+        .from(messages)
+        .where(
+          sql`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
+        )
+        .orderBy(messages.createdAt);
+      
+      res.json(msgs);
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
   });
 
   app.post("/api/messages", authMiddleware, async (req: Request, res: Response) => {
@@ -756,9 +802,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         senderId: req.user!.id,
       });
 
-      const message = await storage.createMessage(data);
+      // Create message in PostgreSQL
+      const [message] = await db
+        .insert(messages)
+        .values(data)
+        .returning();
+      
       res.status(201).json(message);
     } catch (error) {
+      console.error("Failed to send message:", error);
       res.status(400).json({ message: "Failed to send message", error });
     }
   });
@@ -954,8 +1006,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Favorite Routes ============
   app.get("/api/favorites", authMiddleware, async (req: Request, res: Response) => {
-    const favorites = await storage.getFavoritesByUser(req.user!.id);
-    res.json(favorites);
+    try {
+      // Get favorites from PostgreSQL
+      const favs = await db
+        .select()
+        .from(favorites)
+        .where(eq(favorites.userId, req.user!.id));
+      
+      res.json(favs);
+    } catch (error) {
+      console.error("Failed to fetch favorites:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
   });
 
   app.post("/api/favorites", authMiddleware, async (req: Request, res: Response) => {
@@ -965,18 +1027,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
       });
 
-      const favorite = await storage.createFavorite(data);
+      // Create favorite in PostgreSQL
+      const [favorite] = await db
+        .insert(favorites)
+        .values(data)
+        .returning();
+      
       res.status(201).json(favorite);
     } catch (error) {
+      console.error("Failed to add favorite:", error);
       res.status(400).json({ message: "Failed to add favorite", error });
     }
   });
 
   app.delete("/api/favorites/:listingId", authMiddleware, async (req: Request, res: Response) => {
     try {
-      await storage.deleteFavorite(req.user!.id, req.params.listingId);
+      // Delete favorite from PostgreSQL
+      await db
+        .delete(favorites)
+        .where(
+          and(
+            eq(favorites.userId, req.user!.id),
+            eq(favorites.listingId, req.params.listingId)
+          )
+        );
+      
       res.json({ message: "Favorite removed" });
     } catch (error) {
+      console.error("Failed to remove favorite:", error);
       res.status(400).json({ message: "Failed to remove favorite", error });
     }
   });
