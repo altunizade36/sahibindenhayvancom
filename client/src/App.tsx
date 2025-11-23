@@ -28,6 +28,8 @@ import LiveStreamWatch from "@/pages/live-stream-watch";
 import LiveStreamCreate from "@/pages/live-stream-create";
 import CategoryDetail from "@/pages/category-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminModeration from "@/pages/admin-moderation";
+import VerifyEmail from "@/pages/verify-email";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -57,6 +59,7 @@ function NoSidebarLayout() {
         <Switch>
           <Route path="/giris" component={Login} />
           <Route path="/kayit" component={Register} />
+          <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/ilan-ver" component={CreateListing} />
           <Route path="/ilan/:id" component={ListingDetail} />
           <Route path="/profil" component={Profile} />
@@ -76,6 +79,7 @@ function NoSidebarLayout() {
           <Route path="/yayin-baslat" component={LiveStreamCreate} />
           <Route path="/kategori/:slug" component={CategoryDetail} />
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/moderasyon" component={AdminModeration} />
         </Switch>
       </main>
     </div>
