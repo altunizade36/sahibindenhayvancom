@@ -4,6 +4,16 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seed";
 import { initializeRedis, cache } from "./cache";
+import { setupCluster, setupGracefulShutdown } from "./cluster";
+
+// Check if we should run in cluster mode (production only)
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isClusterPrimary = setupCluster(isDevelopment);
+
+// If primary process in cluster mode, exit here (workers handle requests)
+if (isClusterPrimary) {
+  process.exit(0);
+}
 
 const app = express();
 
@@ -98,4 +108,7 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
+
+  // Setup graceful shutdown
+  setupGracefulShutdown(server);
 })();

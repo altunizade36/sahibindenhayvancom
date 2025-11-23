@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
 import { cache, cacheKeys, cacheTTL } from "./cache";
+import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, vetServices, transportServices, reviews } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -121,6 +122,10 @@ async function optionalAuthMiddleware(req: Request, res: Response, next: Functio
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // ============ Health & Monitoring Routes ============
+  app.get("/health", healthCheck);
+  app.get("/metrics", metricsEndpoint);
+
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ 
     server: httpServer, 
