@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ListingCard } from "@/components/listing-card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -45,6 +46,11 @@ export default function ListingDetail() {
   const { data: favorites } = useQuery<any[]>({
     queryKey: ["/api/favorites"],
     enabled: isAuthenticated,
+  });
+
+  const { data: similarListings = [] } = useQuery<Listing[]>({
+    queryKey: ["/api/listings", id, "similar"],
+    enabled: !!id,
   });
 
   const isFavorited = favorites?.some((fav) => fav.listingId === id);
@@ -448,6 +454,18 @@ export default function ListingDetail() {
             </Card>
           </div>
         </div>
+
+        {/* Similar Listings */}
+        {similarListings.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Benzer İlanlar</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarListings.slice(0, 4).map((similarListing) => (
+                <ListingCard key={similarListing.id} listing={similarListing} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

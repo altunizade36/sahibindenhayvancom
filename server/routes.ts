@@ -781,6 +781,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get similar listings (same category, excluding current listing)
+  app.get("/api/listings/:id/similar", async (req: Request, res: Response) => {
+    try {
+      const [currentListing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+
+      if (!currentListing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+
+      // Get similar listings from same category
+      const similarListings = await db
+        .select()
+        .from(listings)
+        .where(
+          and(
+            eq(listings.categoryId, currentListing.categoryId),
+            eq(listings.status, 'active'),
+            sql`${listings.id} != ${req.params.id}` // Exclude current listing
+          )
+        )
+        .orderBy(desc(listings.views))
+        .limit(8);
+
+      res.json(similarListings);
+    } catch (error) {
+      console.error("Error fetching similar listings:", error);
+      res.status(500).json({ message: "Failed to fetch similar listings" });
+    }
+  });
+
   app.get("/api/listings/:id", optionalAuthMiddleware, async (req: Request, res: Response) => {
     try {
       const [listing] = await db
