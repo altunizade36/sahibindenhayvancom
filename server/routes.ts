@@ -26,6 +26,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { emailService, generateVerificationToken } from "./email";
 import { verifyRecaptcha } from "./recaptcha";
+import { moderateListingSchema } from "./validation";
 
 // Validate critical environment variables
 if (!process.env.SESSION_SECRET) {
@@ -1063,7 +1064,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // SPAM FILTER: Check for duplicate listings (normalized title, ignore rejected/deleted)
+      // SECURITY: Validate reCAPTCHA for listing creation (optional in dev)
+      const recaptchaToken = req.body.recaptchaToken;
+      if (process.env.RECAPTCHA_SECRET_KEY) {
+        if (!recaptchaToken) {
+          return res.status(400).json({
+            message: "Bot koruması doğrulaması gereklidir",
+            errorCode: "RECAPTCHA_REQUIRED",
+          });
+        }
+        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
+        if (!isValid) {
+          return res.status(400).json({
+            message: "Bot koruması doğrulaması başarısız",
+            errorCode: "RECAPTCHA_FAILED",
+          });
+        }
+      }
+
+      // SPAM FILTER: Check BEFORE counting toward hourly limit
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       const normalizedTitle = req.body.title.toLowerCase().trim();
       
@@ -1084,10 +1103,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (duplicates.length > 0) {
         return res.status(429).json({
           message: "Aynı başlıkla kısa süre önce ilan oluşturdunuz. Lütfen 1 saat bekleyin.",
+          errorCode: "DUPLICATE_LISTING",
         });
       }
 
-      // SPAM FILTER: Max 5 ACTIVE/PENDING listings per hour per user (exclude rejected/deleted)
+      // SPAM FILTER: Max 5 ACTIVE/PENDING listings per hour per user
       const recentListings = await db
         .select({ count: count() })
         .from(listings)
@@ -1102,6 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (recentListings[0] && Number(recentListings[0].count) >= 5) {
         return res.status(429).json({
           message: "Saatte en fazla 5 ilan oluşturabilirsiniz. Lütfen daha sonra tekrar deneyin.",
+          errorCode: "RATE_LIMIT_EXCEEDED",
         });
       }
 
@@ -2154,23 +2175,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update listing status (admin only - approve/reject with strict validation)
+  // Update listing status (admin only - approve/reject with strict Zod validation)
   app.patch("/api/admin/listings/:id/status", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
     try {
-      const { status, reason } = req.body;
-
-      // SECURITY: Only allow approved transitions
-      const allowedStatuses = ['active', 'rejected'] as const;
-      if (!allowedStatuses.includes(status)) {
+      // SECURITY: Validate with Zod schema
+      const validationResult = moderateListingSchema.safeParse(req.body);
+      if (!validationResult.success) {
         return res.status(400).json({
-          message: "Geçersiz durum. Sadece 'active' veya 'rejected' kullanılabilir.",
+          message: "Geçersiz istek",
+          errors: validationResult.error.errors,
         });
       }
 
-      // SECURITY: Require reason for rejection
-      if (status === 'rejected' && !reason) {
-        return res.status(400).json({ message: "Red nedeni zorunludur" });
-      }
+      const { status, reason } = validationResult.data;
 
       // Get current listing
       const [listing] = await db
@@ -2183,7 +2200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "İlan bulunamadı" });
       }
 
-      // Only allow moderation on pending listings
+      // SECURITY: Only allow moderation on pending listings
       if (listing.status !== 'pending') {
         return res.status(400).json({
           message: `Bu işlem sadece bekleyen ilanlar için yapılabilir. Mevcut durum: ${listing.status}`,
@@ -2191,13 +2208,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update with full audit trail
+      // SECURITY FIX: Clear moderationReason on approval
       const [updated] = await db
         .update(listings)
         .set({
           status: status,
           moderatedBy: req.user!.id,
           moderatedAt: new Date(),
-          moderationReason: reason || null,
+          moderationReason: status === 'rejected' ? reason : null,
         })
         .where(eq(listings.id, req.params.id))
         .returning();
