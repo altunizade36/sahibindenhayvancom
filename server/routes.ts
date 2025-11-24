@@ -1183,6 +1183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         sellerId: user.id,
         status: 'pending', // Always pending for moderation
+        // Auto-detect listing source: if storeId provided, it's a store listing
+        listingSource: req.body.storeId ? 'store' : 'individual',
       });
 
       // Create listing - completely free, but requires admin approval
@@ -1215,9 +1217,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
+      // Auto-detect listing source when storeId changes
+      const updateData: any = { ...req.body, updatedAt: new Date() };
+      if ('storeId' in req.body) {
+        updateData.listingSource = req.body.storeId ? 'store' : 'individual';
+      }
+
       const [updated] = await db
         .update(listings)
-        .set({ ...req.body, updatedAt: new Date() })
+        .set(updateData)
         .where(eq(listings.id, req.params.id))
         .returning();
         
