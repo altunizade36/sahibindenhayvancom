@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { categories, locations, users, blogPosts } from "@shared/schema";
+import { categories, locations, users, blogPosts, stores, storeReviews } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
@@ -194,6 +194,147 @@ export async function seedDatabase() {
     const orphanedBlogs = allExistingBlogs.filter(b => !fileSlugs.has(b.slug));
     if (orphanedBlogs.length > 0) {
       console.log(`⚠️  Found ${orphanedBlogs.length} orphaned blog posts in DB (not in file):`, orphanedBlogs.map(b => b.slug).join(", "));
+    }
+
+    // ============ Seed Stores (Mağazalar) ============
+    const existingStores = await db.query.stores.findMany({ limit: 1 });
+    if (existingStores.length === 0) {
+      console.log("🏪 Creating demo stores...");
+      
+      const storeOwner1 = await db.insert(users).values({
+        username: "petshop_istanbul",
+        email: "info@petshopistanbul.com",
+        password: await bcrypt.hash("password123", 10),
+        fullName: "PetShop İstanbul",
+        role: "seller",
+        city: "İstanbul",
+        isVerified: true,
+      }).returning();
+
+      const storeOwner2 = await db.insert(users).values({
+        username: "yem_uzmani",
+        email: "info@yemuzmani.com",
+        password: await bcrypt.hash("password123", 10),
+        fullName: "Yem Uzmanı Ltd.",
+        role: "seller",
+        city: "Ankara",
+        isVerified: true,
+      }).returning();
+
+      const vetStoreOwner = await db.insert(users).values({
+        username: "vet_klinik_ankara",
+        email: "bilgi@vetklinik.com",
+        password: await bcrypt.hash("password123", 10),
+        fullName: "Veteriner Kliniği Ankara",
+        role: "veterinarian",
+        city: "Ankara",
+        isVerified: true,
+      }).returning();
+
+      const store1 = await db.insert(stores).values({
+        slug: "petshop-istanbul-kadikoy",
+        displayName: "PetShop İstanbul - Kadıköy",
+        storeType: "petshop",
+        summary: "İstanbul'un en köklü pet shop'u. Kedi, köpek, kuş ve akvaryum ürünlerinde geniş yelpazeye sahibiz.",
+        description: "2005 yılından beri hizmet veren PetShop İstanbul, evcil hayvan sahiplerine kaliteli ürün ve profesyonel hizmet sunmaktadır. 1500 m² mağaza alanımızda binlerce ürün çeşidi bulunmaktadır.",
+        phone: "0216 555 12 34",
+        email: "kadikoy@petshopistanbul.com",
+        website: "https://petshopistanbul.com",
+        address: "Kadıköy Mah. Pet Sokak No:10 Kadıköy/İstanbul",
+        city: "İstanbul",
+        district: "Kadıköy",
+        primaryColor: "#FF6B35",
+        secondaryColor: "#004E89",
+        ownerId: storeOwner1[0].id,
+        status: "active",
+        rating: "4.8",
+        reviewCount: 127,
+        totalListings: 0,
+        verifiedAt: new Date(),
+      }).returning();
+
+      const store2 = await db.insert(stores).values({
+        slug: "yem-uzmani-ankara",
+        displayName: "Yem Uzmanı - Ankara",
+        storeType: "feed_producer",
+        summary: "Çiftlik hayvanları için en kaliteli yem ve mama üretimi. Organik ve katkısız ürünler.",
+        description: "20 yıllık deneyimimizle çiftlik hayvanlarınız için en uygun yem formülasyonlarını üretiyoruz.",
+        phone: "0312 444 56 78",
+        email: "satis@yemuzmani.com",
+        website: "https://yemuzmani.com.tr",
+        address: "Keçiören Sanayi Sitesi 4. Cadde No:25 Ankara",
+        city: "Ankara",
+        district: "Keçiören",
+        primaryColor: "#2E7D32",
+        secondaryColor: "#FFC107",
+        ownerId: storeOwner2[0].id,
+        status: "active",
+        rating: "4.9",
+        reviewCount: 89,
+        totalListings: 0,
+        verifiedAt: new Date(),
+      }).returning();
+
+      const store3 = await db.insert(stores).values({
+        slug: "vet-klinik-ankara-cankaya",
+        displayName: "Veteriner Kliniği - Çankaya",
+        storeType: "veterinary",
+        summary: "7/24 acil veteriner hizmeti. Deneyimli kadromuzla evcil dostlarınıza en iyi bakımı sunuyoruz.",
+        description: "Modern ekipmanlarımız ve uzman veteriner hekimlerimizle kedi, köpek ve diğer evcil hayvanlarınıza kapsamlı sağlık hizmeti veriyoruz.",
+        phone: "0312 777 88 99",
+        email: "randevu@vetklinik.com",
+        website: "https://vetklinikankara.com",
+        address: "Çankaya Merkez, Veteriner Cad. No:15 Çankaya/Ankara",
+        city: "Ankara",
+        district: "Çankaya",
+        primaryColor: "#1976D2",
+        secondaryColor: "#E91E63",
+        ownerId: vetStoreOwner[0].id,
+        status: "active",
+        rating: "4.95",
+        reviewCount: 213,
+        totalListings: 0,
+        verifiedAt: new Date(),
+      }).returning();
+
+      console.log(`✅ Created ${3} demo stores`);
+
+      // Create demo store reviews
+      const demoUser = await db.query.users.findFirst({
+        where: eq(users.email, "demo@example.com"),
+      });
+
+      if (demoUser) {
+        await db.insert(storeReviews).values([
+          {
+            storeId: store1[0].id,
+            reviewerId: demoUser.id,
+            rating: 5,
+            title: "Harika bir mağaza!",
+            comment: "Köpeğim için aldığım mamayı çok beğendi. Personel çok ilgili ve bilgili.",
+            status: "approved",
+          },
+          {
+            storeId: store2[0].id,
+            reviewerId: demoUser.id,
+            rating: 5,
+            title: "En kaliteli yem",
+            comment: "Tavuklarım için aldığım organik yem çok kaliteli. Yumurta verimleri arttı.",
+            status: "approved",
+          },
+          {
+            storeId: store3[0].id,
+            reviewerId: demoUser.id,
+            rating: 5,
+            title: "Hayat kurtardılar",
+            comment: "Kedim acil durumda gece yarısı hastalandı, hemen müdahale ettiler!",
+            status: "approved",
+          },
+        ]);
+        console.log("✅ Created demo store reviews");
+      }
+    } else {
+      console.log("⏭️  Stores already exist, skipping");
     }
     
     console.log("✅ Database seeded successfully");
