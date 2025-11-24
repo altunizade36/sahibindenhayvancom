@@ -2736,6 +2736,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload store media (logo/banner) - Owner only
+  app.post("/api/store/:id/media", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      if (store.ownerId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Bu mağazaya medya yükleyemezsiniz" });
+      }
+
+      const { mediaType, url } = req.body;
+      
+      if (!mediaType || !url) {
+        return res.status(400).json({ message: "mediaType ve url gerekli" });
+      }
+
+      // Store media in database
+      const [media] = await db
+        .insert(storeMedia)
+        .values({
+          storeId: req.params.id,
+          mediaType,
+          url,
+          isPrimary: mediaType === "logo" || mediaType === "banner",
+        })
+        .returning();
+
+      // Update store logo/banner reference
+      if (mediaType === "logo") {
+        await db
+          .update(stores)
+          .set({ logo: url })
+          .where(eq(stores.id, req.params.id));
+      } else if (mediaType === "banner") {
+        await db
+          .update(stores)
+          .set({ banner: url })
+          .where(eq(stores.id, req.params.id));
+      }
+
+      res.status(201).json(media);
+    } catch (error) {
+      console.error("Error uploading store media:", error);
+      res.status(500).json({ message: "Medya yüklenemedi" });
+    }
+  });
+
   return httpServer;
 }
 

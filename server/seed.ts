@@ -201,35 +201,57 @@ export async function seedDatabase() {
     if (existingStores.length === 0) {
       console.log("🏪 Creating demo stores...");
       
-      const storeOwner1 = await db.insert(users).values({
-        username: "petshop_istanbul",
-        email: "info@petshopistanbul.com",
-        password: await bcrypt.hash("password123", 10),
-        fullName: "PetShop İstanbul",
-        role: "seller",
-        city: "İstanbul",
-        isVerified: true,
-      }).returning();
+      // Check if store owners already exist
+      let storeOwner1 = await db.query.users.findFirst({
+        where: eq(users.username, "petshop_istanbul"),
+      });
+      
+      if (!storeOwner1) {
+        const [newOwner] = await db.insert(users).values({
+          username: "petshop_istanbul",
+          email: "info@petshopistanbul.com",
+          password: await bcrypt.hash("password123", 10),
+          fullName: "PetShop İstanbul",
+          role: "seller",
+          city: "İstanbul",
+          isVerified: true,
+        }).returning();
+        storeOwner1 = newOwner;
+      }
 
-      const storeOwner2 = await db.insert(users).values({
-        username: "yem_uzmani",
-        email: "info@yemuzmani.com",
-        password: await bcrypt.hash("password123", 10),
-        fullName: "Yem Uzmanı Ltd.",
-        role: "seller",
-        city: "Ankara",
-        isVerified: true,
-      }).returning();
+      let storeOwner2 = await db.query.users.findFirst({
+        where: eq(users.username, "yem_uzmani"),
+      });
+      
+      if (!storeOwner2) {
+        const [newOwner] = await db.insert(users).values({
+          username: "yem_uzmani",
+          email: "info@yemuzmani.com",
+          password: await bcrypt.hash("password123", 10),
+          fullName: "Yem Uzmanı Ltd.",
+          role: "seller",
+          city: "Ankara",
+          isVerified: true,
+        }).returning();
+        storeOwner2 = newOwner;
+      }
 
-      const vetStoreOwner = await db.insert(users).values({
-        username: "vet_klinik_ankara",
-        email: "bilgi@vetklinik.com",
-        password: await bcrypt.hash("password123", 10),
-        fullName: "Veteriner Kliniği Ankara",
-        role: "veterinarian",
-        city: "Ankara",
-        isVerified: true,
-      }).returning();
+      let vetStoreOwner = await db.query.users.findFirst({
+        where: eq(users.username, "vet_klinik_ankara"),
+      });
+      
+      if (!vetStoreOwner) {
+        const [newOwner] = await db.insert(users).values({
+          username: "vet_klinik_ankara",
+          email: "bilgi@vetklinik.com",
+          password: await bcrypt.hash("password123", 10),
+          fullName: "Veteriner Kliniği Ankara",
+          role: "vet",
+          city: "Ankara",
+          isVerified: true,
+        }).returning();
+        vetStoreOwner = newOwner;
+      }
 
       const store1 = await db.insert(stores).values({
         slug: "petshop-istanbul-kadikoy",
@@ -245,7 +267,7 @@ export async function seedDatabase() {
         district: "Kadıköy",
         primaryColor: "#FF6B35",
         secondaryColor: "#004E89",
-        ownerId: storeOwner1[0].id,
+        ownerId: storeOwner1.id,
         status: "active",
         rating: "4.8",
         reviewCount: 127,
@@ -267,7 +289,7 @@ export async function seedDatabase() {
         district: "Keçiören",
         primaryColor: "#2E7D32",
         secondaryColor: "#FFC107",
-        ownerId: storeOwner2[0].id,
+        ownerId: storeOwner2.id,
         status: "active",
         rating: "4.9",
         reviewCount: 89,
@@ -289,7 +311,7 @@ export async function seedDatabase() {
         district: "Çankaya",
         primaryColor: "#1976D2",
         secondaryColor: "#E91E63",
-        ownerId: vetStoreOwner[0].id,
+        ownerId: vetStoreOwner.id,
         status: "active",
         rating: "4.95",
         reviewCount: 213,
