@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { MapPin, Eye, Heart, Clock, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
+  const [, setLocation] = useLocation();
   const mainImage = listing.images[0] || "/placeholder-animal.jpg";
   const price = parseFloat(listing.price);
 
@@ -33,12 +34,19 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
           />
           <div className="absolute top-2 right-2 flex gap-1 flex-wrap justify-end">
             {listing.listingSource === "store" && listing.store && (
-              <Link href={`/magazalar/${listing.store.slug}`}>
-                <Badge variant="default" className="bg-secondary text-secondary-foreground" data-testid={`badge-store-${listing.id}`}>
-                  <Store className="w-3 h-3 mr-1" />
-                  Mağaza İlanı
-                </Badge>
-              </Link>
+              <Badge 
+                variant="default" 
+                className="bg-secondary text-secondary-foreground cursor-pointer" 
+                data-testid={`badge-store-${listing.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setLocation(`/magazalar/${listing.store!.slug}`);
+                }}
+              >
+                <Store className="w-3 h-3 mr-1" />
+                Mağaza İlanı
+              </Badge>
             )}
             {listing.isPremium && (
               <Badge variant="default" className="bg-primary text-primary-foreground" data-testid={`badge-premium-${listing.id}`}>

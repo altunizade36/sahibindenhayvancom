@@ -234,7 +234,9 @@ export default function MyStore() {
                     <SelectItem value="none">Kategori Yok</SelectItem>
                     {flatCategories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.depth === 1 ? `  └─ ${cat.name}` : cat.name}
+                        {'  '.repeat(cat.depth)}
+                        {cat.depth > 0 ? '└─ ' : ''}
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -401,7 +403,9 @@ export default function MyStore() {
                     <SelectItem value="none">Kategori Yok</SelectItem>
                     {flatCategories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.depth === 1 ? `  └─ ${cat.name}` : cat.name}
+                        {'  '.repeat(cat.depth)}
+                        {cat.depth > 0 ? '└─ ' : ''}
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

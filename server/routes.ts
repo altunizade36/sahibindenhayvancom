@@ -947,15 +947,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get paginated listings
       const listingsData = await db
-        .select()
+        .select({
+          listing: listings,
+          store: {
+            id: stores.id,
+            slug: stores.slug,
+            displayName: stores.displayName,
+            logo: stores.logo,
+          },
+        })
         .from(listings)
+        .leftJoin(stores, eq(listings.storeId, stores.id))
         .where(validConditions.length > 0 ? and(...validConditions) : undefined)
         .orderBy(desc(listings.createdAt))
         .limit(limitNum)
         .offset(offset);
       
+      // Flatten the results to match expected shape
+      const flattenedListings = listingsData.map(row => ({
+        ...row.listing,
+        store: row.store.id ? row.store : null,
+      }));
+      
       // If user is authenticated, check favorites
-      let listingsWithFavorites = listingsData;
+      let listingsWithFavorites = flattenedListings;
       if (req.user) {
         // Get favorites from PostgreSQL
         const userFavorites = await db
@@ -965,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const favoriteIds = new Set(userFavorites.map(f => f.listingId));
         
-        listingsWithFavorites = listingsData.map(listing => ({
+        listingsWithFavorites = flattenedListings.map(listing => ({
           ...listing,
           isFavorite: favoriteIds.has(listing.id),
         }));
