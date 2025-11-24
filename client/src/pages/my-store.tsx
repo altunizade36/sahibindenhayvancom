@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,26 +58,33 @@ export default function MyStore() {
 
   const form = useForm<StoreFormValues>({
     resolver: zodResolver(storeFormSchema),
-    defaultValues: hasStore ? {
-      slug: myStore.slug,
-      displayName: myStore.displayName,
-      storeType: myStore.storeType,
-      summary: myStore.summary || "",
-      description: myStore.description || "",
-      phone: myStore.phone || "",
-      email: myStore.email || "",
-      website: myStore.website || "",
-      address: myStore.address || "",
-      city: myStore.city || "",
-      district: myStore.district || "",
-      primaryColor: myStore.primaryColor || "#0066CC",
-      secondaryColor: myStore.secondaryColor || "#FFA500",
-    } : {
+    defaultValues: {
       primaryColor: "#0066CC",
       secondaryColor: "#FFA500",
       storeType: "petshop",
     },
   });
+
+  // Reset form when store data loads
+  useEffect(() => {
+    if (hasStore && myStore) {
+      form.reset({
+        slug: myStore.slug,
+        displayName: myStore.displayName,
+        storeType: myStore.storeType,
+        summary: myStore.summary || "",
+        description: myStore.description || "",
+        phone: myStore.phone || "",
+        email: myStore.email || "",
+        website: myStore.website || "",
+        address: myStore.address || "",
+        city: myStore.city || "",
+        district: myStore.district || "",
+        primaryColor: myStore.primaryColor || "#0066CC",
+        secondaryColor: myStore.secondaryColor || "#FFA500",
+      });
+    }
+  }, [hasStore, myStore, form]);
 
   const createMutation = useMutation({
     mutationFn: async (data: StoreFormValues) => {
