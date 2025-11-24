@@ -123,13 +123,32 @@ export async function seedDatabase() {
     
     console.log(`Found ${allExistingBlogs.length} existing blog posts in DB, syncing with ${blogPostsData.length} from file...`);
     
+    // Realistic publication dates (June - November 2025, varied distribution)
+    const blogPublicationDates = [
+      "2025-06-01T15:25:00.000Z", "2025-06-07T09:32:00.000Z", "2025-06-12T12:38:00.000Z",
+      "2025-06-16T09:58:00.000Z", "2025-06-18T13:42:00.000Z", "2025-06-23T14:47:00.000Z",
+      "2025-06-27T15:09:00.000Z", "2025-07-01T12:23:00.000Z", "2025-07-04T17:12:00.000Z",
+      "2025-07-10T10:34:00.000Z", "2025-07-15T11:40:00.000Z", "2025-07-20T11:13:00.000Z",
+      "2025-07-25T15:25:00.000Z", "2025-07-29T08:42:00.000Z", "2025-08-01T13:10:00.000Z",
+      "2025-08-06T08:36:00.000Z", "2025-08-09T15:45:00.000Z", "2025-08-14T12:26:00.000Z",
+      "2025-08-19T09:54:00.000Z", "2025-08-22T09:31:00.000Z", "2025-08-25T14:04:00.000Z",
+      "2025-08-27T09:19:00.000Z", "2025-08-31T14:20:00.000Z", "2025-09-03T15:35:00.000Z",
+      "2025-09-08T12:24:00.000Z", "2025-09-14T14:33:00.000Z", "2025-09-20T17:26:00.000Z",
+      "2025-09-24T16:12:00.000Z", "2025-09-27T11:19:00.000Z", "2025-10-03T10:59:00.000Z",
+      "2025-10-06T14:01:00.000Z", "2025-10-12T09:04:00.000Z"
+    ];
+    
     // Upsert all blog posts (insert new, update existing)
     let addedCount = 0;
     let updatedCount = 0;
     const existingSlugs = new Set(allExistingBlogs.map(b => b.slug));
     
-    for (const post of blogPostsData) {
+    for (let i = 0; i < blogPostsData.length; i++) {
+      const post = blogPostsData[i];
       const isNew = !existingSlugs.has(post.slug);
+      
+      // Use varied publication dates (cycling through if more posts than dates)
+      const publishDate = new Date(blogPublicationDates[i % blogPublicationDates.length]);
       
       await db
         .insert(blogPosts)
@@ -142,6 +161,8 @@ export async function seedDatabase() {
           categoryTags: post.categoryTags,
           readTime: post.readTime,
           published: post.published,
+          createdAt: publishDate,
+          updatedAt: publishDate,
         })
         .onConflictDoUpdate({
           target: blogPosts.slug,
@@ -152,6 +173,7 @@ export async function seedDatabase() {
             categoryTags: post.categoryTags,
             readTime: post.readTime,
             published: post.published,
+            updatedAt: publishDate,
           },
         })
         .execute();
