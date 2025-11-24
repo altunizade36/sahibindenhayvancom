@@ -91,7 +91,7 @@ export default function LiveStreamCreatePage() {
         <Sparkles className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-500">
           <strong>Yakında Gelecek!</strong> Canlı yayın oluşturma özelliği şu anda geliştirme aşamasında. 
-          Agora.io entegrasyonu tamamlandığında aktif olacak.
+          Entegrasyon tamamlandığında aktif olacak.
         </AlertDescription>
       </Alert>
 

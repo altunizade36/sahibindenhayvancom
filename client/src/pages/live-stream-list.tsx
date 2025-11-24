@@ -128,7 +128,7 @@ export default function LiveStreamListPage() {
       <Alert className="mb-6 bg-blue-500/10 border-blue-500">
         <Sparkles className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-500">
-          <strong>Yakında Gelecek!</strong> Canlı yayın özelliği şu anda geliştirme aşamasında. Agora.io entegrasyonu tamamlandığında aktif olacak.
+          <strong>Yakında Gelecek!</strong> Canlı yayın özelliği şu anda geliştirme aşamasında. Entegrasyon tamamlandığında aktif olacak.
         </AlertDescription>
       </Alert>
 
