@@ -31,6 +31,9 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminModeration from "@/pages/admin-moderation";
 import AdminBlog from "@/pages/admin-blog";
 import VerifyEmail from "@/pages/verify-email";
+import StoresList from "@/pages/stores-list";
+import StoreDetail from "@/pages/store-detail";
+import MyStore from "@/pages/my-store";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -72,6 +75,9 @@ function NoSidebarLayout() {
           <Route path="/tasima" component={TransportServices} />
           <Route path="/blog" component={BlogList} />
           <Route path="/blog/:slug" component={BlogDetail} />
+          <Route path="/magazalar" component={StoresList} />
+          <Route path="/magaza/:slug" component={StoreDetail} />
+          <Route path="/panel/magazam" component={MyStore} />
           <Route path="/acik-artirmalar" component={AuctionList} />
           <Route path="/acik-artirma/:id" component={AuctionDetail} />
           <Route path="/acik-artirma-olustur" component={AuctionCreate} />
@@ -95,6 +101,7 @@ function Router() {
                            location.startsWith('/ilan-ver') ||
                            location.startsWith('/ilan/') ||
                            location.startsWith('/blog') ||
+                           location.startsWith('/magaza') ||
                            location.startsWith('/profil') ||
                            location.startsWith('/panel') ||
                            location.startsWith('/ayarlar') ||

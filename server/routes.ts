@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -21,6 +21,8 @@ import {
   insertTransportServiceSchema,
   insertReviewSchema,
   insertFavoriteSchema,
+  insertStoreSchema,
+  insertStoreReviewSchema,
   type User,
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -2398,6 +2400,339 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting blog post:", error);
       res.status(500).json({ message: "Blog yazısı silinemedi" });
+    }
+  });
+
+  // ============ Stores (Mağazalar) Routes ============
+  
+  // Get all stores (public)
+  app.get("/api/stores", async (req: Request, res: Response) => {
+    try {
+      const { type, city, search, limit = "20", offset = "0" } = req.query;
+      
+      let query = db
+        .select({
+          id: stores.id,
+          slug: stores.slug,
+          displayName: stores.displayName,
+          storeType: stores.storeType,
+          summary: stores.summary,
+          logo: stores.logo,
+          banner: stores.banner,
+          primaryColor: stores.primaryColor,
+          city: stores.city,
+          rating: stores.rating,
+          reviewCount: stores.reviewCount,
+          totalListings: stores.totalListings,
+          verifiedAt: stores.verifiedAt,
+          createdAt: stores.createdAt,
+        })
+        .from(stores)
+        .where(eq(stores.status, "active"))
+        .$dynamic();
+      
+      if (type) {
+        query = query.where(eq(stores.storeType, type as any));
+      }
+      
+      if (city) {
+        query = query.where(eq(stores.city, city as string));
+      }
+      
+      if (search) {
+        query = query.where(
+          sql`${stores.displayName} ILIKE ${`%${search}%`} OR ${stores.summary} ILIKE ${`%${search}%`}`
+        );
+      }
+      
+      const storesList = await query
+        .orderBy(desc(stores.rating), desc(stores.reviewCount))
+        .limit(parseInt(limit as string))
+        .offset(parseInt(offset as string));
+      
+      res.json(storesList);
+    } catch (error) {
+      console.error("Error fetching stores:", error);
+      res.status(500).json({ message: "Mağazalar getirilemedi" });
+    }
+  });
+
+  // Get single store by slug (public)
+  app.get("/api/store/:slug", async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.slug, req.params.slug),
+        with: {
+          owner: {
+            columns: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      // Get store listings
+      const storeListings = await db
+        .select()
+        .from(listings)
+        .where(and(
+          eq(listings.storeId, store.id),
+          eq(listings.status, "active")
+        ))
+        .orderBy(desc(listings.createdAt))
+        .limit(20);
+      
+      // Get store reviews (approved only)
+      const storeReviewsList = await db
+        .select({
+          id: storeReviews.id,
+          rating: storeReviews.rating,
+          title: storeReviews.title,
+          comment: storeReviews.comment,
+          createdAt: storeReviews.createdAt,
+          reviewer: {
+            id: users.id,
+            fullName: users.fullName,
+            avatar: users.avatar,
+          },
+        })
+        .from(storeReviews)
+        .leftJoin(users, eq(storeReviews.reviewerId, users.id))
+        .where(and(
+          eq(storeReviews.storeId, store.id),
+          eq(storeReviews.status, "approved")
+        ))
+        .orderBy(desc(storeReviews.createdAt))
+        .limit(10);
+      
+      res.json({
+        ...store,
+        listings: storeListings,
+        reviews: storeReviewsList,
+      });
+    } catch (error) {
+      console.error("Error fetching store:", error);
+      res.status(500).json({ message: "Mağaza bilgileri getirilemedi" });
+    }
+  });
+
+  // Create new store (authenticated sellers only)
+  app.post("/api/store", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      // Check if user already has a store
+      const existingStore = await db.query.stores.findFirst({
+        where: eq(stores.ownerId, req.user!.id),
+      });
+      
+      if (existingStore) {
+        return res.status(400).json({ message: "Zaten bir mağazanız var" });
+      }
+      
+      const validationResult = insertStoreSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Geçersiz mağaza verisi",
+          errors: validationResult.error.errors,
+        });
+      }
+      
+      const [newStore] = await db
+        .insert(stores)
+        .values({
+          ...validationResult.data,
+          ownerId: req.user!.id,
+        })
+        .returning();
+      
+      res.status(201).json(newStore);
+    } catch (error: any) {
+      console.error("Error creating store:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Bu slug zaten kullanımda" });
+      }
+      res.status(500).json({ message: "Mağaza oluşturulamadı" });
+    }
+  });
+
+  // Update store (owner only)
+  app.patch("/api/store/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      if (store.ownerId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Bu mağazayı düzenleyemezsiniz" });
+      }
+      
+      const validationResult = insertStoreSchema.partial().safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Geçersiz mağaza verisi",
+          errors: validationResult.error.errors,
+        });
+      }
+      
+      const [updated] = await db
+        .update(stores)
+        .set({
+          ...validationResult.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, req.params.id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating store:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Bu slug zaten kullanımda" });
+      }
+      res.status(500).json({ message: "Mağaza güncellenemedi" });
+    }
+  });
+
+  // Get my store (owner dashboard)
+  app.get("/api/store/my/dashboard", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const myStore = await db.query.stores.findFirst({
+        where: eq(stores.ownerId, req.user!.id),
+      });
+      
+      if (!myStore) {
+        return res.status(404).json({ message: "Mağazanız henüz yok" });
+      }
+      
+      // Get store stats
+      const storeListingsCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(listings)
+        .where(eq(listings.storeId, myStore.id));
+      
+      res.json({
+        ...myStore,
+        stats: {
+          totalListings: storeListingsCount[0]?.count || 0,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching my store:", error);
+      res.status(500).json({ message: "Mağaza bilgileri getirilemedi" });
+    }
+  });
+
+  // Create store review (authenticated buyers only)
+  app.post("/api/store/:id/review", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      // Can't review own store
+      if (store.ownerId === req.user!.id) {
+        return res.status(400).json({ message: "Kendi mağazanızı değerlendiremezsiniz" });
+      }
+      
+      // Check if already reviewed
+      const existingReview = await db.query.storeReviews.findFirst({
+        where: and(
+          eq(storeReviews.storeId, req.params.id),
+          eq(storeReviews.reviewerId, req.user!.id)
+        ),
+      });
+      
+      if (existingReview) {
+        return res.status(400).json({ message: "Bu mağazayı zaten değerlendirdiniz" });
+      }
+      
+      const validationResult = insertStoreReviewSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Geçersiz değerlendirme verisi",
+          errors: validationResult.error.errors,
+        });
+      }
+      
+      const [newReview] = await db
+        .insert(storeReviews)
+        .values({
+          ...validationResult.data,
+          storeId: req.params.id,
+          reviewerId: req.user!.id,
+        })
+        .returning();
+      
+      // Update store rating (calculate average)
+      const allReviews = await db
+        .select({ rating: storeReviews.rating })
+        .from(storeReviews)
+        .where(and(
+          eq(storeReviews.storeId, req.params.id),
+          eq(storeReviews.status, "approved")
+        ));
+      
+      const avgRating = allReviews.length > 0
+        ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+        : 0;
+      
+      await db
+        .update(stores)
+        .set({
+          rating: avgRating.toFixed(2),
+          reviewCount: allReviews.length,
+        })
+        .where(eq(stores.id, req.params.id));
+      
+      res.status(201).json(newReview);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Değerlendirme oluşturulamadı" });
+    }
+  });
+
+  // Get store reviews
+  app.get("/api/store/:id/reviews", async (req: Request, res: Response) => {
+    try {
+      const reviewsList = await db
+        .select({
+          id: storeReviews.id,
+          rating: storeReviews.rating,
+          title: storeReviews.title,
+          comment: storeReviews.comment,
+          createdAt: storeReviews.createdAt,
+          reviewer: {
+            id: users.id,
+            fullName: users.fullName,
+            avatar: users.avatar,
+          },
+        })
+        .from(storeReviews)
+        .leftJoin(users, eq(storeReviews.reviewerId, users.id))
+        .where(and(
+          eq(storeReviews.storeId, req.params.id),
+          eq(storeReviews.status, "approved")
+        ))
+        .orderBy(desc(storeReviews.createdAt));
+      
+      res.json(reviewsList);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ message: "Değerlendirmeler getirilemedi" });
     }
   });
 

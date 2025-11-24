@@ -687,3 +687,31 @@ export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const storesRelations = relations(stores, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [stores.ownerId],
+    references: [users.id],
+  }),
+  listings: many(listings),
+  reviews: many(storeReviews),
+  media: many(storeMedia),
+}));
+
+export const storeReviewsRelations = relations(storeReviews, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeReviews.storeId],
+    references: [stores.id],
+  }),
+  reviewer: one(users, {
+    fields: [storeReviews.reviewerId],
+    references: [users.id],
+  }),
+}));
+
+export const storeMediaRelations = relations(storeMedia, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeMedia.storeId],
+    references: [stores.id],
+  }),
+}));
