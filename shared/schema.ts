@@ -76,6 +76,11 @@ export const storeStatusEnum = pgEnum("store_status", [
   "closed"             // Kapatılmış
 ]);
 
+export const listingSourceEnum = pgEnum("listing_source", [
+  "individual",        // Bireysel satıcı (şahıs)
+  "store"              // Mağaza ilanı (dükkan)
+]);
+
 export const messageStatusEnum = pgEnum("message_status", [
   "sent",
   "delivered",
@@ -143,6 +148,23 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
+// Store Categories table (hierarchical professional business classification)
+// Example: Petshop Mağazası > Kedi & Köpek Mağazası
+export const storeCategories = pgTable("store_categories", {
+  id: varchar("id").primaryKey(),
+  parentId: varchar("parent_id").references((): any => storeCategories.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  icon: text("icon"),
+  depth: integer("depth").default(0).notNull(),
+  order: integer("order").default(0),
+});
+
+export const insertStoreCategorySchema = createInsertSchema(storeCategories);
+
+export type InsertStoreCategory = z.infer<typeof insertStoreCategorySchema>;
+export type StoreCategory = typeof storeCategories.$inferSelect;
+
 // Locations table (hierarchical: il -> ilçe -> mahalle -> köy)
 // Must be defined before listings to allow foreign key reference
 export const locations = pgTable("locations", {
@@ -174,6 +196,7 @@ export const listings = pgTable("listings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sellerId: varchar("seller_id").notNull().references(() => users.id),
   storeId: varchar("store_id").references((): any => stores.id, { onDelete: "set null" }), // Optional store association
+  listingSource: listingSourceEnum("listing_source").default("individual").notNull(), // NEW: individual vs store
   categoryId: varchar("category_id").notNull().references(() => categories.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -567,7 +590,8 @@ export const stores = pgTable("stores", {
   ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   slug: text("slug").notNull().unique(), // URL-friendly store name
   displayName: text("display_name").notNull(), // Store name
-  storeType: storeTypeEnum("store_type").notNull(),
+  storeType: storeTypeEnum("store_type").notNull(), // Kept for backward compatibility
+  categoryId: varchar("category_id").references(() => storeCategories.id), // NEW: Hierarchical category
   summary: text("summary"), // Short description
   description: text("description"), // Full description
   
