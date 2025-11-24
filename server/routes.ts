@@ -1069,6 +1069,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.id, listing.sellerId))
         .limit(1);
 
+      // Get store info if listing is from a store
+      let storeInfo = null;
+      if (listing.storeId) {
+        const [store] = await db
+          .select({
+            id: stores.id,
+            slug: stores.slug,
+            displayName: stores.displayName,
+            logo: stores.logo,
+          })
+          .from(stores)
+          .where(eq(stores.id, listing.storeId))
+          .limit(1);
+        storeInfo = store || null;
+      }
+
       // Check if favorited
       let isFavorite = false;
       if (req.user) {
@@ -1097,6 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...listing,
         views: (listing.views || 0) + 1, // Return incremented view count
         seller: sanitizedSeller,
+        store: storeInfo,
         isFavorite,
       });
     } catch (error) {

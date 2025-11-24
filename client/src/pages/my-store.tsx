@@ -82,11 +82,14 @@ export default function MyStore() {
     },
   });
 
-  // Flatten categories for select dropdown
-  const flatCategories = categories.flatMap(cat => [
-    cat,
-    ...(cat.children || [])
-  ]);
+  // Recursively flatten categories for select dropdown
+  const flattenCategories = (cats: StoreCategory[]): StoreCategory[] => {
+    return cats.flatMap(cat => [
+      cat,
+      ...(cat.children ? flattenCategories(cat.children) : [])
+    ]);
+  };
+  const flatCategories = flattenCategories(categories);
 
   // Reset form when store data loads
   useEffect(() => {

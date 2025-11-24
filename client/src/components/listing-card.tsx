@@ -9,7 +9,11 @@ import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
 interface ListingCardProps {
-  listing: Listing & { seller?: User; isFavorite?: boolean };
+  listing: Listing & { 
+    seller?: User; 
+    isFavorite?: boolean;
+    store?: { id: string; slug: string; displayName: string; logo?: string | null };
+  };
   onFavoriteToggle?: () => void;
 }
 
@@ -28,11 +32,13 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
             data-testid={`img-listing-${listing.id}`}
           />
           <div className="absolute top-2 right-2 flex gap-1 flex-wrap justify-end">
-            {listing.listingSource === "store" && (
-              <Badge variant="default" className="bg-secondary text-secondary-foreground" data-testid={`badge-store-${listing.id}`}>
-                <Store className="w-3 h-3 mr-1" />
-                Mağaza İlanı
-              </Badge>
+            {listing.listingSource === "store" && listing.store && (
+              <Link href={`/magazalar/${listing.store.slug}`}>
+                <Badge variant="default" className="bg-secondary text-secondary-foreground" data-testid={`badge-store-${listing.id}`}>
+                  <Store className="w-3 h-3 mr-1" />
+                  Mağaza İlanı
+                </Badge>
+              </Link>
             )}
             {listing.isPremium && (
               <Badge variant="default" className="bg-primary text-primary-foreground" data-testid={`badge-premium-${listing.id}`}>
