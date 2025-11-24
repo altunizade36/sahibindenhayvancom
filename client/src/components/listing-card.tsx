@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Eye, Heart, Clock } from "lucide-react";
+import { MapPin, Eye, Heart, Clock, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -28,6 +28,12 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
             data-testid={`img-listing-${listing.id}`}
           />
           <div className="absolute top-2 right-2 flex gap-1 flex-wrap justify-end">
+            {listing.listingSource === "store" && (
+              <Badge variant="default" className="bg-secondary text-secondary-foreground" data-testid={`badge-store-${listing.id}`}>
+                <Store className="w-3 h-3 mr-1" />
+                Mağaza İlanı
+              </Badge>
+            )}
             {listing.isPremium && (
               <Badge variant="default" className="bg-primary text-primary-foreground" data-testid={`badge-premium-${listing.id}`}>
                 Premium
