@@ -1773,11 +1773,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      // Sanitize passwords from author objects
+      // Sanitize author - only expose safe fields (intentionally partial to avoid PII leak)
       const sanitizedPosts = posts.map((post) => {
         if (post.author) {
-          const { password: _, ...safeAuthor } = post.author;
-          return { ...post, author: safeAuthor };
+          return {
+            ...post,
+            author: {
+              id: post.author.id,
+              fullName: post.author.fullName,
+              avatar: post.author.avatar,
+            } as any, // Type assertion: intentionally returning partial user object for security
+          };
         }
         return post;
       });
@@ -1794,31 +1800,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/blog/:slug", async (req: Request, res: Response) => {
     try {
-      // Read from database directly (seeded data)
+      // Read from database directly (seeded data) with author info
       const post = await db.query.blogPosts.findFirst({
         where: (posts, { eq }) => eq(posts.slug, req.params.slug),
+        with: {
+          author: true,
+        },
       });
       
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      // Get author from database
-      const author = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.id, post.authorId),
-      });
-
-      // Sanitize author object
-      let sanitizedAuthor = null;
-      if (author) {
-        const { password: _, ...safe } = author;
-        sanitizedAuthor = safe;
+      // Sanitize author - only expose safe fields (intentionally partial to avoid PII leak)
+      let sanitizedPost = post;
+      if (post.author) {
+        sanitizedPost = {
+          ...post,
+          author: {
+            id: post.author.id,
+            fullName: post.author.fullName,
+            avatar: post.author.avatar,
+          } as any, // Type assertion: intentionally returning partial user object for security
+        };
       }
 
-      res.json({
-        ...post,
-        author: sanitizedAuthor,
-      });
+      res.json(sanitizedPost);
     } catch (error) {
       console.error("Blog detail API error:", error);
       res.status(500).json({ message: "Failed to fetch blog post" });
