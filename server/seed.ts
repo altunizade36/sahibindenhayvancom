@@ -1,9 +1,10 @@
 import { db } from "./db";
-import { categories, locations, users, blogPosts, stores, storeReviews } from "@shared/schema";
+import { categories, locations, users, blogPosts, stores, storeReviews, storeCategories } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
+import { storeCategories as storeCategoriesData } from "./data/store-categories";
 import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
@@ -196,6 +197,24 @@ export async function seedDatabase() {
       console.log(`⚠️  Found ${orphanedBlogs.length} orphaned blog posts in DB (not in file):`, orphanedBlogs.map(b => b.slug).join(", "));
     }
 
+    // ============ Seed Store Categories (Hierarchical) ============
+    const existingStoreCategories = await db.query.storeCategories.findMany({ limit: 1 });
+    if (existingStoreCategories.length === 0) {
+      console.log(`🏬 Seeding store categories (${storeCategoriesData.length} items)...`);
+      
+      await db.insert(storeCategories)
+        .values(storeCategoriesData)
+        .onConflictDoNothing()
+        .execute();
+      
+      const depth0Count = storeCategoriesData.filter(c => c.depth === 0).length;
+      const depth1Count = storeCategoriesData.filter(c => c.depth === 1).length;
+      
+      console.log(`✅ Store categories seeded: ${storeCategoriesData.length} total`);
+      console.log(`   - Main categories (depth 0): ${depth0Count}`);
+      console.log(`   - Subcategories (depth 1): ${depth1Count}`);
+    }
+
     // ============ Seed Stores (Mağazalar) ============
     const existingStores = await db.query.stores.findMany({ limit: 1 });
     if (existingStores.length === 0) {
@@ -257,6 +276,7 @@ export async function seedDatabase() {
         slug: "petshop-istanbul-kadikoy",
         displayName: "PetShop İstanbul - Kadıköy",
         storeType: "petshop",
+        categoryId: "sc-petshop-dog-cat", // Kedi & Köpek Mağazası
         summary: "İstanbul'un en köklü pet shop'u. Kedi, köpek, kuş ve akvaryum ürünlerinde geniş yelpazeye sahibiz.",
         description: "2005 yılından beri hizmet veren PetShop İstanbul, evcil hayvan sahiplerine kaliteli ürün ve profesyonel hizmet sunmaktadır. 1500 m² mağaza alanımızda binlerce ürün çeşidi bulunmaktadır.",
         phone: "0216 555 12 34",
@@ -279,6 +299,7 @@ export async function seedDatabase() {
         slug: "yem-uzmani-ankara",
         displayName: "Yem Uzmanı - Ankara",
         storeType: "feed_producer",
+        categoryId: "sc-feed-farm", // Çiftlik Hayvanı Yemi Üretici
         summary: "Çiftlik hayvanları için en kaliteli yem ve mama üretimi. Organik ve katkısız ürünler.",
         description: "20 yıllık deneyimimizle çiftlik hayvanlarınız için en uygun yem formülasyonlarını üretiyoruz.",
         phone: "0312 444 56 78",
@@ -301,6 +322,7 @@ export async function seedDatabase() {
         slug: "vet-klinik-ankara-cankaya",
         displayName: "Veteriner Kliniği - Çankaya",
         storeType: "veterinary",
+        categoryId: "sc-vet-24h", // 24 Saat Veteriner Klinik
         summary: "7/24 acil veteriner hizmeti. Deneyimli kadromuzla evcil dostlarınıza en iyi bakımı sunuyoruz.",
         description: "Modern ekipmanlarımız ve uzman veteriner hekimlerimizle kedi, köpek ve diğer evcil hayvanlarınıza kapsamlı sağlık hizmeti veriyoruz.",
         phone: "0312 777 88 99",
