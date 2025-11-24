@@ -195,7 +195,7 @@ No specific user preferences were provided in the original document.
 - **Form Handling**: React Hook Form, Zod
 - **State Management**: TanStack Query
 - **Authentication**: JSON Web Tokens (JWT)
-- **Live Streaming**: Agora.io (for RTC token generation)
+- **Live Streaming**: Profesyonel canlı yayın altyapısı (RTC token generation) - Entegrasyon tamamlandığında aktif olacak
 - **Password Hashing**: bcrypt
 - **Image Storage**: Replit Object Storage (configured)
 - **Monitoring**: Health checks (/health), Prometheus metrics (/metrics)

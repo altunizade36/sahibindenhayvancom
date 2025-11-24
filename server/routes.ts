@@ -1621,7 +1621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Agora.io RTC Token Generation (requires AGORA_APP_ID and AGORA_APP_CERTIFICATE)
+  // Live Streaming RTC Token Generation (requires AGORA_APP_ID and AGORA_APP_CERTIFICATE)
   app.get("/api/streams/:id/token", authMiddleware, async (req: Request, res: Response) => {
     try {
       const [stream] = await db
@@ -1634,18 +1634,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      // Check if Agora credentials are configured
+      // Check if live streaming credentials are configured
       const appId = process.env.AGORA_APP_ID;
       const appCertificate = process.env.AGORA_APP_CERTIFICATE;
       
       if (!appId || !appCertificate) {
         return res.status(503).json({ 
-          message: "Live streaming not configured. Agora.io credentials required.",
+          message: "Canlı yayın altyapısı henüz aktif değil. Entegrasyon tamamlandığında kullanıma açılacaktır.",
           requiresSetup: true 
         });
       }
 
-      // Generate Agora RTC token
+      // Generate RTC token
       const { RtcTokenBuilder, RtcRole } = await import('agora-access-token');
       
       const uid = parseInt(req.user!.id.substring(0, 8), 16); // Convert user ID to number
