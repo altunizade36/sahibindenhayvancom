@@ -15,10 +15,22 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+interface StoreCategory {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  icon: string;
+  depth: number;
+  order: number;
+  children?: StoreCategory[];
+}
+
 const storeFormSchema = z.object({
   slug: z.string().min(3, "Slug en az 3 karakter olmalı").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire"),
   displayName: z.string().min(3, "Mağaza adı en az 3 karakter olmalı"),
   storeType: z.string(),
+  categoryId: z.string().optional(),
   summary: z.string().optional(),
   description: z.string().optional(),
   phone: z.string().optional(),
@@ -54,6 +66,11 @@ export default function MyStore() {
     queryKey: ["/api/store/my/dashboard"],
   });
 
+  // Fetch store categories
+  const { data: categories = [] } = useQuery<StoreCategory[]>({
+    queryKey: ["/api/store-categories"],
+  });
+
   const hasStore = !!myStore && !('message' in myStore);
 
   const form = useForm<StoreFormValues>({
@@ -65,6 +82,12 @@ export default function MyStore() {
     },
   });
 
+  // Flatten categories for select dropdown
+  const flatCategories = categories.flatMap(cat => [
+    cat,
+    ...(cat.children || [])
+  ]);
+
   // Reset form when store data loads
   useEffect(() => {
     if (hasStore && myStore) {
@@ -72,6 +95,7 @@ export default function MyStore() {
         slug: myStore.slug,
         displayName: myStore.displayName,
         storeType: myStore.storeType,
+        categoryId: myStore.categoryId || undefined,
         summary: myStore.summary || "",
         description: myStore.description || "",
         phone: myStore.phone || "",
@@ -188,6 +212,26 @@ export default function MyStore() {
                     {storeTypeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="categoryId">Mağaza Kategorisi</Label>
+                <Select
+                  value={form.watch("categoryId") || "none"}
+                  onValueChange={(value) => form.setValue("categoryId", value === "none" ? undefined : value)}
+                >
+                  <SelectTrigger data-testid="select-store-category">
+                    <SelectValue placeholder="Kategori seçin..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Kategori Yok</SelectItem>
+                    {flatCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.depth === 1 ? `  └─ ${cat.name}` : cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -335,6 +379,26 @@ export default function MyStore() {
                     {storeTypeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="categoryId">Mağaza Kategorisi</Label>
+                <Select
+                  value={form.watch("categoryId") || "none"}
+                  onValueChange={(value) => form.setValue("categoryId", value === "none" ? undefined : value)}
+                >
+                  <SelectTrigger data-testid="select-store-category-edit">
+                    <SelectValue placeholder="Kategori seçin..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Kategori Yok</SelectItem>
+                    {flatCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.depth === 1 ? `  └─ ${cat.name}` : cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
