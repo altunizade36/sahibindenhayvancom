@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Store, Building2, MapPin, Star, BadgeCheck, Filter } from "lucide-react";
+import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ interface StoreListItem {
   slug: string;
   displayName: string;
   storeType: string;
+  categoryId: string | null;
   summary: string;
   logo: string | null;
   banner: string | null;
@@ -24,6 +25,17 @@ interface StoreListItem {
   totalListings: number;
   verifiedAt: string | null;
   createdAt: string;
+}
+
+interface StoreCategory {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  icon: string;
+  depth: number;
+  order: number;
+  children?: StoreCategory[];
 }
 
 const storeTypeLabels: Record<string, string> = {
@@ -43,9 +55,19 @@ export default function StoresList() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [cityFilter, setCityFilter] = useState<string>("all");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
+  // Fetch hierarchical store categories
+  const { data: categories = [] } = useQuery<StoreCategory[]>({
+    queryKey: ["/api/store-categories"],
+  });
+
+  // Fetch stores (either all or by category)
   const { data: stores = [], isLoading } = useQuery<StoreListItem[]>({
-    queryKey: ["/api/stores", { type: typeFilter !== "all" ? typeFilter : undefined, search: search || undefined }],
+    queryKey: selectedCategoryId 
+      ? ["/api/store-categories", selectedCategoryId, "stores"]
+      : ["/api/stores", { type: typeFilter !== "all" ? typeFilter : undefined, search: search || undefined }],
   });
 
   const filteredStores = stores.filter(store => {
@@ -54,6 +76,49 @@ export default function StoresList() {
   });
 
   const cities = Array.from(new Set(stores.map(s => s.city).filter(Boolean)));
+
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const renderCategory = (category: StoreCategory) => {
+    const isExpanded = expandedCategories.has(category.id);
+    const isSelected = selectedCategoryId === category.id;
+    const hasChildren = category.children && category.children.length > 0;
+
+    return (
+      <div key={category.id} className={category.depth === 0 ? "mb-2" : "ml-4"}>
+        <Button
+          variant={isSelected ? "default" : "ghost"}
+          className="w-full justify-start gap-2 hover-elevate active-elevate-2"
+          onClick={() => {
+            if (hasChildren) {
+              toggleCategory(category.id);
+            }
+            setSelectedCategoryId(category.id);
+          }}
+          data-testid={`button-category-${category.slug}`}
+        >
+          {hasChildren && (
+            isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
+          )}
+          <Store className="w-4 h-4" />
+          <span className="font-medium">{category.name}</span>
+        </Button>
+        {hasChildren && isExpanded && (
+          <div className="mt-1">
+            {category.children!.map(child => renderCategory(child))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,6 +136,32 @@ export default function StoresList() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Category Navigation */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5" />
+              Mağaza Kategorileri
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Button
+                variant={selectedCategoryId === null ? "default" : "ghost"}
+                className="w-full justify-start hover-elevate active-elevate-2"
+                onClick={() => setSelectedCategoryId(null)}
+                data-testid="button-category-all"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Tüm Mağazalar
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {categories.map(category => renderCategory(category))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Filters */}
         <Card className="mb-8">
           <CardHeader>
