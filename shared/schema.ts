@@ -55,6 +55,27 @@ export const streamStatusEnum = pgEnum("stream_status", [
   "ended"
 ]);
 
+export const storeTypeEnum = pgEnum("store_type", [
+  "petshop",           // Pet shop mağazası
+  "feed_producer",     // Yem & Mama Üreticisi
+  "farm_equipment",    // Çiftlik Ekipmanı Satıcısı
+  "veterinary",        // Veteriner Kliniği
+  "transport",         // Nakliye & Lojistik Firması
+  "beekeeping",        // Arıcılık Malzeme Mağazası
+  "horse_riding",      // At & Binicilik Mağazası
+  "exotic",            // Egzotik Hayvan Mağazası
+  "grooming",          // Pet Kuaförü
+  "other"              // Diğer
+]);
+
+export const storeStatusEnum = pgEnum("store_status", [
+  "draft",             // Taslak - henüz tamamlanmamış
+  "pending",           // Onay bekliyor
+  "active",            // Aktif mağaza
+  "suspended",         // Askıya alınmış
+  "closed"             // Kapatılmış
+]);
+
 export const messageStatusEnum = pgEnum("message_status", [
   "sent",
   "delivered",
@@ -152,6 +173,7 @@ export type Location = typeof locations.$inferSelect;
 export const listings = pgTable("listings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sellerId: varchar("seller_id").notNull().references(() => users.id),
+  storeId: varchar("store_id").references((): any => stores.id, { onDelete: "set null" }), // Optional store association
   categoryId: varchar("category_id").notNull().references(() => categories.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -536,6 +558,126 @@ export const insertStreamMuteSchema = createInsertSchema(streamMutes).omit({
 
 export type InsertStreamMute = z.infer<typeof insertStreamMuteSchema>;
 export type StreamMute = typeof streamMutes.$inferSelect;
+
+// ============ Stores (Mağazalar) System ============
+
+// Stores table - Professional seller/business storefronts
+export const stores = pgTable("stores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(), // URL-friendly store name
+  displayName: text("display_name").notNull(), // Store name
+  storeType: storeTypeEnum("store_type").notNull(),
+  summary: text("summary"), // Short description
+  description: text("description"), // Full description
+  
+  // Contact info
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  address: text("address"),
+  city: text("city"),
+  district: text("district"),
+  
+  // Branding
+  logo: text("logo"), // Object storage key
+  banner: text("banner"), // Object storage key
+  primaryColor: text("primary_color").default("#0066CC"), // Brand color
+  secondaryColor: text("secondary_color").default("#FFA500"),
+  
+  // Stats
+  totalListings: integer("total_listings").default(0),
+  totalSales: integer("total_sales").default(0),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
+  reviewCount: integer("review_count").default(0),
+  
+  // Status
+  status: storeStatusEnum("status").default("draft").notNull(),
+  verifiedAt: timestamp("verified_at"), // Admin verification timestamp
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  ownerIdx: index("store_owner_idx").on(table.ownerId),
+  slugIdx: index("store_slug_idx").on(table.slug),
+  typeIdx: index("store_type_idx").on(table.storeType),
+  statusIdx: index("store_status_idx").on(table.status),
+  cityIdx: index("store_city_idx").on(table.city),
+}));
+
+export const insertStoreSchema = createInsertSchema(stores).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  totalListings: true,
+  totalSales: true,
+  rating: true,
+  reviewCount: true,
+  verifiedAt: true,
+});
+
+export type InsertStore = z.infer<typeof insertStoreSchema>;
+export type Store = typeof stores.$inferSelect;
+
+// Store Media table - Additional images/videos for store gallery
+export const storeMedia = pgTable("store_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // 'image' | 'video'
+  url: text("url").notNull(), // Object storage key
+  caption: text("caption"),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  storeIdx: index("store_media_store_idx").on(table.storeId),
+}));
+
+export const insertStoreMediaSchema = createInsertSchema(storeMedia).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStoreMedia = z.infer<typeof insertStoreMediaSchema>;
+export type StoreMedia = typeof storeMedia.$inferSelect;
+
+// Store Reviews table - Buyer ratings and reviews
+export const storeReviews = pgTable("store_reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  reviewerId: varchar("reviewer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  rating: integer("rating").notNull(), // 1-5 stars
+  title: text("title"),
+  comment: text("comment"),
+  
+  // Moderation
+  status: text("status").default("pending").notNull(), // pending | approved | rejected
+  moderatedBy: varchar("moderated_by").references(() => users.id),
+  moderatedAt: timestamp("moderated_at"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  storeIdx: index("store_review_store_idx").on(table.storeId),
+  reviewerIdx: index("store_review_reviewer_idx").on(table.reviewerId),
+  statusIdx: index("store_review_status_idx").on(table.status),
+  // Prevent multiple reviews from same user
+  storeReviewerUnique: index("store_reviewer_unique").on(table.storeId, table.reviewerId),
+}));
+
+export const insertStoreReviewSchema = createInsertSchema(storeReviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  moderatedBy: true,
+  moderatedAt: true,
+}).extend({
+  rating: z.number().min(1).max(5),
+  comment: z.string().min(10, "Yorum en az 10 karakter olmalı").optional(),
+});
+
+export type InsertStoreReview = z.infer<typeof insertStoreReviewSchema>;
+export type StoreReview = typeof storeReviews.$inferSelect;
 
 // ============ Relations ============
 
