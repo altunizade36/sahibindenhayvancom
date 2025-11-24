@@ -2288,6 +2288,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ Admin Blog Management Routes ============
+  // Get all blog posts (admin only - includes unpublished)
+  app.get("/api/admin/blog", authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allBlogs = await db
+        .select({
+          id: blogPosts.id,
+          title: blogPosts.title,
+          slug: blogPosts.slug,
+          excerpt: blogPosts.excerpt,
+          published: blogPosts.published,
+          views: blogPosts.views,
+          readTime: blogPosts.readTime,
+          categoryTags: blogPosts.categoryTags,
+          createdAt: blogPosts.createdAt,
+          updatedAt: blogPosts.updatedAt,
+          authorId: blogPosts.authorId,
+          authorName: users.fullName,
+        })
+        .from(blogPosts)
+        .leftJoin(users, eq(blogPosts.authorId, users.id))
+        .orderBy(desc(blogPosts.createdAt));
+      
+      res.json(allBlogs);
+    } catch (error) {
+      console.error("Error fetching admin blog posts:", error);
+      res.status(500).json({ message: "Blog yazıları getirilemedi" });
+    }
+  });
+
+  // Create new blog post (admin only)
+  app.post("/api/admin/blog", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validationResult = insertBlogPostSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Geçersiz blog verisi",
+          errors: validationResult.error.errors,
+        });
+      }
+
+      const [newBlog] = await db
+        .insert(blogPosts)
+        .values({
+          ...validationResult.data,
+          authorId: req.user!.id,
+        })
+        .returning();
+      
+      res.status(201).json(newBlog);
+    } catch (error: any) {
+      console.error("Error creating blog post:", error);
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ message: "Bu slug zaten kullanımda" });
+      }
+      res.status(500).json({ message: "Blog yazısı oluşturulamadı" });
+    }
+  });
+
+  // Update blog post (admin only)
+  app.put("/api/admin/blog/:id", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validationResult = insertBlogPostSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Geçersiz blog verisi",
+          errors: validationResult.error.errors,
+        });
+      }
+
+      const [updated] = await db
+        .update(blogPosts)
+        .set({
+          ...validationResult.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(blogPosts.id, req.params.id))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Blog yazısı bulunamadı" });
+      }
+
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating blog post:", error);
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ message: "Bu slug zaten kullanımda" });
+      }
+      res.status(500).json({ message: "Blog yazısı güncellenemedi" });
+    }
+  });
+
+  // Delete blog post (admin only)
+  app.delete("/api/admin/blog/:id", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const [deleted] = await db
+        .delete(blogPosts)
+        .where(eq(blogPosts.id, req.params.id))
+        .returning();
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog yazısı bulunamadı" });
+      }
+
+      res.json({ message: "Blog yazısı başarıyla silindi" });
+    } catch (error) {
+      console.error("Error deleting blog post:", error);
+      res.status(500).json({ message: "Blog yazısı silinemedi" });
+    }
+  });
+
   return httpServer;
 }
 
