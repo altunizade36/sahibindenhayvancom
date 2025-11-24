@@ -2289,6 +2289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Admin Blog Management Routes ============
+  // SECURITY: All admin blog routes require authentication + admin role
   // Get all blog posts (admin only - includes unpublished)
   app.get("/api/admin/blog", authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
     try {
