@@ -14,7 +14,7 @@ export default function BlogDetail() {
   const params = useParams();
   const slug = params.slug;
 
-  const { data: post, isLoading } = useQuery<BlogPost>({
+  const { data: post, isLoading } = useQuery<BlogPost & { author?: { id: string; fullName: string } }>({
     queryKey: ["/api/blog", slug],
     enabled: !!slug,
   });
@@ -97,9 +97,9 @@ export default function BlogDetail() {
 
             {/* Meta */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" data-testid="text-author">
                 <User className="h-4 w-4" />
-                <span>Veteriner Hekim</span>
+                <span>{post.author?.fullName || "Veteriner Editörü"}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
