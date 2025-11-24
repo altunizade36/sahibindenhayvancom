@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -2785,6 +2785,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading store media:", error);
       res.status(500).json({ message: "Medya yüklenemedi" });
+    }
+  });
+
+  // Get hierarchical store categories (tree structure)
+  app.get("/api/store-categories", async (req: Request, res: Response) => {
+    try {
+      const allCategories = await db
+        .select()
+        .from(storeCategories)
+        .orderBy(storeCategories.order);
+      
+      // Build tree: root categories + their children
+      const rootCategories = allCategories.filter(c => c.depth === 0);
+      const tree = rootCategories.map(root => ({
+        ...root,
+        children: allCategories.filter(c => c.parentId === root.id),
+      }));
+      
+      res.json(tree);
+    } catch (error) {
+      console.error("Error fetching store categories:", error);
+      res.status(500).json({ message: "Kategoriler getirilemedi" });
+    }
+  });
+
+  // Get stores by category
+  app.get("/api/store-categories/:id/stores", async (req: Request, res: Response) => {
+    try {
+      const categoryId = req.params.id;
+      
+      const storesList = await db
+        .select({
+          id: stores.id,
+          slug: stores.slug,
+          displayName: stores.displayName,
+          storeType: stores.storeType,
+          categoryId: stores.categoryId,
+          summary: stores.summary,
+          logo: stores.logo,
+          banner: stores.banner,
+          primaryColor: stores.primaryColor,
+          city: stores.city,
+          rating: stores.rating,
+          reviewCount: stores.reviewCount,
+          totalListings: stores.totalListings,
+          verifiedAt: stores.verifiedAt,
+          createdAt: stores.createdAt,
+        })
+        .from(stores)
+        .where(and(
+          eq(stores.categoryId, categoryId),
+          eq(stores.status, "active")
+        ))
+        .orderBy(desc(stores.rating), desc(stores.reviewCount));
+      
+      res.json(storesList);
+    } catch (error) {
+      console.error("Error fetching stores by category:", error);
+      res.status(500).json({ message: "Mağazalar getirilemedi" });
     }
   });
 
