@@ -29,6 +29,7 @@ import LiveStreamCreate from "@/pages/live-stream-create";
 import CategoryDetail from "@/pages/category-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminModeration from "@/pages/admin-moderation";
+import AdminBlog from "@/pages/admin-blog";
 import VerifyEmail from "@/pages/verify-email";
 
 // Routes that should have the sidebar layout
@@ -80,6 +81,7 @@ function NoSidebarLayout() {
           <Route path="/kategori/:slug" component={CategoryDetail} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/moderasyon" component={AdminModeration} />
+          <Route path="/admin/blog" component={AdminBlog} />
         </Switch>
       </main>
     </div>

@@ -53,19 +53,15 @@ sahibindenhayvan.com is a completely FREE Turkish animal classifieds platform de
   - Responsive grids (1-col → 2-col → 3-col → 4-col breakpoints)
   - Mobile-optimized search bar (stacked layout)
   - Fully accessible (ARIA labels, keyboard navigation)
-- ✅ **Blog System (Legal Compliance - Nov 24, 2025):**
-  - 📚 20 professional blog posts covering animal care, health, nutrition
+- ✅ **Blog System (Legal Compliance + Admin Management - Nov 24, 2025):**
+  - 📚 32 professional blog posts covering ALL animal types (cats, dogs, fish, horses, beekeeping, reptiles, rodents, exotic)
   - ✅ **Legal Disclaimer**: All posts include professional veterinary consultation disclaimer
-  - ✅ **Authoritative Sources**: Each post cites real Turkish veterinary organizations:
-    - Türk Veteriner Hekimleri Birliği (TVHB)
-    - Tarım ve Orman Bakanlığı (Hayvan Sağlığı/Hayvancılık)
-    - Ankara Üniversitesi Veteriner Fakültesi
-    - İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi
-    - Uludağ/Selçuk/Fırat Üniversitesi Veteriner Fakültesi
-    - International organizations (WSAVA, AAHA, ISFM, etc.)
+  - ✅ **Authoritative Sources**: Each post cites real Turkish veterinary organizations (TVHB, Tarım ve Orman Bakanlığı, etc.)
   - ✅ **Author Anonymization**: Professional author account (Veteriner Editörü)
   - ✅ **PII Security**: Blog API endpoints sanitized (only id, fullName, avatar exposed)
   - ✅ **Cache Optimized**: 1h TTL for blog posts (static content)
+  - ✅ **Realistic Dates**: 32 blogs with staggered dates (June-October 2025, 2-6 days apart, NO future dates)
+  - ✅ **Admin-Only CRUD**: `/admin/blog` management page - only admins can create/edit/delete blog posts (Security Package B)
 - 📊 **Current Database**: 0 users, 0 listings, 20 blog posts, 459 categories
 
 **EMAIL SERVICE CONFIGURATION:**
@@ -175,12 +171,15 @@ No specific user preferences were provided in the original document.
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats` (listing counts)
 - **Listings**: `/api/listings` (CRUD, advanced search with 6 filters), `/api/listings/hot` (3-min cache, trending), `/api/listings/:id/similar` (4 related items)
 - **Auctions**: `/api/auctions` (list, detail, create), `/api/auctions/:id/bids`
-- **Live Streams**: `/api/streams` (list, detail, create, update), `/api/streams/:id/token`
+- **Live Streams**: `/api/streams` (list, detail, create, update) - **Infrastructure inactive** (generic messaging: "Entegrasyon tamamlandığında aktif olacak")
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
 - **Services**: `/api/vet-services`, `/api/transport-services` (list, create)
-- **Blog**: `/api/blog` (list, detail, create)
+- **Blog**: `/api/blog` (list, detail) - **Public read-only**, `/api/admin/blog` (CRUD - admin-only)
 - **Favorites**: `/api/favorites` (list, add, remove)
-- **Admin** (role-based): `/api/admin/stats` (platform metrics), `/api/admin/listings` (moderation queue), `/api/admin/listings/:id/status` (approve/reject)
+- **Admin** (role-based): 
+  - `/api/admin/stats` (platform metrics)
+  - `/api/admin/listings` (moderation queue), `/api/admin/listings/:id/status` (approve/reject)
+  - `/api/admin/blog` (GET/POST/PUT/DELETE - full blog management)
 
 **WebSocket Events:**
 - **Client → Server**: `chat`, `bid`, `stream_chat`
