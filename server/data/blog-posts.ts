@@ -12390,4 +12390,7475 @@ Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararl
     readTime: 30,
     published: true,
   },
+
+  // ============ KUŞLAR - SÜS KUŞLARI ============
+  {
+    slug: "muhabbet-kusu-bakimi-kapsamli-rehber",
+    title: "Muhabbet Kuşu Bakımı: Kapsamlı A'dan Z'ye Rehber",
+    excerpt: "Muhabbet kuşu beslemek isteyenler için kafes seçiminden beslenmeye, sağlık kontrolünden eğitime kadar her şey bu rehberde. Mutlu ve sağlıklı bir muhabbet kuşu yetiştirmenin tüm sırlarını öğrenin.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Kuşunuzun sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Muhabbet Kuşu Bakımı: Kapsamlı A'dan Z'ye Rehber
+
+Muhabbet kuşları (Melopsittacus undulatus), neşeli yapıları, kolay bakımları ve konuşma yetenekleri ile Türkiye'nin en sevilen evcil hayvanları arasında yer alır. Ancak başarılı bir muhabbet kuşu bakımı için doğru bilgi ve özveri şarttır. Bu kapsamlı rehberde, muhabbet kuşunuzun mutlu ve sağlıklı bir yaşam sürmesi için bilmeniz gereken her şeyi bulacaksınız.
+
+## 1. Muhabbet Kuşu Seçimi: Nelere Dikkat Edilmeli?
+
+### Sağlıklı Kuş Nasıl Anlaşılır?
+
+**Göz Kontrolleri:**
+- Parlak, canlı gözler (mat veya bulanık olmamalı)
+- Göz çevresinde akıntı veya kabuklanma olmamalı
+- Göz kapakları şişkin olmamalı
+
+**Tüy ve Dış Görünüş:**
+- Düzgün, parlak ve kopuk olmayan tüyler
+- Tüysüz bölgeler olmamalı
+- Kanadın altında çıplak alanlar bulunmamalı
+- Kloaka (dışkı bölgesi) temiz ve kuru olmalı
+
+**Davranış:**
+- Aktif ve enerjik hareket
+- Kafes içinde rahatça dolaşma
+- İyi iştah (yem yeme gözlemlenebilir)
+- Normal nefes alma (ağzı açık nefes alma tehlikeli)
+
+**Ayak ve Tırnak:**
+- Düzgün şekilli ayaklar
+- Tünekte rahatça durabilme
+- Kırmızılık, şişlik veya yara olmamalı
+
+### Yaş Seçimi
+
+**Genç Kuşlar (3-6 ay):**
+- Eğitimi daha kolay
+- Sahibine daha çabuk alışır
+- Konuşma eğitimi başarı şansı yüksek
+- Başındaki dalga çizgileri gagasına kadar uzanır
+
+**Yetişkin Kuşlar:**
+- Karakter özellikleri belirgin
+- Bakımı daha kolay
+- Deneyimsiz sahipler için uygun
+
+## 2. Kafes ve Yaşam Alanı Düzenlemesi
+
+### Doğru Kafes Seçimi
+
+**Minimum Boyutlar:**
+- Tek kuş: 50cm x 40cm x 60cm (G x D x Y)
+- Çift kuş: 80cm x 50cm x 70cm minimum
+- **Önemli:** Kuş ne kadar az kafes dışında vakit geçirecekse kafes o kadar büyük olmalı
+
+**Kafes Özellikleri:**
+- Yatay çubuklar (tırmanmaya uygun)
+- Paslanmaz çelik veya galvaniz kaplama
+- Kolay temizlenebilir çekmeceli taban
+- Geniş kapı (el geçirecek kadar)
+- Güvenli kilit sistemi
+
+**Kafes Yerleştirme:**
+- Göz hizasında (çok alçak veya çok yüksekte olmamalı)
+- Hava akımından uzak (klima, vantilatör, pencere)
+- Doğrudan güneş ışığından korunmalı
+- Mutfaktan uzak (teflon gazı öldürücü!)
+- Sessiz ama yalnız bırakmayacak bir alan
+
+### Kafes İçi Ekipman
+
+**Tünekler:**
+- Doğal ağaç dalları (elma, kavak, çınar)
+- Farklı kalınlıkta 3-4 adet
+- Plastik tüneklerden kaçının
+- Her biri farklı yükseklikte yerleştirin
+
+**Yem ve Su Kapları:**
+- Paslanmaz çelik veya seramik
+- Günlük temizlenebilir
+- En az 2 yem kabı (taneli yem + taze gıda)
+- 1 su kabı (her gün değiştirilecek)
+
+**Oyuncaklar:**
+- Aynalar (yalnızlık hissini azaltır ama aşırı kullanmayın)
+- Ziller ve tırmanan aparatlar
+- Tahta bloklar (diş taşlama için)
+- Salıncaklar
+- **Döndürme:** Her 2 haftada bir değiştirin
+
+## 3. Beslenme: Dengeli ve Sağlıklı Diyet
+
+### Ana Besin: Muhabbet Kuşu Yemi
+
+**Kaliteli Yem Özellikleri:**
+- Darı çeşitleri ağırlıklı (sarı, kırmızı, beyaz darı)
+- Canary tohumu
+- Kenevir tohumu (çok az)
+- Aflatoksin testi yapılmış
+- Son kullanma tarihi güncel
+
+**Günlük Miktar:**
+- Yetişkin kuş: 1-1.5 yemek kaşığı
+- Sürekli taze yem bulundurulmalı
+- Gecede biten yem normal sayılır
+
+### Taze Meyve ve Sebzeler (Günlük Rasyonun %25'i)
+
+**Güvenli Sebzeler:**
+- Marul, roka, taze ıspanak
+- Havuç (rendelenmiş)
+- Brokoli (haşlanmış)
+- Kabak
+- Maydanoz (az miktarda - kalsiyum deposu)
+
+**Güvenli Meyveler:**
+- Elma (çekirdeksiz!)
+- Armut
+- Üzüm (az miktarda)
+- Muz
+- Çilek
+
+**ZEHİRLİ - ASLA VERMEYİN:**
+- Avokado (ÖLDÜRÜCt)
+- Çikolata
+- Soğan, sarımsak
+- Kahve, çay
+- Tuzlu, şekerli gıdalar
+- Çekirdekli meyveler (elma, kiraz, erik çekirdekleri siyanür içerir)
+
+### Su ve Hijyen
+
+- Günlük taze su
+- Musluk suyu kullanılabilir (klor zararı yok)
+- Mineralli su gereksiz
+- Vitamin takviyeli su (sadece veteriner tavsiyesiyle)
+
+### Ek Besinler
+
+**Kemik Tozu / Midye Kabuğu:**
+- Kafese asılabilir blok şeklinde
+- Kalsiyum kaynağı (özellikle dişi kuşlar için önemli)
+
+**Kuş Kumu:**
+- Sindirime yardımcı
+- Küçük bir kap ile sunulabilir
+
+## 4. Sağlık ve Hastalık Belirtileri
+
+### Rutin Sağlık Kontrolleri
+
+**Günlük Gözlemler:**
+- Dışkı kontrolü (normal: yeşilimsi-beyaz, kıvamlı)
+- Aktivite düzeyi
+- İştah kontrolü
+- Tüy durumu
+
+**Aylık Kontroller:**
+- Kilo takibi (dijital terazi - normal: 30-40 gram)
+- Tırnak kontrolü
+- Gaga uzunluğu
+
+**Yıllık Veteriner Kontrolü:**
+- Genel sağlık muayenesi
+- Parazit kontrolü
+- Gerekirse kanat ve tırnak kesimi
+
+### Acil Veterinere Gitme Belirtileri
+
+**HEMEN VETERINER:**
+- Ağzı açık nefes alma
+- Kanatları düşmüş, tünekte duramıyor
+- İshal (sulu, renkli dışkı)
+- Kusma
+- 24 saat yem yememek
+- Kanadından veya bacağından kanama
+- Göğüs kafesinde şişlik
+- Ani davranış değişikliği
+
+**Yaygın Hastalıklar:**
+
+1. **Psittacosis (Papağan Hastalığı)**
+   - Belirtiler: Burun akıntısı, nefes darlığı, ishal
+   - Tedavi: Antibiyotik (veteriner reçetesi)
+   - İnsanlara bulaşabilir!
+
+2. **Şişkinlik (Crop Stasis)**
+   - Kursağın boşalamaması
+   - Veteriner müdahalesi gerektirir
+
+3. **Parazitler (Bit, akar)**
+   - Tüy kaybı, kaşınma
+   - Özel ilaçlarla tedavi
+
+## 5. Eğitim ve Sosyalleşme
+
+### Parmağa Alıştırma
+
+**1. Hafta:** Sadece konuşun, ani hareketler yapmayın
+**2. Hafta:** Kafes içinde ellerinizi gösterin
+**3. Hafta:** Parmağınızı tüneğe dokundurarak alıştırın
+**4. Hafta:** Parmağınızı tünek gibi sunun
+
+**İpuçları:**
+- Sabah aç karnına eğitim daha etkili
+- Yüksek sesle konuşmayın
+- Her başarıda ödüllendirin (sevdiği besin)
+
+### Konuşma Eğitimi
+
+**En İyi Yaş:** 3-6 ay
+**Başarı Faktörleri:**
+- Erkek kuşlar daha başarılı
+- Tek kuş daha çok konuşur
+- Günde 15-20 dakika düzenli çalışma
+
+**Teknik:**
+1. Basit kelimelerle başlayın ("merhaba", "günaydın")
+2. Aynı tonla tekrarlayın
+3. Bağlam oluşturun (gelirken "merhaba", giderken "güle güle")
+4. Ses kaydı kullanmaktan kaçının
+
+## 6. Üreme ve Yavru Bakımı
+
+### Çiftleştirme Şartları
+
+**Minimum Yaş:**
+- Dişi: 12 ay
+- Erkek: 10 ay
+
+**Kafes ve Yuva:**
+- Minimum 80x50x70 cm kafes
+- Yuva kutusu: 25x15x15 cm
+- Yuva içi: talaş veya kuş yuvası malzemesi
+
+### Yumurtlama Süreci
+
+- Çiftleşmeden 8-10 gün sonra ilk yumurta
+- Toplam 4-8 yumurta (genelde 5-6)
+- Kuluçka süresi: 18-21 gün
+- Dişi kuluçkaya yatar, erkek besler
+
+### Yavru Bakımı
+
+**İlk Günler:**
+- Dişi yavrulara regurjitasyon (kusmuk) ile besler
+- Gözler kapalı doğar, 7-10. günde açılır
+- Tüyler 3. haftada çıkmaya başlar
+
+**Yuvadan Çıkış:** 4-5 hafta
+**Bağımsız Beslenme:** 6-7 hafta
+
+## 7. Tüy Dökme (Molt) Dönemi
+
+### Normallik Belirtileri
+
+- Yılda 1-2 kez (genelde ilkbahar-sonbahar)
+- Kafes tabanında çok tüy
+- Kuş daha durgun olabilir
+- Kaşınma artar
+
+### Molt Döneminde Destek
+
+- Protein artışı (yumurta sarısı - haftada 1 kez)
+- Bol temiz su (tüy yenilenmesi su ister)
+- Sakin ortam
+- Ekstra vitaminler (veteriner önerisiyle)
+
+## 8. Kafes Dışı Zaman
+
+### Güvenli Uçuş Alanı
+
+**Ortamı Hazırlayın:**
+- Pencereleri kapatın
+- Ayna ve camları örtin
+- Tavana yakın vantilatörleri kapatın
+- Toksik bitkileri kaldırın
+- Diğer evcil hayvanları odadan çıkarın
+
+**İlk Uçuşlar:**
+- Kısa sürelerle başlayın (10-15 dk)
+- Kapıları açık bırakmayın
+- Kuşun enerji seviyesini izleyin
+- Kafese geri dönüşü zorlayamayın
+
+## 9. Yaşlı Muhabbet Kuşu Bakımı
+
+**Yaşam Süresi:** 10-15 yıl (iyi bakımla 18'e kadar)
+
+**Yaşlanma Belirtileri (7+ yaş):**
+- Aktivitede azalma
+- Gaga ve tırnakta uzama
+- Tüy renginde solma
+- Uyku sürelerinde artış
+
+**Yaşlı Kuş Bakımı:**
+- Daha sık veteriner kontrolleri
+- Daha yumuşak besinler
+- Alçak tünekler (düşme riski)
+- Daha sıcak ortam
+
+## 10. Sosyalleşme: Tek mi Çift mi?
+
+### Tek Kuş
+
+**Avantajları:**
+- Sahiple daha güçlü bağ
+- Konuşma eğitimi daha başarılı
+- Daha az hastalık riski
+
+**Dezavantajları:**
+- Çok fazla ilgi gerektirir (günde 2-3 saat)
+- Yalnızlık stresi
+- Tüy yolma riski
+
+### Çift Kuş
+
+**Avantajları:**
+- Birbirlerine arkadaşlık
+- Daha az stres
+- Doğal davranışlar
+
+**Dezavantajları:**
+- Sahiple daha az ilgilenirler
+- Üreme davranışı
+- Hastalık bulaşma riski
+
+## 11. Yolculuk ve Taşıma
+
+**Taşıma Kafesi:**
+- Küçük, kompakt (30x20x25 cm yeterli)
+- İyi havalandırılmış
+- Su kabı (az doldurulmalı)
+- Alışık olduğu tünek
+
+**Uzun Yolculuklar:**
+- Sık durma molaları
+- Kuşu arabada bırakmayın
+- Stres minimizasyonu (kafesi örtün)
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Muhabbet kuşu bakımı, tutarlılık ve sevgi gerektirir. Unutmayın:
+
+✅ **Günlük:** Taze su, temiz kafes tabanı, gözlem
+✅ **Haftalık:** Tam kafes temizliği, oyuncak kontrolü
+✅ **Aylık:** Tırnak-gaga kontrolü, kilo takibi
+✅ **Yıllık:** Veteriner kontrol
+
+**En Önemli İpuçları:**
+1. Sabır gösterin - alışma süreci 2-4 hafta sürebilir
+2. Günlük rutin oluşturun
+3. Ani değişikliklerden kaçının
+4. Sağlıklı beslenmenin temelini unutmayın
+5. Sosyal ihtiyaçlarını karşılayın
+6. Stres kaynaklarını minimuma indirin
+
+Muhabbet kuşunuz, sevginize ve özeninize karşılık neşe, renk ve dostluk getirecektir. Doğru bakım ile uzun yıllar mutlu bir arkadaşlık sizi bekliyor!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Kafes kuşları sağlık protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi - Hayvan Besleme ve Hastalıklar** - Muhabbet kuşu beslenmesi ve davranış bozuklukları
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - Kanatlı hayvan hastalıkları
+
+### Uluslararası Kaynaklar
+
+4. **Association of Avian Veterinarians (AAV)** - Kuş bakım standartları
+
+5. **World Small Animal Veterinary Association (WSAVA)** - Egzotik hayvan bakımı
+
+### İlave Okuma
+
+6. Süs Kuşları Bakım ve Hastalıkları - A.Ü. Veteriner Fakültesi Yayını
+
+7. Kafes Kuşlarında Beslenme - Veteriner Hekimler Derneği
+
+**Son Güncelleme:** Ocak 2025
+
+**Editör Notu:** Bu içerik düzenli olarak güncellenmekte ve kuş sağlığı uzmanları tarafından denetlenmektedir.`,
+    categoryTags: ["kuşlar", "muhabbet kuşu", "kafes kuşları", "evcil hayvan", "kuş bakımı"],
+    readTime: 25,
+    published: true,
+  },
+
+  {
+    slug: "kanarya-bakimi-ses-egitimi-rehber",
+    title: "Kanarya Bakımı ve Ses Eğitimi: Ötücü Kuş Yetiştirme Rehberi",
+    excerpt: "Kanarya beslemek ve ötmeye teşvik etmek için kapsamlı rehber. Kafes düzeninden beslemeye, ses eğitiminden sağlık kontrollerine kadar tüm detaylar burada.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Kanaryaınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Kanarya Bakımı ve Ses Eğitimi: Ötücü Kuş Yetiştirme Rehberi
+
+Kanarya (Serinus canaria), muhteşem sesleri ve canlı renkleriyle yüzyıllardır insanların favorisi olan bir kafes kuşudur. Doğru bakım ve eğitimle kanaryanız, evinize neşe ve melodi getirecek harika bir arkadaş olacaktır. Bu kapsamlı rehber, kanarya bakımının tüm yönlerini detaylı şekilde ele alıyor.
+
+## 1. Kanarya Türleri ve Seçimi
+
+### Ana Kanarya Kategorileri
+
+**1. Ötücü Kanaryalar (Song Canaries)**
+- **Harz (Roller) Kanaryası:** En ünlü ötücü, derin ve yumuşak sesler
+- **Amerikan Singer:** Melodic ve yüksek sesli
+- **Timbrado İspanyol:** Metalik, çınlayan sesler
+
+**2. Renk Kanaryaları**
+- Sarı (en yaygın)
+- Turuncu-kırmızı (red factor)
+- Beyaz
+- Buff ve intensive tüyler
+
+**3. Şekil Kanaryaları (Type Canaries)**
+- Gloster (taç başlı)
+- Yorkshire (büyük ve uzun)
+- Border (kompakt ve yuvarlak)
+
+### Sağlıklı Kanarya Seçimi
+
+**Görsel Muayene:**
+- Parlak, temiz tüyler
+- Canlı ve uyanık gözler
+- Temiz burun delikleri (akıntı olmamalı)
+- Düzgün ayaklar ve tırnaklar
+- Kloaka temiz ve kuru
+
+**Davranışsal Göstergeler:**
+- Aktif ve zıplayan
+- Merakl ve çevreye duyarlı
+- Normal nefes (ağız açık nefes alma tehlike işareti)
+- Diğer kuşlarla sosyal etkileşim
+
+**Yaş Tercihi:**
+- **Genç (4-6 ay):** Eğitim daha kolay, adaptasyon hızlı
+- **Yetişkin:** Şarkı özellikleri belirgin, bakımı kolay
+
+**Cinsiyet Seçimi:**
+- **Erkek:** Şarkıcı, daha sesli, renkli
+- **Dişi:** Daha sessiz, sakin, çirp sesleri
+
+## 2. Kafes ve Yaşam Alanı Düzenlemesi
+
+### İdeal Kafes Özellikleri
+
+**Boyutlar:**
+- Minimum: 60cm x 40cm x 50cm (GenişlikxDerinlikxYükseklik)
+- **Önemli:** Kanaryalar yatay uçuş yapar - genişlik kritik!
+- Çift kanarya için: 80cm x 50cm x 60cm
+
+**Kafes Malzemesi:**
+- Paslanmaz çelik (bakır ve çinko zehirlidir!)
+- Yatay çubuklar (tırmanma için)
+- Kolay temizlenebilir çekmeceli taban
+- Geniş kapılar
+
+**Kafes Konumu:**
+- Göz seviyesinde veya biraz üstte
+- Parlak ama doğrudan güneş ışığı almayan yer
+- Hava akımından uzak
+- Gürültülü alanlardan uzak (TV, mutfak)
+- Duvara yaslanmış (güvenlik hissi)
+
+### Kafes İçi Donanım
+
+**Tünekler:**
+- Doğal ağaç dalları (elma, kavak, armut)
+- 3-4 farklı kalınlıkta (8-12mm çap)
+- Değişik yüksekliklerde
+- Plastik tüneklerden kaçının (ayak sorunları)
+
+**Beslenme Ekipmanları:**
+- 2 yem kabı (taneli yem + yumuşak yem)
+- 1 su kabı (her gün taze)
+- 1 yeşillik kabı
+- Seramik veya paslanmaz çelik tercih edilmeli
+
+**Banyo:**
+- Ayrı bir banyo kabı veya asılabilir model
+- Haftada 2-3 kez banyo yapma fırsatı
+- Ilık su (oda sıcaklığında)
+
+**Oyuncak ve Zenginleştirme:**
+- Salıncak (küçük boy)
+- Ayna (yalnız kanaryalar için)
+- Zil (ses eğitimi için)
+- Tahta bloklar
+
+## 3. Beslenme: Dengeli ve Kaliteli Diyet
+
+### Ana Besin: Tohum Karışımı
+
+**Kaliteli Kanarya Yemi İçeriği:**
+- %40-50 Canary tohumu
+- %20-30 Kırmızı darı
+- %10-15 Niger tohumu
+- %5-10 Kenevir tohumu
+- %5 Keten tohumu
+- Vitamin ve mineral takviyeli
+
+**Günlük Miktar:**
+- 1-1.5 çay kaşığı (yaklaşık 4-5 gram)
+- Sabah yeni yem ekleyin
+- Kabukları her gün temizleyin
+
+### Yumuşak Yemler (Soft Foods)
+
+**Yumurtalı Mamaların Önemi:**
+- Protein kaynağı
+- Tüy dökme döneminde önemli
+- Üreme sezonunda şart
+- Hazır veya ev yapımı (yumurta + galeta unu)
+
+**Verilme Sıklığı:**
+- Normal zamanda: Haftada 2 kez
+- Tüy dökme: Her gün
+- Üreme: Her gün
+
+### Taze Sebze ve Meyveler
+
+**Güvenli Sebzeler (Günlük Rasyonun %10-15'i):**
+- Ispanak (az miktarda)
+- Marul
+- Brokoli
+- Havuç (rendelenmiş)
+- Salatalık
+- Maydanoz
+
+**Güvenli Meyveler:**
+- Elma (çekirdeksiz)
+- Armut
+- Portakal (az miktarda)
+- Üzüm (yarısı kesilmiş)
+- Muz
+
+**ASLA VERMEYİN:**
+- Avokado (ÖLDÜRÜCget)
+- Çikolata
+- Soğan, sarımsak
+- Tuz, şeker
+- Meyvecekirdekleri (siyanür)
+- Patates (çiğ)
+
+### Su ve Takviyeler
+
+**Su:**
+- Günlük taze musluk suyu
+- Mineralli su gereksiz
+- Su kabını her gün yıkayın
+
+**Ek Takviyeler:**
+- **Sepya kemiği:** Kafese asılır, kalsiyum kaynağı
+- **Kuş kumu:** Sindirime yardımcı
+- **Vitaminler:** Sadece veteriner tavsiyesiyle
+
+## 4. Ses Eğitimi: Mükemmel Ötücü Yetiştirme
+
+### Ötüş Gelişimi
+
+**Doğal Süreç:**
+- 4-6 hafta: Çirp sesleri
+- 2-3 ay: İlk şarkı denemeleri (subsong)
+- 4-6 ay: Tam şarkı gelişimi
+- 8-10 ay: Olgun ses
+
+**Etkileyen Faktörler:**
+- Genetik (en önemlisi)
+- Ses eğitimi
+- Çevre ve stres seviyesi
+- Sağlık durumu
+- Mevsim (ilkbahar en aktif dönem)
+
+### Ses Eğitimi Teknikleri
+
+**1. Ustadan Öğrenme Metodu**
+- Genç erkek kanaryayı deneyimli ötücü bir erkeğin yanına koyun
+- İlk 6 ay kritik dönem
+- Görsel temas değil, ses teması önemli
+
+**2. Kayıt Dinletme**
+- Kaliteli kanarya şarkısı kayıtları
+- Günde 2-3 saat
+- Fazla maruz bırakmayın (stres yapar)
+- Sabah saatleri ideal
+
+**3. Sessiz Ortam**
+- Gürültülü ortamlardan uzak
+- TV, radyo sesleri minimum
+- Sakin bir oda tercih edilmeli
+
+**4. Teşvik ve Ödüllendirme**
+- Öttüğünde sakin şekilde yaklaşın
+- Konuşarak destekleyin
+- Favori besinle ödüllendirin
+
+### Ötüşü Engelleyen Faktörler
+
+- **Stres:** Fazla gürültü, ani hareketler
+- **Hastalık:** İyi ötmeyen kuş genelde hasta
+- **Yetersiz beslenme:** Protein eksikliği
+- **Tüy dökme dönemi:** Geçici susma normal
+- **Kısa gün ışığı:** Kışın daha az öter
+
+## 5. Sağlık ve Hastalık Yönetimi
+
+### Rutin Sağlık Takibi
+
+**Günlük Kontroller:**
+- Dışkı gözlemi (normal: koyu yeşil-beyaz, kıvamlı)
+- Aktivite seviyesi
+- Yem tüketimi
+- Solunum kontrolü
+
+**Haftalık:**
+- Tüy durumu
+- Ayak ve tırnak muayenesi
+- Kilo kontrolü (normal: 15-20 gram)
+
+**Aylık:**
+- Gaga uzunluğu
+- Tırnak kesimi ihtiyacı
+
+**Yıllık Veteriner Muayenesi:**
+- Kapsamlı sağlık kontrolü
+- Parazit taraması
+- Gerekli tırnak-gaga bakımı
+
+### Yaygın Hastalıklar
+
+**1. Solunum Yolu Enfeksiyonları**
+- **Belirtiler:** Hapşırma, burun akıntısı, ağzı açık nefes
+- **Sebepler:** Hava akımı, soğuk, bakteri/virüs
+- **Tedavi:** Veteriner antibiyotiği
+
+**2. Bit ve Akarlar**
+- **Belirtiler:** Kaşınma, tüy kaybı, huzursuzluk
+- **Tedavi:** Özel kuş spreyi, kafes dezenfeksiyonu
+
+**3. Tüy Yolma (Plucking)**
+- **Sebepler:** Stres, yetersiz banyo, beslenme eksikliği
+- **Çözüm:** Stres kaynaklarını azaltın, banyo sıklığını artırın
+
+**4. Yumurta Takılması (Egg Binding)**
+- **Risk:** Dişi kanaryalarda
+- **Belirtiler:** Kafes tabanında oturma, zorlanma, şişkin karın
+- **ACİL VETERİNER GEREKTİRİR**
+
+**5. Scaly Leg (Ayak Uyuzu)**
+- **Belirtiler:** Ayaklarda kabuklanma, kalınlaşma
+- **Tedavi:** Özel merhem (veteriner reçetesi)
+
+### Acil Durum Belirtileri
+
+**DERHAL VETERINER:**
+- 24 saat yem yememek
+- Ağzı açık hızlı nefes
+- Kanama
+- Tünekte duramama
+- İshal (sulu dışkı)
+- Ani şişkinlik
+
+## 6. Üreme ve Yavru Bakımı
+
+### Üreme Şartları
+
+**Uygun Yaş:**
+- Dişi: Minimum 1 yaş
+- Erkek: Minimum 9 ay
+
+**Mevsim:**
+- İlkbahar (Mart-Haziran) ideal
+- Uzun gün ışığı süresi (14-16 saat)
+
+**Yuva Kafesi:**
+- Minimum 80x50x60 cm
+- Yuva kutusu: Sepet tipi veya ahşap
+- Yuva malzemesi: Pamuk, yün, kuş tüyü
+
+### Yumurtlama ve Kuluçka
+
+**Süreç:**
+- Çiftleşme sonrası 7-10 gün içinde ilk yumurta
+- Toplam 3-6 yumurta (genelde 4)
+- Her gün 1 yumurta
+- Kuluçka süresi: 13-14 gün
+
+**Dişinin Sorumluluğu:**
+- Kuluçkaya yatar
+- Erkek dışarıdan besler
+
+### Yavru Gelişimi
+
+**İlk Günler:**
+- Tüysüz ve kör doğar
+- Gözler 4-7. gün açılır
+- Anne regurjitasyon ile besler
+
+**Gelişim:**
+- 1. hafta: Hızlı büyüme
+- 2. hafta: Tüyler çıkmaya başlar
+- 3. hafta: Yuvadan çıkmaya başlar
+- 4. hafta: Bağımsız beslenme
+
+## 7. Tüy Dökme (Molt) Yönetimi
+
+### Tüy Dökme Döngüsü
+
+**İlk Tüy Dökme:** 6-8 haftalık yaşta
+**Yetişkin Tüy Dökme:** Yılda 1 kez (yazın sonu-sonbahar)
+**Süre:** 6-8 hafta
+
+### Molt Döneminde Bakım
+
+**Beslenme Desteği:**
+- Protein artışı (yumurtalı mama her gün)
+- Ek vitaminler (veteriner önerisiyle)
+- Omega-3 kaynakları (keten tohumu)
+
+**Çevre Düzenlemesi:**
+- Daha sıcak ortam (22-24°C)
+- Stres minimum
+- Banyo fırsatı artırılmalı
+
+**Normal Belirtiler:**
+- Ötüş azalması (geçici)
+- Yorgunluk
+- Kafeste çok tüy
+
+**Anormal Belirtiler (Veteriner Gerektirir):**
+- Tamamen çıplak alanlar
+- 2 aydan uzun süre
+- Kanamalar
+
+## 8. Kafes Temizliği ve Hijyen
+
+### Günlük Temizlik
+
+- Su kabını yıkayın ve taze su doldurun
+- Yem kabuklarını çıkarın
+- Kafes tabanındaki dışkıları temizleyin
+- Taze yem ekleyin
+
+### Haftalık Temizlik
+
+- Tüm kafesi ılık su ve sabunla yıkayın
+- Tünekleri fırçalayın
+- Oyuncakları temizleyin
+- Yem kaplarını derin temizleyin
+
+### Aylık Temizlik
+
+- Kapsamlı dezenfeksiyon
+- Seyreltilmiş sirke suyu (hijyen için)
+- Tüm aksesuarları değerlendirin
+- Eskiyen parçaları değiştirin
+
+## 9. Yaşlı Kanarya Bakımı
+
+**Ortalama Ömür:** 10-15 yıl (kayıtlı en yaşlı: 20 yıl)
+
+**Yaşlanma Belirtileri (7+ yaş):**
+- Aktivite azalması
+- Ötüş sıklığında düşüş
+- Tüy renginde solma
+- Tırnak ve gaga uzaması
+
+**Yaşlı Kuş Bakımı:**
+- Daha yumuşak besinler
+- Alçak tünekler
+- Daha sıcak ortam
+- Sık veteriner kontrolleri
+- Stressiz yaşam
+
+## 10. Sıkça Sorulan Sorular
+
+**S: Kanarya konuşabilir mi?**
+C: Hayır, kanaryalar kelime öğrenemez ancak ıslıkları taklit edebilir.
+
+**S: Dişi kanaryalar öter mi?**
+C: Çok nadiren ve çok kısa. Çirp sesleri yaparlar.
+
+**S: Kaç yaşında ötmeye başlar?**
+C: Erkek kanaryalar 4-6 aylıkken şarkı söylemeye başlar.
+
+**S: Neden ötmüyor?**
+C: Stres, hastalık, yetersiz beslenme, kısa gün ışığı veya tüy dökme dönemi.
+
+**S: Tek mi çift mi beslenmeli?**
+C: Şarkı için TEK erkek ideal. Çift besleme şarkıyı azaltır.
+
+**S: Banyo yapmak şart mı?**
+C: Evet! Tüy sağlığı için haftada 2-3 kez banyo fırsatı sunulmalı.
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Kanarya bakımı, düzen ve özen gerektirir. Başarılı bir kanarya yetiştiricisi için kontrol listesi:
+
+✅ **Günlük:** Taze su, temiz yem, dışkı kontrolü
+✅ **Haftalık:** Kafes temizliği, banyo, sebze verme
+✅ **Aylık:** Tırnak kontrolü, kilo takibi
+✅ **Yıllık:** Veteriner muayenesi
+
+**Altın Kurallar:**
+1. Geniş kafes - yatay alan öncelikli
+2. Kaliteli yem - ucuz yemlerden kaçının
+3. Taze su - her gün değiştirin
+4. Ses eğitimi - ilk 6 ay kritik
+5. Stressiz ortam - sakin ve düzenli
+6. Düzenli veteriner - önleyici sağlık
+
+Kanaryaılar muhteşem sesleriyle evinize neşe katar. Sabırlı ve sevecen yaklaşımınızla, kanaryanız yıllarca size eşlik edecek bir dost olacak!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Kafes kuşları bakım protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi - Zootekni ve Hayvan Besleme** - Kanarya beslenmesi ve üreme
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - Kanarya hastalıkları ve önleme
+
+### Uluslararası Kaynaklar
+
+4. **Association of Avian Veterinarians (AAV)** - Kanarya sağlık standartları
+
+5. **National Canary Council (UK)** - Kanarya yetiştiricilik rehberleri
+
+### İlave Okuma
+
+6. Süs Kuşları Bakımı ve Hastalıkları - A.Ü. Veteriner Fakültesi
+
+7. Kanarya Yetiştirme Sanatı - Veteriner Hekimler Derneği
+
+**Son Güncelleme:** Ocak 2025
+
+**Editör Notu:** Bu içerik kanarya yetiştirme uzmanları ve veteriner hekimler tarafından düzenli olarak güncellenmektedir.`,
+    categoryTags: ["kuşlar", "kanarya", "ötücü kuş", "ses eğitimi", "kafes kuşları"],
+    readTime: 28,
+    published: true,
+  },
+
+  {
+    slug: "akvaryum-kurulumu-baslangic-rehberi",
+    title: "Akvaryum Kurulumu: Yeni Başlayanlar İçin A'dan Z'ye Rehber",
+    excerpt: "İlk akvaryumunuzu kurmak için ihtiyacınız olan tüm bilgiler. Donanım seçiminden balık türlerine, su kimyasından bakıma kadar kapsamlı rehber.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Akvaryum Kurulumu: Yeni Başlayanlar İçin A'dan Z'ye Rehber
+
+Akvaryum hobisi, doğanın bir parçasını evinize getiren büyüleyici bir deneyimdir. Doğru kurulum ve bakımla, uzun yıllar sağlıklı ve mutlu balıklar besleyebilirsiniz. Bu kapsamlı rehber, ilk akvaryumunuzu kurarken bilmeniz gereken her şeyi adım adım açıklamaktadır.
+
+## 1. Akvaryum Seçimi ve Boyutlandırma
+
+### Doğru Büyüklüğü Seçmek
+
+**Yaygın Yanılgı:** Küçük akvaryum bakımı daha kolaydır.
+**Gerçek:** Büyük akvaryumlar su kimyasını stabilize etmek daha kolaydır.
+
+**Başlangıç İçin Önerilen Boyutlar:**
+- **60-80 litre (60cm):** Yeni başlayanlar için ideal
+- **100-120 litre (80cm):** Daha fazla balık çeşitliliği
+- **150+ litre (100cm+):** En stabil, en kolay bakım
+
+**Küçük Akvaryumların (<40 litre) Zorlukları:**
+- Su parametreleri hızla değişir
+- Amonyak ve nitrit birikmesi hızlıdır
+- Sıcaklık kontrolü zordur
+- Balık sayısı çok sınırlıdır
+- Hata payı yoktur
+
+### Akvaryum Şekli ve Malzeme
+
+**Cam vs. Akrilik:**
+
+| Özellik | Cam | Akrilik |
+|---------|-----|---------|
+| Dayanıklılık | Çizilmez | Kolay çizilir |
+| Ağırlık | Ağır | Hafif |
+| Şeffaflık | Uzun ömürlü | Sararabilir |
+| Fiyat | Ekonomik | Pahalı |
+| Tavsiye | **Başlangıç için ideal** | İleri seviye |
+
+**Şekil Önerileri:**
+- **Dikdörtgen:** En iyisi, balıklar için geniş yüzme alanı
+- **Küp:** Görsel çekici ama yüzme alanı az
+- **Köşe akvaryum:** Alan tasarrufu ama bakım zor
+- ❌ **Kavanoz/küre:** Balıklar için uygun DEĞİL
+
+### Yerleşim Yeri Seçimi
+
+**İdeal Konum:**
+✅ Düz, sağlam zemin (akvaryum standı)
+✅ Elektrik prizine yakın
+✅ Doğrudan güneş ışığından uzak
+✅ Pencere ve kapılardan uzak (sıcaklık dalgalanması)
+✅ Göze hoş gelen ama sakin bir alan
+
+**Kaçınılması Gerekenler:**
+❌ Kalorifer yakınında
+❌ Klima ünitesinin altında
+❌ Pencere kenarında (alg patlaması)
+❌ Hoparlör/müzik seti yanında (titreşim)
+❌ Mutfak (yağ buharı)
+
+**Zemin Dayanıklılığı:**
+- 100 litrelik dolu akvaryum ≈ 120-130 kg
+- Profesyonel akvaryum standı kullanın
+- Kesinlikle sıradan mobilya kullanmayın
+
+## 2. Temel Donanım ve Ekipmanlar
+
+### Filtrasyon Sistemi
+
+**Filtre Türleri:**
+
+**1. Askı Filtre (HOB - Hang On Back):**
+- Montajı kolay
+- Bakımı basit
+- 60-120 litreye ideal
+- Orta düzey filtrasyon
+- **Yeni başlayanlar için önerilir**
+
+**2. İç Filtre (Internal Filter):**
+- Küçük akvaryumlara uygun
+- Ucuz
+- Zayıf filtrasyon
+- Akvaryum içinde yer kaplar
+
+**3. Dış Filtre (Canister Filter):**
+- En güçlü filtrasyon
+- Büyük akvaryumlar için ideal
+- Pahalı
+- Profesyonel kurulum gerekir
+
+**Filtre Kapasitesi Seçimi:**
+- Akvaryum litresinin 4-6 katı/saat pompa gücü
+- Örnek: 100 litre akvaryum → 400-600 L/saat filtre
+
+**Filtre Malzemeleri (3 Katman):**
+1. **Mekanik Filtrasyon:** Sünger, pamuk (büyük partiküller)
+2. **Biyolojik Filtrasyon:** Seramik, bio-ball (bakteriler için)
+3. **Kimyasal Filtrasyon:** Aktif karbon (koku, ilaç giderme)
+
+### Isıtıcı Sistemi
+
+**Kapasitesi Hesaplama:**
+- **Formül:** 1 watt × 1 litre su (ılıman iklim için)
+- **Soğuk iklim:** 1.5-2 watt × 1 litre
+- **Örnek:** 100 litre → 100-150 watt ısıtıcı
+
+**Isıtıcı Türleri:**
+- **Tamamen daldırılabilir:** En yaygın, güvenli
+- **Substrat ısıtıcı:** İleri seviye, pahalı
+- **Ayarlanabilir termostat:** MUTLAKA ayarlı olanı seçin
+
+**Sıcaklık Ayarı:**
+- Tropik balıklar: 24-27°C
+- Soğuk su balıkları (japon balığı): 18-22°C
+- Dijital termometre ile kontrol edin
+
+### Aydınlatma
+
+**LED Aydınlatma (Önerilen):**
+- Enerji tasarruflu
+- Uzun ömürlü
+- Az ısı üretir
+- Ayarlanabilir yoğunluk
+
+**Işık Süresi:**
+- **8-10 saat/gün:** İdeal
+- Zamanlayıcı kullanın (rutin)
+- Fazla ışık → Alg patlaması
+
+**Bitki Akvaryumu için:**
+- Özel bitki LED'leri (6500-7000K renk sıcaklığı)
+- Daha yüksek lümen değeri
+- Kırmızı ve mavi spektrum
+
+### Hava Pompası ve Havalandırma
+
+**Ne Zaman Gerekli?**
+- Aşırı stoklanmış akvaryumlarda
+- Yüksek sıcaklıklarda (oksijen azalır)
+- Bazı balık türleri için (labirent balıkları hariç)
+- Dekoratif baloncuklar için
+
+**Hava Taşı Seçimi:**
+- İnce baloncuk üreten modeller
+- Seramik/ahşap taşlar daha sessiz
+
+## 3. Substrat (Taban Malzemesi) Seçimi
+
+### Substrat Türleri
+
+**1. Çakıl (Gravel):**
+- En yaygın
+- Farklı renk ve boyutlarda
+- Temizliği kolay
+- Bitkiler için orta düzey
+
+**2. Kum:**
+- Doğal görünüm
+- Dip besleneni balıklar için ideal
+- Bitkiler için zayıf (besin tutmaz)
+- Temizliği zor
+
+**3. Bitki Toprağı (Aqua Soil):**
+- Bitkiler için en iyi
+- Besin maddesi içerir
+- Pahalı
+- Su kimyasını etkiler (pH düşürür)
+
+**4. Yıkanmış Taş/Mermer:**
+- Estetik
+- pH'ı yükseltir (sert su)
+- Bitkiler için uygun değil
+
+**Taban Kalınlığı:**
+- Bitki akvaryumu: 5-7 cm
+- Balık akvaryumu: 3-5 cm
+- Ön taraf ince, arka taraf kalın (derinlik illüzyonu)
+
+### Hazırlık ve Yerleştirme
+
+**Adımlar:**
+1. Substratı kova içinde 5-6 kez durulayın (su berraklaşana kadar)
+2. Akvaryumun altına önce küçük bir plastik tabak koyun (cam koruma)
+3. Substratı yavaşça dökün
+4. Eğimli yerleştirin (arkada yüksek, önde alçak)
+5. Düzleştirme ve şekillendirme yapın
+
+## 4. Dekorasyon ve Bitkilendirme
+
+### Canlı Bitkiler vs. Yapay Bitkiler
+
+**Canlı Bitkilerin Faydaları:**
+✅ Oksijen üretir
+✅ Nitrat emer (su kalitesi)
+✅ Balıklara saklanma alanı
+✅ Doğal görünüm
+✅ Alg kontrolü
+
+**Zorlukları:**
+- Özel aydınlatma gerektirir
+- Besin katkısı (gübre)
+- Budama ve bakım
+
+**Başlangıç İçin Kolay Bitkiler:**
+- **Anubias:** Çok dayanıklı, az ışık
+- **Java Fern:** Bakım gerektirmez
+- **Java Moss:** Her yere yapışır
+- **Amazon Sword:** Gösterişli, orta zorluk
+- **Cryptocoryne:** Az ışıkta yaşar
+
+**Yapay Bitkiler:**
+- Bakım gerektirmez
+- Işık gerekmez
+- Doğal görünüm için ipek kumaş tercih edin
+
+### Dekoratif Elemanlar
+
+**Güvenli Dekorasyonlar:**
+✅ Akvaryuma özel taş ve kayalar
+✅ Dekoratif kütükler (akvaryum için işlenmiş)
+✅ Seramik mağaralar
+✅ PVC borular (yavru ve ürkek balıklar için)
+
+**Kaçınılması Gerekenler:**
+❌ Deniz kabukları (pH yükselir)
+❌ Yıkamamış doğal taşlar
+❌ Sivri kenarlı objeler
+❌ Metal içeren dekorlar
+❌ Boyalı/cilalı objeler
+
+**Düzenleme İpuçları:**
+- Dekorasyonu önce yerleştirin, sonra su doldurun
+- Büyük objeler arkaya, küçükler öne
+- Yüzme alanı bırakın (akvaryumun 1/3'ü açık)
+- Balıklar için saklanma yerleri oluşturun
+
+## 5. Su Kimyası Temelleri
+
+### Önemli Parametreler
+
+**1. pH (Asitlik/Bazlık):**
+- **Ölçek:** 0-14 (7 nötr)
+- **Tropik balıklar:** 6.5-7.5
+- **Cichlid'ler:** 7.5-8.5
+- **Test sıklığı:** Haftada 1 kez
+
+**2. Sertlik (GH - Genel Sertlik):**
+- Sudaki mineral miktarı
+- Yumuşak su: <6 dGH
+- Orta sertlik: 6-12 dGH
+- Sert su: >12 dGH
+
+**3. Karbonatlı Sertlik (KH):**
+- pH stabilitesini sağlar
+- İdeal: 4-8 dKH
+
+**4. Amonyak (NH3/NH4+):**
+- **Hedef:** 0 ppm (zehirli!)
+- Yeni akvaryumlarda yükselir
+- Günlük test edin (ilk 4 hafta)
+
+**5. Nitrit (NO2):**
+- **Hedef:** 0 ppm (zehirli!)
+- Azot döngüsünün ara ürünü
+- Haftada 2 kez test
+
+**6. Nitrat (NO3):**
+- **Hedef:** <20 ppm
+- Bitkiler tarafından kullanılır
+- Haftalık su değişimi ile kontrol
+
+### Test Kitleri
+
+**Damla Test Kiti (Önerilen):**
+- Daha doğru
+- Uzun ömürlü
+- Birçok parametre
+
+**Test Şeritleri:**
+- Hızlı
+- Daha az doğru
+- Pratik
+
+**Dijital Test Cihazları:**
+- Çok doğru
+- Pahalı
+- İleri seviye
+
+## 6. Azot Döngüsü ve Akvaryumu Olgunlaştırma
+
+### Azot Döngüsü Nedir?
+
+**Aşamalar:**
+1. **Balık atıkları/yem** → Amonyak (NH3) - ZEHİRLİ
+2. **Nitrosomonas bakterileri** → Nitrit (NO2) - ZEHİRLİ
+3. **Nitrobacter bakterileri** → Nitrat (NO3) - Az toksik
+4. **Su değişimi veya bitkiler** → Nitrat giderimi
+
+**Neden Önemli?**
+- Yeni akvaryumda bu bakteriler YOK
+- İlk 4-6 hafta kritik "olgunlaşma" dönemi
+- Erken balık ekleme → Ölümler
+
+### Balıksız Olgunlaştırma (Fishless Cycling)
+
+**EN GÜVENLİ YÖNTEM:**
+
+**1. Hafta: Kurulum**
+- Tüm ekipmanları çalıştırın
+- Su sıcaklığı 25-27°C
+- Amonyak kaynağı ekleyin:
+  - Saf amonyak (4-5 ppm)
+  - Veya balık yemi (pinch daily)
+
+**2-3. Hafta: Amonyak Zirvesi**
+- Amonyak 4-5 ppm'e yükselir
+- Sonra düşmeye başlar
+- Nitrit yükselmeye başlar
+
+**4-5. Hafta: Nitrit Zirvesi**
+- Amonyak 0'a iner
+- Nitrit zirve yapar
+- Nitrat yükselir
+
+**6. Hafta: Döngü Tamamlandı**
+- Amonyak: 0 ppm
+- Nitrit: 0 ppm
+- Nitrat: 20-40 ppm
+- Artık balık eklenebilir!
+
+**Hızlandırma Yöntemleri:**
+- Olgun akvaryumdan filtre materyali ödünç alın
+- Hazır bakterileri ekleyin (Seachem Stability, API Quick Start)
+- Sıcaklık 27-28°C tutun
+
+### Balıklı Olgunlaştırma
+
+**DAHA RİSKLİ AMA YAPILIYORSA:**
+- Sadece 2-3 dayanıklı balık (Zebra Danio, Molly)
+- Günlük %20 su değişimi
+- Günlük amonyak/nitrit testi
+- Yem çok az verin
+- Sık su değişimi ile zehirlenmeyi önleyin
+
+## 7. İlk Balık Seçimi
+
+### Yeni Başlayanlar İçin Dayanıklı Türler
+
+**1. Lepistes (Guppy):**
+- Çok dayanıklı
+- Renkli ve aktif
+- Çabuk ürer
+- pH: 7.0-8.0
+- Sıcaklık: 24-28°C
+
+**2. Plati (Platy):**
+- Barışçıl
+- Kolay bakım
+- Birçok renk varyasyonu
+- pH: 7.0-8.0
+
+**3. Molinezya (Molly):**
+- Büyük ve gösterişli
+- Sert su sever
+- Biraz tuzcul su eklenebilir
+
+**4. Zebra Danio:**
+- Çok dayanıklı
+- Soğuk suya toleranslı
+- Aktif yüzücü
+- Grup halinde (6+)
+
+**5. Neon Tetra:**
+- Küçük ve barışçıl
+- Grup balığı (10+)
+- Yumuşak, asidik su tercih eder
+- Daha deneyim gerektirir
+
+**6. Corydoras (Zırhlı Yayın):**
+- Dip temizleyici
+- Barışçıl
+- Grup halinde (4-6)
+- Kum substrat tercih eder
+
+### Stok Yoğunluğu Hesabı
+
+**Geleneksel Kural:**
+- 1 cm balık = 1 litre su
+- **Örnek:** 100 litre → 100 cm balık
+  - 10 adet Neon (5 cm) = 50 cm
+  - 4 adet Plati (6 cm) = 24 cm
+  - 5 adet Corydoras (5 cm) = 25 cm
+  - **Toplam:** 99 cm ✅
+
+**Modern Yaklaşım:**
+- Yetişkin boy üzerinden hesaplayın
+- Balık türüne göre ayarlayın (bazıları daha fazla atık üretir)
+- Filtrasyon kapasitesine göre artırılabilir
+
+### Akvaryuma Uyum Süreci (Acclimatization)
+
+**ASLA DOĞRUDAN BIRAKMAYIN!**
+
+**Doğru Yöntem:**
+1. **Torba Adaptasyonu (30 dk):**
+   - Torbayı akvaryuma bırakın (sıcaklık eşitlemesi)
+   - Her 5 dakikada bir torbaya akvaryum suyu ekleyin
+
+2. **Yavaş Karıştırma (30-60 dk):**
+   - Torbadaki suyu bir kovaya dökün
+   - Damla damla akvaryum suyu ekleyin (hortum ile sifon)
+   - Su miktarı 2-3 katına çıkana kadar
+
+3. **Son Adım:**
+   - Balıkları FILE ile akvaryuma transfer edin
+   - Torba suyunu ASLA akvaryuma dökmeyin (hastalık riski)
+
+4. **İlk Gün:**
+   - Işığı kısın veya kapatın
+   - Balıklara yem vermeyin (stresli)
+   - Ertesi gün az miktarda yemleyin
+
+## 8. Günlük ve Haftalık Bakım Rutini
+
+### Günlük Görevler (5 dakika)
+
+**Sabah Kontrolü:**
+✅ Tüm balıkları sayın (kaybolan var mı?)
+✅ Davranış gözlemi (hareketli mi? yem istiyor mu?)
+✅ Ekipman kontrolü (filtre, ısıtıcı, hava pompası çalışıyor mu?)
+✅ Sıcaklık kontrolü (termometre)
+
+**Yemleme:**
+- Günde 1-2 kez
+- 2-3 dakikada yenebilecek kadar
+- Artmayan yem (su kalitesini bozar)
+- Haftada 1 gün aç bırakın (sindirim)
+
+### Haftalık Görevler (30-45 dakika)
+
+**Su Değişimi (%20-30):**
+
+**Adımlar:**
+1. **Sifon ile Dip Temizliği:**
+   - Akvaryum sifonu kullanın
+   - Substrat arasındaki artıkları çekin
+   - %20-30 su çıkarın
+2. **Yeni Su Hazırlığı:**
+   - Musluk suyu 24 saat dinlendirilmiş
+   - VEYA klorin giderici eklenmiş
+   - Sıcaklığı eşitleyin (el ile test)
+3. **Yavaş Ekleme:**
+   - Yavaş yavaş dökün (balıkları ürküTMEYİN)
+   - Substratı parmakladıysa suyu bozmayın
+4. **Sonrası:**
+   - Cam temizliği (alg sileceği)
+   - Filtre giriş/çıkışı kontrol
+
+**Su Test:**
+- Amonyak, Nitrit, Nitrat
+- pH
+- Sıcaklık
+
+**Ekipman Bakımı:**
+- Filtre girişindeki süngeri durulayın (akvaryum suyunda)
+- Cam yüzeyindeki algları temizleyin
+
+### Aylık Görevler (1-2 saat)
+
+- Filtre materyallerini akvaryum suyunda yıkayın
+- Aktif karbon değişimi (varsa)
+- Aydınlatma ve ısıtıcı kontrolü
+- Tüm ekipmanların detaylı temizliği
+
+## 9. Yaygın Sorunlar ve Çözümleri
+
+### Bulanık Su
+
+**Beyaz/Gri Bulanıklık:**
+- **Neden:** Bakteriyel bloom (yeni akvaryum)
+- **Çözüm:** Sabırlı olun, 3-7 gün kaybolur, su değişimi yapMAYIN
+
+**Yeşil Bulanıklık:**
+- **Neden:** Yüzen alg (fazla ışık/besin)
+- **Çözüm:** Işık süresini azaltın (6 saat), UV sterilizör
+
+**Kahverengi Bulanıklık:**
+- **Neden:** Yeni kütük (tanin salınımı)
+- **Çözüm:** Aktif karbon, su değişimi, normal
+
+### Alg Patlaması
+
+**Yeşil Nokta Alg (Cam Üzerinde):**
+- Fazla ışık
+- Cam silerek temizleyin
+- Işık süresini kısın
+
+**Kahverengi Alg (Diatom):**
+- Yeni akvaryumlarda normal
+- 2-4 hafta kaybolur
+- Silme ile temizleme
+
+**Sakal Alg (Kara Alg):**
+- Kötü su akımı
+- Yüksek nitrat/fosfat
+- Çok zor mücadele
+- Su değişimi artırın
+
+**Önleme:**
+- Işık süresi 8 saatle sınırlı
+- Düzenli su değişimi
+- Aşırı yemleme yapmayın
+- Canlı bitkiler ekleyin
+
+### Hastalık Belirtileri
+
+**İzlenmesi Gerekenler:**
+- Beyaz noktalar (ich hastalığı)
+- Yüzgeç çürümesi
+- Şişlik, kabarma
+- Solungaçta hızlı hareket
+- Yüzeyde soluma
+- Renk solması
+- İştah kaybı
+
+**İlk Müdahale:**
+- Hasta balıkları karantinaya alın
+- Su parametrelerini test edin
+- Sıcaklığı yavaşça 28-30°C yükseltin (parazit tedavisi için)
+- Veteriner hekime danışın
+
+## 10. Sıkça Sorulan Sorular
+
+**S: Akvaryumu kurduktan ne kadar sonra balık eklenebilir?**
+C: Azot döngüsü tamamlandıktan sonra, yaklaşık 4-6 hafta. Amonyak ve nitrit 0 ppm olmalı.
+
+**S: Ne sıklıkla su değişimi yapmalıyım?**
+C: Haftada 1 kez %20-30 su değişimi ideal. Küçük akvaryumlarda haftada 2 kez gerekebilir.
+
+**S: Musluk suyunu direkt kullanabilir miyim?**
+C: Hayır! Klor/kloramin içerir. 24 saat dinlendirin VEYA klorin giderici kullanın.
+
+**S: Balıklarım neden ölüyor?**
+C: En yaygın nedenler: Yeni akvaryum sendromu (döngü tamamlanmamış), aşırı yemleme, yanlış su parametreleri, hastalık.
+
+**S: Filtre her zaman mı açık kalmalı?**
+C: EVET! Filtreyi asla kapatmayın. Bakteriler oksijensiz kalırsa 2-4 saatte ölür.
+
+**S: Her gün ne kadar yem vermeliyim?**
+C: 2-3 dakikada yenilebilecek kadar. Balık başına 2-3 granül yeterli. Aşırı yemleme en büyük hatadır.
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Başarılı bir akvaryum kurmak sabır, araştırma ve düzen gerektirir. Acele etmek ve "hemen balık istiyorum" düşüncesi en büyük hatadır.
+
+**Başarı İçin Kontrol Listesi:**
+
+✅ **Donanım:**
+- Uygun büyüklükte akvaryum (60+ litre)
+- Kaliteli filtre (4-6x pompa gücü)
+- Ayarlanabilir ısıtıcı
+- LED aydınlatma + zamanlayıcı
+- Substrat ve dekorasyon
+- Test kitleri (amonyak, nitrit, nitrat, pH)
+
+✅ **Kurulum:**
+- Düz, sağlam zemin
+- Güneş ışığından uzak
+- Tüm ekipmanlar test edilmiş
+- Sıcaklık stabil (24-27°C)
+
+✅ **Olgunlaştırma:**
+- 4-6 hafta sabırla bekleyin
+- Amonyak ve nitrit 0 ppm
+- Haftalık testler
+
+✅ **Balık Seçimi:**
+- Dayanıklı türlerle başlayın
+- Yavaş yavaş stok artırın (ayda 2-3 balık)
+- Türlerin uyumluluğunu kontrol edin
+
+✅ **Bakım Rutini:**
+- Günlük gözlem ve yemleme
+- Haftalık %20-30 su değişimi
+- Aylık ekipman bakımı
+
+**Altın Kurallar:**
+1. **Sabırlı olun:** Akvaryum acele etmeyi sevmez
+2. **Az yemleyin:** Fazla yem en büyük düşman
+3. **Düzenli bakım:** Haftalık su değişimini asla ihmal etmeyin
+4. **Test edin:** Gözünüze güvenmeyin, test kitleri kullanın
+5. **Araştırın:** Her balık türünün farklı ihtiyaçları vardır
+6. **Karantina:** Yeni balıkları 2-4 hafta karantinada tutun
+
+Unutmayın, akvaryum canlı bir ekosistemdir. İlk birkaç ay zorlayıcı olabilir, ancak bir kez sistem dengelendiğinde bakımı oldukça kolay ve keyifli bir hobi haline gelir. Doğru başlangıçla, yıllarca sağlıklı ve mutlu balıklar besleyebilirsiniz!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Su ürünleri sağlığı ve hastalıkları protokolleri
+
+2. **Ege Üniversitesi Su Ürünleri Fakültesi** - Akvaryum balıkları yetiştiriciliği ve su kimyası
+
+3. **Ankara Üniversitesi Veteriner Fakültesi** - Süs balıkları hastalıkları ve tedavi yöntemleri
+
+### Uluslararası Kaynaklar
+
+4. **American Aquarium Products** - Azot döngüsü ve su kalitesi yönetimi standartları
+
+5. **Practical Fishkeeping Magazine (UK)** - Akvaryum kurulum rehberleri ve ekipman incelemeleri
+
+6. **Aquarium Science (aquariumscience.org)** - Bilimsel temelli akvaryum bakım kılavuzları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve akvaryum uzmanları ile veteriner hekimler tarafından denetlenmektedir.`,
+    categoryTags: ["balık", "akvaryum", "kurulum", "yeni başlayan", "su kimyası"],
+    readTime: 22,
+    published: true,
+  },
+
+  {
+    slug: "akvaryum-baliklari-hastaliklar-tedavi",
+    title: "Akvaryum Balıklarında Yaygın Hastalıklar ve Tedavi Yöntemleri",
+    excerpt: "Akvaryum balıklarının en sık karşılaşılan hastalıkları, belirtileri ve etkili tedavi yöntemleri. Erken teşhis ile balıklarınızı kurtarın.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Akvaryum Balıklarında Yaygın Hastalıklar ve Tedavi Yöntemleri
+
+Akvaryum balıkları hassas canlılardır ve su kalitesi, stres ve bakım hataları nedeniyle çeşitli hastalıklara yakalanabilirler. Erken teşhis ve doğru tedavi, balıklarınızın hayatını kurtarabilir. Bu kapsamlı rehber, en yaygın balık hastalıklarını, belirtilerini ve tedavi yöntemlerini detaylı olarak açıklamaktadır.
+
+## 1. Hastalıkların Temel Nedenleri
+
+### Stres Faktörleri
+
+**En Yaygın Stres Kaynakları:**
+- Kötü su kalitesi (yüksek amonyak, nitrit, nitrat)
+- Ani sıcaklık değişimleri
+- Uygunsuz pH ve sertlik
+- Aşırı stoklanma
+- Uyumsuz balık türleri
+- Yetersiz oksijen
+- Gürültü ve titreşim
+- Aşırı/yetersiz aydınlatma
+
+**Stresin Etkileri:**
+- Bağışıklık sistemi zayıflar
+- Hastalıklara açık hale gelir
+- İştah kaybı
+- Renk solması
+- Anormal davranışlar
+
+### Çevresel Faktörler
+
+**Su Kalitesi Problemleri:**
+
+| Parametre | İdeal Aralık | Tehlikeli Seviye | Etkiler |
+|-----------|--------------|------------------|---------|
+| Amonyak (NH3) | 0 ppm | >0.25 ppm | Solungaç hasarı, ölüm |
+| Nitrit (NO2) | 0 ppm | >0.5 ppm | Oksijen taşıma bozukluğu |
+| Nitrat (NO3) | <20 ppm | >40 ppm | Kronik stres, hastalık |
+| pH | 6.5-7.5 | <6.0 veya >8.5 | Osmotik stres |
+| Sıcaklık | Türe göre | ±3°C ani değişim | Şok, ölüm |
+
+### Patojen Girişi
+
+**Hastalık Bulaş Yolları:**
+1. **Yeni balıklar:** Karantinasız ekleme
+2. **Canlı yemler:** Tübifeks, artemia (patojen taşıyıcı)
+3. **Yeni bitkiler:** Parazit yumurtaları
+4. **Kullanılmış ekipman:** Başka akvaryumdan
+5. **Kirli eller:** Çapraz bulaşma
+
+**Önleme:**
+- YENİ BALIKLARI 2-4 HAFTA KARANTİNADA TUTUN
+- Canlı yemleri dondurulmuş veya kuru alternatiflerle değiştirin
+- Yeni bitkileri suda bekletin veya durulayın
+- Akvaryumlar arası ekipman paylaşmayın
+
+## 2. İch (Beyaz Nokta Hastalığı)
+
+### Tanım ve Neden
+
+**Bilimsel adı:** Ichthyophthirius multifiliis
+**Tür:** Protozoan parazit
+
+**En yaygın balık hastalığı**, su sıcaklığı düştüğünde veya stres altında görülür.
+
+### Belirtiler
+
+**Erken Dönem (1-3 gün):**
+- Balık objelere sürtünür (flashing)
+- Yüzgeçleri kapatır
+- İştah azalır
+- Renkler solar
+
+**İlerlemiş Dönem (3-7 gün):**
+- Gövde ve yüzgeçlerde **beyaz nokta çıkıntılar** (tuz tanesi gibi)
+- Yüzeye doğru soluma
+- Hızlı solungaç hareketleri
+- Halsizlik, dibe çökme
+
+**Kritik Dönem (7+ gün):**
+- Vücudun tamamı beyaz noktalarla kaplanır
+- Solungaçlar hasar görür (nefes alamaz)
+- Tedavi edilmezse %100 ölümcül
+
+### Tedavi Yöntemleri
+
+**1. Sıcaklık Tedavisi (Doğal Yöntem):**
+
+**Adımlar:**
+1. Sıcaklığı **30-32°C'ye** yavaşça yükseltin (günde 1-2°C)
+2. Havalandırmayı artırın (oksijen azalır)
+3. **10-14 gün** bu sıcaklıkta tutun
+4. Parazit yaşam döngüsü hızlanır ve ölür
+
+**Uyarı:** Bazı balıklar (discus, goldfish) yüksek sıcaklığa toleranslı. Soğuk su balıklarına uygulamayın!
+
+**2. İlaç Tedavisi:**
+
+**Malachite Green + Formaldehyde (Ticari İlaçlar):**
+- **Markalar:** Super Ich Cure, Kordon Ich Attack
+- **Uygulama:** Üretici talimatlarını takip edin
+- **Süre:** 3-7 gün
+- **Dikkat:** Bazı balıklara (scaleless fish) toksik olabilir
+
+**Metilen Mavisi:**
+- Hafif vakalar için
+- Su mavi renk alır
+- Biyolojik filtreyi etkileyebilir
+- Aktif karbon kullanmayın (ilacı emer)
+
+**Tuzlu Su Tedavisi (Destekleyici):**
+- **Doz:** 1-2 g/litre (tatlı su için)
+- Osmoregülasyonu destekler
+- Parazitin çoğalmasını yavaşlatır
+- Tatlı su balıkları için SADECE destekleyici
+
+**3. Kombine Tedavi (En Etkili):**
+- Sıcaklık 30°C + İlaç tedavisi
+- Havalandırma artırımı
+- %25-50 su değişimi (2-3 günde bir)
+- Tedavi boyunca aktif karbon kullanmayın
+
+### Karantina ve Koruma
+
+**Ana Akvaryumda Tedavi:**
+- Tüm akvaryumu tedavi edin (parazit her yerdedir)
+- Canlı bitkilere zarar verebilir (bitkisiz karantina tankı tercih edilir)
+
+**Önleme:**
+- Yeni balıkları karantinaya alın
+- Sıcaklık dalgalanmalarından kaçının
+- Su kalitesini mükemmel tutun
+- Stresi minimize edin
+
+## 3. Yüzgeç Çürümesi (Fin Rot)
+
+### Tanım ve Neden
+
+**Nedenler:**
+- Bakteriyel enfeksiyon (Aeromonas, Pseudomonas, Vibrio)
+- Kötü su kalitesi
+- Yaralanma veya fiziksel hasar
+- Stres
+
+**Risk Faktörleri:**
+- Yüksek amonyak/nitrit
+- Aşırı stoklanma
+- Agresif balık saldırısı
+- Keskin dekorasyon
+
+### Belirtiler
+
+**Hafif Vaka:**
+- Yüzgeç kenarlarında beyazımsı/gri renk
+- Hafif yırtılmalar
+- Yüzgeçlerde opaklık
+
+**Orta Şiddette:**
+- Yüzgeçler kenarlardan içe doğru eriyor
+- Kırmızı çizgiler (kan damarları görünür)
+- Yüzgeç boyunun kısalması
+
+**Şiddetli Vaka:**
+- Yüzgeçlerin büyük kısmı kaybolmuş
+- Vücuda kadar yayılmış
+- Açık yaralar
+- İkincil enfeksiyonlar
+
+### Tedavi
+
+**1. Su Kalitesi Düzeltme (İLK ADIM):**
+- Amonyak, nitrit → 0 ppm yapın
+- %50 su değişimi (HEMEN)
+- Sonraki 3 gün %25 günlük su değişimi
+- Sıcaklığı 26-28°C'de stabilize edin
+
+**2. Tuzlu Su Banyosu (Hafif Vakalar):**
+- **Doz:** 1 g/litre akvaryum tuzu
+- Ozmotik basınç artışı bakterileri yavaşlatır
+- 7-10 gün uygulayın
+
+**3. Antibiyotik Tedavisi (Orta-Şiddetli Vakalar):**
+
+**Tetracycline (Tetra Lifeguard):**
+- Geniş spektrumlu antibiyotik
+- **Doz:** Üretici talimatlarına göre
+- 5-7 gün tedavi
+
+**Kanamycin veya Erythromycin:**
+- Gram-negatif bakteriler için
+- Veteriner reçetesi ile
+
+**Nitrofurazone (Furan-2):**
+- Şiddetli enfeksiyonlar
+- Yara önleme
+
+**4. Destekleyici Önlemler:**
+- Stres faktörlerini giderin
+- Keskin dekorları kaldırın
+- Agresif balıkları ayırın
+- Vitamin takviyesi (C vitamini)
+
+### İyileşme Süresi
+
+- **Hafif:** 1-2 hafta
+- **Orta:** 2-4 hafta
+- **Şiddetli:** 4-8 hafta (yüzgeç yeniden büyür)
+
+**Not:** Yüzgeçler tamamen yeniden büyür, ama tam orijinal görünümü olmayabilir.
+
+## 4. Mantar Enfeksiyonları (Fungal Infections)
+
+### Tanım ve Neden
+
+**Etkenler:**
+- Saprolegnia (en yaygın)
+- Achyla
+
+**Oluşum:**
+- Primer: Zayıf bağışıklık, kötü su
+- Sekonder: Yaralanma sonrası, ich tedavisi sonrası
+
+### Belirtiler
+
+**Tipik Görünüm:**
+- **Pamuk benzeri beyaz/gri büyümeler**
+- Ağız, yüzgeçler, gövdede
+- Pelüş kumaş görünümü
+- Etkilenen bölgede doku kaybı
+
+**Yerleşim:**
+- Açık yaralar üzerinde
+- Yumurtalarda (beyaz gölgeler)
+- Ölü doku üzerinde
+
+### Tedavi
+
+**1. Metilen Mavisi (Altın Standart):**
+- **Doz:** 2 mg/litre
+- 3-5 gün boyunca
+- Su hafif mavi renk alır
+- Aktif karbon KULLANMAYIN
+
+**2. Malachite Green:**
+- Güçlü antifungal
+- Scaly fish (pul olmayan balıklar) için dikkatli
+- **Doz:** Üretici talimatına göre
+
+**3. Tuzlu Su Banyosu:**
+- **Kısa süreli yoğun doz:** 10 g/litre - 30 saniye daldırma
+- **Uzun süreli düşük doz:** 1-3 g/litre - 7-10 gün
+
+**4. Potasyum Permanganat (İleri Seviye):**
+- Çok güçlü oksitleyici
+- Yanlış dozda ÖLÜMCÜL
+- Sadece deneyimli akvaryumcular
+- Karantina tankında kullanın
+
+### Önleme
+
+- Yaralanmalardan kaçının
+- Su kalitesini mükemmel tutun
+- İch tedavisi sonrası destekleyici ilaçlar
+- Yumurtaları metilen mavisinde inkübe edin
+
+## 5. Dropsy (Vücut Şişkinliği/Pul Kabarması)
+
+### Tanım ve Neden
+
+**Dropsy nedir?**
+- **Hastalık değil, belirtidir** (organ yetmezliği)
+- Vücutta sıvı birikmesi
+- Genelde böbrek/karaciğer hasarı
+
+**Nedenler:**
+- Bakteriyel enfeksiyon (Aeromonas)
+- Kötü beslenme
+- Kronik stres
+- Yaşlılık
+- Tüberküloz
+
+### Belirtiler
+
+**Erken Belirtiler:**
+- Karın bölgesinde şişme
+- İştah kaybı
+- Halsizlik
+- Renk solması
+
+**İlerlemiş Belirtiler:**
+- **Pine-cone appearance (çam kozalağı görünümü):**
+  - Pullar dışa doğru açılmış
+  - Vücut şişmiş, balonlaşmış
+- Göz çıkıntısı (pop-eye)
+- Anal bölgede kızarıklık/çıkıntı
+- Yüzeye yakın durur (yüzme kesesi hasarı)
+
+**Terminal Dönem:**
+- Dibe yatar
+- Nefes almada zorluk
+- Koordinasyon kaybı
+
+### Tedavi (Zor ve Başarı Oranı Düşük)
+
+**1. Antibiyotik Tedavisi (En Önemli):**
+- **Kanamycin:** Böbrek enfeksiyonları için
+- **Maracyn-Two (Minocycline):** Geniş spektrum
+- 7-10 gün tedavi
+
+**2. Epsom Tuzu (Magnesium Sulfate) Banyosu:**
+- **Doz:** 1-3 g/litre
+- Sıvı birikimini azaltır (diüretik etki)
+- Drospy için standart tedavi
+- 7-10 gün
+
+**3. Karantina ve Destekleyici Bakım:**
+- Hasta balığı hemen karantinaya alın
+- Su sıcaklığını 26-27°C tutun
+- Stressiz ortam
+- Yüksek kaliteli, sindirimi kolay yemler
+- Vitamin takviyesi (A, C, E)
+
+**4. Ötanazi Değerlendirmesi:**
+- Terminal dönemdeki balıklar için iyileşme çok nadir
+- Acı çekmeyi önlemek için ötanazi düşünülebilir
+- Veteriner hekim ile konsültasyon
+
+### Önleme
+
+- Kaliteli yem (karaciğer yağlanmasını önler)
+- Düzenli su değişimi
+- Stres minimizasyonu
+- Erken müdahale (ilk belirtilerde)
+
+## 6. Velvet (Kadife Hastalığı)
+
+### Tanım ve Neden
+
+**Etken:** Oodinium (Piscinoodinium pillulare) - dinoflagellate parazit
+
+**Özellik:**
+- Ich'e benzer ama daha küçük
+- Altın/kahverengi toz görünümü
+- Işıkta "kadife" gibi parlama
+
+### Belirtiler
+
+**Görsel:**
+- **Altın/sarı toz tabakası** (vücutta)
+- Işık altında metalik parıltı
+- İch'ten daha ince noktalar
+
+**Davranış:**
+- Objelere sürtünme (flashing)
+- Hızlı solungaç hareketi
+- Yüzgeçleri kapatma
+- İştah kaybı
+- Yüzeye soluma
+
+### Tedavi
+
+**1. Karartma Yöntemi:**
+- Akvaryumu **TAMAMEN** karartın (parazit fotosentez yapar)
+- 3-7 gün ışıksız
+- Havalandırmayı artırın
+
+**2. Copper-Based İlaçlar:**
+- **Cupramine, Copper Power**
+- Çok etkili ama dikkatli kullanın
+- Omurgasızlara zehirlidir
+- Canlı bitkilere zarar verir
+- **Karantina tankında kullanın**
+
+**3. Formaldehyde ve Malachite Green:**
+- Ticari Velvet ilaçları
+- 5-7 gün tedavi
+
+**4. Sıcaklık Artırımı + Tuz:**
+- 30°C sıcaklık
+- 1-2 g/litre tuz
+- 7-10 gün
+
+### Önleme
+
+- Karantina (yeni balıklar)
+- Işık süresi kontrolü
+- Su kalitesi
+
+## 7. Swim Bladder Disease (Yüzme Kesesi Hastalığı)
+
+### Tanım ve Neden
+
+**Yüzme kesesi (swim bladder):**
+- Balıkların su içinde dengede kalmasını sağlar
+- Hava ile dolar/boşalır
+
+**Nedenler:**
+- **Aşırı yemleme** (en yaygın)
+- Kabızlık
+- Hızlı yutma (hava yutma)
+- Bakteriyel/parazitik enfeksiyon
+- Fiziksel travma
+- Genetik (bazı balık türleri)
+
+### Belirtiler
+
+**Yüzme Problemleri:**
+- Balık ters yüzer (baş aşağı veya yan yatar)
+- Su yüzeyinde yüzmekte zorlanır
+- Veya sürekli dibe çöker
+- Çaba göstererek yüzmeye çalışır
+- Bir tarafa eğik yüzer
+
+**Eşlik Eden Belirtiler:**
+- Şişkin karın
+- Eğri omurga (kronik vakalarda)
+- İştah var ama yemekte zorlanır
+
+### Tedavi
+
+**1. Açlık Tedavisi (İlk Adım):**
+- **24-48 saat yem vermeyin**
+- Sindirim sisteminin boşalmasını sağlar
+- %90 vakalarda çözüm olur
+
+**2. Bezelye Tedavisi (Kabızlık için):**
+- Donmuş bezelyeleri çözün
+- Kabuğunu soyun, EZİN
+- Küçük parçalar halinde verin
+- Lif içerir, kabızlığı giderir
+- 2-3 gün art arda
+
+**3. Sıcaklık Artışı:**
+- 26-28°C'ye yavaşça yükseltin
+- Metabolizmayı hızlandırır
+- Sindirim kolaylaşır
+
+**4. Epsom Tuzu Banyosu (Kabızlık):**
+- **Doz:** 1-2 g/litre
+- 15-30 dakika banyo
+- Günde 1 kez, 3 gün
+- Bağırsak hareketlerini artırır
+
+**5. Antibiyotik (Enfeksiyon Şüphesi):**
+- Eğer açlık/bezelye çözüm olmazsa
+- Kanamycin veya Maracyn
+- 7-10 gün tedavi
+
+**6. Destekleyici Bakım:**
+- Su seviyesini azaltın (derin olmayan)
+- Balığın dinlenebileceği yapraklar/platformlar
+- Stres azaltımı
+- Hafif yemlerle beslenme (iyileşme sonrası)
+
+### Önleme
+
+**Beslenme Alışkanlıkları:**
+- Günde 1-2 kez küçük porsiyonlar
+- 2-3 dakikada yenebilecek kadar
+- Kuru yemi ıslatın (su emsin)
+- Haftada 1 gün açlık
+- Dondurulmuş/canlı yemlerle çeşitlendirin
+
+**Risk Grubu Balıklar:**
+- Fantail goldfish, oranda, ryukin (yuvarlak vücut)
+- Betta (aşırı yemlenme eğilimi)
+
+## 8. Hexamita (Hole-in-the-Head Disease)
+
+### Tanım ve Neden
+
+**Etken:** Hexamita/Spironucleus - bağırsak paraziti
+
+**Risk Grubu:**
+- Discus, Oscar, Severum (cichlid ailesi)
+- Yetersiz beslenme
+- Stres
+
+### Belirtiler
+
+**Erken Dönem:**
+- Baş bölgesinde beyaz/sarı tıkaçlar
+- İştah kaybı
+- Renk solması
+- Dışkıda beyaz ip (mukus)
+
+**İlerlemiş Dönem:**
+- Baş ve yüzde derin çukurlar/delikler
+- Doku kaybı
+- İkincil enfeksiyonlar
+- Halsizlik
+
+### Tedavi
+
+**1. Metronidazole (En Etkili):**
+- **Doz:** 250 mg / 40 litre su
+- Her gün %25-50 su değişimi + yeniden ilaç
+- 3-5 gün tedavi
+- VEYA yem içinde: 1% metronidazole ile karıştırılmış yem
+
+**2. Beslenme İyileştirme:**
+- Yüksek vitamin içeriği (A, C, D)
+- Çeşitli yemler
+- Spirulina, sarımsak katkılı yemler
+
+**3. Su Kalitesi:**
+- Nitrat <10 ppm (çok önemli)
+- Sık su değişimi (%50 haftada 2 kez)
+
+### Önleme
+
+- Kaliteli, çeşitli beslenme
+- Düşük nitrat seviyesi
+- Stres yönetimi
+
+## 9. Karantina Protokolü
+
+### Neden Karantina?
+
+- Yeni balıklardaki gizli hastalıkları tespit eder
+- Ana akvaryumu korur
+- Tedavi daha kolay ve ucuz
+
+### Karantina Tankı Kurulumu
+
+**Gerekli Ekipmanlar:**
+- 40-60 litre plastik/cam tank
+- Sünger filtre veya küçük HOB filtre
+- Ayarlanabilir ısıtıcı
+- Termometre
+- Havalandırma (isteğe bağlı)
+- PVC boru (saklanma yeri)
+- Çıplak taban (temizlik kolaylığı)
+
+**Kurulum:**
+- Su ana akvaryumdan alınabilir (bakterili)
+- Veya klorin giderilmiş yeni su
+- Dekorasyon minimal (temizlik için)
+- Canlı bitki EKLEMEYIN
+
+### Karantina Süreci
+
+**1. Hafta:**
+- Günlük gözlem
+- İştah kontrolü
+- Davranış takibi
+- Su testi (amonyak, nitrit)
+
+**2. Hafta:**
+- Olası hastalık belirtileri ortaya çıkar
+- İch, velvet, mantar kontrolü
+- İlaç tedavisi gerekirse başlatın
+
+**3-4. Hafta:**
+- Balık sağlıklı görünüyorsa
+- Ana akvaryuma transfer edilebilir
+
+**Karantina Boyunca:**
+- Günlük %10-20 su değişimi
+- Az miktarda yemleme
+- Stres minimizasyonu
+- Ekipman dezenfeksiyonu (tanklar arası)
+
+## 10. Acil Durum Müdahale Rehberi
+
+### Ölümcül Belirtiler (Acil Müdahale)
+
+**Hemen Veterinere:**
+- Yüzeyde ters yüzme + solungaç hareketsizliği
+- Vücut büyük oranda mantar/yara ile kaplı
+- Dropsy son aşama (tamamen şişmiş)
+- 24 saatte %50+ balık kaybı
+- Aniden tüm balıklar yüzeye çıktı
+
+**İlk Müdahale (Veterinere Giderken):**
+1. **%50-75 Su Değişimi HEMEN**
+2. Amonyak/nitrit testi → Eğer yüksekse su değişimi devam
+3. Havalandırmayı maksimuma çıkarın
+4. Yem vermeyi durdurun
+5. Sıcaklığı kontrol edin (stabilize edin)
+
+### Balık Ötanazisi (Acı Çekmeyi Sonlandırma)
+
+**Ne Zaman Gerekli?**
+- Terminal hastalık (dropsy son dönem)
+- İyileşme şansı yok
+- Balık acı çekiyor
+
+**İnsancıl Yöntemler:**
+
+**Clove Oil (Karanfil Yağı) Yöntemi - EN İNSANCIL:**
+
+**Adımlar:**
+1. Küçük bir kapta su hazırlayın (akvaryum suyu)
+2. Ayrı bir şişede 10 damla karanfil yağı + 100ml su karıştırın
+3. Balığı kaba yerleştirin
+4. Yavaşça karanfil yağı karışımını ekleyin
+5. Balık 10 dakika içinde baygın düşer (uyur)
+6. 30 dakika bekleyin (kalp durması)
+7. Emin olmak için 1 saat daha bekleyin
+
+**Soğutma/Dondurma Yöntemi (baygınlık sonrası):**
+- Balık karanfil yağı ile baygın düştükten SONRA
+- Buzlu suya yerleştirin (yavaş soğuma)
+- Sonra dondurucuya
+
+**ASLA YAPMAYIN:**
+- Balığı dondurmadan dondurmaya atmayın
+- Kaynar suya atmayın
+- Klor/deterjan kullanmayın
+- Fiziksel travma (kesilme, ezme)
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Balık hastalıkları korkutucu olabilir, ancak bilgi ve hazırlıkla çoğu tedavi edilebilir. En önemli ilke: **Önleme, tedaviden iyidir.**
+
+**Hastalık Önleme Kontrol Listesi:**
+
+✅ **Su Kalitesi (En Önemli):**
+- Haftalık %20-30 su değişimi
+- Haftalık testler (amonyak, nitrit, nitrat, pH)
+- Nitrat <20 ppm
+- Sıcaklık stabil
+
+✅ **Karantina:**
+- Tüm yeni balıklar 2-4 hafta
+- Yeni bitkiler durulama
+- Canlı yemlerden kaçının
+
+✅ **Beslenme:**
+- Kaliteli, çeşitli yemler
+- Aşırı yemlemeden kaçının
+- Vitamin takviyesi
+- Haftada 1 gün açlık
+
+✅ **Stres Yönetimi:**
+- Uygun stok yoğunluğu
+- Uyumlu türler
+- Saklanma alanları
+- Sabit rutin
+
+✅ **Gözlem:**
+- Günlük balık sayımı
+- Davranış izleme
+- İştah kontrolü
+- Erken teşhis
+
+**Ev İlaç Dolabı (Temel):**
+- API Test Master Kit (amonyak, nitrit, nitrat, pH)
+- Metilen mavisi
+- Ich tedavi ilacı (Malachite Green)
+- Antibiyotik (Kanamycin veya Maracyn)
+- Akvaryum tuzu
+- Epsom tuzu
+- Karanfil yağı (ötanazi için)
+
+**Altın Kurallar:**
+1. **Erken teşhis kurtarır:** Günlük gözlem yapın
+2. **Su kalitesi her şeydir:** Test edin, tahmin etmeyin
+3. **Karantina şarttır:** Kısayol yok
+4. **Sabırlı olun:** Tedavi zaman alır
+5. **Veteriner danışın:** Şüphe halinde profesyonel yardım
+
+Unutmayın, sağlıklı bir akvaryum dengeye dayanır. Küçük sorunlar hızla büyür, bu yüzden proaktif olun. Düzenli bakım, kaliteli beslenme ve dikkatli gözlem ile balıklarınız uzun ve sağlıklı bir yaşam sürer.
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Su ürünleri hastalıkları ve tedavi protokolleri
+
+2. **Ege Üniversitesi Su Ürünleri Fakültesi** - Balık hastalıkları teşhis ve tedavi kılavuzları
+
+3. **Ankara Üniversitesi Veteriner Fakültesi** - Süs balıkları patolojisi ve farmakoloji
+
+### Uluslararası Kaynaklar
+
+4. **World Aquatic Veterinary Medical Association (WAVMA)** - Akvaryum balıkları hastalıkları standartları
+
+5. **Fish Vet Society (UK)** - Balık hastalıkları teşhis ve tedavi rehberleri
+
+6. **American Veterinary Medical Association (AVMA)** - Akvaryum hayvanlarında ötanazi kılavuzları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve su ürünleri veteriner hekimleri tarafından denetlenmektedir.`,
+    categoryTags: ["balık", "hastalık", "tedavi", "akvaryum", "veteriner"],
+    readTime: 25,
+    published: true,
+  },
+
+  {
+    slug: "at-bakimi-beslenme-barinma-rehberi",
+    title: "At Bakımı: Besleme, Barınak ve Günlük Bakım Rehberi",
+    excerpt: "Atınızın sağlıklı ve mutlu kalması için ihtiyaç duyduğu tüm bakım bilgileri. Besleme, barınma, hijyen ve günlük rutin hakkında kapsamlı rehber.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# At Bakımı: Besleme, Barınak ve Günlük Bakım Rehberi
+
+At bakımı, tutku, özveri ve detaylı bilgi gerektiren sorumlu bir uğraştır. Atlar hassas sindirim sistemine, özel barınak ihtiyaçlarına ve düzenli bakıma sahip büyük hayvanlardır. Bu kapsamlı rehber, atınızın sağlıklı, mutlu ve performansının zirvesinde kalması için bilmeniz gereken her şeyi kapsamaktadır.
+
+## 1. At Beslenmesinin Temelleri
+
+### Sindirim Sistemi Anatomisi
+
+**Atlar otçul hayvanlardır ve benzersiz bir sindirim sistemine sahiptir:**
+
+**Özellikler:**
+- Tek mideliler (ruminant DEĞİL)
+- Küçük mide kapasitesi (8-15 litre)
+- Çok uzun bağırsaklar (25-30 metre)
+- Fermantasyon körü (cecum) - En önemli kısım
+- Sürekli besleme ihtiyacı (doğal yaşamda günde 16-18 saat otlar)
+
+**Bu Neden Önemli?**
+- Uzun süreli açlık → Mide asidi → Ülser riski
+- Büyük öğünler → Kolik (ölümcül olabilir)
+- Yüksek nişasta → Laminitis (toynak hastalığı)
+- Kaba yem şart → Bağırsak sağlığı
+
+### Temel Besin Maddeleri
+
+**1. Kaba Yem (Roughage/Forage):**
+
+**Önemi:** Diyetin %60-70'i MUTLAKA kaba yem olmalı
+
+**Kuru Ot (Hay):**
+- **Çayır Otu:** En yaygın, dengeli besin
+- **Yonca:** Yüksek protein ve kalsiyum, sporcu atlar için
+- **Saman:** Yalnızca yatak olarak, besin değeri düşük
+
+**Kalite Kriterleri:**
+- **Yeşil renkli** (kahverengi değil)
+- **Hoş koku** (küf kokusu yok)
+- **Toz/küf yok**
+- **Yumuşak yapraklı**
+- **Sap kalınlığı orta**
+
+**Taze Çayır/Otlak:**
+- En doğal besin kaynağı
+- Günde 4-6 saat otlatma ideal
+- Yüksek su içeriği
+- Mevsimsel beslenme değişiklikleri
+
+**Kalite Otlak Yönetimi:**
+- Otlar 15-20 cm boyunda kesilmeli
+- Aşırı otlatmadan kaçının
+- Zehirli bitkilerden arındırın
+- Dönüşümlü otlatma uygulayın
+
+**2. Kesif Yem (Concentrate/Grain):**
+
+**Çeşitleri:**
+- **Arpa:** En yaygın, enerji kaynağı
+- **Yulaf:** Yüksek lif, sindirimi kolay
+- **Mısır:** Çok yüksek enerji, dikkatli kullanılmalı
+- **Ticari karma yemler:** Dengeli, vitamin/mineral eklenmiş
+
+**Ne Zaman Gerekli?**
+- Ağır çalışan atlar (yarış, atlama)
+- Gebe veya emziren kısraklar
+- Büyüme dönemindeki tülay atlar
+- Yaşlı atlar (kilo kaybı önlemesi)
+- Kötü otlak koşulları
+
+**Dikkat:**
+- Fazla tahıl → Kolik, laminitis, aşırı enerji
+- Günlük rasyonun maksimum %40'ı tahıl olmalı
+
+**3. Vitamin ve Mineraller:**
+
+**Temel İhtiyaçlar:**
+
+| Vitamin/Mineral | Kaynak | Önemi |
+|-----------------|--------|-------|
+| Kalsiyum (Ca) | Yonca, mineral taşları | Kemik sağlığı |
+| Fosfor (P) | Tahıllar | Ca ile dengeli olmalı (2:1) |
+| Tuz (NaCl) | Tuz blokları | Elektrolit dengesi |
+| Selenyum (Se) | Karma yemler, takviye | Kas fonksiyonu |
+| Vitamin A | Yeşil yemler | Görme, bağışıklık |
+| Vitamin D | Güneş ışığı | Kalsiyum emilimi |
+| Vitamin E | Yonca, tahıllar | Kas sağlığı |
+
+**Takviye Gerektirir mi?**
+- Kaliteli kaba yem + otlak → Genelde yeterli
+- Sporcu atlar → Evet
+- Sınırlı otlatma → Evet
+- Veteriner kan testi → Eksiklik tespiti
+
+### Su İhtiyacı
+
+**Günlük Tüketim:**
+- Ortalama yetişkin at: **20-40 litre/gün**
+- Sıcak havada: **40-60 litre/gün**
+- Çalışan atlar: **60-80 litre/gün**
+- Emziren kısraklar: **50-70 litre/gün**
+
+**Su Kalitesi:**
+- **Temiz, taze, soğuk** (5-15°C ideal)
+- Günde 2 kez yenilenmelidir
+- Kış aylarında donmamalı (ısıtılmış kovalutlar)
+- Klorlu havuz suyu VERMEYİN
+
+**Su Kısıtlılığı Tehlikeleri:**
+- Dehidratasyon
+- Kolik riski
+- Böbrek problemleri
+- Performans düşüşü
+
+### Beslenme Programı Örnekleri
+
+**500 kg Orta Çalışan At (Günlük):**
+
+**Sabah (07:00):**
+- 2 kg kuru ot (yonca-çayır karışımı)
+- 1.5 kg karma yem
+- Tuz bloğu serbest erişim
+- Taze su
+
+**Öğle (12:00):**
+- 3-4 saat otlatma (mevcutsa)
+- VEYA 3 kg kuru ot
+- Taze su
+
+**Akşam (18:00):**
+- 3 kg kuru ot
+- 1.5 kg karma yem
+- Havuç/elma (ödül, 1-2 adet)
+- Taze su
+
+**Gece (22:00):**
+- 2 kg kuru ot (gecede yavaş yemesi için)
+
+**Toplam:**
+- Kaba yem: 10 kg
+- Kesif yem: 3 kg
+- Otlatma veya ekstra kaba yem
+
+**Başlıca Prensipler:**
+1. **Küçük ve sık öğünler** (günde 3-4 kez)
+2. **Önce kaba yem, sonra tahıl**
+3. **Yemleme saatleri düzenli olmalı**
+4. **Çalışmadan önce ağır yem VERMEYİN** (1-2 saat önce yok)
+5. **Değişiklikleri yavaş yapın** (7-10 gün geçiş)
+
+## 2. Ahır ve Barınma
+
+### İdeal Ahır Tasarımı
+
+**Boks (Box Stall) Boyutları:**
+- **Orta boy at:** 3.5m x 3.5m (12 m²)
+- **Büyük at:** 4m x 4m (16 m²)
+- **Kısrak + tay:** 4.5m x 4.5m (20 m²)
+- **Tavan yüksekliği:** Minimum 2.5m
+
+**Zemin:**
+- **Kauçuk matlar** (ideal, eklem dostu)
+- Beton + altlık (ekonomik)
+- Toprak (doğal ama bakımı zor)
+- Drene edilebilir olmalı (idrar akışı)
+
+**Havalandırma:**
+- **Kritik öneme sahip** (solunum hastalıkları önleme)
+- Pencereler üst kısımda (çapraz hava akımı)
+- Kapılar iki parçalı (üst açık kalabilir)
+- Vantilatör (sıcak bölgelerde)
+
+**Aydınlatma:**
+- Doğal ışık (pencereler)
+- Yapay aydınlatma (LED, minimum 100 lux)
+- Gece lambası (loş, 24 saat)
+
+**Güvenlik:**
+- Keskin kenar yok
+- Kapı mandalları sağlam
+- Elektrik kabloları korumalı
+- Yangın güvenliği (duman dedektörü)
+
+### Yatak Malzemeleri
+
+**Seçenekler:**
+
+**1. Talaş (Wood Shavings):**
+- ✅ Emici, yumuşak
+- ✅ Küf oluşmaz
+- ❌ Toz yapabilir (akciğer sorunları)
+- ❌ Sık değişim gerekir
+
+**2. Saman:**
+- ✅ Ucuz
+- ❌ Atlar yer (kilo alımı)
+- ❌ Küf riski (kalitesiz saman)
+- ❌ Düşük emicilik
+
+**3. Kağıt (Shredded Paper):**
+- ✅ Tozsuiz
+- ✅ Emici
+- ❌ Pahalı
+- ❌ Ağırlaşınca taşıması zor
+
+**4. Pirinç Kabuğu:**
+- ✅ Çok emici
+- ✅ Küf oluşmaz
+- ❌ Bölgesel bulunabilirlik
+
+**Yatak Kalınlığı:**
+- 15-20 cm (ilk döşeme)
+- Günlük eklemeler ile derinlik korunur
+
+**Günlük Bakım:**
+- **Sabah:** Islak bölgeler ve gübre temizliği (mucking out)
+- **Akşam:** Kontrol ve ekleme
+- **Haftalık:** Tam değişim (gerekirse)
+
+### Dış Mekan: Padok ve Otlak
+
+**Padok (Küçük Açık Alan):**
+- At başına minimum 200 m²
+- Güvenli çit (ahşap veya elektrikli tel)
+- Gölgelik alan (ağaç veya baraka)
+- Su kaynağı
+- Kaygan zemin yok
+
+**Otlak:**
+- At başına 0.5-1 hektar (ideal)
+- Dönüşümlü otlatma (toprak dinlenmesi)
+- Zehirli bitki kontrolü (kırmızı yonca, acem borusu)
+- Düzenli gübre toplama (parazit kontrolü)
+
+**Çit Güvenliği:**
+- **Ahşap:** Klasik, güvenli ama pahalı
+- **Elektrikli tel:** Ekonomik, etkili
+- **Telli çit:** TEHLİKELİ, yaralanma riski
+- Yükseklik: Minimum 1.4m
+
+## 3. Tırnak ve Nal Bakımı
+
+### Toynak Anatomisi ve Önemi
+
+**Toynak Yapısı:**
+- Tırnak duvarı (hoof wall)
+- Taban (sole)
+- Kurbağacık (frog) - darbe emici
+- Beyaz çizgi (hassas bölge)
+
+**"No Hoof, No Horse" (Tırnak Yoksa At Yok):**
+- Toynak sağlığı = At sağlığı
+- Kötü toynak → Topallık → Çalışamaz
+
+### Günlük Tırnak Bakımı
+
+**Tırnak Temizliği (Her Gün):**
+
+**Araçlar:**
+- Tırnak kazıyıcı (hoof pick)
+- Fırça
+
+**Adımlar:**
+1. Atın bacağını nazikçe kaldırın
+2. Toprak ve taşları kazıyın
+3. Kurbağacık çevresi temizleyin (önemli!)
+4. Çatlak, koku, yumuşama kontrol edin
+5. 4 ayağı da tekrarlayın
+
+**Ne Zaman Temizlenmeli?**
+- Binmeden önce ve sonra
+- Ahırdan çıkmadan önce
+- Otlaktan geldikten sonra
+
+### Nalbant Ziyaretleri
+
+**Sıklık:**
+- **Nallı atlar:** Her 4-6 hafta
+- **Nalsız atlar:** Her 6-8 hafta
+
+**Nalbant Ne Yapar?**
+1. Eski nalları çıkarır (nallı ise)
+2. Tırnakları düzeltir (trimming)
+3. Dengeyi sağlar
+4. Yeni nal çakar (gerekirse)
+
+**Nal mı Nalsız mı?**
+
+**Nal Gereklilikleri:**
+- Sert zeminlerde çalışma
+- Tırnak yapısı zayıf
+- Yarış/performans atları
+- Veteriner tavsiyesi
+
+**Nalsız (Barefoot) Avantajları:**
+- Daha doğal
+- Kan dolaşımı daha iyi
+- Yumuşak zeminlerde ideal
+- Maliyet düşük
+
+**Kritik:** Sadece veteriner veya nalbant kararıyla
+
+### Tırnak Problemleri
+
+**Thrush (Kurbağacık Çürümesi):**
+- Kötü koku
+- Siyah akıntı
+- Kurbağacık yumuşamış
+- **Tedavi:** Antiseptik ilaç (Betadine, koppertox)
+
+**Abse (İrin):**
+- Ani topallık
+- Sıcaklık
+- **Tedavi:** Veteriner müdahale (drene etme)
+
+**Laminitis (Toynak İltihabı):**
+- Çok ağrılı
+- Topallık
+- **Acil veteriner müdahale gerekir**
+
+## 4. Tımar ve Hijyen
+
+### Günlük Tımar Rutini
+
+**Gerekli Araçlar:**
+- Kari fırçası (curry comb) - yuvarlak, kauçuk
+- Sert tüy fırçası (dandy brush)
+- Yumuşak tüy fırçası (body brush)
+- Yele ve kuyruk tarağı (mane & tail comb)
+- Sünger (gözler, burun, anüs için)
+- Toynak kazıyıcı
+
+**Tımar Adımları (15-20 dakika):**
+
+**1. Kuru Kir ve Ter Giderme:**
+- Kari fırçasıyla dairesel hareketlerle ovalayın
+- Kan dolaşımını uyarır, kiri çıkarır
+- **Kullanılmayan yerler:** Baş, bacaklar (hassas)
+
+**2. Fırçalama:**
+- Sert fırçayla kir ve tüyleri temizleyin
+- Tüy yönünde fırçalayın
+- Gövde, boyun, sırt, kalça
+
+**3. İnce Fırçalama:**
+- Yumuşak fırçayla cilayın
+- Doğal yağları dağıtır
+
+**4. Yele ve Kuyruk:**
+- Tarak veya parmaklarla açın (koparmadan)
+- Dolanmaları nazikçe çözün
+- Kondisyoner kullanılabilir
+
+**5. Yüz Temizliği:**
+- Nemli sünger ile gözler, burun
+- Her göz için farklı sünger tarafı
+
+**6. Toynak Temizliği:**
+- (Yukarıda anlatıldı)
+
+**Tımar Faydaları:**
+- Kan dolaşımı uyarımı
+- Cilt sağlığı
+- Bağ kurma zamanı
+- Yaralanma/hastalık erken teşhisi
+- Kas masajı
+
+### Yıkama (Bathing)
+
+**Ne Sıklıkla?**
+- **Yazın:** 1-2 haftada bir
+- **Kışın:** Ender veya hiç (hipotermik riski)
+- Sadece sıcak havalarda (15°C+)
+
+**Adımlar:**
+1. Atı tamamen ıslatın (ilık su)
+2. At şampuanı ile köpürtün
+3. İyice durulayın (şampuan kalıntısı kaşıntı yapar)
+4. Ter bıçağı (sweat scraper) ile fazla suyu alın
+5. Havlu ile kurulayın
+6. Kuruyuncaya kadar yürütün veya güneşte bekletin
+
+**Dikkat:**
+- Soğuk havada asla yıkamayın (zatürre riski)
+- Kulakların içine su kaçırmayın
+- Gözlere sabun kaçmasın
+
+## 5. Egzersiz ve Çalışma
+
+### Günlük Aktivite İhtiyacı
+
+**Minimum Gereksinimler:**
+- **Otlakta serbest dolaşım:** 6-8 saat/gün
+- **El ile çalıştırma:** 30-60 dakika/gün
+- **Yürüyüş:** En az 20 dakika
+
+**Hareketsizlik Riskleri:**
+- Davranış problemleri (saldırganlık, stres)
+- Kilo alımı
+- Eklem sertliği
+- Topallık
+
+### Isınma ve Soğuma
+
+**Isınma (Warm-up):**
+- İlk 10-15 dakika **adım** (walk)
+- Kasları ısıtır
+- Yaralanma riskini azaltır
+
+**Çalışma:**
+- Tırıs (trot), dörtnal (canter), galop
+- Süre ve yoğunluk atın kondisyonuna göre
+
+**Soğuma (Cool-down):**
+- Son 10-15 dakika **adım**
+- Kalp atışını normalleştirir
+- Kas yorgunluğunu azaltır
+- Terliyse kuruyuncaya kadar yürütün
+
+### Aşırı Çalıştırma Belirtileri
+
+**Dikkat Edilmesi Gereken:**
+- Aşırı terleme (normal değil)
+- Hızlı nefes alma (dinlenmez)
+- Titreme
+- Topallık
+- İsteksizlik
+
+**Müdahale:**
+- Derhal durdurun
+- Suyla soğutun (ılık, yavaşça)
+- Veteriner çağırın
+
+## 6. Sağlık ve Hastalık Önleme
+
+### Aşı Programı
+
+**Temel Aşılar (Zorunlu):**
+
+**1. Tetanos:**
+- İlk aşı: 6 aylık
+- Rapel: Yılda 1 kez
+- Yaralanmalarda acil rapel
+
+**2. Influenza (At Gribi):**
+- İlk aşı: 6 aylık
+- Rapel: Yılda 2 kez (her 6 ay)
+- Solunum yolu hastalığı
+
+**3. Equine Herpesvirus (EHV):**
+- Solunum ve sinir sistemi
+- Rapel: Yılda 2 kez
+- Gebe kısraklar: Özel program
+
+**Opsiyonel Aşılar:**
+- **Kuduz:** Yüksek riskli bölgelerde
+- **Strangles (Hıyar):** Salgın bölgelerinde
+
+### Parazit Kontrolü
+
+**İç Parazitler:**
+- Roundworms, strongyles, tapeworms
+
+**Ilaçlama (Deworming) Programı:**
+- **İlkbahar:** İvermectin
+- **Yaz:** Fenbendazole
+- **Sonbahar:** İvermectin + Praziquantel
+- **Kış:** Moxidectin
+
+**Alternatif: Dışkı Testi:**
+- 3 ayda bir dışkı analizi
+- Sadece gerekirse ilaçlama (direnç önleme)
+
+**Dış Parazitler:**
+- **Sinekler:** Sinekli karasinek tuzakları, örtü
+- **Keneler:** Düzenli kontrol, ilaçlı sprey
+- **Botfly:** Yumurtaları tımar sırasında kazıyın
+
+### Diş Bakımı
+
+**Neden Önemli?**
+- Atların dişleri sürekli büyür
+- Aşınma düzensiz olabilir (keskin kenarlar)
+- Yemek çiğnemede zorluk
+
+**Diş Kontrolü:**
+- **Yılda 1-2 kez veteriner kontrolü**
+- **Float (Rasp):** Keskin kenarların törpülenmesi
+
+**Diş Problemi Belirtileri:**
+- Yemekte güçlük
+- Ağzından yem dökmesi (quidding)
+- Kilo kaybı
+- Başını yana eğme (biniş sırasında)
+
+### Yaygın Sağlık Sorunları
+
+**Kolik (Bağırsak Ağrısı):**
+- **En yaygın acil durum**
+- Belirtiler: Huzursuzluk, yere yuvarlanma, terleme, bacağına bakma
+- **Acil veteriner müdahale**
+
+**Laminitis (Toynak İltihabı):**
+- Belirtiler: Topallık, ön bacaklarda durma isteksizliği
+- Nedenleri: Aşırı tahıl, otlak, obezite
+
+**Solunum Hastalıkları:**
+- Belirtiler: Öksürük, burun akıntısı, ateş
+- Kötü havalandırma, toz
+
+## 7. Davranış ve Psikoloji
+
+### Sürü Hayvanı Psikolojisi
+
+**Doğal Davranışlar:**
+- Sürü içinde yaşarlar (sosyal)
+- Hiyerarşi kurulur (alfa at)
+- Uçma içgüdüsü (kaç, sonra sor)
+- Otlayarak günün çoğunu geçirirler
+
+**İhtiyaçlar:**
+- **Sosyal temas:** Diğer atlarla göz teması/temas
+- **Hareket:** Kapalı alanda tüm gün durmak stres yaratır
+- **Otlatma:** Doğal davranış
+
+### Stres Belirtileri
+
+- Ahırın kapısını ısırma (cribbing)
+- İleri geri yürüme (weaving)
+- Kuyruk çekme
+- Agresyon
+- Huzursuzluk
+
+**Çözüm:**
+- Daha fazla dış mekan
+- Sosyal temas
+- Oyuncaklar (sarkıt top, yem topu)
+
+### Güvenli Yaklaşım ve Tutma
+
+**Yaklaşma:**
+- **Yandan yaklaşın** (önden veya arkadan asla)
+- Konuşun (sesinizi duysun)
+- Omzuna veya boynuna dokunun
+
+**Yular Takma:**
+- Sol taraftan yaklaşın
+- Boynuna kol atın, sonra yular geçirin
+
+**Bağlama:**
+- Güvenli bir noktaya
+- Hızlı açılan düğüm (quick-release)
+- Çapraz bağlama (cross-ties) ideal
+
+## 8. Yaşlı At Bakımı
+
+### Yaşlanma Belirtileri (15+ yaş)
+
+- Diş aşınması (yem çiğneyememe)
+- Kilo kaybı
+- Eklem sertliği
+- Gri tüyler (yüzde)
+- Enerji azalması
+
+### Özel Bakım
+
+**Beslenme:**
+- **Senior yem:** Yumuşak, yüksek kalori
+- Islatılmış yem peletleri (diş problemleri)
+- Daha sık yemleme (3-4 öğün)
+- Kilo takibi (BCS - Body Condition Score)
+
+**Barınma:**
+- Rüzgar/soğuktan korumalı
+- Yumuşak zemin/yatak
+- Kolay erişimli yem/su
+
+**Sağlık:**
+- Sık veteriner kontrolü (yılda 2-3)
+- Eklem desteği (glucosamine takviyesi)
+- Diş kontrolü daha sık
+
+## 9. Acil Durum Müdahale
+
+### İlk Yardım Çantası
+
+**Temel Malzemeler:**
+- Dijital termometre (rektal)
+- Steteskop
+- Bandaj ve gazlı bez
+- Antiseptik (Betadine)
+- Yara merhemi
+- Enjektör (ilaç için)
+- Makas
+- Veteriner iletişim bilgileri
+
+### Vital Belirtiler (Normal Değerler)
+
+| Parametre | Normal Aralık |
+|-----------|---------------|
+| Vücut Sıcaklığı | 37.5-38.5°C |
+| Nabız (Kalp Atışı) | 28-44 atım/dakika |
+| Solunum | 8-16 nefes/dakika |
+| Kapiller Dolum Süresi | <2 saniye |
+
+**Nabız Ölçümü:**
+- Alt çenede (submandibular arter)
+- Veya ön bacak içinde (dijital arter)
+
+**Dehidratasyon Testi:**
+- Boyun derisini çimdikleyin
+- 1 saniyede düzelmeli
+- Yavaşsa → Dehidrasyon
+
+### Ne Zaman Acil Veteriner?
+
+**HEMEN Arayın:**
+- Kolik belirtileri
+- Şiddetli topallık (bacak taşıyamıyor)
+- Kan kaybı
+- Göz yaralanması
+- Zor doğum
+- Ateş (39°C+)
+
+## 10. Maliyet Planlaması
+
+### Başlangıç Maliyetleri
+
+- **At satın alma:** 15,000-100,000+ TL
+- **Ahır/barınak:** 50,000-200,000 TL
+- **Ekipman:** 10,000-30,000 TL (eyer, yular, tımar araçları)
+
+### Aylık Maliyetler (Ortalama)
+
+| Harcama Kalemi | Aylık Tutar |
+|----------------|-------------|
+| Kaba yem (ot) | 1,500-3,000 TL |
+| Kesif yem | 1,000-2,000 TL |
+| Yatak malzemesi | 500-1,000 TL |
+| Nalbant | 500-1,000 TL |
+| Veteriner (rutin) | 500-1,500 TL |
+| **Toplam** | **4,000-8,500 TL** |
+
+### Yıllık Maliyetler
+
+- **Aşılar:** 1,500-3,000 TL
+- **Parazit ilaçları:** 1,000-1,500 TL
+- **Diş bakımı:** 1,000-2,000 TL
+- **Acil veteriner (rezerv):** 5,000-10,000 TL
+
+## Sonuç ve Uzman Tavsiyeleri
+
+At sahibi olmak, günlük disiplin, finansal sorumluluk ve derin bir bağ gerektirir. Atınız size güvenir ve bakımını size emanet eder.
+
+**Başarılı At Sahipliği için Altın Kurallar:**
+
+✅ **Beslenme:**
+- Kaba yem önceliklidir (%60-70 kuru ot)
+- Küçük ve sık öğünler
+- Temiz, taze su her zaman erişilebilir
+- Değişiklikleri yavaş yapın
+
+✅ **Barınma:**
+- Temiz, kuru, havalandırmalı ahır
+- Günlük otlak/padok erişimi
+- Güvenli çitler
+
+✅ **Sağlık:**
+- Yıllık aşılar ve diş kontrolü
+- 4-6 haftada bir nalbant
+- Günlük toynak temizliği
+- Parazit kontrolü
+
+✅ **Egzersiz:**
+- Günlük hareket (minimum 30 dk)
+- Isınma ve soğuma
+- Kondisyon takibi
+
+✅ **Tımar:**
+- Günlük fırçalama (bağ kurma + sağlık kontrolü)
+- Yele ve kuyruk bakımı
+- Cilt sağlığı izleme
+
+✅ **Güvenlik:**
+- Sakin ve tutarlı davranın
+- At dilini öğrenin (kulak, kuyruk dili)
+- Asla arkadan yaklaşmayın
+
+**Hatırlatma:**
+"At bakmak 365 gün, 24 saat sorumluluktur. Tatil, hafta sonu, bayram demez. Her gün yem, su, tımar ve kontrol gerekir."
+
+**Tecrübe Önerisi:**
+- İlk atınızı almadan önce bir ahırda gönüllü çalışın (3-6 ay)
+- Deneyimli bir mentordan destek alın
+- At kulüplerine katılın
+
+Atınız, verdiğiniz özenin karşılığını sevgi, sadakat ve unutulmaz anılarla verir. Sorumlu sahiplik, her iki taraf için de mutluluk getirir!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - At hastalıkları ve aşı protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi** - At beslenmesi ve sağlık standartları
+
+3. **Tarım ve Orman Bakanlığı - Hayvancılık Genel Müdürlüğü** - At yetiştiriciliği ve bakım kılavuzları
+
+### Uluslararası Kaynaklar
+
+4. **American Association of Equine Practitioners (AAEP)** - At sağlık bakım rehberleri
+
+5. **British Horse Society** - At refahı ve bakım standartları
+
+6. **Equine Science Society** - At beslenmesi bilimsel araştırmaları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve equine veteriner hekimleri tarafından denetlenmektedir.`,
+    categoryTags: ["at", "besleme", "bakım", "barınak", "veteriner"],
+    readTime: 24,
+    published: true,
+  },
+
+  {
+    slug: "atlarda-ayak-saglik-nal-bakimi",
+    title: "Atlarda Ayak Sağlığı ve Nal Bakımı",
+    excerpt: "Atların ayak sağlığı genel sağlıklarının temelidir. Toynak bakımı, nal çakma ve yaygın ayak problemleri hakkında detaylı rehber.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Atlarda Ayak Sağlığı ve Nal Bakımı: Kapsamlı Rehber
+
+"No hoof, no horse" (Tırnak yoksa at yok) - Bu ata sözü, atlardaki ayak sağlığının kritik önemini özetler. Atların ayakları vücut ağırlığını taşır, şok emici görev yapar ve hareketi mümkün kılar. Sağlıklı toynaklarsız, en iyi performansa sahip at bile çalışamaz hale gelir. Bu kapsamlı rehber, at ayak anatomisinden günlük bakıma, yaygın hastalıklardan profesyonel nal bakımına kadar her şeyi detaylı olarak açıklamaktadır.
+
+## 1. Toynak Anatomisi ve Fizyoloji
+
+### Dış Yapı
+
+**Temel Bileşenler:**
+
+**1. Tırnak Duvarı (Hoof Wall):**
+- En sert dış tabaka
+- Keratin proteinden oluşur
+- Ayda 6-8 mm büyür
+- Bölgeleri: Ayak ucu (toe), yan duvarlar (quarters), topuklar (heels)
+
+**2. Taban (Sole):**
+- Tırnak duvarının altındaki konkav alan
+- İç organları korur
+- Pürüzsüz ve kavisli olmalı
+
+**3. Kurbağacık (Frog):**
+- V-şeklinde yumuşak doku
+- Darbe emici, kan pompası görevi
+- Elastik yapı
+- Zemine temas etmeli
+
+**4. Beyaz Çizgi (White Line):**
+- Tırnak duvarı ile tabanın birleşimi
+- Nal çakma için referans
+- Hassas bölge (ayrılma belirtisi)
+
+**5. Bars:**
+- Kurbağacığın yanlarındaki sert çıkıntılar
+- Yapısal destek
+
+### İç Anatomi
+
+**Coffin Bone (P3 - 3. Falanks):**
+- Toynak içindeki kemik
+- Tırnak duvarına paralel konumlu
+- Laminitis'te rotasyon riski
+
+**Laminae (Yaprakçıklar):**
+- Coffin bone ile tırnak duvarını birleştirir
+- Hassas yapı
+- Laminitis bu bölgeyi etkiler
+
+**Digital Cushion:**
+- Topuk bölgesindeki şok emici yastık
+- Kurbağacık basıncıyla kan pompalar
+- Kan dolaşımını uyarır
+
+**Kan Damarları ve Sinirler:**
+- Zengin kan akışı
+- Termoregülasyon
+- Darbe sonrası şişme/ısınma
+
+### Toynak Büyüme ve Yenileme
+
+**Büyüme Hızı:**
+- Ayda 6-10 mm (ortalama 8 mm)
+- Yaza kıştan daha hızlı
+- Genç atlarda daha hızlı
+- Beslenme ve sağlık etkiler
+
+**Tam Yenilenme Süresi:**
+- Tırnak duvarı tam yenilenmesi: 9-12 ay
+- Topuktan ayak ucuna doğru büyür
+
+**Büyümeyi Etkileyen Faktörler:**
+- Protein alımı (biotin önemli)
+- Kan dolaşımı
+- Egzersiz (stimüle eder)
+- Zeminin sertliği
+- Mevsim
+
+## 2. Günlük Toynak Bakımı
+
+### Her Gün Temizlik (Hoof Picking)
+
+**Gerekli Araçlar:**
+- **Hoof pick (tırnak kazıyıcı):** Metal, sivri uçlu
+- **Fırça:** Sert kıllı, kir temizliği için
+
+**Doğru Temizleme Tekniği:**
+
+**Adım adım:**
+1. **Yaklaşma:**
+   - Atın yanından (önden değil) yaklaşın
+   - Omuza dokunun, bacağa doğru ilerleyin
+   - "Ayak" diye komut verin
+2. **Bacağı kaldırma:**
+   - Ayak bilek bölgesine hafif bastırın
+   - At ayağını kaldıracak
+   - Diziniz arasında veya önünüzde tutun
+3. **Kir ve Taş Temizliği:**
+   - **Topuk→Ayak ucu yönünde kazıyın** (ters yönde yaralanma riski)
+   - Kurbağacığın yanlarını temizleyin (V-oluğu)
+   - Tabanı kontrol edin (taş, çakıl)
+4. **Kurbağacık Kontrolü:**
+   - Çatlak var mı?
+   - Koku var mı? (thrush belirtisi)
+   - Yumuşak mı sert mi?
+5. **Fırçalama:**
+   - Sert fırçayla kir artıklarını temizleyin
+6. **Muayene:**
+   - Çatlaklar
+   - Taş sıkışması
+   - Nal durumu (varsa)
+   - Sıcaklık artışı (parmakla hissedin)
+
+**Ne Zaman Temizlenmeli?**
+- Binmeden önce MUTLAKA
+- Bindikten sonra
+- Ahıra girdikten sonra
+- İdeal: Günde 2 kez
+
+**Temizliği Atlamayın:**
+- Thrush riski (kurbağacık çürümesi)
+- Taş sıkışması → Apse
+- Nallarda gevşeme erken tespit
+
+### Haftalık Derin Temizlik
+
+**Ek İşlemler:**
+- Taban ve kurbağacık yıkama (fırça+su)
+- Antiseptik uygulama (gerekirse)
+- Hoof conditioner (nem dengesi)
+
+### Toynak Bakım Ürünleri
+
+**1. Hoof Oil/Dressing:**
+- Nem dengeleyici
+- Haftada 2-3 kez (fazla değil!)
+- Tırnağa parlaklık verir
+- Yararlı mı? Tartışmalı - Fazla kullanım yumuşatır
+
+**2. Hoof Hardener:**
+- Yumuşak, kırılgan tırnaklar için
+- Formaldehyde içerir (dikkatli kullanın)
+- Veteriner tavsiyesi ile
+
+**3. Thrush Tedavi Ürünleri:**
+- Koppertox, Betadine
+- Küflü, nemli kurbağacıklar için
+- Günlük uygulama (enfeksiyon varsa)
+
+**4. Hoof Packing:**
+- Iltihaplı, hassas tabanlar için
+- Soğutma ve destek
+- Pamuk/gazlı bez ile uygulanır
+
+**5. Stockholm Tar:**
+- Geleneksel koruyucu
+- Nem girişini engeller
+- Çamurlu zeminlerde
+
+## 3. Nalbant Ziyaretleri ve Nal Bakımı
+
+### Nalbant Nedir ve Ne Yapar?
+
+**Farrier (Nalbant):**
+- Toynak bakımı uzmanı
+- Tırnakları düzeltir (trimming)
+- Nal çakar (shoeing)
+- Ayak problemlerini tedavi eder
+- Veteriner ile işbirliği
+
+**Eğitim ve Sertifikasyon:**
+- Mesleki eğitim programları
+- Veteriner anatomisi bilgisi
+- Pratik deneyim
+- Türkiye'de standart sertifikasyon yok (tecrübe önemli)
+
+### Ne Sıklıkla Nalbant Gerekir?
+
+**Genel Kural:**
+- **Nallı atlar:** 4-6 hafta
+- **Nalsız (barefoot) atlar:** 6-8 hafta
+- **Yarış atları:** 3-4 hafta (sık)
+- **Emekli/az çalışan:** 8-10 hafta
+
+**Erken Belirti (Nalbanta İhtiyaç):**
+- Nal gevşemiş (klik sesi)
+- Tırnak uzamış (>10-12 cm)
+- Ayak denge bozulmuş (bir taraf uzun)
+- Nalın yarısı aşınmış
+- Kurbağacık zemine değmiyor (fazla uzun tırnak)
+
+### Nalbant Ziyareti Süreci
+
+**1. Trimming (Tırnak Düzeltme - Barefoot):**
+
+**Adımlar:**
+1. Eski nalları çıkarır (nallı ise)
+2. Taban ve kurbağacık temizliği
+3. Tırnak duvarı kesimi (nipper ile)
+4. Taban düzleme (knife ile)
+5. Rasp ile düzgünleştirme
+6. Denge kontrolü (seviye testi)
+
+**Hedef:**
+- Tırnak duvarı 45-50° açıda
+- Taban hafif konkav
+- Kurbağacık zemine değecek seviye
+- Topuk-ayak ucu dengeli
+
+**2. Shoeing (Nal Çakma):**
+
+**Mal Seçimi:**
+- **Steel (Çelik):** En yaygın, dayanıklı
+- **Aluminum (Alüminyum):** Hafif, yarış atları
+- **Plastic (Plastik):** Terapötik, özel durumlar
+
+**Nal Tipleği:**
+- **Kwan (Standard Shoe):** Genel amaçlı
+- **Egg Bar:** Topuk desteği
+- **Heart Bar:** Laminitis tedavisi
+- **Pads (Altlık):** Hassas tabanlar için
+
+**Çakma Süreci:**
+1. Nal ısıtılır ve şekillendirilir (dövme)
+2. Tırnağa uygulanır (çizgi kontrolü)
+3. Soğutulur
+4. Çiviler çakılır:
+   - Beyaz çizginin dışına
+   - 6-8 çivi (boyuta göre)
+   - Çivi uçları kıvrılır ve kesilir (clinch)
+5. Rasp ile son rötuş
+
+**Önemli:**
+- Çivi ASLA hassas bölgeye girmemeli
+- "Hot shoeing" daha iyi fit ama uygulama gerektir
+- "Cold shoeing" daha hızlı ama az özelleştirilebilir
+
+## 4. Nallı vs. Nalsız (Barefoot) At Yönetimi
+
+### Neden Nal Gerekir?
+
+**Nal Çakma Nedenleri:**
+- **Sert Zemin:** Asfalt, kayalık arazide aşınma önleme
+- **Zayıf Tırnak:** Kolayca kırılan, aşınır
+- **Performans:** Yarış, atlama, uzun mesafe
+- **Terapötik:** Topallık tedavisi
+- **Kayma Önleme:** Buzlu/kaygan zeminlerde
+
+### Barefoot (Nalsız) Yaklaşım
+
+**Felsefe:**
+- Doğal toynak fonksiyonu
+- Daha iyi kan dolaşımı
+- Duyusal geri bildirim
+- Daha sağlıklı (doğru yönetimle)
+
+**Kimler Barefoot Kalabilir?**
+- Doğal/yumuşak zeminlerde çalışan
+- Güçlü toynak yapısı
+- Hafif-orta çalışma yükü
+- Düzenli nalbant bakımı alan
+
+**Barefoot'tan Nala Geçiş:**
+- Yavaş geçiş (2-3 ay)
+- Kademeli sertleştirme
+- Çalışma yükü artışı
+
+**Naldan Barefoot'a Geçiş:**
+- **Daha zor ve uzun sürer (6-12 ay)**
+- İlk 2-3 ay hassasiyet
+- Boots kullanımı (sert zeminlerde)
+- Kondisyon kaybı beklenir
+
+## 5. Yaygın Ayak Problemleri
+
+### Thrush (Kurbağacık Çürümesi)
+
+**Nedir?**
+- Bakteriyel/fungal enfeksiyon
+- Kurbağacık ve V-oluğunu etkiler
+
+**Nedenler:**
+- Nemli, kirli ahır koşulları
+- Yetersiz tırnak temizliği
+- Uzun süre ıslak zemin
+
+**Belirtiler:**
+- **Kötü koku** (en belirgin)
+- Siyah, yapışkan akıntı
+- Kurbağacık yumuşamış
+- Hassasiyet (basmak istemez)
+
+**Tedavi:**
+1. **Günlük Temizlik:**
+   - Enfekte dokuyu temizleyin
+   - Kuru tutun
+2. **Antiseptik Uygulama:**
+   - Koppertox, Betadine
+   - Günde 1-2 kez
+   - 7-14 gün
+3. **Ahır Hijyeni:**
+   - Yatak değişimi
+   - Kuru tutma
+4. **Şiddetli Vakalar:**
+   - Veteriner muayenesi
+   - Daha güçlü ilaçlar
+
+**Önleme:**
+- Günlük toynak temizliği
+- Kuru ahır
+- Havalandırma
+
+### Abse (Toynak Apsesi/İrin)
+
+**Nedir?**
+- Toynak içinde iltihap ve irin birikimi
+- Çok ağrılıdır
+
+**Nedenler:**
+- Penetrasyon (çivi, taş)
+- Çatlak üzerinden bakteri girişi
+- Zayıf beyaz çizgi
+
+**Belirtiler:**
+- **Ani, şiddetli topallık** (en karakteristik)
+- Bacağı taşıyamaz
+- Dijital pulse (darbe) hissedilir
+- Toynak sıcak
+- Şişlik (bazen)
+
+**Teşhis:**
+- Hoof tester ile baskı testi
+- Ağrı noktası bulma
+- Röntgen (bazen)
+
+**Tedavi:**
+1. **Veteriner Müdahale:**
+   - Apsevi drain etme (boşaltma)
+   - Delik açma
+2. **Sıcak Su Banyosu:**
+   - Epsom tuzu + ılık su
+   - 20 dakika, günde 2-3 kez
+   - Yumuşatma ve çekme
+3. **Bandaj:**
+   - Antiseptik pamuk
+   - Koruyucu bandaj
+   - Günlük değişim
+4. **Antibiyotik:**
+   - Oral veya enjeksiyon (veteriner)
+5. **Tetanoz Aşısı:**
+   - Açık yara = Tetanoz riski
+   - Güncel aşı kontrolü
+
+**İyileşme Süresi:** 5-10 gün
+
+**Önleme:**
+- Günlük temizlik
+- Nalbant bakımı
+- Sert objeleri ahırdan uzak tutun
+
+### White Line Disease (Beyaz Çizgi Hastalığı)
+
+**Nedir?**
+- Tırnak duvarının tabandan ayrılması
+- Mantar/bakteri tırnağı içten yer
+- "Seedy toe" olarak da bilinir
+
+**Belirtiler:**
+- Tırnak duvarında boşluklar
+- Beyaz/sarı toz
+- Tırnak duvarı gevşek
+- Nal tutmaz (çiviler gevşer)
+
+**Tedavi:**
+1. **Enfekte Dokunun Çıkarılması:**
+   - Nalbant veya veteriner
+   - Etkilenen bölge açılır
+2. **Antiseptik:**
+   - Hydrogen peroxide, Betadine
+   - Günlük uygulama
+3. **Koruyucu Bandaj veya Glue-on Shoe:**
+   - Destek sağlama
+4. **Büyüme Bekleme:**
+   - Tam iyileşme 6-12 ay
+
+**Önleme:**
+- Düzenli nalbant bakımı
+- Kuru koşullar
+- Erken tespit
+
+### Laminitis (Toynak İltihabı)
+
+**Nedir?**
+- Laminae'nin iltihabı
+- Coffin bone'un rotasyonu/batması (sinker)
+- **Acil ve ciddi durumdur**
+
+**Nedenler:**
+- **Aşırı tahıl tüketimi** (en yaygın)
+- Zengin otlak (taze bahar çayırı)
+- Obezite
+- Cushing hastalığı
+- Ağır yük (tek ayak)
+- Ağır gebe (founder postpartum)
+
+**Belirtiler:**
+- **Ön ayaklarda topallık**
+- "Founder stance": Arka ayakları öne alır (ağırlık dağıtma)
+- Yürümek istemez
+- Yatar
+- Toynaklarda ısı artışı
+- Dijital pulse güçlü
+
+**Aşamalar:**
+- **Akut:** İlk 48-72 saat, acil müdahale
+- **Subakut:** 72 saat - 6 hafta
+- **Kronik:** 6+ hafta, kalıcı hasar
+
+**Tedavi (ACIL VETERİNER!):**
+1. **Soğutma:**
+   - Buz banyosu
+   - İltihabı azaltır
+2. **Ağrı Kesici:**
+   - Phenylbutazone (Bute)
+   - NSAIDs
+3. **Destekleyici Nal:**
+   - Heart bar shoe
+   - Frog support
+4. **Beslenme Değişikliği:**
+   - Tahıl kesme
+   - Kuru ot, az kalori
+5. **Istirahat:**
+   - Yumuşak yatak
+   - Minimal hareket
+
+**Önleme (Çok Önemli!):**
+- Tahıl kontrolü
+- Kilo yönetimi
+- Yavaş otlak geçişi
+- Metabolik hastalık takibi
+
+### Navicular Disease (Navicular Sendromu)
+
+**Nedir?**
+- Navicular bone'da dejenerasyon
+- Kronik topallık
+- İyileştirilemez, sadece yönetilebilir
+
+**Belirtiler:**
+- İlerleyici topallık
+- Sert zeminde daha kötü
+- Kısa adımlar
+- Ayak ucuna basma
+- Topuk ağrısı
+
+**Tedavi:**
+- Düzeltici nallar (egg bar, rocker toe)
+- Ağrı kesici
+- Isıraat joint enjeksiyonları
+- Cerrahi (neurectomy - sinir kesme)
+
+**Yönetim:**
+- Yumuşak zemin
+- Düzenli egzersiz
+- Kilo kontrolü
+
+### Quarter Crack / Toe Crack (Tırnak Çatlağı)
+
+**Nedir?**
+- Tırnak duvarında dikey çatlak
+- Ayak ucu veya yan duvarlarda
+
+**Nedenler:**
+- Kuru, kırılgan tırnak
+- Dengesiz düzeltme
+- Travma/darbe
+- Yetersiz beslenme
+
+**Tedavi:**
+1. **Stabilizasyon:**
+   - Çivi/vida ile sabitleme
+   - Reçine dolgular
+   - Özel nal
+2. **Beslenme Desteği:**
+   - Biotin takviyesi
+3. **Büyüme Bekleme:**
+   - Tam iyileşme 9-12 ay
+
+## 6. Ayak Sağlığını Destekleyen Beslenme
+
+### Kritik Besin Maddeleri
+
+**Biotin (Vitamin B7):**
+- Keratin üretimi
+- Tırnak kalitesi artışı
+- **Doz:** 15-20 mg/gün
+- Sonuç: 6-9 ay düzenli kullanımda
+
+**Metiyonin (Amino Asit):**
+- Kükürt içerir
+- Keratin yapısı için temel
+- Kaynak: Yüksek kaliteli protein yemleri
+
+**Çinko (Zinc):**
+- Hücre bölünmesi
+- Yara iyileşmesi
+- Eksiklik: Zayıf tırnak, yavaş büyüme
+
+**Kalsiyum ve Fosfor:**
+- Denge (2:1 Ca:P)
+- Kemik ve tırnak sağlığı
+
+**Omega-3 Yağ Asitleri:**
+- İltihap azaltma
+- Kan dolaşımı
+
+### Takviye Ürünleri
+
+**Hoof Supplements:**
+- Biotin + metiyonin + çinko formülleri
+- Marka örnekleri: Farrier's Formula, Hoof Power
+- **Süre:** Minimum 6-9 ay (sonuç için)
+- **Maliyet:** Aylık 200-500 TL
+
+**Ne Zaman Gerekli?**
+- Zayıf, kırılgan tırnak
+- Yavaş büyüme
+- Tekrarlayan çatlaklar
+- Veteriner tavsiyesi
+
+## 7. Özel Durumlar ve Terapötik Nallama
+
+### Topallık Yönetimi
+
+**Farklı Nal Tipleri:**
+- **Rocker Toe:** Navicular için, breakover kolaylaştırır
+- **Egg Bar:** Topuk desteği
+- **Heart Bar:** Laminitis, frog desteği
+- **Wedge Pads:** Açı düzeltme
+- **Glue-on Shoes:** Çivi çakılamayan vakalar
+
+### Genç Atlar (Yavru)
+
+**İlk Trimming:**
+- 4-6 haftalık
+- Ekstremite deformitesi düzeltme
+- Angular limb deformity
+
+**Büyüme Döneminde:**
+- 4-6 haftada bir düzeltme
+- Balanced growth
+
+### Yaşlı Atlar
+
+**Özel İhtiyaçlar:**
+- Daha sık nalbant (eklem problemi → denge önemli)
+- Yumuşak nallar/altlıklar
+- Artrit yönetimi
+
+## 8. Acil Durum: Nal Kaybı veya Yaralanma
+
+### Nal Gevşemesi/Kaybı
+
+**Ne Yapmalı?**
+1. Atı durdur, bağla
+2. Nal tamamen çıkmışsa:
+   - Toplanıp saklanabilir (nadiren yeniden kullanılır)
+3. Yarı gevşek ise:
+   - NAL ÇIKARTMAYIN (yaralanma riski)
+   - Atı hareket ettirmeyin
+   - Nalbant çağırın
+4. Koruma:
+   - Hoof boot giydirin (varsa)
+   - Yumuşak zeminde tutun
+
+**Geçici Çözüm:**
+- Duct tape ile sargı (sadece çok kısa süre)
+- Mümkünse atı hareket ettirmeyin
+
+### Toynak Kanama
+
+**Nedenler:**
+- Çivi batması
+- Derin kesik
+- Apse açılması
+
+**Müdahale:**
+1. **Basınç uygulama:**
+   - Temiz bez/gazlı bez
+   - 5-10 dakika baskı
+2. **Temizlik:**
+   - Antiseptik (Betadine)
+3. **Bandaj:**
+   - Koruyucu, sıkı değil
+4. **Veteriner çağırın:**
+   - Tetanoz aşısı kontrolü
+   - Derin yaralanmalarda antibiyotik
+
+### Çivi Batması
+
+**ÖNEMLİ:**
+- Çiviyi HEMEN ÇIKARTMAYIN
+- Derinlik ve yeri işaretler (veteriner için)
+- Sabit tutun, fotoğrafını çekin
+- Sonra çıkarın (gerekirse)
+
+**Sonrası:**
+- Antiseptik yıkama
+- Tetanoz aşısı
+- Antibiyotik tedavisi
+- Apse gelişimi izleme
+
+## 9. Mevsimsel Bakım
+
+### Kış Bakımı
+
+**Sorunlar:**
+- Kar/buz toplanması (toynak tabanında)
+- Kayma
+- Çamur (thrush riski)
+
+**Çözümler:**
+- Kar toplanmasını önleyen nallar (borium studs)
+- Kar yastıkları (rim pads)
+- Daha sık temizlik
+- Kuru tutma
+
+### Yaz Bakımı
+
+**Sorunlar:**
+- Kuru, çatlayan tırnak
+- Sert zemin aşınması
+- Toz ve kir
+
+**Çözümler:**
+- Hoof conditioner kullanımı
+- Nemli yatak
+- Sık suyla yıkama (sonra kurulama)
+
+## 10. Nalbant Seçimi ve İletişim
+
+### Kaliteli Nalbant Özellikleri
+
+**Teknik Yeterlilik:**
+- Sertifika/eğitim
+- Deneyim (referanslar)
+- Anatomik bilgi
+- Problem çözme becerisi
+
+**İletişim:**
+- Veteriner ile işbirliği
+- Sahibin sorularını cevaplar
+- Eğitim verir
+- Düzenli randevu
+
+**Davranış:**
+- Atla sakin ve nazik
+- Güvenlik öncelikli
+- Temiz ve tertipli
+
+### Maliyet
+
+**Ortalama Fiyatlar (2024-2025):**
+- **Trimming (Düzeltme):** 300-600 TL
+- **Shoeing (2 ön ayak):** 800-1,500 TL
+- **Shoeing (4 ayak):** 1,500-2,500 TL
+- **Özel/Terapötik:** 2,000-4,000+ TL
+
+**Yıllık Maliyet:**
+- Nallı at (4 ayak, 6 hafta): ~18,000-30,000 TL
+- Barefoot (8 hafta trimming): ~4,000-7,000 TL
+
+### Randevu ve Hazırlık
+
+**Öncesi:**
+- Atı temizleyin
+- Toynak temizliği yapın
+- Sakin bir ortam sağlayın
+- Çalışma alanı hazırlayın
+
+**Sırasında:**
+- Atı tutun
+- Soruları sorun
+- Gözlemleyin ve öğrenin
+
+**Sonrası:**
+- Özel talimatları not alın
+- Sonraki randevuyu planlayın
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Ayak sağlığı, atın genel sağlığının ve performansının temelidir. İhmal edildiğinde ciddi ve pahalı sorunlara yol açar. Düzenli bakım ve profesyonel nalbant desteği ile atınızın ayakları ömür boyu sağlıklı kalabilir.
+
+**Ayak Sağlığı İçin Altın Kurallar:**
+
+✅ **Günlük Rutin:**
+- Her gün toynak temizliği (en az 1 kez)
+- Görsel muayene (çatlak, ısı, nal kontrolü)
+- Kuru ahır koşulları
+
+✅ **Profesyonel Bakım:**
+- Nallı atlar: 4-6 haftada bir nalbant
+- Barefoot atlar: 6-8 haftada bir trimming
+- Zamanında randevu (ertelemeyin!)
+
+✅ **Hijyen:**
+- Temiz, kuru yatak
+- Thrush önleme
+- Antiseptik kullanımı (gerekirse)
+
+✅ **Beslenme:**
+- Kaliteli protein
+- Biotin takviyesi (zayıf tırnaklarda)
+- Dengeli mineral
+
+✅ **Erken Müdahale:**
+- Topallık hemen veteriner
+- Apse belirtileri → acil
+- Nalda gevşeme → nalbant
+
+✅ **Eğitim:**
+- At ayak anatomisini öğrenin
+- Normalin ne olduğunu bilin
+- Nalbantınızla iletişimde olun
+
+**Uyarı İşaretleri (Acil Veteriner):**
+- Şiddetli topallık
+- Ayağı yere basamama
+- Şişlik + ısı artışı
+- Laminitis belirtileri (founder stance)
+- Kanamalı yara
+
+**Hatırlatma:**
+"Atın ayakları onun işidir. Sağlıklı tırnaklar olmadan en iyi at bile işe yaramaz."
+
+Düzenli bakım, dikkatli gözlem ve profesyonel destekle atınızın ayakları her zaman sağlıklı ve güçlü kalacaktır. Küçük sorunları erken tespit ederek büyük problemleri ve pahalı tedavileri önleyebilirsiniz!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - At ayak hastalıkları ve nallama protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi - Cerrahi Anabilim Dalı** - At ortopedisi ve toynak anatomisi
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - At ayak hastalıkları ve tedavi yöntemleri
+
+### Uluslararası Kaynaklar
+
+4. **American Farrier's Association (AFA)** - Nallama standartları ve best practices
+
+5. **British Farriers and Blacksmiths Association (BFBA)** - Toynak bakımı ve nallama rehberleri
+
+6. **American Association of Equine Practitioners (AAEP)** - Laminitis ve ayak hastalıkları tedavi protokolleri
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve equine veteriner hekimleri ile sertifikalı nalbantlar tarafından denetlenmektedir.`,
+    categoryTags: ["at", "toynak", "nal", "ayak sağlığı", "nalbant"],
+    readTime: 23,
+    published: true,
+  },
+
+  {
+    slug: "ariciliga-baslangic-kovan-kurulum",
+    title: "Arıcılığa Başlangıç: Kovan Kurulumu Rehberi",
+    excerpt: "İlk arı koloninizi kurmak için gereken tüm bilgiler. Ekipman seçiminden kovan yerleşimine, arı satın almadan ilk hasada kadar kapsamlı rehber.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Arıcılığa Başlangıç: Kovan Kurulumu Rehberi
+
+Arıcılık, doğa ile iç içe, hem ruhsal hem de maddi getirisi yüksek bir uğraştır. Bal, polen, propolis ve balmumu gibi değerli ürünlerin yanı sıra, tozlaşmaya katkıda bulunarak ekosisteme hizmet edersiniz. Ancak başarılı bir arıcı olmak için doğru bilgi, ekipman ve pratik gerekir. Bu kapsamlı rehber, ilk kovanınızı kurmaktan bal hasadına kadar her adımı detaylı olarak açıklamaktadır.
+
+## 1. Arıcılığa Giriş: Temel Bilgiler
+
+### Arı Kolonisi Yapısı
+
+**Bal Arısı Toplumu (Apis mellifera):**
+
+**1. Kraliçe Arı (Queen Bee):**
+- **Sayı:** 1 adet (koloni başına)
+- **Görev:** Yumurta üretimi (günde 1,500-2,000 adet)
+- **Ömür:** 3-5 yıl
+- **Özellik:** En büyük birey, iğnesi sadece rakip kraliçelere kullanılır
+
+**2. İşçi Arılar (Worker Bees):**
+- **Sayı:** 20,000-80,000 (mevsime göre)
+- **Görev:** 
+  - Besleme (yavru bakımı)
+  - Petek yapımı
+  - Nektar/polen toplama
+  - Kovanı temizleme ve savunma
+- **Ömür:** 
+  - Yaz: 6 hafta (yoğun çalışma)
+  - Kış: 6 ay
+- **Özellik:** Dişi, kısır
+
+**3. Erkek Arılar (Drones):**
+- **Sayı:** 200-2,000 (üreme sezonunda)
+- **Görev:** Kraliçe ile çiftleşme
+- **Ömür:** 3-4 ay
+- **Özellik:** İğnesi yok, çiftleşme sonrası ölür, kışın kovandan atılır
+
+### Arıların Yaşam Döngüsü
+
+**Yumurtadan Ergin Arıya:**
+
+| Kasta | Yumurta | Larva | Pupa | Toplam |
+|-------|---------|-------|------|--------|
+| İşçi | 3 gün | 6 gün | 12 gün | **21 gün** |
+| Erkek | 3 gün | 7 gün | 14 gün | **24 gün** |
+| Kraliçe | 3 gün | 5.5 gün | 7.5 gün | **16 gün** |
+
+### Neden Arıcılık?
+
+**Faydaları:**
+✅ Bal, polen, propolis, balmumu üretimi
+✅ Ek gelir kaynağı
+✅ Doğa ile bağ kurma
+✅ Tozlaşmaya katkı (bitki üretimi %30 artar)
+✅ Fiziksel ve zihinsel aktivite
+✅ Arazi değerlendirme (balkon, bahçe, arazi)
+
+**Zorluklar:**
+❌ İlk yatırım maliyeti (5,000-15,000 TL)
+❌ Arı sokma riski (alerjik reaksiyon)
+❌ Düzenli zaman ayırma
+❌ Hastalık ve parazit yönetimi
+❌ Hava koşullarına bağımlılık
+
+## 2. İlk Adım: Hazırlık ve Planlama
+
+### Yasal Gereksinimler
+
+**Türkiye'de Arıcılık:**
+- **Kayıt:** Tarım ve Orman İl/İlçe Müdürlüğüne kayıt (ÇKS sistemi)
+- **Arı Kütüğü:** Kovan sayısı, ırkı kaydedilir
+- **Sağlık Kontrolü:** Yıllık veteriner muayenesi
+- **Arıcı Belgesi:** Zorunlu değil ama desteklemeler için gerekli
+
+**Faydaları:**
+- Devlet desteği (kovan başına)
+- Arı hastalıkları bedava tedavi (Tarım İl Müdürlüğü)
+- Arıcı Birliği üyeliği
+
+### Yer Seçimi
+
+**İdeal Kovan Yeri:**
+
+**Nektar ve Polen Kaynakları:**
+- 3 km yarıçapında zengin flora
+- Çiçekli ağaçlar (akasya, kestane, ihlamur)
+- Yonca, ayçiçeği, pamuk tarlaları
+- Meyve bahçeleri
+
+**Fiziksel Koşullar:**
+- **Güneşlenme:** Sabah güneşi almalı (doğuya bakmalı)
+- **Rüzgar koruması:** Ağaç, duvar arkası
+- **Yükseklik:** Zeminden 20-30 cm yüksek (nem, yılan)
+- **Eğim:** Hafif eğimli (su akışı)
+- **Su kaynağı:** 50-100 m yakınında temiz su
+
+**Kaçınılması Gerekenler:**
+❌ Bataklık, nemli alanlar
+❌ Doğrudan kuvvetli rüzgar alan
+❌ Kalabalık insan/hayvan trafiği
+❌ Pestisit kullanılan tarlaların yakını
+❌ Elektrik hatları altı
+
+**Komşu İlişkileri:**
+- En az 10 m mesafe (konut, yol)
+- Bilgilendirme yapın
+- Saldırgan ırk kullanmayın
+
+### Arı Irkı Seçimi
+
+**Türkiye'deki Yaygın Irklar:**
+
+**1. Kafkas Arısı (Apis mellifera caucasica):**
+- **Anavatanı:** Türkiye (Artvin, Ardahan)
+- **Özellik:**
+  - ✅ Çok sakin
+  - ✅ Yüksek bal verimi
+  - ✅ Soğuğa dayanıklı
+  - ❌ Yavaş gelişir
+  - ❌ Ballık hastalığına hassas
+- **Yeni başlayanlar için:** MÜKEMMELDİR
+
+**2. İtalyan Arısı (Apis mellifera ligustica):**
+- **Özellik:**
+  - ✅ Hızlı gelişir
+  - ✅ Güçlü koloni
+  - ✅ Temiz çalışır
+  - ❌ Daha hareketli
+  - ❌ Soğukta zayıf
+- **Yeni başlayanlar için:** İYİDİR
+
+**3. Anadolu Arısı (Kara Arı):**
+- **Özellik:**
+  - ✅ Dayanıklı
+  - ✅ Hastalıklara dirençli
+  - ❌ Daha az verimli
+  - ❌ Saldırgan olabilir
+
+**Melez Arılar:**
+- Kafkas × İtalyan melezi popüler
+- Avantajları birleştirir
+
+## 3. Temel Ekipman ve Malzemeler
+
+### Kovan Sistemi
+
+**Langstroth Kovanı (Standart):**
+- En yaygın sistem (Türkiye'de %90)
+- Modüler yapı (çerçeve ekleme/çıkarma)
+- Kolay bakım
+
+**Kovan Bölümleri:**
+
+**1. Kovan Tabanı (Bottom Board):**
+- Giriş kapağı (8-10 mm)
+- Havalandırma ızgarası
+- Varroa düşürme tahtası
+
+**2. Petek Gövdesi (Brood Chamber):**
+- Yavru büyütme bölümü
+- **Standart:** 10 çerçeve (Dadant)
+- Kraliçe burada yumurta bırakır
+
+**3. Ballık (Honey Super):**
+- Bal depolama bölümü
+- Kraliçe ızgarası ile ayrılır (kraliçe buraya çıkmaz)
+- Birden fazla olabilir (bal akışına göre)
+
+**4. Çerçeveler:**
+- Ahşap veya plastik
+- Temel petek takılır
+- **Standart boy:** 42 cm × 27 cm
+
+**5. Kovan Kapağı:**
+- İç kapak (propolisli)
+- Dış kapak (yağmur/güneş koruması, saçla kaplı)
+
+**Malzeme Seçimi:**
+- **Ahşap (Çam):** Klasik, dayanıklı, pahalı
+- **Strafor:** Yalıtım iyi, hafif, ucuz, dayanıksız
+- **Tavsiye:** Ahşap (uzun vadede)
+
+### Koruyucu Kıyafetler
+
+**Arıcı Tulumu:**
+- Tam vücut koruması
+- Beyaz renk (arılar beyazda sakin)
+- Havalandırmalı
+- Fermuar ve lastikli bilek/ayak ağzı
+
+**Arıcı Maskesi:**
+- Tel örgü yüz koruması
+- Açık görüş alanı
+- Başlık ile birleşik veya ayrı
+
+**Eldiven:**
+- Deri veya kauçuk
+- İnce deri (hassasiyet için)
+- Uzun kollu (arı girişi yok)
+
+**Ayakkabı:**
+- Yüksek bot
+- Patalona sıkıca bağlanmalı
+
+### Araç ve Gereçler
+
+**1. Duman Makinesi (Smoker):**
+- **En önemli alet**
+- Arıları sakinleştirir (alarm feromonunu maskeler)
+- Yakıt: Kuru ot, talaş, karton
+- Paslanmaz çelik tercih edilir
+
+**2. Arı Fırçası:**
+- Yumuşak kıl
+- Arıları nazikçe uzaklaştırır
+- Çerçeve kontrolünde
+
+**3. Petek Bıçağı (Hive Tool):**
+- Propolis kazıma
+- Çerçeve kaldırma
+- Çok amaçlı
+
+**4. Kraliçe Ізgarası:**
+- Ballığa kraliçe geçişini engeller
+- Tel ızgara (işçi geçer, kraliçe geçemez)
+
+**5. Arı Besleme Kabı:**
+- Şurup verme
+- Kışlık besleme
+
+**6. Bal Süzme Ekipmanı:**
+- Bal süzgeci (manuel veya elektrikli)
+- Filtre
+- Olgunlaştırma tankı
+
+**İlk Kurulum Maliyeti:**
+- 1 kovan + ekipman: 2,500-4,000 TL
+- 5 kovan + ekipman: 10,000-15,000 TL
+
+## 4. Arı Kolonisi Satın Alma
+
+### Ne Zaman Alınmalı?
+
+**İdeal Zaman:**
+- **İlkbahar (Mart-Nisan):** En iyi
+- Koloniler güçlenir
+- Bal akışı başlar
+- İlk yıl az miktarda bal
+
+**Sonbahar:**
+- Daha ucuz
+- Ama kışlatma stresi
+- İlk yıl bal yok
+
+### Nereden Alınmalı?
+
+**Güvenilir Kaynaklar:**
+1. **Deneyimli arıcılar:** En güvenilir
+2. **Arıcı Birlikleri:** Referans verir
+3. **Tarım İl Müdürlüğü:** Liste sağlar
+4. **Arıcılık fuarları**
+
+**Kaçınılması Gerekenler:**
+❌ Online satış (kontrol yok)
+❌ Bilinmeyen satıcılar
+❌ Çok ucuz fiyatlar (hasta koloni riski)
+
+### Koloni Satın Alma Seçenekleri
+
+**1. Tam Koloni (Kovan + Arılar):**
+- 6-8 çerçeve arılı
+- Kraliçe mevcut
+- Yavru + bal var
+- **Fiyat:** 2,500-4,000 TL
+- **Avantaj:** Hemen üretken
+
+**2. Oğul (Swarm/Nucleus):**
+- 3-5 çerçeve
+- Genç kraliçe
+- Yavru var, az bal
+- **Fiyat:** 1,500-2,500 TL
+- **Avantaj:** Ucuz, hızlı büyür
+
+**3. Paket Arı:**
+- 1-1.5 kg arı (10,000-15,000 işçi)
+- Kraliçe ayrı kafeste
+- Boş kovana eklenin
+- **Fiyat:** 1,200-2,000 TL
+- **Zorluk:** İlk hafta riskli
+
+**Yeni Başlayanlar İçin:** Tam koloni (güvenli)
+
+### Satın Alma Kontrolü
+
+**Kontrol Listesi:**
+✅ Kraliçe mevcut ve genç (son 2 yıl içinde)
+✅ Yavru düzenli (sağlıklı yumurtlama)
+✅ İşçi sayısı bol (6+ çerçeve kapalı)
+✅ Hastalık belirtisi yok
+✅ Agresif değil
+✅ Veteriner sağlık raporu
+
+**Hastalık Belirtileri (Almayın!):**
+❌ Ölü yavru
+❌ Kötü koku
+❌ Delik petek kapaklarında
+❌ Zayıf nüfus
+
+## 5. Kovan Kurulumu ve İlk Yerleştirme
+
+### Kovan Montajı
+
+**Adımlar:**
+1. **Taban:** Tahtalar üzerine veya beton blok (20-30 cm yükseklik)
+2. **Petek Gövdesi:** Tabana yerleştirin
+3. **Çerçeveler:** 8-10 çerçeve takın (temel petek ile)
+4. **İç Kapak:** Üste kapatın
+5. **Dış Kapak:** Son koruma
+
+**Kovan Yönlendirme:**
+- Giriş kapağı **doğuya** baksın (sabah güneşi)
+- Hafif güneye eğimli (sıcak bölgelerde)
+
+**Kovan Aralığı:**
+- Yan yana kovanlar: 50 cm mesafe
+- Sıra arkası: 1-1.5 m
+- Renk kodlama (arılar kovanını buluşsun)
+
+### Arıları Kovana Yerleştirme
+
+**Tam Koloni Taşıma:**
+1. **Akşam Taşıma:**
+   - Tüm arılar kovanda
+   - Giriş kapalı
+2. **Dikkatli Taşıma:**
+   - Titreşim yok
+   - Düz tutun
+3. **Yerleştirme:**
+   - Yeni yerine koyun
+   - Sabah giriş kapağını açın
+
+**Paket Arı Yerleştirme:**
+1. Kovanda 5 çerçeve hazır (temel petek)
+2. Paket arıyı kovana sallayarak dökün
+3. Kraliçe kafesini çerçeveler arasına asın
+4. 3 gün sonra kraliçe serbest (kafes üstündeki şeker tıkaç erir)
+
+**İlk Hafta:**
+- Kapıyı kısaltın (8-10 arı geçişi)
+- Sık kontrol YAPMAYIN (stres)
+- Besleme yapın (şurup)
+
+## 6. Arı Beslenmesi
+
+### Doğal Beslenme
+
+**Nektar:**
+- Çiçeklerden toplanan tatlı sıvı
+- %20-80 su içerir
+- Bala dönüştürülür
+
+**Polen:**
+- Protein kaynağı
+- Yavru besleme
+- Arka bacaklarda taşınır
+
+**Su:**
+- Bal sulandırma
+- Kovan soğutma
+- Yavru besleme
+
+### Takviye Besleme (Ne Zaman Gerekli?)
+
+**1. İlkbahar:**
+- Koloniler güçlenirken
+- Doğada az nektar
+
+**2. Kuraklık:**
+- Çiçek yok = nektar yok
+
+**3. Kışlık Hazırlık:**
+- Kışa yeterli bal bırakılmamışsa
+
+**4. Yeni Koloni:**
+- İlk 2-4 hafta
+
+### Şurup Hazırlama
+
+**İlkbahar Şurubu (1:1):**
+- 1 kg şeker + 1 litre su
+- Kolay sindiri
+
+**Sonbahar Şurubu (2:1):**
+- 2 kg şeker + 1 litre su
+- Yoğun, depolamak için
+
+**Hazırlık:**
+1. Suyu kaynatın
+2. Şekeri ekleyin, karıştırın
+3. İlık halde verin (sıcak VERMEYİN!)
+
+**Verme:**
+- Akşam verin (hırsızlık önleme)
+- Besleme kabında
+- Arılar boğulmasın (sünger, ağaç dal)
+
+**Miktarlar:**
+- Zayıf koloni: Haftada 1 litre
+- Güçlü koloni: Haftada 2-3 litre
+
+## 7. Kovan Bakımı ve Muayene
+
+### İlk Muayene (7-10 Gün Sonra)
+
+**Kontrol Edilecekler:**
+✅ Kraliçe mevcut mu?
+✅ Yumurta var mı?
+✅ İşçiler çalışıyor mu?
+✅ Petek yapıyorlar mı?
+✅ Hastalık belirtisi?
+
+**Muayene Zamanı:**
+- Güneşli, sıcak gün
+- Öğlen saatleri (arılar dışarıda)
+- 15°C+ sıcaklık
+
+### Düzenli Muayene (Haftalık/2 Haftalık)
+
+**Bahar-Yaz:**
+- Her 7-10 günde bir
+- Oğul kontrolü
+- Ballık ekleme
+
+**Sonbahar:**
+- 2 haftada bir
+- Kış hazırlığı kontrolü
+
+**Kış:**
+- Ayda 1 kez dış gözlem
+- Kovan AÇMAYIN
+
+### Muayene Tekniği
+
+**Adımlar:**
+1. **Duman:**
+   - Giriş kapağına 2-3 puf
+   - 1 dakika bekleyin
+   - Kapağı açın, üste 1-2 puf
+2. **Çerçeve Kontrolü:**
+   - Petek bıçağı ile ayırın (propolisli)
+   - Yavaş kaldırın
+   - Kraliçe, yavru, bal kontrol
+3. **Sorun Tespiti:**
+   - Boş hücreler (neden?)
+   - Ölü yavru
+   - Varroa akarı
+4. **Kapatma:**
+   - Çerçeveleri geri koyun
+   - Duman vermeden kapatın
+
+**Muayene Süresi:** Maksimum 15-20 dakika
+
+## 8. İlk Yıl Beklentiler
+
+### İlkbahar (Mart-Mayıs)
+
+**Aktiviteler:**
+- Koloni satın alma
+- Besleme
+- Haftalık kontroller
+- Kraliçe yumurtlama takibi
+
+**Beklenen:**
+- Nüfus artışı (20,000 → 60,000)
+- Petek yapımı
+- İlk bal depolama
+
+### Yaz (Haziran-Ağustos)
+
+**Aktiviteler:**
+- Ballık ekleme
+- Oğul kontrolü (önleme)
+- Su sağlama
+- Varroa takibi
+
+**Beklenen:**
+- Maksimum nüfus
+- Bal üretimi
+- Oğul eğilimi
+
+**İlk Hasat:**
+- Temmuz-Ağustos
+- Çerçevede %75+ kapalı bal
+- Beklenen: 10-20 kg (ilk yıl)
+
+### Sonbahar (Eylül-Kasım)
+
+**Aktiviteler:**
+- Kışlık hazırlık
+- Varroa tedavisi (zorunlu!)
+- Kış besleme (gerekirse)
+- Kovan daraltma
+
+**Beklenen:**
+- Nüfus azalır (30,000-40,000)
+- Erkek arılar atılır
+- Aktivite yavaşlar
+
+### Kış (Aralık-Şubat)
+
+**Aktiviteler:**
+- Dış gözlem
+- Giriş temizliği (ölü arı)
+- Kar koruma
+
+**Beklenen:**
+- Arılar top oluşturur (ısınma)
+- Az aktivite
+- Bal tüketimi
+
+## 9. Oğul Yönetimi
+
+### Oğul Nedir?
+
+- Koloninin doğal üreme yöntemi
+- Eski kraliçe + işçilerin %50'si ayrılır
+- Yeni kraliçe eski kovanda kalır
+
+**Ne Zaman Olur?**
+- Mayıs-Haziran (bal akışı döneminde)
+- Güçlü, kalabalık kolonilerde
+
+### Belirtiler
+
+**Oğul Hazırlığı:**
+- Kraliçe gözleri (oval, kabartı hücre)
+- Kalabalık
+- Az yumurta (kraliçe zayıflatılır)
+
+### Önleme Yöntemleri
+
+**1. Yer Artırma:**
+- Ballık ekleyin (kalabalığı azaltır)
+
+**2. Kraliçe Gözü Kesme:**
+- Haftalık kontrol
+- Kraliçe gözlerini kaldırın
+
+**3. Havalandırma:**
+- Giriş kapağını genişletin
+
+**4. Genç Kraliçe:**
+- 1-2 yaşında kraliçeler az oğul verir
+
+### Oğul Toparlama
+
+**Eğer Oğul Verdiyse:**
+1. Oğul ağaç dalında toplanır (1-2 saat)
+2. Boş kovan veya karton kutu altına tutun
+3. Dalı sallayın, arılar kutuya düşsün
+4. Kraliçe girdiyse diğerleri de girer
+5. Yeni kovana yerleştirin
+
+## 10. İlk Bal Hasadı
+
+### Hasat Zamanı
+
+**Hazır mı?**
+- Çerçevede %75+ kapalı petek
+- Bal olgunlaşmış (%18 nem altı)
+- Temmuz-Ağustos (çiçek türüne göre)
+
+**Test:**
+- Çerçeveyi yatay tutup sallayın
+- Bal akmazsa olgunlaşmış
+
+### Hasat İşlemi
+
+**Adımlar:**
+1. **Çerçeve Çıkarma:**
+   - Arıları fırça ile temizleyin
+   - Çerçeveleri kapalı kaba alın
+2. **Kapak Açma:**
+   - Balmumu mühür (operculum) kesilir
+   - Özel bıçak veya çatal
+3. **Süzme:**
+   - Manuel veya elektrikli süzgeç
+   - Santrifüj ile balı ayırın
+4. **Filtreleme:**
+   - İnce elekte balmumu kalıntıları
+5. **Olgunlaştırma:**
+   - 24-48 saat dinlendirme (köpük çıkar)
+6. **Kavanozlama:**
+   - Temiz cam kavanoz
+   - Hava almayan kapak
+
+**İlk Yıl Beklenen:**
+- Koloni başına: 10-25 kg
+- Deneyimle artar (30-50 kg)
+
+### Ballı Çerçeveleri Kovana Geri Verme
+
+- Süzülmüş çerçeveler temizlensin (arılar yalar)
+- Sonra bir sonraki sezon için saklayın
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Arıcılık sabır, gözlem ve sürekli öğrenme gerektiren bir sanattır. İlk yılınız deneme-yanılma dönemidir. Hata yapmaktan korkmayın, her hata öğreticidir.
+
+**Başarılı Arıcılık İçin Altın Kurallar:**
+
+✅ **Eğitim:**
+- Kitap okuyun, video izleyin
+- Deneyimli arıcılarla görüşün
+- Arıcılık kurslarına katılın
+
+✅ **Küçük Başlayın:**
+- 2-3 kovan ile başlayın
+- Deneyim kazanın
+- Sonra genişleyin
+
+✅ **Düzenli Kontrol:**
+- Haftalık muayeneler
+- Sorunları erken tespit
+- Kayıt tutun (ne zaman, ne gördünüz)
+
+✅ **Hastalık Önleme:**
+- Varroa kontrolü (YAZ-SONBAHAR)
+- Temiz ekipman
+- Güçlü koloniler
+
+✅ **Besleme:**
+- Gerektiğinde müdahale
+- Kışa yeterli bal bırakın (15-20 kg)
+
+✅ **Sabırlı Olun:**
+- İlk yıl az bal normal
+- 2-3 yılda ustalaşırsınız
+
+✅ **Güvenlik:**
+- Koruyucu kıyafet MUTLAKA
+- Alerjiniz varsa doktora danışın
+- EpiPen bulundurun (alerji riski)
+
+**İlk Yıl Kontrol Listesi:**
+
+**İlkbahar:**
+☐ Kovan + ekipman hazırlığı
+☐ Koloni satın alma (Mart-Nisan)
+☐ Yerleştirme ve besleme
+☐ Haftalık kontroller
+
+**Yaz:**
+☐ Ballık ekleme
+☐ Oğul kontrolü
+☐ Su sağlama
+☐ İlk hasat (Temmuz-Ağustos)
+
+**Sonbahar:**
+☐ Varroa tedavisi
+☐ Kış besleme
+☐ Kovan daraltma
+☐ Ekipman temizliği
+
+**Kış:**
+☐ Dış gözlem
+☐ Giriş temizliği
+☐ Kar koruma
+
+Arıcılık, doğa ile uyum içinde çalışma sanatıdır. Arılarınıza saygı, sabır ve özenle yaklaştığınızda, onlar size bal, sağlık ve huzur getirecektir. İyi şanslar ve bol bal!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Arı hastalıkları ve tedavi protokolleri
+
+2. **Tarım ve Orman Bakanlığı - Hayvancılık Genel Müdürlüğü** - Arıcılık mevzuatı ve destek programları
+
+3. **Ege Üniversitesi Arıcılık Geliştirme Uygulama ve Araştırma Merkezi** - Arıcılık teknikleri ve eğitim programları
+
+### Uluslararası Kaynaklar
+
+4. **Food and Agriculture Organization (FAO)** - Arıcılık best practices ve sürdürülebilir yönetim
+
+5. **International Bee Research Association (IBRA)** - Bilimsel arıcılık araştırmaları
+
+6. **American Beekeeping Federation** - Başlangıç arıcılık rehberleri
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve deneyimli arıcılar ile veteriner hekimler tarafından denetlenmektedir.`,
+    categoryTags: ["arıcılık", "bal", "kovan", "arı", "başlangıç"],
+    readTime: 25,
+    published: true,
+  },
+
+  {
+    slug: "ari-hastaliklari-varroa-kontrolu",
+    title: "Arı Hastalıkları ve Varroa Kontrolü",
+    excerpt: "Arı koloninizi hastalıklardan korumak için bilmeniz gerekenler. Varroa akarı, Nosema, Amerikan yavru çürüklüğü ve diğer hastalıkların teşhis ve tedavisi.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Arı Hastalıkları ve Varroa Kontrolü: Kapsamlı Tedavi Rehberi
+
+Arı hastalıkları, koloni kayıplarının en büyük nedenlerinden biridir. Varroa akarından bakteriyel enfeksiyonlara, viral hastalıklardan mantar enfeksiyonlarına kadar çeşitli tehditle karşılaşabilirsiniz. Başarılı bir arıcı olmak için bu hastalıkları tanımalı, erken teşhis edip müdahale etmelisiniz. Bu kapsamlı rehber, arı hastalıklarını, belirtilerini, tedavi yöntemlerini ve önleme stratejilerini detaylı olarak açıklamaktadır.
+
+## 1. Arı Hastalıklarına Genel Bakış
+
+### Hastalık Türleri
+
+**Paraziter Hastalıklar:**
+- Varroa akarı (en tehlikeli)
+- Tropilaelaps akarı
+- Nosema (bağırsak paraziti)
+
+**Bakteriyel Hastalıklar:**
+- Amerikan Yavru Çürüklüğü (AYÇ)
+- Avrupa Yavru Çürüklüğü (AvYÇ)
+
+**Viral Hastalıklar:**
+- Kanat Deformasyonu Virüsü (DWV)
+- Akut arı felci virüsü
+- Siyah kraliçe hücresi virüsü
+
+**Mantar Hastalıkları:**
+- Taş yavru (Chalkbrood)
+- Kireç yavru (Ascosphaera)
+
+### Hastalık Yayılma Yolları
+
+**1. Varroa Akarı:**
+- Arıdan arıya temas
+- Hırsızlık
+- Oğul
+
+**2. Hırsızlık:**
+- Hasta koloniden sağlıklıya arı geçişi
+- En yaygın yayılma yolu
+
+**3. Arıcı Ekipmanı:**
+- Kirli çerçeveler
+- Paylaşılan araçlar
+- Ellerdeki bulaşma
+
+**4. Yem ve Su:**
+- Kirli şeker şurubu
+- Kontamine su kaynağı
+
+## 2. Varroa Destructor (Varroa Akarı)
+
+### Tanım ve Tehlike
+
+**Varroa Nedir?**
+- Dış parazit akar
+- Bal arısının en büyük düşmanı
+- Hem yetişkin hem yavru arıları etkiler
+- Viral hastalık vektörü
+
+**Boyut:**
+- 1-1.8 mm (yavru üzerinde görülebilir)
+- Kırmızı-kahverengi renk
+- Oval şekil
+
+**Yaşam Döngüsü:**
+- Yavru hücresinde ürer
+- Dişi Varroa kapalı yavru hücresine girer
+- 5-7 yavru üretir
+- 12 gün sonra yeni Varroa'lar çıkar
+
+### Zararları
+
+**Direkt Zarar:**
+- Arının hemolenfini (kanı) emer
+- Zayıf, deformasyonlu arılar
+- Kış kayıpları (zayıf koloni)
+
+**İndirekt Zarar:**
+- Viral hastalık taşıyıcısı (DWV)
+- Bağışıklık zayıflaması
+- Koloni çökmesi (CCD riski)
+
+### Teşhis Yöntemleri
+
+**1. Görsel Kontrol:**
+- Yavru üzerinde akar görme
+- Yetişkin arı üzerinde kırmızı nokta
+
+**2. Şeker Pudra Testi:**
+- 300 işçi arı (1/2 fincan) al
+- Kavanoza koy
+- 2-3 kaşık pudra şekeri ekle
+- Çalkala (1 dakika)
+- Elek üzerinden ara (Varroa düşer)
+- **%3'ten fazla = Tedavi gerekir**
+
+**3. Yapışkan Tabla Metodu:**
+- Kovan tabanına yağlı karton
+- 24-48 saat bekle
+- Düşen Varroa sayısını say
+- **>50 adet/gün = Yüksek enfestasyon**
+
+**4. Alkol Yıkama (En Doğru):**
+- 300 arı + %70 alkol
+- Çalkala
+- Varroa kesin sayımı
+- Arılar ölür (dezavantaj)
+
+### Kontrol ve Tedavi Yöntemleri
+
+#### A. Kimyasal Tedavi
+
+**1. Oksalik Asit (Organic Acid):**
+
+**Avantajlar:**
+✅ Organik, kalıntı bırakmaz
+✅ Etkili
+✅ Ucuz
+
+**Uygulama:**
+- **Buharlaştırma (Vaporization):**
+  - Özel cihazla (OA vaporizer)
+  - Kovan kapağını kapat
+  - 2-3 dakika buhar
+  - Yılda 3-4 uygulama (kışta etkili)
+- **Damlama (Trickling):**
+  - 2-3% solüsyon
+  - Çerçeve aralarına damlatın
+  - 5 ml/çerçeve
+  - Kışta, yavru yokken
+
+**Dikkat:**
+- Koruyucu giyin (asit!)
+- Sıcak havalarda yapma (>30°C)
+
+**2. Formik Asit (Formic Acid):**
+
+**Ticari Ürünler:** Mite Away Quick Strips
+
+**Uygulama:**
+- Özel pedlere emdirilmiş
+- Kovan üstüne yerleştir
+- 7-14 gün bırakın
+- Sıcaklığa duyarlı (18-29°C ideal)
+
+**Dikkat:**
+- Fazla sıcakta kraliçe ölümü riski
+- Kovan havalandırması gerekli
+
+**3. Sentetik Akarisitler:**
+
+**Amitraz (ApiVar, Apilife VAR):**
+- Şeritler kovana asılır
+- 6-8 hafta bırakılır
+- Yavru dönemi bitince etkili
+
+**Flumethrin (Bayvarol):**
+- Şerit formunda
+- 6 hafta tedavi
+
+**UYARI - Direnç Riski:**
+- Varroa sentetik ilaçlara direnç geliştirdi
+- Aynı ilacı arka arkaya kullanmayın
+- Rotasyon yapın
+
+**4. Timol Bazlı (Apilife VAR, Apiguard):**
+- Timol (kekik yağı türevi)
+- Tablet veya jel formunda
+- 4-6 hafta kullanım
+- Doğal, etkili
+
+#### B. Biyoteknik Yöntemler
+
+**1. Erkek Yavru Kesiği (Drone Brood Removal):**
+
+**Prensibi:**
+- Varroa erkek yavruda %80 daha fazla ürer (büyük hücre)
+- Erkek yavru çerçevesi kullan
+- Kapalı hale gelince kes/dondur
+- Varroa azalır
+
+**Uygulama:**
+- İlkbaharda başla
+- Her 3 haftada bir kes
+- %30-50 azalma sağlar
+
+**2. Kraliçe Kafese Alma:**
+- Kraliçeyi 25 gün kafeste tut
+- Yavru üretimi durur
+- Tüm Varroa yetişkin arıda (tedavi kolay)
+- Oksalik asit uygula
+
+**3. Temel Petek Değişimi:**
+- Eski, kararmış petekleri at
+- Yeni temel petek ver
+- Hastalık ve Varroa azalır
+
+#### C. Entegre Mücadele (IPM - Integrated Pest Management)
+
+**En İyi Yaklaşım:**
+- Kimyasal + Biyoteknik kombinasyon
+- Monitöring (izleme)
+- Eşik değer (tedavi zamanı)
+
+**Örnek Yıllık Program:**
+
+| Dönem | Yöntem | Neden |
+|-------|--------|-------|
+| İlkbahar (Nisan-Mayıs) | Erkek yavru kesimi | Varroa artışını önle |
+| Yaz (Haziran-Temmuz) | İzleme (şeker testi) | Seviye kontrolü |
+| Ağustos | Timol/Formik asit | Bal sonrası tedavi |
+| Eylül | Oksalik asit (gerekirse) | Yavru azken |
+| Aralık | Oksalik asit buhar | Kışlık temizlik (yavru yok) |
+
+## 3. Nosema (Bağırsak Paraziti)
+
+### Tanım
+
+**Nosema ceranae / Nosema apis:**
+- Tek hücreli parazit
+- Bağırsak sindirim sistemini etkiler
+- Kışın ve ilkbaharda yaygın
+
+### Belirtiler
+
+**Koloni Düzeyinde:**
+- Zayıf koloni
+- Yavaş ilkbahar gelişimi
+- Kraliçe kayıpları
+- İshal (kovan önünde lekeler)
+
+**Bireysel:**
+- Şişmiş karın
+- Halsiz arılar
+- Kovan önünde ölü arılar
+
+### Teşhis
+
+**Laboratuvar Testi:**
+- 30 işçi arının karın (midgut) örneği
+- Mikroskop altında Nosema sporları
+- Tarım İl Müdürlüğü ücretsiz test yapar
+
+### Tedavi
+
+**1. Fumagilin-B:**
+- Antibiyotik
+- Şeker şurubuna karıştırılır
+- 2-3 hafta tedavi
+- **Türkiye'de yasak** (bal kalıntısı)
+
+**2. Doğal Yöntemler:**
+- **Timol:** Beslemede %0.05
+- **Kekik Yağı:** Şurupla birlikte
+- **Propolis Özütü**
+
+**3. Hijyen:**
+- Güneş ışığında çerçeve temizliği
+- Asetik asit ile dezenfeksiyon
+- Eski petekleri değiştir
+
+### Önleme
+
+- Temiz su kaynağı
+- Güçlü koloniler
+- Güneşli kovan yeri
+- Nem kontrolü
+
+## 4. Amerikan Yavru Çürüklüğü (AYÇ)
+
+### Tanım ve Tehlike
+
+**Paenibacillus larvae (Bakteri):**
+- En ölümcül arı hastalığı
+- **İhbar zorunlu hastalık** (Tarım Bakanlığına bildir!)
+- Sporlar 50+ yıl hayatta kalır
+- Çok bulaşıcı
+
+### Belirtiler
+
+**Mozaik Yavru Deseni:**
+- Kapalı yavru hücreleri dağınık (normal düzenli)
+- Bazı kapalı, bazı açık
+
+**Kapak Değişimi:**
+- Normal: Dışbükey (şişkin)
+- AYÇ: Çökük, delikli
+
+**Kürdan Testi:**
+- Ölü yavruya kürdan batır
+- Çıkarınca 2-3 cm yapışkan iplik gelir (ropiness)
+- **AYÇ'nin en karakteristik belirtisi**
+
+**Koku:**
+- Çürümüş balık kokusu
+
+### Tedavi
+
+**UYARI:** Türkiye'de antibiyotik kullanımı yasaklanmıştır (bal kalıntısı).
+
+**Tek Çözüm:**
+1. **Koloniyi Öldürme:**
+   - Kükürtlü tütsü (gece)
+   - Toprak üstü yakma
+2. **Ekipman İmhası:**
+   - Çerçeveleri YAK
+   - Kovanı kaynar soda ile yıka veya yak
+3. **Karantina:**
+   - Diğer kovanlar izleme altında
+
+**Önleme:**
+- Güçlü koloniler (hijyen yüksek)
+- Ekipman temizliği
+- Yabancı kovan/çerçeve almayın
+
+## 5. Avrupa Yavru Çürüklüğü (AvYÇ)
+
+### Tanım
+
+**Melissococcus plutonius (Bakteri):**
+- AYÇ'den daha hafif
+- Tedavi edilebilir
+- Stres dönemlerinde ortaya çıkar
+
+### Belirtiler
+
+**Yavru Ölümü:**
+- Kapalı hücre öncesi ölüm (açık larva)
+- Sarımsı-kahverengi renk
+- İplikçikli değil (kürdan yapışmaz)
+
+**Mozaik Yavru:** Var ama AYÇ kadar belirgin değil
+
+**Koku:** Ekşi, hafif
+
+### Tedavi
+
+**Antibiyotiksiz Yöntem:**
+1. **Kraliçe Değişimi:**
+   - Genç, verimli kraliçe
+   - Genler güçlendirir
+2. **Besleme:**
+   - Protein desteği
+   - Şeker şurubu
+3. **Hijyen:**
+   - Eski çerçeveleri değiştir
+
+**Doğal:**
+- Timol
+- Kekik yağı takviyesi
+
+### Önleme
+
+- Stres azaltma (su, yem, sıcaklık)
+- Güçlü koloniler
+
+## 6. Taş Yavru (Chalkbrood / Kireçli Yavru)
+
+### Tanım
+
+**Ascosphaera apis (Mantar):**
+- Yavru larvayı öldürür
+- Beyaz, sert mumya haline getirir
+- Nemli, soğuk koşullarda artış
+
+### Belirtiler
+
+**Mumyalaşmış Yavru:**
+- Beyaz (bazen siyah) taş gibi yavru
+- Kovan önünde sert larvalar
+- Arılar dışarı atar
+
+**Koloni Zayıflığı:**
+- Nüfus azalır
+- Yavaş gelişim
+
+### Tedavi
+
+**Mantar İlacı YOK (arılar için onaylı):**
+
+**Yönetim:**
+1. **Havalandırma:**
+   - Nem azaltın
+   - Kovan girişini genişletin
+2. **Güneşleme:**
+   - Kovanı güneşe çevirin
+3. **Kraliçe Değişimi:**
+   - Genetik direnç
+4. **Eski Çerçeve Değişimi:**
+   - Mantar sporları giderilir
+
+### Önleme
+
+- Kuru ahır
+- İyi havalandırma
+- Güneşli kovan yeri
+
+## 7. Kanat Deformasyonu Virüsü (DWV)
+
+### Tanım
+
+**Deformed Wing Virus:**
+- Varroa akarı ile taşınır
+- Genç arıların kanatlarını deforme eder
+
+### Belirtiler
+
+**Kıvrık, Küçük Kanatlar:**
+- Arı uçamaz
+- Kovan önünde sürünür
+- Kısa ömür
+
+**Zayıf Arılar:**
+- Deformasyonlu vücut
+
+### Tedavi
+
+**Virüs Tedavisi YOK:**
+
+**Kontrol:**
+- **Varroa kontrolü** (en önemli!)
+- Virüs Varroa ile yayılır
+- Varroa azalırsa DWV azalır
+
+### Önleme
+
+- Etkili Varroa yönetimi
+- Güçlü koloniler
+
+## 8. Küçük Kovan Böceği
+
+### Tanım
+
+**Aethina tumida (Small Hive Beetle):**
+- Zayıf kolonilerde
+- Petekleri yok eder
+- Türkiye'de henüz yaygın değil
+
+### Belirtiler
+
+- Kovan içinde küçük kahverengi böcekler
+- Peteklerde çürüme
+- Bal fermentasyonu
+
+### Kontrol
+
+**Tuzaklar:**
+- Yağlı tuzaklar (kovan tabanı)
+- Böcek hapsolur
+
+**Güçlü Koloniler:**
+- Arılar böceği kovalar
+
+## 9. Balmumu Güvesi
+
+### Tanım
+
+**Galleria mellonella (Wax Moth):**
+- Petek yapısını yok eder
+- Zayıf kolonilerde zararlı
+
+### Belirtiler
+
+- Peteklerde tünel açmış larvalar
+- İpek ağlar
+- Petek çökmüş
+
+### Kontrol
+
+**Güçlü Koloniler:**
+- Arılar güveyi temizler
+
+**Depo Koruma:**
+- Boş çerçeveleri dondurucuda (-20°C, 48 saat)
+- Kükürt fumigasyonu
+- Serin, havadar depo
+
+## 10. Hastalık Önleme ve Bütünsel Yönetim
+
+### Hijyen ve Sanitasyon
+
+**Ekipman Temizliği:**
+- Araçları her kovan sonrası dezenfekte edin
+- %10 çamaşır suyu solüsyonu
+- Eldiven değiştirin
+
+**Çerçeve Değişimi:**
+- Her 3-5 yılda bir eski petekleri değiştirin
+- Kararmış petek = Hastalık riski
+
+**Ölü Arıları Temizleyin:**
+- Kovan önündeki ölüleri kaldırın
+- Hastalık kaynağı olabilir
+
+### Güçlü Koloniler Yetiştirme
+
+**Genç Kraliçe:**
+- 1-2 yaşında
+- Yüksek yumurtlama = Güçlü koloni
+
+**Yeterli Beslenme:**
+- Bol polen ve nektar
+- Takviye (gerektiğinde)
+
+**Stres Azaltımı:**
+- Uygun kovan yeri
+- Yeterli alan
+- Su erişimi
+
+### İzleme ve Erken Müdahale
+
+**Düzenli Kontroller:**
+- Ayda 1-2 kez kovan muayenesi
+- Hastalık belirtilerini aran
+
+**Kayıt Tutma:**
+- Tarih, gözlem, tedaviler
+- Takip kolaylaşır
+
+**Veteriner Desteği:**
+- Şüpheli durumlarda Tarım İl Müdürlüğü
+- Ücretsiz teşhis hizmetleri
+
+### Bölgesel İşbirliği
+
+**Arıcı Birlikleri:**
+- Bilgi paylaşımı
+- Toplu ilaç alımı
+
+**Hastalık Bildirimi:**
+- AYÇ gibi ciddi hastalıklar bildirilmeli
+- Yayılmayı önler
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Arı hastalıkları arıcılığın en zorlu yönüdür, ama bilgi, disiplin ve düzenli takiple kontrol altına alınabilir. En önemli kural: **Önleme, tedaviden daha kolay ve ucuzdur.**
+
+**Sağlıklı Arıcılık İçin Altın Kurallar:**
+
+✅ **Varroa Kontrolü (En Kritik):**
+- Yılda minimum 2 kez tedavi (Ağustos + Aralık)
+- İzleme (şeker testi, yapışkan tabla)
+- Kimyasal + Biyoteknik kombinasyon
+- Direnç önlemek için ilaç rotasyonu
+
+✅ **Hijyen:**
+- Ekipman temizliği
+- Çerçeve yenileme (3-5 yıl)
+- Ölü arıları kaldırma
+
+✅ **Güçlü Koloniler:**
+- Genç kraliçe (1-2 yaş)
+- Yeterli beslenme
+- Uygun barınak
+
+✅ **Erken Teşhis:**
+- Düzenli muayeneler
+- Hastalık belirtilerini öğrenin
+- Kayıt tutun
+
+✅ **Eğitim:**
+- Hastalıkları tanıyın
+- Yeni tedavi yöntemlerini öğrenin
+- Deneyimli arıcılarla iletişimde olun
+
+**Kritik Uyarılar:**
+
+⚠️ **Antibiyotik Kullanmayın:**
+- Türkiye'de yasak (bal kalıntısı)
+- Direnç gelişir
+- Sağlık riski
+
+⚠️ **AYÇ'yi Ciddiye Alın:**
+- İhbar zorunlu
+- Tek çözüm: Koloni imhası
+- Ekipman yakma/dezenfeksiyon
+
+⚠️ **Varroa'yı İhmal Etmeyin:**
+- %3+ enfestasyon = Acil tedavi
+- Kışta koloni kaybı riski
+
+**Başarı Kontrol Listesi:**
+
+**İlkbahar:**
+☐ Nosema kontrolü (laboratuvar testi)
+☐ Yavru hastalıkları izleme
+☐ Varroa monitöring
+☐ Erkek yavru kesimi başlat
+
+**Yaz:**
+☐ Varroa testi (şeker/yapışkan tabla)
+☐ Kovan hijyeni
+☐ Güçlü koloniler sağla
+
+**Sonbahar (Çok Önemli!):**
+☐ Varroa tedavisi (Ağustos-Eylül)
+☐ Nosema önleme
+☐ Kış hazırlığı
+
+**Kış:**
+☐ Varroa tedavisi (Aralık - Oksalik asit)
+☐ Dış gözlem
+☐ Kayıp önleme
+
+Arı hastalıkları korkunç görünebilir, ancak düzenli bakım ve bilinçli yönetimle kolonilerinizi sağlıklı tutabilirsiniz. Unutmayın: Sağlıklı arılar = Bol bal + Uzun ömürlü koloniler!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Arı hastalıkları teşhis ve tedavi protokolleri
+
+2. **Tarım ve Orman Bakanlığı - Gıda ve Kontrol Genel Müdürlüğü** - Arı hastalıkları mevzuatı ve bildirimi
+
+3. **Ankara Üniversitesi Veteriner Fakültesi - Parazitoloji Anabilim Dalı** - Varroa ve Nosema araştırmaları
+
+### Uluslararası Kaynaklar
+
+4. **Food and Agriculture Organization (FAO)** - Global arı sağlığı ve hastalık yönetimi
+
+5. **European Foulbrood (EFB) and American Foulbrood (AFB) Management - USDA** - Yavru çürüklüğü kontrol rehberleri
+
+6. **Varroa destructor Research Consortium** - Varroa kontrol best practices ve bilimsel araştırmalar
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve arı sağlığı uzmanları ile veteriner hekimler tarafından denetlenmektedir.`,
+    categoryTags: ["arıcılık", "hastalık", "varroa", "arı sağlığı", "tedavi"],
+    readTime: 22,
+    published: true,
+  },
+
+  {
+    slug: "kaplumbaga-bakimi-rehberi",
+    title: "Kara ve Su Kaplumbağası Bakımı",
+    excerpt: "Kaplumbağa bakımı için kapsamlı rehber. Terrarium kurulumu, beslenme, sağlık ve yaşam alanı düzenlemesi hakkında detaylı bilgiler.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Kara ve Su Kaplumbağası Bakımı: Kapsamlı Rehber
+
+Kaplumbağalar, doğru bakım şartlarında 50-100 yıl yaşayabilen evcil hayvanlardır. Ancak bu uzun ömür, uygun yaşam alanı, dengeli beslenme ve sağlık takibi gerektirir. Kara ve su kaplumbağalarının ihtiyaçları birbirinden farklıdır ve her birinin özel gereksinimleri vardır. Bu kapsamlı rehber, kaplumbağa türlerinden terrarium düzenlemesine, beslenmeden sağlık sorunlarına kadar her şeyi detaylı olarak açıklamaktadır.
+
+## 1. Kaplumbağa Türleri ve Özel İhtiyaçlar
+
+### Su Kaplumbağaları
+
+**Yaygın Türler:**
+
+**1. Kırmızı Kulak (Red-Eared Slider - Trachemys scripta):**
+- En popüler evcil su kaplumbağası
+- Yetişkin boy: 20-30 cm
+- Ömür: 30-40 yıl
+- Sıcaklık: Su 24-26°C, ısınma noktası 30-32°C
+
+**2. Kaplıkaplumbağa (Yellow-Bellied Slider):**
+- Kırmızı kulağa benzer
+- Sarı renkli göğüs
+- Bakım gereksinimleri benzer
+
+**3. Painted Turtle:**
+- Renkli kabuk desenli
+- Orta boy (15-25 cm)
+- Nispeten soğuğa dayanıklı
+
+**Genel Özellikler:**
+- Büyük kısmı suda yaşar
+- Güneşlenme için kara platformu gerekir
+- Etçil/omnivor
+- UV ışığı şart
+
+### Kara Kaplumbağaları
+
+**Yaygın Türler:**
+
+**1. Hermann's Tortoise (Testudo hermanni):**
+- Akdeniz bölgesi
+- Boy: 15-20 cm
+- Türkiye'de doğal yaşar
+- Ömür: 50-70 yıl
+
+**2. Russian Tortoise (Horsfield's):**
+- Küçük boy (15-18 cm)
+- Soğuğa dayanıklı
+- Aktif, kazıcı
+
+**3. Greek Tortoise (Testudo graeca):**
+- Hermann'a benzer
+- 20-25 cm
+- Otçul
+
+**Genel Özellikler:**
+- Tamamen karada yaşar
+- Geniş alan gerektirir
+- %100 otçul (sebze, ot)
+- UV ışığı ve ısıtma şart
+
+## 2. Su Kaplumbağası Akvaryumu Kurulumu
+
+### Akvaryum Boyutu
+
+**Gerekli Hacim:**
+- **Formül:** Kabuğun uzunluğu × 10 = Minimum akvaryum uzunluğu
+- **Örnek:** 15 cm kaplumbağa → 150 cm (yaklaşık 200-250 litre)
+
+**Yaygın Hata:** Küçük başlayıp büyütmek
+- Kaplumbağalar hızla büyür (ilk 2 yılda max boya yakın)
+- Baştan büyük akvaryum alın
+
+**Su Derinliği:**
+- Minimum: Kabuğun 1.5-2 katı derinlik
+- İdeal: 30-40 cm su derinliği
+
+### Filtre Sistemi
+
+**Neden Güçlü Filtre Gerekir?**
+- Kaplumbağalar çok kirletir (yüksek atık)
+- Amonyak ve nitrit hızla yükselir
+- Balık filtrelerinden 2-3 kat güçlü olmalı
+
+**Filtre Seçimi:**
+- **Canister (Dış) Filtre:** En iyi seçim
+  - Saatlik su döngüsü: Akvaryum hacminin 4-6 katı
+  - Örnek: 200 litre → 800-1200 L/saat
+- **Askı Filtre:** Küçük akvaryumlar için (yetersiz büyük için)
+
+**Filtre Bakımı:**
+- Haftalık sünger temizliği
+- Aylık aktif karbon değişimi
+- Biyolojik malzeme ASLA tam yıkanmaz (bakteri kaybı)
+
+### Isıtma ve Sıcaklık
+
+**Su Isıtıcısı:**
+- Ayarlanabilir termostat
+- 100-150 watt (200 litre için)
+- Tamamen daldırılabilir
+- Koruma kabı (kaplumbağa kırabilir)
+
+**Sıcaklık Ayarları:**
+- **Su:** 24-26°C
+- **Gece:** 22-24°C (hafif düşüş)
+
+### Güneşlenme Platformu
+
+**Özellikler:**
+- Kaplumbağa kolayca çıkabilmeli
+- Tamamen kuru
+- Su seviyesinin üstünde
+- Kaygan olmamalı
+
+**Malzemeler:**
+- Ahşap platform (suyun dışında)
+- Plastik platform (emme kabanlı)
+- Kayalar (doğal)
+
+**Platform Sıcaklığı:**
+- **30-32°C** (spot lamba ile)
+- Dijital termometre ile kontrol
+
+### Aydınlatma
+
+**1. UVB Lambası (ZORUNLU):**
+- **UVB %5-10:** Su kaplumbağaları için
+- Vitamin D3 sentezi (kalsiyum emilimi)
+- Kemik gelişimi
+- MBD önleme
+
+**Kullanım:**
+- 30-40 cm mesafe
+- Günde 10-12 saat
+- Her 6-12 ayda değiştirin (UVB azalır)
+
+**2. Isıtma Lambası (Basking Lamp):**
+- 50-75 watt spot lamba
+- Platform sıcaklığı 30-32°C
+- Akvaryumun bir tarafında (sıcak/soğuk bölge)
+
+**3. LED Aydınlatma (Opsiyonel):**
+- Görünürlük için
+- UVB içermez
+
+### Su Kalitesi
+
+**Parametreler:**
+- pH: 6.5-8.0
+- Amonyak: 0 ppm
+- Nitrit: 0 ppm
+- Nitrat: <40 ppm
+
+**Su Değişimi:**
+- Haftalık %25-30
+- Klorinin çıkarın (dinlendirme veya klorin giderici)
+- Sıcaklık eşitlemesi yapın
+
+### Dekorasyon
+
+**Güvenli:**
+✅ Büyük kayalar (yutulamayacak)
+✅ Su bitkileri (anubias, java fern - yenmez)
+✅ Kütükler (akvaryum için işlenmiş)
+
+**Tehlikeli:**
+❌ Küçük çakıllar (yutulma riski)
+❌ Keskin dekorasyon
+❌ Zehirli bitkiler
+
+## 3. Kara Kaplumbağası Terrarium Kurulumu
+
+### Terrarium Boyutu
+
+**Alan İhtiyacı:**
+- **Minimum:** 120 cm × 60 cm (0.72 m²)
+- **İdeal:** 150 cm × 90 cm (1.35 m²)
+- Yükseklik: 30-40 cm (tırmanmaz ama havalandırma)
+
+**Açık Hava Barınağı (Yaz):**
+- Bahçede çitli alan (2-3 m²)
+- Kazma önleme (çit 20 cm toprağa gömülü)
+- Gölgelik alan
+- Su kabı
+
+### Substrat (Taban)
+
+**Uygun Substratlar:**
+- **Toprak karışımı:** Bahçe toprağı + hindistan cevizi lifi (coco coir)
+- **Cypress mulch:** Nem tutar, güvenli
+- **Saman:** Ucuz ama temizliği zor
+
+**Kalınlık:** 5-10 cm
+
+**Kullanılmamalı:**
+❌ Kedi kumu (tozlu, yutulur)
+❌ Çakıl (yutma riski)
+❌ Cedar/pine (toksik)
+
+### Isıtma
+
+**Spot Lamba:**
+- 75-100 watt
+- Bir köşede "ısınma noktası"
+- Sıcaklık: 30-35°C
+
+**Yer Isıtıcı (Heat Mat):**
+- Terrarium altında (termostat ile)
+- Gece ısıtma
+- Soğuk gecelerde
+
+**Sıcaklık Gradyanı:**
+- Sıcak nokta: 30-35°C
+- Soğuk nokta: 20-22°C
+- Gece: 18-20°C
+
+### UVB Aydınlatma (ZORUNLU)
+
+- **UVB %10-12:** Kara kaplumbağaları için
+- 30 cm mesafe
+- 12 saat/gün
+- Her 6-12 ay değişim
+
+### Nem ve Havalandırma
+
+**Nem Oranı:**
+- %40-60 (türe göre)
+- Hermann's: Orta nem
+- Russian: Düşük nem (kuru)
+
+**Nem Kontrolü:**
+- Substratı hafif nemli tutun (ıslak değil)
+- Nem ölçer kullanın
+- Günlük spreyleme (gerekirse)
+
+**Havalandırma:**
+- Üstte havalandırma delikleri
+- Nem tutarken hava akışı sağlayın
+
+### Saklanma ve Barınak
+
+- Yarı karanlık sığınak
+- Kaplumbağa sığabilecek boyutta
+- Ahşap kutu veya plastik kap
+
+### Su ve Yem Kabı
+
+**Su:**
+- Geniş, sığ kap
+- Günlük değişim
+- Kaplumbağa girebilecek büyüklükte (içme + su banyosu)
+
+**Yem:**
+- Seramik veya ağır kap (devriltmesin)
+
+## 4. Beslenme
+
+### Su Kaplumbağası Diyeti
+
+**Omnivor (Her Şey Yiyen):**
+
+**Protein Kaynakları (Gençlerde %70, Yetişkinde %30):**
+- Balık (alabalık, hamsi, sardalya)
+- Karides
+- Böcekler (cırcır böceği, kurtçuk)
+- Kaplumbağa pelet yemi
+- Sinek larvaları
+
+**Sebzeler (Gençlerde %30, Yetişkinde %70):**
+- Su marulu
+- Karahindiba
+- Havuç
+- Kabak
+- Yeşil yapraklı sebzeler
+
+**Kalsiyum Takviyesi:**
+- Balık kemikleri (küçük balıklar kabuklu)
+- Kalsiyum tozu (haftada 2-3 kez)
+- Mürekkep balığı kemiği (akvaryumda bırakın)
+
+**Yemleme Sıklığı:**
+- **Yavru (0-1 yaş):** Günde 1 kez
+- **Genç (1-5 yaş):** Günde 1 kez veya gün aşırı
+- **Yetişkin (5+ yaş):** Gün aşırı veya haftada 3 kez
+
+### Kara Kaplumbağası Diyeti
+
+**%100 Otçul (Bitkisel):**
+
+**Yeşil Yapraklar (%80):**
+- Karahindiba yaprakları
+- Yonca
+- Marul (koyu yeşil türler, marul değil)
+- Hindiba
+- Roka
+
+**Sebzeler (%15):**
+- Kabak
+- Havuç (az miktarda)
+- Salatalık
+
+**Meyve (%5 - Nadir):**
+- Çilek
+- Kavun
+- Muz
+- **Çok fazla şeker - sınırlı verin**
+
+**VERMEYİN:**
+❌ Marul (besin değeri yok)
+❌ Ispanak (oksalat yüksek, kalsiyumu bağlar)
+❌ Etli yemler (bağırsak problemleri)
+❌ İşlenmiş gıdalar
+
+**Kalsiyum ve D3 Takviyesi:**
+- Kalsiyum tozu (haftada 2-3 kez)
+- D3 içeren multivitamin (haftada 1 kez)
+
+**Yemleme:**
+- Günde 1 kez (sabah veya öğleden önce)
+- 15-20 dakikada yenecek kadar
+- Artıkları kaldırın
+
+## 5. Sağlık ve Hastalıklar
+
+### Metabolik Kemik Hastalığı (MBD)
+
+**Neden:**
+- UVB eksikliği
+- Kalsiyum eksikliği
+- D3 vitamini yetersizliği
+
+**Belirtiler:**
+- Yumuşak kabuk
+- Eğri, kırılgan kemikler
+- Yürümekte zorluk
+- Ağız şekil bozukluğu
+- Felç
+
+**Tedavi:**
+- **UVB lambasını hemen ekleyin**
+- Kalsiyum + D3 takviyesi
+- Veteriner kontrolü (ağır vakalarda enjeksiyon)
+
+**Önleme:**
+- Uygun UVB ışık
+- Kalsiyum takviyesi
+- Dengeli beslenme
+
+### Kabuk Çürümesi (Shell Rot)
+
+**Neden:**
+- Bakteri/mantar enfeksiyonu
+- Nemli, kirli ortam
+- Yaralanma
+
+**Belirtiler:**
+- Kabukta yumuşak, rengi değişmiş alanlar
+- Kötü koku
+- Kanama (ileri aşama)
+
+**Tedavi:**
+1. **Temizlik:**
+   - Betadine ile temizleme (günde 1-2 kez)
+2. **Kurulama:**
+   - Etkilenen bölge kuru tutulmalı
+3. **Antibiyotik:**
+   - Şiddetli vakalarda veteriner reçetesi
+
+**Önleme:**
+- Temiz su
+- Kuru güneşlenme alanı
+- Düzenli kontrol
+
+### Göz Enfeksiyonları
+
+**Belirtiler:**
+- Şişmiş gözler
+- Kapalı göz kapakları
+- Akıntı
+
+**Neden:**
+- Vitamin A eksikliği
+- Kirli su
+- Bakteri enfeksiyonu
+
+**Tedavi:**
+- Göz damlası (veteriner reçetesi)
+- Vitamin A takviyesi
+- Temiz su
+
+### Solunum Yolu Enfeksiyonu
+
+**Belirtiler:**
+- Ağızdan soluma
+- Hırıltı
+- Boğaz akıntısı
+- Halsizlik
+
+**Neden:**
+- Soğuk sıcaklık
+- Nem yüksekliği (kara için)
+- Stres
+
+**Tedavi:**
+- **VETERİNER ACİL**
+- Antibiyotik tedavisi
+- Sıcaklık artırımı
+- İzolasyon
+
+### Parazitler
+
+**İç Parazitler:**
+- Solucan
+- Protozoa
+
+**Belirtiler:**
+- Kilo kaybı
+- İshal
+- İştah kaybı
+
+**Tedavi:**
+- Dışkı analizi (veteriner)
+- Parazit ilacı
+
+**Dış Parazitler:**
+- Kene (deri)
+- **Tedavi:** Veteriner tarafından çıkartılır
+
+## 6. Kış Uykusu (Hibernasyon)
+
+### Kara Kaplumbağaları
+
+**Doğal Süreç:**
+- Kuzey yarımküre türleri (Hermann, Russian)
+- 2-4 ay uyku
+
+**Evde Hibernasyon (Riskli):**
+- Yeni başlayanlar için ÖNERİLMEZ
+- Veteriner gözetiminde yapılmalı
+
+**Kışı Aktif Geçirme:**
+- Terrarium sıcaklığını koruyun
+- Normal besleme
+- Güvenli yöntem
+
+### Su Kaplumbağaları
+
+**Evcilde Hibernasyon Yapmaz:**
+- Sıcak akvaryum
+- Aktif kalır
+- Yıl boyu beslenme
+
+## 7. Davranış ve Sosyalleşme
+
+### Su Kaplumbağaları
+
+**Davranışlar:**
+- Aktif yüzücüler
+- Meraklı
+- Güneşlenmeyi sever
+
+**Sosyallik:**
+- Birden fazla birlikte yaşayabilir (yeterli alan varsa)
+- Agresyon olabilir (özellikle erkekler)
+- Yem zamanı rekabet
+
+### Kara Kaplumbağaları
+
+**Davranışlar:**
+- Keşfedici
+- Kazıcı
+- Sabah/akşam aktif
+
+**Sosyallik:**
+- Birlikte yaşayabilir (alan yeterli)
+- Erkekler agresif olabilir
+
+## 8. Yasal Düzenlemeler ve Etik
+
+### Türkiye'de Yasal Durum
+
+**Korunan Türler:**
+- Testudo graeca (Ege Tosbağası)
+- Testudo hermanni (Hermann)
+- **Yasal izin gerektirir**
+
+**CITES:**
+- Bazı türler uluslararası koruma altında
+- İthalat/ihracat izni
+
+**Öneriler:**
+- Yasal yollardan satın alın (belge isteyin)
+- Doğadan toplamayın
+- Sahiplenme öncesi araştırın
+
+## 9. Sık Sorulan Sorular
+
+**S: Kaplumbağam yemek yemiyor, ne yapmalıyım?**
+C: Sıcaklık, UVB ve su kalitesini kontrol edin. Eğer sorun devam ederse veterinere götürün.
+
+**S: Kaplumbağa ne kadar büyük olur?**
+C: Türe göre. Su kaplumbağaları 20-30 cm, kara türleri 15-25 cm.
+
+**S: Kışın dışarıda bırakabilir miyim?**
+C: Kara kaplumbağaları hibernasyon yapabilir ama risklidir. Yeni başlayanlar için önerilmez.
+
+**S: Ne sıklıkla yemlemeliyim?**
+C: Yavru günlük, yetişkin gün aşırı veya haftada 3-4 kez.
+
+## 10. Uzun Ömür İçin Kontrol Listesi
+
+✅ **Yaşam Alanı:**
+- Yeterli büyüklükte
+- Doğru sıcaklık
+- UVB ışık
+- Temiz su/substrat
+
+✅ **Beslenme:**
+- Dengeli diyet
+- Kalsiyum takviyesi
+- D3 vitamini
+- Taze sebze/protein
+
+✅ **Sağlık:**
+- Yıllık veteriner kontrolü
+- Düzenli kabuk kontrolü
+- Parazit kontrolü
+
+✅ **Çevre:**
+- Streassiz
+- Güvenli
+- Doğal ışık döngüsü
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Kaplumbağa bakımı uzun vadeli bir sorumluluktur. Doğru koşullarda 50-100 yıl yaşayabilir, bu da bir ömür boyu taahhüt anlamına gelir.
+
+**Başarılı Kaplumbağa Bakımı İçin Altın Kurallar:**
+
+✅ **Araştırma:**
+- Türü öğrenin (su vs kara)
+- Özel ihtiyaçları anlayın
+- Yetişkin boyutunu bilin
+
+✅ **Doğru Ekipman:**
+- UVB lambası (ZORUNLU)
+- Isıtma
+- Filtre (su için)
+- Termometre
+
+✅ **Beslenme:**
+- Türe uygun diyet
+- Kalsiyum/D3 takviyesi
+- Aşırı yemleme yapmayın
+
+✅ **Sağlık:**
+- Yıllık veteriner kontrolü
+- MBD önleme (UVB + kalsiyum)
+- Erken müdahale
+
+✅ **Yasal:**
+- Yasal yoldan sahiplenin
+- Korunan türlere dikkat
+
+Kaplumbağanız size emanettir. Doğru bakım ile uzun, sağlıklı ve mutlu bir yaşam sürecektir!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Sürüngen hastalıkları ve bakım protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi** - Sürüngen sağlığı ve beslenmesi
+
+3. **Doğa Koruma ve Milli Parklar Genel Müdürlüğü** - Türkiye'deki korunan kaplumbağa türleri
+
+### Uluslararası Kaynaklar
+
+4. **Association of Reptilian and Amphibian Veterinarians (ARAV)** - Sürüngen bakım standartları
+
+5. **Tortoise Trust** - Kaplumbağa beslenme ve bakım rehberleri
+
+6. **Reptile Database** - Kaplumbağa türleri ve yaşam alanı gereksinimleri
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve sürüngen veteriner hekimleri tarafından denetlenmektedir.`,
+    categoryTags: ["sürüngen", "kaplumbağa", "terrarium", "bakım", "sağlık"],
+    readTime: 24,
+    published: true,
+  },
+
+  {
+    slug: "iguana-kertenkele-bakimi",
+    title: "Iguana ve Kertenkele Bakımı",
+    excerpt: "Iguana ve kertenkele türlerinin bakımı için kapsamlı rehber. Terrarium kurulumu, beslenme, sağlık ve davranış özellikleri hakkında bilmeniz gerekenler.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Iguana ve Kertenkele Bakımı: Kapsamlı Rehber
+
+Iguana ve kertenkele bakımı, sürüngen severlerin en ilgi çekici hobilerinden biridir. Bu muhteşem yaratıklar, doğru koşullarda 10-20 yıl yaşayabilir ve güçlü bir bağ kurabilirsiniz. Ancak başarılı bakım için özel terrarium düzenlemesi, beslenme ve sağlık bilgisi gerektirir. Bu kapsamlı rehber, yeşil iguana, sakallı ejderha (bearded dragon), leopar gecko ve diğer popüler kertenkele türlerinin bakımını detaylı olarak açıklamaktadır.
+
+## 1. Popüler İguana ve Kertenkele Türleri
+
+### Yeşil Iguana (Iguana iguana)
+
+**Özellikler:**
+- **Boy:** 1.5-2 metre (kuyruk dahil)
+- **Ağırlık:** 4-8 kg
+- **Ömür:** 15-20 yıl
+- **Temperament:** Sakin (ama genç iken stresli olabilir)
+- **Diyet:** %100 otçul
+
+**Uyarılar:**
+- ÇOK BÜYÜK terrarium gerekir (2m x 1m x 2m minimum)
+- Güçlü UV ihtiyacı
+- Yüksek nem (%70-80)
+- İleri seviye bakım
+
+### Sakallı Ejderha (Pogona vitticeps - Bearded Dragon)
+
+**Özellikler:**
+- **Boy:** 40-60 cm
+- **Ömür:** 10-15 yıl
+- **Temperament:** Çok uysal, alıştırılabilir
+- **Diyet:** Omnivor (böcek + sebze)
+- **YENİ BAŞLAYANLAR İÇİN MÜKEMMEL**
+
+**Avantajlar:**
+- Kolay bakım
+- Orta boy terrarium (120cm x 60cm x 60cm)
+- Günlük tutulabilir
+- Az hastalık
+
+### Leopar Gecko (Eublepharis macularius)
+
+**Özellikler:**
+- **Boy:** 20-25 cm
+- **Ömür:** 10-20 yıl
+- **Temperament:** Sakin, alıştırılabilir
+- **Diyet:** Böcek yiyen (canlı yem)
+- **Gece aktif**
+
+**Avantajlar:**
+- Küçük terrarium (80cm x 40cm x 40cm)
+- UVB gereksinmi YOK (ama önerilir)
+- Kolay besleme
+- Çok popüler
+
+### Nil Monitörü (Varanus niloticus)
+
+**UYARI - İLERİ SEVİYE:**
+- **Boy:** 1.5-2+ metre
+- Güçlü, zeki
+- Tehlikeli olabilir (ısırık, pençe)
+- Tecrübeli sahipler için
+
+## 2. Terrarium Kurulumu
+
+### Boyut Gereksinimleri
+
+**Genel Kural:**
+- Uzunluk: Sürüngenin boyunun 2-3 katı
+- Genişlik: Sürüngenin boyunun 1-1.5 katı
+- Yükseklik: Tırmanıcılar için boy × 2
+
+**Türlere Göre:**
+
+| Tür | Yetişkin İçin Terrarium |
+|-----|------------------------|
+| Yeşil Iguana | 200cm × 100cm × 200cm |
+| Sakallı Ejderha | 120cm × 60cm × 60cm |
+| Leopar Gecko | 80cm × 40cm × 40cm |
+| Gekko gekko | 60cm × 45cm × 90cm (dikey) |
+
+### Terrarium Malzemesi
+
+**Cam Terrarium:**
+- ✅ Şeffaf, gözlem kolay
+- ✅ Nem tutar
+- ❌ Ağır
+- **Tavsiye:** Yaygın seçim
+
+**PVC/Ahşap Terrarium:**
+- ✅ Nem kontrolü iyi
+- ✅ Hafif
+- ❌ Görünürlük az
+- **Tavsiye:** Büyük iguanalar için
+
+**Plastik Konteyner:**
+- Geçici/yavru için
+- Uzun vadeli değil
+
+### Isıtma Sistemleri
+
+**1. Basking Spot (Güneşlenme Lambası):**
+- 75-150 watt (terrarium boyutuna göre)
+- Sıcaklık:
+  - Iguana: 35-40°C
+  - Sakallı Ejderha: 38-43°C
+  - Leopar Gecko: 32-35°C
+
+**2. Yer Isıtıcısı (Heat Mat/Tape):**
+- Terrarium altında veya yan duvarında
+- Termostat ile kontrol
+- Gece ısıtma
+- Leopar Gecko için ideal
+
+**3. Seramik Isıtıcı:**
+- Işık yaymaz (gece için)
+- Sürekli ısıtma gerekenlerde
+
+**Sıcaklık Gradyanı (ÖNEMLİ):**
+- Sıcak nokta: Türe göre (32-43°C)
+- Soğuk nokta: 22-28°C
+- Gece: 18-24°C
+- **İki termometre:** Sıcak ve soğuk nokta
+
+### UVB Aydınlatma
+
+**Neden Gerekli?**
+- Vitamin D3 sentezi
+- Kalsiyum emilimi
+- Kemik sağlığı
+- MBD önleme
+
+**UVB Lambası Seçimi:**
+
+| Tür | UVB Gücü | Mesafe |
+|-----|----------|--------|
+| Yeşil Iguana | %10-12 | 30-40cm |
+| Sakallı Ejderha | %10-12 | 30-40cm |
+| Leopar Gecko | %5 (opsiyonel) | 40cm |
+
+**Kullanım:**
+- Günde 10-12 saat
+- Zamanlayıcı kullanın
+- Her 6-12 ayda değiştirin (UVB çıkışı azalır)
+- Cam geçirmez (cam engeller)
+
+### Substrat (Taban)
+
+**Güvenli Substratlar:**
+
+**Yeşil Iguana:**
+- Gazetli kağıt
+- Kokonat lifi
+- Toprak karışımı (organik toprak + kokonat)
+
+**Sakallı Ejderha:**
+- Gazetli kağıt
+- Seramik fayans
+- Slate tile (doğal taş)
+- **Kum ASLA** (impaksiyon riski)
+
+**Leopar Gecko:**
+- Gazetli kağıt
+- Slate tile
+- Reptile carpet
+- **Kum HAYIR** (yutma riski)
+
+**TEHLİKELİ Substratlar:**
+❌ Kalsiyum kumu (yutma riski)
+❌ Cedar/pine talaş (toksik)
+❌ Küçük çakıl
+
+### Nem ve Havalandırma
+
+**Nem Oranı:**
+- Yeşil Iguana: %70-80
+- Sakallı Ejderha: %30-40
+- Leopar Gecko: %30-40 (nem kutusu %80)
+
+**Nem Kontrolü:**
+- Dijital nem ölçer (hygrometer)
+- Günlük spreyreleme (yüksek nem türleri)
+- Su kabı (buharlaşma)
+- Nem kutusu (Leopar Gecko)
+
+**Havalandırma:**
+- Üst ve alt hava delikleri
+- Hava akımı ama hava akımı yok (draft)
+- Fan (büyük terrariumlar)
+
+### Dekorasyon ve Zenginleştirme
+
+**Tırmanma:**
+- Dayanıklı dallar
+- Liyan (cork bark)
+- Raflar
+- **Iguana için ŞART**
+
+**Saklanma Yerleri:**
+- Her sürüngen için gerekli
+- Sıcak ve soğuk bölgede birer tane
+- Karanlık, sıkı (güvenli hissetmeli)
+
+**Güvenli Bitkiler (Canlı):**
+- Pothos (Devil's Ivy)
+- Snake plant
+- Ficus (Iguana için)
+
+**Su:**
+- Geniş, sığ kap
+- İçme + banyo
+- Günlük değişim
+
+## 3. Beslenme
+
+### Yeşil Iguana Diyeti
+
+**%100 Otçul:**
+
+**Yeşil Yapraklar (%70):**
+- Karahindiba yaprakları
+- Hindiba
+- Hardal yeşillikleri
+- Roka
+- Yonca
+
+**Sebzeler (%20):**
+- Kabak
+- Havuç (az)
+- Yeşil fasulye
+- Tatlı biber
+
+**Meyve (%10):**
+- Mango
+- Kivi
+- Çilek
+- **Sınırlı verin** (şeker)
+
+**VERMEYİN:**
+❌ Marul (besin yok)
+❌ Ispanak (oksalat)
+❌ Protein (et, böcek)
+
+**Takviye:**
+- Kalsiyum tozu (D3'siz): Her gün
+- Multivitamin: Haftada 2 kez
+
+### Sakallı Ejderha Diyeti
+
+**Omnivor:**
+
+**Yavru (0-6 ay):**
+- %80 böcek, %20 sebze
+- Günde 2-3 kez
+
+**Genç (6-18 ay):**
+- %50 böcek, %50 sebze
+- Günde 1-2 kez
+
+**Yetişkin:**
+- %20 böcek, %80 sebze
+- Günde 1 kez veya gün aşırı
+
+**Böcekler:**
+- Cırcır böceği (staple)
+- Dubia hamamböceği
+- Kurtçuk (az, yağlı)
+- Un kurdu (nadir, snack)
+
+**Sebzeler:**
+- Karahindiba
+- Kabak
+- Hardal yeşillikleri
+- Havuç
+
+**Meyve:** Haftada 1-2 kez (az miktarda)
+
+**Takviye:**
+- Kalsiyum + D3: Her gün (yavru), gün aşırı (yetişkin)
+- Multivitamin: Haftada 1-2 kez
+
+### Leopar Gecko Diyeti
+
+**Böcek Yiyen:**
+
+**Ana Besin:**
+- Cırcır böceği
+- Dubia hamamböceği
+- Sinek larvaları
+
+**Snack:**
+- Un kurdu (yağlı, sınırlı)
+- Kurtçuk (bazen)
+
+**Yemleme Sıklığı:**
+- Yavru: Günde 1 kez
+- Genç: Gün aşırı
+- Yetişkin: 2-3 günde 1
+
+**Böcek Boyutu:**
+- Gecko'nun gözleri arası mesafeden küçük
+
+**Takviye:**
+- Kalsiyum + D3: Her yemleme
+- Multivitamin: Haftada 1 kez
+
+**Gut Loading:**
+- Böcekleri besleyerek besin değerini artırın
+- Cırcırları sebze, yulaf ile besleyin
+
+## 4. Su İhtiyacı
+
+**Yeşil Iguana:**
+- Büyük su kabı (girip çıkabilecek)
+- Günlük banyo (15-20 dk, ılık su)
+- Günlük spreyreleme
+
+**Sakallı Ejderha:**
+- Su kabı (içme)
+- Haftada 2-3 kez banyo (10-15 dk)
+- Hafif spreyleme (nadir)
+
+**Leopar Gecko:**
+- Sığ su kabı
+- Nem kutusu (ıslak moss)
+
+## 5. Sağlık ve Hastalıklar
+
+### Metabolik Kemik Hastalığı (MBD)
+
+**En Yaygın Sağlık Sorunu:**
+
+**Nedenler:**
+- UVB eksikliği
+- Kalsiyum eksikliği
+- D3 vitamini yetersizliği
+- Fosfor fazlalığı
+
+**Belirtiler:**
+- Eğri bacaklar, omurga
+- Yumuşak çene (rubber jaw)
+- Titreme
+- Felç
+- Kırılgan kemikler
+
+**Tedavi:**
+- UVB lambası (hemen)
+- Kalsiyum + D3 takviyesi
+- Veteriner (ağır vakalarda enjeksiyon)
+- **Kalıcı hasar olabilir**
+
+**Önleme:**
+- Uygun UVB
+- Kalsiyum takviyesi
+- Dengeli diyet
+
+### Deri Değiştirme Problemleri (Dysecdysis)
+
+**Normal Deri Değişimi:**
+- Gençler: Ayda 1-2 kez
+- Yetişkinler: 2-3 ayda 1
+- Parça parça veya bütün (tür ve boyuta göre)
+
+**Sorunlar:**
+- Takılı deri (stuck shed)
+- Parmak uçlarında halka (kan akışını keser)
+
+**Nedenler:**
+- Düşük nem
+- Dehidratasyon
+- Beslenme eksikliği
+
+**Tedavi:**
+- Ilık su banyosu (20-30 dk)
+- Nem artırımı
+- Yumuşak diş fırçası ile nazikçe yardım
+- **Zorla çekme yapmayın**
+
+**Önleme:**
+- Uygun nem
+- Nem kutusu (Leopar Gecko)
+- Su erişimi
+
+### Solunum Yolu Enfeksiyonu (RI)
+
+**Belirtiler:**
+- Ağızdan soluma
+- Hırıltı, tıkırtı sesi
+- Burun/ağız akıntısı
+- Halsizlik
+- İştahsızlık
+
+**Nedenler:**
+- Düşük sıcaklık
+- Yüksek nem (bazı türler)
+- Stres
+- Kötü hijyen
+
+**Tedavi:**
+- **VETERİNER ACİL**
+- Antibiyotik
+- Sıcaklık artırımı
+- Nem ayarı
+
+### Parazitler
+
+**İç Parazitler:**
+- Solucan, protozoa
+- Belirtiler: Kilo kaybı, ishal, iştahsızlık
+- **Tedavi:** Dışkı analizi + veteriner ilaç
+
+**Dış Parazitler:**
+- Kene, akar
+- **Tedavi:** Manuel çıkarma (veteriner) + antiseptik
+
+### İmpaksiyon (Bağırsak Tıkanması)
+
+**Neden:**
+- Substrat yutma (kum, çakıl)
+- Çok büyük yem
+- Düşük sıcaklık (sindirim yavaş)
+
+**Belirtiler:**
+- Kabızlık
+- Şişkin karın
+- İştahsızlık
+- Halsizlik
+
+**Tedavi:**
+- Ilık su banyosu
+- Karın masajı (nazik)
+- Veteriner (ağır vakalarda cerrahi)
+
+**Önleme:**
+- Güvenli substrat
+- Uygun yem boyutu
+- Doğru sıcaklık
+
+## 6. Tutma ve Sosyalleşme
+
+### Yeşil Iguana
+
+**Alıştırma:**
+- Yavaş, sabırlı
+- İlk haftalarda minimum stres
+- Günlük kısa temas (5-10 dk)
+- El ile yemek verme
+
+**Tutma:**
+- Vücudu destekleyin
+- Kuyruktan asla tutmayın
+- Sakin olun
+
+**Uyarılar:**
+- Üreme sezonunda (bahar) agresif olabilir
+- Kuyrukla vuruş
+- Diş ve pençe (savunma)
+
+### Sakallı Ejderha
+
+**Çok Uysal:**
+- Kolay alıştırılır
+- Günlük tutulabilir (15-30 dk)
+- Çocuklar için uygun
+
+**Stres Belirtileri:**
+- Sakal karartma (siyahlaşır)
+- Ağız açma
+- Kaçış
+
+**Sakin Tutma:**
+- Alttan destek
+- Yumuşak hareketler
+
+### Leopar Gecko
+
+**Alıştırma:**
+- Gece aktif (akşam tutun)
+- Yavaş alıştırma
+- Günlük 10-15 dk
+
+**Kuyruk Kopması:**
+- Stresli/korktuğunda kuyruk kopar
+- **Otoregeneration:** Yeniden büyür (ama farklı görünüş)
+- Kaçının
+
+## 7. Üreme ve Yumurta
+
+### Yeşil Iguana
+
+**Cinsiyet Ayrımı:**
+- Erkek: Büyük femoral gözenekler, hemipenal kabartı
+- Dişi: Küçük gözenekler
+
+**Üreme:**
+- 3-4 yaşında
+- Yılda 1 kez
+- Dişi 20-70 yumurta
+
+**Gravid (Hamile) Dişi:**
+- Yumurta bırakma kutusu gerekir
+- Kazı davranışı
+- İştahsızlık
+
+### Sakallı Ejderha
+
+**Cinsiyet:**
+- Erkek: Büyük femoral gözenekler, şişkin kuyruk tabanı
+- Dişi: İnce kuyruk tabanı
+
+**Üreme:**
+- 18-24 ay
+- Yılda 3-4 clutch (20-30 yumurta)
+
+### Leopar Gecko
+
+**Cinsiyet:**
+- Erkek: Hemipenal kabartı, femoral gözenekler
+- Dişi: Yok
+
+**Üreme:**
+- 10-12 ay
+- Yılda 6-8 çift yumurta
+
+## 8. Yasal Düzenlemeler
+
+**Türkiye:**
+- Bazı türler (Nil monitörü gibi) izin gerektirir
+- CITES listesini kontrol edin
+- Yasal yoldan satın alın
+
+**Yasaklar:**
+- Doğadan toplama yasak
+- Belgesiz satış yasak
+
+## 9. Sık Sorulan Sorular
+
+**S: Sürüngenim yemek yemiyor, ne yapmalıyım?**
+C: Sıcaklık, UVB ve stres kontrolü. Eğer devam ederse veteriner.
+
+**S: Ne kadar büyük olur?**
+C: Türe göre. Iguana 1.5-2m, Sakallı Ejderha 40-60cm, Leopar Gecko 20-25cm.
+
+**S: Çok mu pahalı?**
+C: İlk kurulum 5,000-15,000 TL. Aylık beslenme 200-500 TL.
+
+**S: Çocuklar için uygun mu?**
+C: Sakallı Ejderha ve Leopar Gecko çocuklar için uygun (gözetim altında).
+
+## 10. Başlangıç Kontrol Listesi
+
+✅ **Terrarium:**
+- Yeterli boyut
+- Sıcaklık gradyanı
+- UVB lambası
+- Güvenli substrat
+
+✅ **Ekipman:**
+- Termometre (2 adet)
+- Nem ölçer
+- Zamanlayıcı
+- Su kabı
+
+✅ **Yem:**
+- Taze sebze / Canlı böcek
+- Kalsiyum tozu
+- Multivitamin
+
+✅ **Bilgi:**
+- Tür araştırması
+- Veteriner bulun
+- Acil durum planı
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Iguana ve kertenkele bakımı, doğru bilgi ve ekipmanla başarılı ve keyifli olabilir. Uzun ömürlü dostlar kazanabilirsiniz.
+
+**Başarılı Sürüngen Bakımı İçin Altın Kurallar:**
+
+✅ **Araştırma:**
+- Türü öğrenin
+- Yetişkin boy ve ihtiyaçları
+- Yaşam süresi (uzun vadeli sorumluluk)
+
+✅ **Doğru Ekipman:**
+- UVB lambası (çoğu tür için ZORUNLU)
+- Sıcaklık kontrolü
+- Uygun terrarium
+
+✅ **Beslenme:**
+- Türe uygun diyet
+- Kalsiyum ve vitamin takviyesi
+- Taze yem
+
+✅ **Sağlık:**
+- Yıllık veteriner kontrolü
+- MBD önleme
+- Erken müdahale
+
+✅ **Sabır:**
+- Alıştırma zaman alır
+- Stres minimizasyonu
+
+Sürüngeniniz size emanettir. Doğru bakım ile sağlıklı, uzun ve mutlu bir yaşam sürer!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Sürüngen sağlığı ve bakım protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi** - Sürüngen hastalıkları ve beslenme
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - Egzotik hayvan sağlığı
+
+### Uluslararası Kaynaklar
+
+4. **Association of Reptilian and Amphibian Veterinarians (ARAV)** - Sürüngen bakım standartları
+
+5. **Repti Files** - Kertenkele beslenme ve bakım rehberleri
+
+6. **Bearded Dragon Care Guide (UK Herpetological Society)** - Sakallı ejderha bakım standartları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve sürüngen veteriner uzmanları tarafından denetlenmektedir.`,
+    categoryTags: ["sürüngen", "iguana", "kertenkele", "terrarium", "bakım"],
+    readTime: 23,
+    published: true,
+  },
+
+  {
+    slug: "ev-tavsani-bakimi-rehberi",
+    title: "Ev Tavşanı Bakımı: Kapsamlı Rehber",
+    excerpt: "Ev tavşanı bakımı için bilmeniz gereken her şey. Barınma, beslenme, sağlık, davranış ve günlük bakım rehberi.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Ev Tavşanı Bakımı: Kapsamlı Rehber
+
+Tavşanlar, sevecen, zeki ve eğlenceli evcil hayvanlardır. Doğru bakım şartlarında 8-12 yıl yaşayabilir ve güçlü bir bağ kurabilirsiniz. Ancak başarılı tavşan bakımı, geniş yaşam alanı, özel beslenme ve düzenli sağlık takibi gerektirir. Bu kapsamlı rehber, tavşan ırkından kafes kurulumuna, beslenmeden sağlığa kadar bilmeniz gereken her şeyi detaylı olarak açıklamaktadır.
+
+## 1. Tavşan Irkları ve Seçim
+
+### Popüler Ev Tavşanı Irkları
+
+**1. Lop (Sarkık Kulaklı) Tavşanlar:**
+- **Holland Lop:** Küçük (1-1.8 kg), sevimli
+- **French Lop:** Büyük (4.5-5.5 kg), sakin
+- **Mini Lop:** Orta (2-2.5 kg)
+- **Temperament:** Sakin, sevecen
+
+**2. Rex Tavşanı:**
+- Kadife gibi yumuşak tüy
+- Orta boy (3-4.5 kg)
+- Sevecen, oyuncu
+
+**3. Netherland Dwarf (Cüce Tavşan):**
+- Çok küçük (0.9-1.1 kg)
+- Enerjik
+- Daha fazla hareket gerektirir
+
+**4. Flemish Giant:**
+- Çok büyük (6-10 kg)
+- Sakin, nazik dev
+- Çok geniş alan gerektirir
+
+**Karışık Irk (Mixed Breed):**
+- Barınaklardan sahiplenme
+- Sağlıklı, dirençli
+- Kişilik çeşitliliği
+
+### Seçim Kriterleri
+
+**Yaş:**
+- İdeal: 8-12 haftalık (ama sahiplenme için 6+ ay da iyi)
+- Genç tavşanlar daha kolay alıştırılır
+- Yetişkin kişiliği bellidir
+
+**Sağlık Kontrolleri:**
+✅ Temiz, parlak gözler (akıntı yok)
+✅ Temiz burun (hapşırık yok)
+✅ Düzgün, beyaz dişler
+✅ Temiz popo (ishal yok)
+✅ Parlak, düzgün tüy
+✅ Aktif, meraklı davranış
+
+## 2. Barınma ve Kafes Düzenlemesi
+
+### Kafes vs. Serbest Dolaşım
+
+**Kafes:**
+- Güvenlik (gece, dışarı çıkıldığında)
+- Eğitim sırasında
+- **Kesinlikle tüm gün kafeste değil!**
+
+**Serbest Dolaşım (Free Roam):**
+- En iyi seçenek
+- Tavşan mutlu, sağlıklı
+- Oda tavşan-güvenli olmalı
+
+**Kombine Yaklaşım:**
+- Gece kafeste
+- Gündüz minimum 3-4 saat serbest
+
+### Kafes Boyutu
+
+**Minimum:**
+- **Küçük tavşan:** 120cm × 60cm × 60cm
+- **Orta tavşan:** 150cm × 70cm × 70cm
+- **Büyük tavşan:** 180cm × 90cm × 90cm
+
+**İdeal:**
+- 4-6 adım atabilecek kadar uzun
+- Tam ayağa kalkabilir yükseklik
+- **Càne büyük, o kadar iyi**
+
+### Kafes Malzemesi
+
+**Zemin:**
+- ❌ Tel kafes tabanı (pododermatitis - ayak yarası)
+- ✅ Katı taban (ahşap, plastik)
+- ✅ Yumuşak altlık
+
+**Malzeme:**
+- Metal kafes (paslanmaz)
+- Ahşap (ahşap parçalarını gnaw ettirir)
+
+### Yatak Malzemeleri
+
+**Güvenli:**
+✅ Odun talaşı (aspen)
+✅ Kağıt bazlı altlık (CareFresh)
+✅ Saman (yatmak için)
+✅ Eski battaniye/havlu (yumuşak alan)
+
+**TEHLİKELİ:**
+❌ Cedar/pine talaş (toksik)
+❌ Kedi kumu (sindirim sorunu)
+❌ Mısır koçanı altlık (küflenebilir)
+
+### Tuvalet Eğitimi
+
+**Tavşanlar Tuvalet Eğitilebilir!**
+
+**Tuvalet Kutusu:**
+- Köşe tuvalet kutusu
+- Yeterli büyüklükte (rahatça girebilsin)
+- Kenarları düşük (yaşlı tavşanlar için)
+
+**Altlık:**
+- Kağıt bazlı (önerilen)
+- Saman (üstüne)
+
+**Eğitim:**
+1. Tavşanın tercih ettiği köşeyi gözlemleyin
+2. Tuvalet kutusunu oraya koyun
+3. Bir miktar pislik koyun (koku tanıtımı)
+4. İdrar yapınca ödüllendirin
+5. Kaza yaparsa sessizce temizleyin
+
+**Başarı Oranı:** %90+ (özellikle kısırlaştırılmış tavşanlarda)
+
+### Oyun ve Zenginleştirme
+
+**Oyuncaklar:**
+- Kemirilebilir ahşap oyuncaklar
+- Willow ball
+- Karton kutular (tünel, saklanma)
+- Kağıt havlu rulosu
+- Zilli toplar
+
+**Kazıma Alanı:**
+- Kazıma kutusu (toprak, kağıt)
+- Doğal davranış
+
+**Tüneller:**
+- Karton tüneller
+- Bez tüneller
+
+## 3. Beslenme
+
+### Saman (Hay) - Diyetin %80'i
+
+**Timothy Hay (En İyi):**
+- Yüksek lif
+- Düşük kalori
+- Diş aşınması
+
+**Diğer Samanlar:**
+- Orchard grass
+- Oat hay
+- Meadow hay
+
+**Miktar:**
+- **Sınırsız!** (her zaman erişebilir)
+- Vücudu kadar saman/gün
+
+**Yavru Tavşanlar:**
+- Alfalfa hay (yüksek protein, kalsiyum)
+- 6 aydan sonra Timothy'ye geçiş
+
+### Taze Sebzeler - Diyetin %15'i
+
+**Yeşil Yapraklı Sebzeler (Günlük):**
+- Maydanoz
+- Dereotu
+- Marul (koyu yeşil - Romaine)
+- Hardal yeşillikleri
+- Roka
+- Hindiba
+
+**Diğer Sebzeler (Haftada 2-3 kez):**
+- Havuç (yaprakları dahil)
+- Brokoli (yaprak, sap)
+- Kereviz
+- Kabak
+- Salatalık
+
+**Miktar:**
+- Vücut ağırlığının %2'si (1 fincan/kg)
+- Örnek: 2 kg tavşan → 2 fincan sebze
+
+**VERMEYİN:**
+❌ Patates
+❌ Soğan, sarımsak
+❌ Mısır
+❌ Fasulye (kuru)
+❌ Avokado (toksik!)
+
+### Pelet Yem - Diyetin %5'i
+
+**Kaliteli Pelet:**
+- Timothy bazlı (alfalfa değil, yetişkinler için)
+- Lif %18+
+- Protein %12-14
+- Kalsiyum %0.6-1.0
+
+**Miktar:**
+- **Yetişkin:** 1/4 - 1/2 fincan/günde (2 kg için)
+- **Fazla pelet = Obezite, diş problemleri**
+
+**Yavru:**
+- Sınırsız alfalfa pelet (6 aya kadar)
+
+### Meyve ve İkramlar
+
+**Meyve (Haftada 1-2 kez):**
+- Elma (çekirdeksiz)
+- Muz (küçük dilim)
+- Çilek
+- Kavun
+
+**Miktar:**
+- 1-2 çay kaşığı
+
+**Özel İkramlar:**
+- Kuru meyve (çok az)
+- Ticari tavşan snack'leri (sınırlı)
+
+### Su
+
+**Taze, Temiz Su:**
+- **Sürekli erişebilir**
+- Günlük değişim
+
+**Su Kabı vs. Suluk:**
+- **Su kabı:** Daha doğal, kolay içer
+- **Suluk (nipple drinker):** Temiz kalır
+- **Her ikisi de olabilir**
+
+## 4. Sağlık ve Hastalıklar
+
+### Kısırlaştırma/Hadım
+
+**Neden Gerekli?**
+
+**Dişi (Spay):**
+- Rahim kanseri riski %80 (4+ yaş)
+- Agresyon azalır
+- Tuvalet eğitimi kolay
+- İstenmeyen gebelik önleme
+
+**Erkek (Neuter):**
+- Marking (idrar işaretleme) azalır
+- Agresyon azalır
+- Tuvalet eğitimi kolay
+
+**Ne Zaman?**
+- 4-6 aylık (veteriner önerisi)
+
+**Avantajlar:**
+- Daha uzun ömür
+- Daha sakin
+- Sağlıklı
+
+### Dişler ve Diş Problemleri
+
+**Tavşan Dişleri:**
+- Sürekli büyür (ömür boyu)
+- Yılda 10-12 cm
+
+**Malocclusion (Diş Uyumsuzluğu):**
+
+**Nedenler:**
+- Genetik
+- Yetersiz saman (diş aşınmaz)
+- Travma
+
+**Belirtiler:**
+- Yemek yemede zorluk
+- Salya akması
+- Göz akıntısı (kök basıncı)
+- Kilo kaybı
+
+**Tedavi:**
+- Veteriner diş kesimi (trim)
+- Her 4-8 haftada bir (kronik vakalarda)
+
+**Önleme:**
+- **BOL SAMAN** (en önemli)
+- Kemirilebilir oyuncaklar
+
+### Gastrointestinal Staz (GI Stasis)
+
+**En Yaygın Acil Durum:**
+
+**Nedir?**
+- Bağırsak hareketlerinin yavaşlaması/durması
+- **Hayati tehlike**
+
+**Nedenler:**
+- Yetersiz lif (saman eksikliği)
+- Stres
+- Ağrı
+- Dehidratasyon
+- Tüy yumakları
+
+**Belirtiler:**
+- İştahsızlık (12+ saat yemek yemiyor)
+- Dışkı azalması/yok
+- Halsizlik
+- Kamburlaşmış duruş
+- Diş gıcırdatma (ağrı)
+
+**Tedavi:**
+- **ACIL VETERİNER!**
+- Sıvı tedavisi
+- Ağrı kesici
+- Bağırsak hareketi uyarıcılar
+- Besleme (zorla, gerekirse)
+
+**Önleme:**
+- Bol saman
+- Taze sebze
+- Stres minimizasyonu
+- Düzenli egzersiz
+
+### Pasteurella (Burun Akıntısı - "Snuffles")
+
+**Bakteri Enfeksiyonu:**
+
+**Belirtiler:**
+- Hapşırık
+- Burun akıntısı
+- Göz akıntısı
+- Nefes almada zorluk
+
+**Tedavi:**
+- Antibiyotik (veteriner)
+- Uzun süreli tedavi (4+ hafta)
+
+**Önleme:**
+- Stres azaltımı
+- Temiz ortam
+- İyi havalandırma
+
+### Kulak Akarı (Ear Mites)
+
+**Belirtiler:**
+- Kulakta kahverengi kabuk
+- Kafa sallama
+- Kaşınma
+
+**Tedavi:**
+- Parazit ilacı (selamectin)
+- Veteriner temizliği
+
+### Pododermatitis (Sore Hocks)
+
+**Ayak Tabanı Yaraları:**
+
+**Nedenler:**
+- Tel kafes tabanı
+- Yetersiz yumuşak altlık
+- Obezite
+- Islak zemin
+
+**Belirtiler:**
+- Ayak tabanında kızarıklık, kabuklanma
+- Topallık
+- Ağrı
+
+**Tedavi:**
+- Yumuşak yüzey
+- Antibiyotik (enfekte ise)
+- Kilo kaybı (obez ise)
+
+**Önleme:**
+- Katı, yumuşak zemin
+- Kuru tutma
+
+### Tüy Yumakları (Hairballs)
+
+**Tavşanlar Kusamaz!**
+
+**Özellikle Tüy Değiştirme Döneminde:**
+
+**Belirtiler:**
+- İştahsızlık
+- Dışkı azalması
+- Dışkıda tüy
+
+**Önleme:**
+- Düzenli tarama (haftada 2-3 kez)
+- Bol saman
+- Taze ananas (bromelain enzimi, haftada 1-2 kez)
+
+## 5. Günlük Bakım ve Hijyen
+
+### Tüy Bakımı
+
+**Fırçalama:**
+- Kısa tüylü: Haftada 1-2 kez
+- Uzun tüylü (Angora): Günlük
+- Tüy değiştirme: Günlük
+
+**Araçlar:**
+- Yumuşak fırça
+- Tarak (uzun tüy için)
+- Kauçuk fırça (ölü tüy toplama)
+
+**Yıkama:**
+- **Tavşanları yıkamayın!**
+- Stres yaratır
+- Kendi temizler
+- İstisnai durum: Pis popo (ıslak bezle nazikçe)
+
+### Tırnak Kesimi
+
+**Sıklık:**
+- Ayda 1 kez
+- Tırnaklar kıvrılmadan önce
+
+**Araçlar:**
+- Tavşan/kedi tırnak makası
+
+**Teknik:**
+- Kan damarından (quick) uzak kesim
+- Açık renkli tırnakta damar görülür
+- Koyu tırnakta fener ile kontrol
+- **Sadece uç kısımları kesin**
+
+**Kanamayı Durdurma:**
+- Kan tozu (styptic powder)
+- Mısır nişastası
+
+### Koku Kontrolü
+
+**Tavşanlar Kokusuz!**
+
+**Koku Varsa Nedenleri:**
+- Kirli tuvalet
+- İdrar işaretleme (kısırlaştırılmamış)
+- Sağlık problemi
+
+**Çözüm:**
+- Günlük tuvalet temizliği
+- Haftalık tam değişim
+- Kısırlaştırma
+- Veteriner kontrolü
+
+## 6. Davranış ve Sosyalleşme
+
+### Tavşan Davranışları
+
+**Binky:**
+- Havaya sıçrama, dönme
+- **Çok mutlu** anlamı
+
+**Flopping:**
+- Yan yatıp uzanma
+- Rahat, güvenli hissediyor
+
+**Grinding Teeth (Diş Gıcırdatma):**
+- Hafif: Memnuniyet (kediğ gürlemesi gibi)
+- Yüksek sesle: Ağrı
+
+**Chinning:**
+- Çenesiyle objeleri ovma
+- Kokusunu bırakır (işaretleme)
+
+**Thumping:**
+- Arka ayakla yere vurma
+- Korku, uyarı
+
+### Sosyalleşme ve Bağ Kurma
+
+**Yavaş Yaklaşım:**
+- İlk günler sessiz, sakin
+- Zeminde oturun (tavşan seviyesinde)
+- El uzatın (burnuna getirin)
+
+**Ödül ile Eğitim:**
+- Yaklaştığında ikram verin
+- Adını söyleyin
+
+**Okşama:**
+- Alın, kulaklar arası: SEVER
+- Popo, kol altı: SEVMEZ
+
+**Tutma:**
+- Bir kol göğüs altında, diğer kol popoyu destekler
+- Sıkıca değil, güvenle
+- Sırtüstü tutmayın (stres)
+
+### İkinci Tavşan
+
+**Tavşanlar Sosyal:**
+- Arkadaş ister (özellikle uzun süre yalnızsa)
+
+**İkili Kurma (Bonding):**
+- Kısırlaştırılmış çift (erkek + dişi en kolay)
+- Nötr alanda tanıştırma
+- Gözetim altında
+- Zaman alır (günler-haftalar)
+
+**Uyarılar:**
+- Dövüş riski
+- Yavaş süreç
+
+## 7. Tavşan-Güvenli Ev
+
+### Kablo Yönetimi
+
+**Tavşanlar Kablo Yer!**
+
+**Koruma:**
+- Kablo kanalları
+- Spiralli koruma kabloları
+- Kablolar yüksekte
+
+### Zehirli Bitkiler
+
+**Ev İçi Zehirli:**
+❌ Difenbahya
+❌ Lilyum
+❌ Azalea
+❌ Philodendron
+
+**Güvenli Bitkiler:**
+✅ Spider plant
+✅ Bambu
+✅ Boston fern
+
+### Kemirme Önleme
+
+**Tavşanlar Her Şeyi Kemir!**
+
+- Ahşap mobilya koruma
+- Kitaplar yüksekte
+- Kıymetli objeler erişilemez
+
+**Alternatif:**
+- Kemirilebilir oyuncaklar bol miktarda
+
+## 8. Yaşlı Tavşan Bakımı
+
+**7+ Yaş:**
+
+**Değişiklikler:**
+- Daha az aktif
+- Eklem problemleri
+- Diş problemleri artabilir
+
+**Özel Bakım:**
+- Yumuşak zemin (artrit için)
+- Sığ tuvalet (erişim kolay)
+- Daha sık veteriner (6 ayda 1)
+- Yumuşak sebzeler
+
+## 9. Acil Durum Hazırlığı
+
+**Tavşan İlk Yardım Kiti:**
+- Veteriner iletişim (7/24 acil)
+- Şırınga (zorla besleme)
+- Critical Care (acil yem)
+- Tırnak kan tozu
+- Gazlı bez
+- Dijital termometre
+
+**Acil Veteriner Gerektiren:**
+- 12+ saat yemek yemiyor
+- Dışkı yok
+- İshal
+- Nefes almada zorluk
+- Felç
+- Travma
+
+## 10. Maliyet ve Uzun Vadeli Sorumluluk
+
+**İlk Kurulum:**
+- Kafes/kapalı alan: 1,500-3,000 TL
+- Tuvalet, oyuncak, kap: 500-1,000 TL
+- **Toplam:** 2,000-4,000 TL
+
+**Aylık:**
+- Saman: 200-400 TL
+- Pelet: 100-200 TL
+- Sebze: 200-300 TL
+- Yatak malzemesi: 100-150 TL
+- **Toplam:** 600-1,050 TL
+
+**Yıllık:**
+- Veteriner kontrolü: 500-1,000 TL
+- Kısırlaştırma: 800-1,500 TL (bir kez)
+- Diş kesimi: 300-600 TL (gerekirse)
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Tavşan bakımı, sevgi, sabır ve bilgi gerektirir. Doğru koşullarda 10+ yıl mutlu bir arkadaşınız olur.
+
+**Başarılı Tavşan Bakımı İçin Altın Kurallar:**
+
+✅ **Beslenme:**
+- %80 saman (sınırsız)
+- %15 taze sebze
+- %5 pelet
+
+✅ **Alan:**
+- Geniş, güvenli
+- Minimum 3-4 saat serbest/gün
+
+✅ **Sağlık:**
+- Kısırlaştırma
+- Yıllık veteriner
+- Diş kontrolü
+
+✅ **Sosyal:**
+- Günlük etkileşim
+- Oyun zamanı
+- İkinci tavşan (opsiyonel)
+
+✅ **Güvenlik:**
+- Tavşan-güvenli ev
+- Kablo koruması
+- Zehirli bitkiler uzakta
+
+Tavşanınız size emanettir. Sorumlulukla yaklaştığınızda, harika bir dost kazanacaksınız!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Tavşan hastalıkları ve bakım protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi** - Tavşan beslenmesi ve sağlık standartları
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - Küçük memeli hayvan sağlığı
+
+### Uluslararası Kaynaklar
+
+4. **House Rabbit Society** - Tavşan bakımı ve davranışı best practices
+
+5. **Association of Exotic Mammal Veterinarians** - Tavşan sağlık rehberleri
+
+6. **RWAF (Rabbit Welfare Association & Fund)** - Tavşan refahı ve beslenme standartları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve egzotik hayvan veteriner hekimleri tarafından denetlenmektedir.`,
+    categoryTags: ["kemirgen", "tavşan", "bakım", "beslenme", "sağlık"],
+    readTime: 25,
+    published: true,
+  },
+
+  {
+    slug: "hamster-kobay-bakimi-rehberi",
+    title: "Hamster ve Kobay Bakımı",
+    excerpt: "Hamster ve kobay bakımı için kapsamlı rehber. Kafes düzenlemesi, beslenme, sağlık ve günlük bakım hakkında bilmeniz gerekenler.",
+    content: `> **Uyarı:** Bu makale genel bilgilendirme amaçlıdır ve veteriner tavsiyesinin yerini tutmaz. Hayvanınızın sağlığı ile ilgili spesifik durumlar için mutlaka bir veteriner hekime danışın.
+
+# Hamster ve Kobay Bakımı: Kapsamlı Rehber
+
+Hamster ve kobaylar, küçük ama sevimli ve eğlenceli evcil hayvanlardır. Özellikle sınırlı alanı olanlar ve çocuklar için harika seçeneklerdir. Doğru bakım şartlarında, hamsterler 2-3 yıl, kobaylar 5-7 yıl yaşayabilir. Bu kapsamlı rehber, her iki tür için kafes kurulumundan beslemeye, sağlık sorunlarından günlük bakıma kadar bilmeniz gereken her şeyi detaylı olarak açıklamaktadır.
+
+## 1. Hamster Türleri ve Özellikleri
+
+### Suriye (Syrian/Golden) Hamster
+
+**Özellikler:**
+- **Boy:** 12-18 cm
+- **Ağırlık:** 120-150 g
+- **Ömür:** 2-3 yıl
+- **Temperament:** Sakin, kolay ehlileşir
+- **Sosyal:** TEK YAŞAMALI (çok领地i)
+
+**Renk Çeşitleri:**
+- Altın (Golden)
+- Beyaz
+- Siyah
+- Gri
+
+**Yeni Başlayanlar İçin:** En iyi seçenek
+
+### Cüce Hamsterler (Dwarf Hamsters)
+
+**1. Campbell's Dwarf:**
+- **Boy:** 8-10 cm
+- Sosyal (çift/grup yaşayabilir, ama risk var)
+- Daha enerjik
+
+**2. Winter White Dwarf:**
+- Campbell's'e benzer
+- Kışın beyazlaşabilir
+
+**3. Roborovski (Robo):**
+- En küçük (4-5 cm)
+- Çok hızlı
+- Az ehlileşir
+- İzleme için idealdir
+
+**4. Chinese Hamster:**
+- Kuyruklu (diğerleri bobtail)
+- Daha uzun, ince vücut
+- TEK yaşamalı
+
+## 2. Kobay (Guinea Pig) Türleri
+
+### Tüy Tipine Göre
+
+**1. Amerikan (Kısa Tüylü):**
+- En yaygın
+- Kolay bakım
+- Düz, kısa tüy
+
+**2. Abyssinian:**
+- Girdaplı tüy (rosettes)
+- Orta bakım
+
+**3. Peruvian (Uzun Tüylü):**
+- Çok uzun, ipeksi tüy
+- Günlük tarama gerekir
+- İleri seviye
+
+**4. Skinny Pig:**
+- Tüysüz
+- Sıcaklık kontrolü kritik
+- Özel bakım
+
+### Kobay Özellikleri
+
+- **Boy:** 20-30 cm
+- **Ağırlık:** 700-1200 g
+- **Ömür:** 5-7 yıl (bazen 8)
+- **Temperament:** Sosyal, sevecen
+- **Sosyal:** MUTLAKA ikili/grup
+
+**Not:** Kobaylar yalnız yaşamamalı! Minimum 2 kobay.
+
+## 3. Hamster Kafes Kurulumu
+
+### Kafes Boyutu
+
+**Minimum:**
+- **Suriye:** 80cm × 50cm (4000 cm² taban alanı)
+- **Cüce:** 60cm × 40cm (2400 cm²)
+
+**İdeal:**
+- Ne kadar büyük o kadar iyi
+- 100cm × 50cm+ idealdir
+
+**Yükseklik:**
+- Minimum 30 cm
+- Tırmanma için katlar eklenebilir
+
+### Kafes Türleri
+
+**1. Cam Akvaryum:**
+- ✅ Kaçış yok
+- ✅ Yatak malzemesi dışarı atılmaz
+- ❌ Havalandırma zayıf
+- ❌ Ağır
+
+**2. Metal Kafes (Barred Cage):**
+- ✅ İyi havalandırma
+- ✅ Tırmanma
+- ❌ Bar çiğneme
+- ❌ Yatak dışarı atılır
+
+**3. Plastik Modüler Kafes:**
+- ❌ ÖNERİLMEZ
+- Havalandırma yetersiz
+- Temizlik zor
+- Çiğner ve kaçar
+
+**En İyi:** Cam akvaryum + metal üst kapak (havalandırma)
+
+### Yatak Malzemeleri
+
+**Güvenli:**
+✅ Aspen talaş
+✅ Kağıt bazlı (CareFresh)
+✅ Hemp yatak
+
+**Kalınlık:** 5-10 cm (kazma için)
+
+**TEHLİKELİ:**
+❌ Cedar/pine talaş (solunum sorunları)
+❌ Pamuk (bağırsak tıkanması)
+
+### Temel Aksesuarlar
+
+**1. Koşu Tekerleği (ZORUNLU):**
+- **Boyut:** Suriye için 25-30 cm, Cüce için 20 cm
+- Katı yüzey (tel değil, ayak yaralanması)
+- Sessiz yatak rulmanı
+
+**2. Su Şişesi:**
+- 100-250 ml
+- Pipet uçlu
+- Günlük değişim
+
+**3. Yem Kabı:**
+- Ağır seramik (devrilmez)
+- Sığ
+
+**4. Saklanma Yeri:**
+- Ahşap/seramik ev
+- Kapalı, karanlık
+- Giriş yeterli büyüklükte
+
+**5. Oyuncaklar:**
+- Tüneller
+- Kemirilebilir ahşap
+- Karton rulo
+
+## 4. Kobay Kafes Kurulumu
+
+### Kafes Boyutu
+
+**Minimum (2 kobay):**
+- 120cm × 60cm (7200 cm²)
+- **Her ek kobay için +2400 cm²**
+
+**İdeal:**
+- 150cm × 70cm+
+
+**YOK:** Koşu tekerleği (omurga yaralanması riski)
+
+### Kafes Türleri
+
+**C&C Cage (Cubes & Coroplast):**
+- DIY kafes
+- Ucuz, geniş
+- Özelleştirilebilir
+- **Çok popüler**
+
+**Ticari Kafes:**
+- Açık üstlü
+- Metal barlar (çiğnenmez)
+
+### Yatak Malzemeleri
+
+- Aspen talaş
+- Kağıt bazlı
+- Fleece örtüler (yıkanabilir, ekonomik)
+
+**Kalınlık:** 3-5 cm
+
+### Aksesuarlar
+
+**1. Saklanma Yerleri:**
+- Her kobay için 1 adet
+- Birden fazla giriş (bloke olursa kaçış yolu)
+
+**2. Su:**
+- Büyük şişe (500 ml+)
+- VEYA su kabı (tercih edilir, daha doğal)
+
+**3. Yem Kabı:**
+- Ağır, büyük
+
+**4. Saman Rafı:**
+- Saman temiz tutmak için
+
+## 5. Hamster Beslenmesi
+
+### Ana Yem (Pellet/Karışım)
+
+**Kaliteli Hamster Yemi:**
+- Protein: %16-18
+- Yağ: %4-7
+- Lif: %6-15
+
+**Günlük Miktar:**
+- Suriye: 1-2 çay kaşığı
+- Cüce: 1 çay kaşığı
+
+### Taze Yiyecekler (Günlük)
+
+**Sebzeler:**
+- Havuç (küçük parça)
+- Brokoli
+- Salatalık
+- Kabak
+- Kereviz
+
+**Meyve (Haftada 1-2 kez):**
+- Elma (çekirdeksiz)
+- Muz (küçük dilim)
+- Çilek
+- **Az verin** (şeker)
+
+**Protein (Haftada 1-2 kez):**
+- Haşlanmış yumurta
+- Tavuk (haşlanmış, tuzsuz)
+- Un kurdu
+
+**VERMEYİN:**
+❌ Çikolata
+❌ Soğan, sarımsak
+❌ Şekerli yiyecekler
+❌ Tuzcul yiyecekler
+❌ Narenciye (çok asit)
+
+### Su
+
+- Taze, temiz su (günlük değişim)
+- Şişe veya kap
+
+## 6. Kobay Beslenmesi
+
+### Saman (HAY) - Sınırsız!
+
+**En Önemli Besin:**
+- %80 diyetin saman olmalı
+- Timothy hay
+- Orchard grass
+- Meadow hay
+
+**Miktar:** Her zaman erişebilir
+
+### Pelet Yem
+
+**C Vitamini İçermeli:**
+- Kobaylar C vitamini üretemez
+- Özel kobay peleti (hamster değil!)
+
+**Miktar:**
+- 1/8 fincan/günde (yetişkin)
+
+### Taze Sebzeler (Günlük)
+
+**C Vitamini Yüksek:**
+- Yeşil biber (en yüksek C vitamini!)
+- Maydanoz
+- Brokoli
+- Kıvırcık lahana
+
+**Diğer Sebzeler:**
+- Havuç
+- Salatalık
+- Marul (koyu yeşil)
+
+**Miktar:** 1 fincan/günde
+
+**Meyve:** Haftada 1-2 kez, az miktarda
+
+**VERMEYİN:**
+❌ Patates
+❌ Soğan
+❌ Şekerli yiyecekler
+❌ Süt ürünleri
+
+### C Vitamini Takviyesi
+
+- Eğer sebze yeterli değilse
+- Tablet (ezilip yeme karıştırılır)
+- Veteriner tavsiyesi
+
+### Su
+
+- Sınırsız, taze
+- Günlük değişim
+- Şişe veya kap
+
+## 7. Sağlık ve Hastalıklar
+
+### Hamster Sağlık Sorunları
+
+**1. Islak Kuyruk (Wet Tail):**
+- Ciddi ishal
+- Genç hamsterlerde yaygın
+- **Acil veteriner**
+
+**Belirtiler:**
+- Islak, pislenmiş kuyruk
+- Halsizlik
+- İştahsızlık
+
+**Tedavi:**
+- Antibiyotik
+- Sıvı desteği
+
+**2. Cilt Problemleri:**
+- Akar, mantar
+- Tüy dökülmesi
+- Kaşınma
+- **Veteriner teşhis**
+
+**3. Şişlik/Tümör:**
+- Yaşlı hamsterlerde yaygın
+- Veteriner değerlendirmesi
+
+**4. Diş Problemleri:**
+- Dişler sürekli büyür
+- Kemirilebilir oyuncaklar gerekli
+
+### Kobay Sağlık Sorunları
+
+**1. C Vitamini Eksikliği (Scurvy):**
+
+**Belirtiler:**
+- Halsizlik
+- Topallık
+- Şişmiş eklemler
+- Diş eti kanaması
+
+**Tedavi:**
+- C vitamini takviyesi
+- C vitamini yüksek sebzeler
+
+**Önleme:**
+- Günlük taze sebze
+- Kaliteli pelet
+
+**2. Ayak Yarası (Bumblefoot):**
+- Ayak tabanında yara, apse
+
+**Nedenler:**
+- Tel kafes tabanı
+- Kirli yatak
+- Obezite
+
+**Önleme:**
+- Katı, yumuşak zemin
+- Temiz yatak
+
+**3. Üst Solunum Yolu Enfeksiyonu:**
+
+**Belirtiler:**
+- Hapşırık
+- Burun akıntısı
+- Gözlerde akıntı
+
+**Tedavi:**
+- Veteriner antibiyotik
+
+**4. Diş Problemleri:**
+- Malokklüzyon (diş uyumsuzluğu)
+- Bol saman gerekli
+
+### Ortak Sağlık Kontrolleri
+
+**Günlük:**
+- İştah kontrolü
+- Davranış gözlemi
+- Dışkı normalliği
+
+**Haftalık:**
+- Kilo ölçümü
+- Tüy kontrolü
+- Göz/burun/kulak temizliği
+
+**Veteriner:**
+- Yılda 1 kez (rutin)
+- Şüpheli belirti hemen
+
+## 8. Günlük Bakım
+
+### Hamster Bakımı
+
+**Günlük:**
+- Yem ve su değişimi
+- Taze sebze
+- Pislik temizliği (tuvalet köşesi)
+
+**Haftalık:**
+- Tam kafes temizliği
+- Yatak değişimi
+- Oyuncak dezenfeksiyonu
+
+**Alıştırma:**
+- İlk günler sakin
+- El uzatma (koku alma)
+- Ödül verme
+- Yavaş tutma alıştırması
+
+### Kobay Bakımı
+
+**Günlük:**
+- Saman takviyesi
+- Taze sebze
+- Su değişimi
+- Pislik temizliği
+
+**3-4 Günde:**
+- Yatak değişimi (fleece ise yıkama)
+
+**Haftalık:**
+- Tam kafes temizliği
+- Tırnak kesimi (aylık)
+
+**Sosyalleşme:**
+- Günlük konuşma (çok vokal!)
+- Lap time (kucakta zaman)
+- Nazik okşama
+
+## 9. Üreme ve Yavru
+
+### Hamster
+
+**Üreme Yaşı:**
+- 8-12 haftalık
+
+**Hamilelik:**
+- 16-18 gün
+- Yavru sayısı: 4-12
+
+**Uyarı:**
+- Aşırı üreme → Sağlık sorunları
+- Plansız üreme önerilmez
+
+### Kobay
+
+**Üreme Yaşı:**
+- 4-6 aylık (ama 6-9 ay beklemek daha iyi)
+
+**Hamilelik:**
+- 59-72 gün (ortalama 65)
+- Yavru sayısı: 2-4
+- Yavru doğuşta gelişmiş (açık gözlü, tüylü)
+
+**Uyarı:**
+- Dişi ilk doğumda 7 aydan genç olmalı (pelvis füzyonu riski)
+
+## 10. Yaş ve Ömür
+
+### Hamster
+
+**Ortalama Ömür:**
+- Suriye: 2-3 yıl
+- Cüce: 1.5-2 yıl
+- Robo: 3-3.5 yıl (en uzun)
+
+**Yaşlılık Belirtileri:**
+- Aktivite azalması
+- Tüy incelmes
+- Kilo kaybı
+
+### Kobay
+
+**Ortalama Ömür:**
+- 5-7 yıl (bazıları 8-10)
+
+**Yaşlılık:**
+- Eklem problemleri (artrit)
+- Diş problemleri artışı
+- Daha az aktif
+
+**Yaşlı Bakımı:**
+- Yumuşak yiyecekler
+- Kolay erişimli su/yem
+- Sık veteriner kontrolü
+
+## Sonuç ve Uzman Tavsiyeleri
+
+Hamster ve kobay bakımı, küçük ama keyifli sorumluluklar sunar. Doğru bilgi ve özenvle mutlu, sağlıklı hayvanlar besleyebilirsiniz.
+
+**Başarılı Bakım İçin Altın Kurallar:**
+
+✅ **Hamster:**
+- Geniş kafes (minimum değil, ideal)
+- Koşu tekerleği (zorunlu)
+- TEK yaşamalı (Suriye)
+- Dengeli beslenme
+- Günlük etkileşim
+
+✅ **Kobay:**
+- ÇOK GENİŞ alan
+- Minimum 2 kobay (sosyal)
+- Sınırsız saman
+- C vitamini (mutlaka)
+- Günlük konuşma/sosyalleşme
+
+✅ **Ortak:**
+- Temiz, kuru yatak
+- Taze yem ve su
+- Veteriner kontrolü
+- Güvenli, zenginleştirilmiş ortam
+
+Küçük dostlarınız size emanettir. Sevgi ve bilgiyle yaklaşarak harika anılar birikitireceksiniz!
+
+---
+
+## Kaynaklar ve Referanslar
+
+Bu makale hazırlanırken aşağıdaki güncel ve güvenilir kaynaklardan yararlanılmıştır:
+
+### Resmi Kurumlar ve Veteriner Organizasyonları
+
+1. **Türk Veteriner Hekimleri Birliği (TVHB)** - Küçük memeli hayvan sağlığı ve bakım protokolleri
+
+2. **Ankara Üniversitesi Veteriner Fakültesi** - Hamster ve kobay beslenmesi standartları
+
+3. **İstanbul Üniversitesi-Cerrahpaşa Veteriner Fakültesi** - Egzotik hayvan hastalıkları
+
+### Uluslararası Kaynaklar
+
+4. **Association of Exotic Mammal Veterinarians** - Hamster ve kobay sağlık rehberleri
+
+5. **Guinea Pig Cages (GuineaPigCages.com)** - C&C kafes standartları ve kobay refahı
+
+6. **RSPCA (UK)** - Hamster ve kobay bakım kılavuzları
+
+**Son Güncelleme:** Ocak 2025
+**Editör Notu:** Bu içerik düzenli olarak güncellenmektedir ve egzotik hayvan veteriner hekimleri tarafından denetlenmektedir.`,
+    categoryTags: ["kemirgen", "hamster", "kobay", "bakım", "beslenme"],
+    readTime: 24,
+    published: true,
+  },
 ];
