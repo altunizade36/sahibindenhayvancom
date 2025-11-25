@@ -17,7 +17,14 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
+// Export session middleware instance for sharing with WebSocket
+let sessionMiddleware: any = null;
+
 export function getSession() {
+  if (sessionMiddleware) {
+    return sessionMiddleware;
+  }
+  
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -26,7 +33,8 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  return session({
+  
+  sessionMiddleware = session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
@@ -37,6 +45,8 @@ export function getSession() {
       maxAge: sessionTtl,
     },
   });
+  
+  return sessionMiddleware;
 }
 
 function updateUserSession(

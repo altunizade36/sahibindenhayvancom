@@ -107,14 +107,8 @@ export default function AuctionDetailPage() {
   useEffect(() => {
     if (!auctionId || !auction || auction.status !== "live") return;
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("No token available for WebSocket connection");
-      return;
-    }
-
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {

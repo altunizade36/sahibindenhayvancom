@@ -32,7 +32,7 @@ type Conversation = {
 };
 
 export default function Messages() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -83,12 +83,12 @@ export default function Messages() {
     },
   });
 
-  // WebSocket connection
+  // WebSocket connection (cookie-based auth via Replit Auth session)
   useEffect(() => {
-    if (!user || !token) return;
+    if (!user) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     const websocket = new WebSocket(wsUrl);
 
@@ -121,7 +121,7 @@ export default function Messages() {
     return () => {
       websocket.close();
     };
-  }, [user, token]);
+  }, [user]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -186,13 +186,15 @@ export default function Messages() {
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className="w-10 h-10 flex-shrink-0">
-                      <AvatarImage src={conversation.user.avatar || undefined} />
-                      <AvatarFallback>{conversation.user.fullName[0]}</AvatarFallback>
+                      <AvatarImage src={conversation.user.profileImageUrl || undefined} />
+                      <AvatarFallback>{(conversation.user.firstName || conversation.user.email)?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-semibold truncate">
-                          {conversation.user.fullName}
+                          {conversation.user.firstName && conversation.user.lastName 
+                            ? `${conversation.user.firstName} ${conversation.user.lastName}` 
+                            : conversation.user.email}
                         </span>
                         {conversation.unreadCount > 0 && (
                           <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
@@ -221,12 +223,14 @@ export default function Messages() {
             {/* Chat Header */}
             <div className="p-4 border-b flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={selectedConversation.user.avatar || undefined} />
-                <AvatarFallback>{selectedConversation.user.fullName[0]}</AvatarFallback>
+                <AvatarImage src={selectedConversation.user.profileImageUrl || undefined} />
+                <AvatarFallback>{(selectedConversation.user.firstName || selectedConversation.user.email)?.[0]}</AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-semibold" data-testid="text-chat-user-name">
-                  {selectedConversation.user.fullName}
+                  {selectedConversation.user.firstName && selectedConversation.user.lastName 
+                    ? `${selectedConversation.user.firstName} ${selectedConversation.user.lastName}` 
+                    : selectedConversation.user.email}
                 </div>
                 {selectedConversation.user.phone && (
                   <div className="text-sm text-muted-foreground">

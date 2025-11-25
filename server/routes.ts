@@ -3,12 +3,12 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { db } from "./db";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
+import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import {
@@ -88,24 +88,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Heartbeat tracking
   const heartbeats = new Map<string, NodeJS.Timeout>();
   
-  wss.on("connection", (ws: WebSocket, req) => {
+  wss.on("connection", async (ws: WebSocket, req) => {
     // Check connection limit
     if (clients.size >= MAX_CONNECTIONS) {
       ws.close(1008, "Server at capacity");
       return;
     }
 
-    const url = new URL(req.url || "?", "http://dummy");
-    const token = url.searchParams.get("token");
-    
-    if (!token) {
-      ws.close(1008, "No token provided");
-      return;
-    }
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-      const userId = decoded.userId;
+      // Run session middleware to populate req.session and req.user
+      const sessionMiddleware = getSession();
+      await new Promise<void>((resolve, reject) => {
+        sessionMiddleware(req, {} as any, (err?: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      // Run passport middleware to deserialize user
+      await new Promise<void>((resolve, reject) => {
+        passport.initialize()(req, {} as any, (err?: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        passport.session()(req, {} as any, (err?: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      // Check if user is authenticated
+      const user = (req as any).user;
+      if (!(req as any).isAuthenticated || !(req as any).isAuthenticated() || !user?.claims?.sub) {
+        ws.close(1008, "Unauthorized - Please log in");
+        return;
+      }
+
+      const userId = user.claims.sub;
       
       // Close existing connection for this user
       const existingClient = clients.get(userId);
@@ -172,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const [newMessage] = await db
               .insert(messages)
               .values({
-                senderId: decoded.userId,
+                senderId: userId,
                 receiverId: message.receiverId,
                 listingId: message.listingId || null,
                 content: message.content,
@@ -223,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .insert(bids)
               .values({
                 auctionId: message.auctionId,
-                bidderId: decoded.userId,
+                bidderId: userId,
                 amount: message.amount,
               })
               .returning();
@@ -266,7 +288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ws.close(1011, "Internal error");
       });
     } catch (error) {
-      ws.close(1008, "Invalid token");
+      console.error("WebSocket authentication error:", error);
+      ws.close(1008, "Authentication failed - Please log in");
     }
   });
 
