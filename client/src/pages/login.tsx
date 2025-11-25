@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock } from "lucide-react";
-import { SiGoogle, SiApple, SiGithub } from "react-icons/si";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,9 +59,8 @@ export default function Login() {
     }
   };
 
-  const handleOAuthLogin = (provider?: string) => {
-    const url = provider ? `/api/login/${provider}` : "/api/login";
-    window.location.href = url;
+  const handleOAuthLogin = () => {
+    window.location.href = "/api/login";
   };
 
   return (
@@ -159,37 +157,17 @@ export default function Login() {
             <Button
               variant="outline"
               className="w-full gap-3 h-11"
-              onClick={() => handleOAuthLogin("google")}
-              data-testid="button-google-login"
+              onClick={handleOAuthLogin}
+              data-testid="button-oauth-login"
             >
-              <SiGoogle className="w-5 h-5" />
-              <span>Google ile Giriş Yap</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={() => handleOAuthLogin("apple")}
-              data-testid="button-apple-login"
-            >
-              <SiApple className="w-5 h-5" />
-              <span>Apple ile Giriş Yap</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={() => handleOAuthLogin("github")}
-              data-testid="button-github-login"
-            >
-              <SiGithub className="w-5 h-5" />
-              <span>GitHub ile Giriş Yap</span>
+              <GiUnicorn className="w-5 h-5 text-primary" />
+              <span>Replit ile Devam Et</span>
             </Button>
           </div>
 
           <p className="text-center text-sm text-muted-foreground" data-testid="text-register-link">
             Hesabınız yok mu?{" "}
-            <Link href="/register">
+            <Link href="/kayit">
               <a className="text-primary hover:underline" data-testid="link-register">
                 Kayıt Ol
               </a>
