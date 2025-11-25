@@ -59,9 +59,11 @@ export default function ForgotPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <GiUnicorn className="w-20 h-20 text-primary" data-testid="icon-logo" />
+            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+              <GiUnicorn className="w-16 h-16 text-transparent bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }} data-testid="icon-logo" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold" data-testid="text-title">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent" data-testid="text-title">
             Şifremi Unuttum
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">

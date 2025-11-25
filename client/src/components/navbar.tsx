@@ -35,8 +35,10 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer" data-testid="link-home">
-              <GiUnicorn className="w-7 h-7 md:w-9 md:h-9 text-primary" />
-              <span className="text-lg md:text-xl font-bold">sahibinden<span className="text-primary">hayvan</span></span>
+              <div className="relative">
+                <GiUnicorn className="w-7 h-7 md:w-9 md:h-9 text-transparent bg-gradient-to-br from-blue-600 to-purple-600" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }} />
+              </div>
+              <span className="text-lg md:text-xl font-bold">sahibinden<span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">hayvan</span></span>
             </div>
           </Link>
 
@@ -71,8 +73,8 @@ export function Navbar() {
               <SheetContent side="left" className="w-full sm:w-80 overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
-                    <GiUnicorn className="w-7 h-7 text-primary" />
-                    sahibinden<span className="text-primary">hayvan</span>
+                    <GiUnicorn className="w-7 h-7 text-transparent bg-gradient-to-br from-blue-600 to-purple-600" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }} />
+                    sahibinden<span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">hayvan</span>
                   </SheetTitle>
                   <SheetDescription className="sr-only">
                     Navigasyon menüsü
