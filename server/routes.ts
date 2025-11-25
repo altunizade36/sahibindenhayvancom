@@ -2142,6 +2142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       // Return normalized path for frontend to use when displaying the image
       const normalizedPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      console.log("Upload URL generated:", { uploadURL: uploadURL.substring(0, 80) + "...", normalizedPath });
       res.json({ uploadURL, normalizedPath });
     } catch (error) {
       console.error("Error getting upload URL:", error);
