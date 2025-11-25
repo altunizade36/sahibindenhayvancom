@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Sparkles, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { GiUnicorn } from "react-icons/gi";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -86,9 +87,7 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="relative">
-                <Sparkles className="w-16 h-16 text-destructive" data-testid="icon-logo" />
-              </div>
+              <GiUnicorn className="w-20 h-20 text-destructive" data-testid="icon-logo" />
             </div>
             <CardTitle className="text-2xl text-destructive font-bold" data-testid="text-error">
               Geçersiz Link
@@ -124,10 +123,7 @@ export default function ResetPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative">
-              <Sparkles className="w-16 h-16 text-primary" data-testid="icon-logo" />
-              <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
-            </div>
+            <GiUnicorn className="w-20 h-20 text-primary" data-testid="icon-logo" />
           </div>
           <CardTitle className="text-2xl font-bold" data-testid="text-title">
             Yeni Şifre Belirle
