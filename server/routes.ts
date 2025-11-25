@@ -559,11 +559,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user (works for both auth methods)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      let user;
+      
+      // Priority 1: dbUserId (OAuth with dbUserId)
+      if (req.user.dbUserId) {
+        user = await storage.getUser(req.user.dbUserId);
+      }
+      
+      // Priority 2: Traditional auth (claims.sub)
+      if (!user && req.user.claims?.sub) {
+        user = await storage.getUser(req.user.claims.sub);
+      }
+      
+      // Priority 3: OAuth fallback - find by email
+      if (!user && req.user.claims?.email) {
+        user = await storage.getUserByEmail(req.user.claims.email);
+      }
+      
+      // Priority 4: Direct id field
+      if (!user && req.user.id) {
+        user = await storage.getUser(req.user.id);
+      }
+      
       if (!user) {
+        console.error("User not found. User object:", req.user);
         return res.status(404).json({ message: "User not found" });
       }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
