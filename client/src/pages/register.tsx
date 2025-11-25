@@ -2,14 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User, UserPlus } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -71,10 +70,6 @@ export default function Register() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleOAuthLogin = () => {
-    window.location.href = "/api/login";
   };
 
   return (
@@ -237,28 +232,7 @@ export default function Register() {
             </form>
           </Form>
 
-          <div className="relative my-6">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground font-medium">
-              veya
-            </span>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full gap-3 h-12 text-base"
-            onClick={handleOAuthLogin}
-            data-testid="button-oauth-register"
-          >
-            <UserPlus className="w-5 h-5" />
-            <span>Sosyal Hesapla Kayıt Ol</span>
-          </Button>
-          
-          <p className="text-xs text-center text-muted-foreground mt-2">
-            Google, Apple veya GitHub hesabınızla hızlıca kayıt olabilirsiniz
-          </p>
-
-          <p className="text-center text-sm text-muted-foreground" data-testid="text-login-link">
+          <p className="text-center text-sm text-muted-foreground mt-4" data-testid="text-login-link">
             Zaten hesabınız var mı?{" "}
             <Link href="/giris" className="text-primary hover:underline" data-testid="link-login">
               Giriş Yap
