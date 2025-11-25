@@ -178,15 +178,15 @@ export function Navbar() {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="rounded-full" data-testid="button-user-menu">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={user?.avatar || undefined} />
-                          <AvatarFallback>{user?.fullName[0]}</AvatarFallback>
+                          <AvatarImage src={user?.profileImageUrl || undefined} />
+                          <AvatarFallback>{user?.firstName?.[0] || user?.email?.[0] || "U"}</AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel>
                         <div className="flex flex-col">
-                          <span className="font-semibold">{user?.fullName}</span>
+                          <span className="font-semibold">{user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}</span>
                           <span className="text-xs text-muted-foreground">{user?.email}</span>
                         </div>
                       </DropdownMenuLabel>

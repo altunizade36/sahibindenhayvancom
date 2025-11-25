@@ -8,7 +8,6 @@ import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -32,51 +31,15 @@ import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 
-// Validate critical environment variables
-if (!process.env.SESSION_SECRET) {
-  throw new Error("SESSION_SECRET environment variable is required for JWT authentication");
-}
-
-const JWT_SECRET = process.env.SESSION_SECRET;
+// SESSION_SECRET is now used for session management (not JWT)
 
 // ============ Rate Limiting Configuration ============
-// Separate limiters for login vs. registration (different security requirements)
-
-// Login limiter: Relaxed for legitimate traffic bursts, skips successful logins
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 attempts per 15 minutes per IP
-  message: "Çok fazla giriş denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful logins (allows password recovery)
-});
-
-// Registration limiter: Very strict to achieve near-zero bot success rate
-const registerLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // STRICT: Only 10 registrations per 15 minutes per IP (near-zero bot spam tolerance)
-  message: "Çok fazla kayıt denemesi yaptınız. Lütfen 15 dakika sonra tekrar deneyin.",
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: false, // Count ALL registrations (blocks bot spam)
-  // Combined with reCAPTCHA v3, this achieves ~0% bot success rate
-});
 
 // Moderate rate limiter for resource creation
 const createLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // 10 requests per minute
   message: "Çok fazla istek gönderdiniz. Lütfen bir dakika bekleyin.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// General API rate limiter
-const generalLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
-  message: "Çok fazla istek gönderdiniz. Lütfen bekleyin.",
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -90,56 +53,8 @@ declare global {
   }
 }
 
-// Auth middleware (using PostgreSQL)
-async function authMiddleware(req: Request, res: Response, next: Function) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, decoded.userId))
-      .limit(1);
-    
-    if (!user) {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-}
-
-// Optional auth middleware (doesn't fail if no token) - using PostgreSQL
-async function optionalAuthMiddleware(req: Request, res: Response, next: Function) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return next();
-  }
-
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, decoded.userId))
-      .limit(1);
-    
-    if (user) {
-      req.user = user;
-    }
-    next();
-  } catch (error) {
-    next();
-  }
-}
+// Legacy JWT middleware removed - now using Replit Auth sessions
+// Use isAuthenticated from replitAuth.ts for protected routes
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Replit Auth Setup ============
@@ -370,286 +285,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============ Legacy Auth Routes (DEPRECATED - keeping for migration) ============
-  app.post("/api/auth/register", registerLimiter, async (req: Request, res: Response) => {
-    try {
-      // SECURITY: Validate reCAPTCHA before any processing
-      const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY) {
-        // Production: reCAPTCHA required
-        if (!recaptchaToken) {
-          return res.status(400).json({ message: "reCAPTCHA doğrulaması gereklidir" });
-        }
-        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
-        if (!isValid) {
-          return res.status(400).json({ message: "Bot koruması doğrulaması başarısız" });
-        }
-      }
-
-      const data = insertUserSchema.parse(req.body);
-      
-      // Check if user exists (direct PostgreSQL query)
-      const [existingUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, data.username))
-        .limit(1);
-      
-      if (existingUser) {
-        return res.status(400).json({ message: "Kullanıcı adı zaten kullanılıyor" });
-      }
-
-      const [existingEmail] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, data.email))
-        .limit(1);
-      
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email adresi zaten kullanılıyor" });
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(data.password, 10);
-      
-      // Check if auto-verify is enabled (dev mode without email service)
-      const autoVerify = shouldAutoVerifyEmail();
-      
-      // Generate email verification token (valid for 24 hours)
-      const verificationToken = autoVerify ? null : generateVerificationToken();
-      const verificationExpires = autoVerify ? null : (() => {
-        const expires = new Date();
-        expires.setHours(expires.getHours() + 24);
-        return expires;
-      })();
-      
-      // Create user in PostgreSQL
-      const [user] = await db
-        .insert(users)
-        .values({
-          ...data,
-          password: hashedPassword,
-          isVerified: autoVerify, // Auto-verify in dev mode
-          emailVerificationToken: verificationToken,
-          emailVerificationExpires: verificationExpires,
-        })
-        .returning();
-
-      // Send verification email (or log in dev mode)
-      if (!autoVerify && verificationToken) {
-        await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
-      }
-
-      // Response depends on mode
-      if (autoVerify) {
-        // Development mode: Auto-verified, generate JWT immediately
-        const token = jwt.sign(
-          { userId: user.id, username: user.username, role: user.role },
-          JWT_SECRET,
-          { expiresIn: "7d" }
-        );
-
-        res.json({
-          message: "Kayıt başarılı! (Development Mode: Email doğrulaması atlandı)",
-          token,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            isVerified: user.isVerified,
-          },
-        });
-      } else {
-        // Production mode: Email verification required
-        res.json({
-          message: "Kayıt başarılı! Email adresinize gönderilen doğrulama linkine tıklayın.",
-          email: user.email,
-          requiresVerification: true,
-        });
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(400).json({ message: "Kayıt başarısız oldu", error });
-    }
-  });
-
-  app.post("/api/auth/login", loginLimiter, async (req: Request, res: Response) => {
-    try {
-      const { username, password } = req.body;
-      const userIp = req.ip || req.socket.remoteAddress;
-
-      // Direct PostgreSQL query for user (allow login with username OR email)
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(sql`${users.username} = ${username} OR ${users.email} = ${username}`)
-        .limit(1);
-      
-      if (!user) {
-        return res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
-      }
-
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-        return res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
-      }
-
-      // CRITICAL: Check email verification before allowing login (Package B Security)
-      if (!user.isVerified) {
-        return res.status(403).json({ 
-          message: "Email adresiniz doğrulanmamış. Lütfen email kutunuzu kontrol edin ve doğrulama linkine tıklayın.",
-          email: user.email,
-          requiresVerification: true
-        });
-      }
-
-      // Update last login info
-      await db
-        .update(users)
-        .set({
-          lastLoginAt: new Date(),
-          lastLoginIp: userIp,
-        })
-        .where(eq(users.id, user.id));
-
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
-
-      // Sanitize user object - remove password and sensitive data
-      const { password: _, emailVerificationToken: __, ...sanitizedUser } = user;
-
-      res.json({
-        token,
-        user: sanitizedUser,
-      });
-    } catch (error) {
-      res.status(400).json({ message: "Giriş başarısız oldu", error });
-    }
-  });
-
-  app.get("/api/auth/me", authMiddleware, async (req: Request, res: Response) => {
-    // Sanitize user object - remove password
-    const { password: _, ...sanitizedUser } = req.user!;
-    res.json(sanitizedUser);
-  });
-
-  app.patch("/api/auth/profile", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      // Whitelist allowed profile fields - prevent role/password escalation
-      const allowedFields = ['fullName', 'phone', 'city', 'district', 'bio', 'avatar'];
-      const safeUpdates: any = {};
-      
-      for (const field of allowedFields) {
-        if (req.body[field] !== undefined) {
-          safeUpdates[field] = req.body[field];
-        }
-      }
-      
-      // Update user in PostgreSQL
-      const [updated] = await db
-        .update(users)
-        .set(safeUpdates)
-        .where(eq(users.id, req.user!.id))
-        .returning();
-      
-      if (!updated) {
-        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-      }
-
-      // Sanitize user object - remove password and sensitive data
-      const { password: _, emailVerificationToken: __, ...sanitizedUser } = updated;
-      res.json(sanitizedUser);
-    } catch (error) {
-      console.error("Profile update error:", error);
-      res.status(400).json({ message: "Güncelleme başarısız oldu", error });
-    }
-  });
-
-  // Email verification endpoint
-  app.get("/api/auth/verify-email", async (req: Request, res: Response) => {
-    try {
-      const { token } = req.query;
-      
-      if (!token || typeof token !== 'string') {
-        return res.status(400).json({ message: "Geçersiz doğrulama linki" });
-      }
-
-      // Find user with this token
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.emailVerificationToken, token))
-        .limit(1);
-
-      if (!user) {
-        return res.status(400).json({ message: "Geçersiz veya kullanılmış doğrulama linki" });
-      }
-
-      // Check if token expired
-      if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
-        return res.status(400).json({ message: "Doğrulama linki süresi dolmuş. Lütfen yeni link isteyin." });
-      }
-
-      // Verify user
-      const [updated] = await db
-        .update(users)
-        .set({
-          isVerified: true,
-          emailVerificationToken: null,
-          emailVerificationExpires: null,
-        })
-        .where(eq(users.id, user.id))
-        .returning();
-
-      // SECURITY FIX: Issue JWT ONLY after verification
-      const authToken = jwt.sign({ userId: updated.id }, JWT_SECRET, { expiresIn: "7d" });
-
-      const { password: _, emailVerificationToken: __, ...sanitizedUser } = updated;
-
-      res.json({
-        message: "Email adresiniz başarıyla doğrulandı! Artık giriş yapabilirsiniz.",
-        token: authToken,
-        user: sanitizedUser,
-      });
-    } catch (error) {
-      console.error("Email verification error:", error);
-      res.status(500).json({ message: "Doğrulama işlemi başarısız oldu" });
-    }
-  });
-
-  // Resend verification email
-  app.post("/api/auth/resend-verification", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user!;
-
-      if (user.isVerified) {
-        return res.status(400).json({ message: "Email adresiniz zaten doğrulanmış" });
-      }
-
-      // Generate new token
-      const verificationToken = generateVerificationToken();
-      const verificationExpires = new Date();
-      verificationExpires.setHours(verificationExpires.getHours() + 24);
-
-      // Update user
-      await db
-        .update(users)
-        .set({
-          emailVerificationToken: verificationToken,
-          emailVerificationExpires: verificationExpires,
-        })
-        .where(eq(users.id, user.id));
-
-      // Send email
-      await emailService.sendVerificationEmail(user.email, verificationToken, user.username);
-
-      res.json({ message: "Doğrulama emaili tekrar gönderildi" });
-    } catch (error) {
-      console.error("Resend verification error:", error);
-      res.status(500).json({ message: "Email gönderilemedi" });
-    }
-  });
-
   // ============ Category Routes ============
   // Get category statistics (listing count per category) - BEFORE parametric routes
   app.get("/api/categories/stats", async (_req: Request, res: Response) => {
@@ -822,7 +457,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Listing Routes ============
-  app.get("/api/listings", optionalAuthMiddleware, async (req: Request, res: Response) => {
+  // Note: No auth required for browsing listings (guest access)
+  // req.user will be populated if user is logged in (via Replit Auth session)
+  app.get("/api/listings", async (req: Request, res: Response) => {
     try {
       const { 
         page = '1', 
@@ -1079,7 +716,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/listings/:id", optionalAuthMiddleware, async (req: Request, res: Response) => {
+  // Note: No auth required for viewing listing details (guest access)
+  // req.user will be populated if user is logged in (via Replit Auth session)
+  app.get("/api/listings/:id", async (req: Request, res: Response) => {
     try {
       const [listing] = await db
         .select()
@@ -1157,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/listings", createLimiter, authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/listings", createLimiter, isAuthenticated, async (req: Request, res: Response) => {
     try {
       const user = req.user!;
 
@@ -1253,7 +892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/listings/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/listings/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [listing] = await db
         .select()
@@ -1288,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/listings/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/listings/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [listing] = await db
         .select()
@@ -1313,7 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  app.get("/api/listings/mine", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/listings/mine", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userListings = await db
         .select()
@@ -1400,7 +1039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auctions", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/auctions", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const data = insertAuctionSchema.parse(req.body);
       
@@ -1443,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auctions/:id/bids", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/auctions/:id/bids", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [auction] = await db
         .select()
@@ -1569,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/streams", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/streams", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const data = insertLiveStreamSchema.parse({
         ...req.body,
@@ -1590,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/streams/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/streams/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [stream] = await db
         .select()
@@ -1619,7 +1258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/streams/:id/join", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/streams/:id/join", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [stream] = await db
         .select()
@@ -1654,7 +1293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/streams/:id/leave", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/streams/:id/leave", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [stream] = await db
         .select()
@@ -1684,7 +1323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Live Streaming RTC Token Generation (requires AGORA_APP_ID and AGORA_APP_CERTIFICATE)
-  app.get("/api/streams/:id/token", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/streams/:id/token", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const [stream] = await db
         .select()
@@ -1738,7 +1377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Message Routes ============
-  app.get("/api/messages/conversations", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       // Get unique conversations from PostgreSQL
       const userId = req.user!.id;
@@ -1773,7 +1412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/messages/:userId", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/messages/:userId", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const currentUserId = req.user!.id;
       const otherUserId = req.params.userId;
@@ -1794,7 +1433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const data = insertMessageSchema.parse({
         ...req.body,
@@ -1894,7 +1533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/blog", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/blog", isAuthenticated, async (req: Request, res: Response) => {
     try {
       if (req.user!.role !== "admin" && req.user!.role !== "vet") {
         return res.status(403).json({ message: "Unauthorized" });
@@ -1986,7 +1625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/vet-services", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/vet-services", isAuthenticated, async (req: Request, res: Response) => {
     try {
       if (req.user!.role !== "vet") {
         return res.status(403).json({ message: "Only veterinarians can create services" });
@@ -2075,7 +1714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/transport-services", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/transport-services", isAuthenticated, async (req: Request, res: Response) => {
     try {
       if (req.user!.role !== "transporter") {
         return res.status(403).json({ message: "Only transporters can create services" });
@@ -2100,7 +1739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Review Routes ============
-  app.post("/api/reviews", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/reviews", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const data = insertReviewSchema.parse({
         ...req.body,
@@ -2121,7 +1760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Favorite Routes ============
-  app.get("/api/favorites", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/favorites", isAuthenticated, async (req: Request, res: Response) => {
     try {
       // Get favorites from PostgreSQL
       const favs = await db
@@ -2136,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/favorites", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/favorites", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const data = insertFavoriteSchema.parse({
         ...req.body,
@@ -2156,7 +1795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/favorites/:listingId", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/favorites/:listingId", isAuthenticated, async (req: Request, res: Response) => {
     try {
       // Delete favorite from PostgreSQL
       await db
@@ -2178,7 +1817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Object Storage Routes ============
   
   // Get upload URL for object
-  app.post("/api/objects/upload", createLimiter, authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/objects/upload", createLimiter, isAuthenticated, async (req: Request, res: Response) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
@@ -2231,7 +1870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Admin dashboard stats
-  app.get("/api/admin/stats", authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/stats", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
     try {
       const [usersCount] = await db.select({ count: count() }).from(users);
       const [listingsCount] = await db.select({ count: count() }).from(listings);
@@ -2253,7 +1892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all listings for moderation (admin only)
-  app.get("/api/admin/listings", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/listings", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const { status } = req.query;
       
@@ -2296,7 +1935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update listing status (admin only - approve/reject with strict Zod validation)
-  app.patch("/api/admin/listings/:id/status", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/admin/listings/:id/status", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       // SECURITY: Validate with Zod schema
       const validationResult = moderateListingSchema.safeParse(req.body);
@@ -2353,7 +1992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Admin Blog Management Routes ============
   // SECURITY: All admin blog routes require authentication + admin role
   // Get all blog posts (admin only - includes unpublished)
-  app.get("/api/admin/blog", authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/blog", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
     try {
       const allBlogs = await db
         .select({
@@ -2382,7 +2021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create new blog post (admin only)
-  app.post("/api/admin/blog", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/blog", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const validationResult = insertBlogPostSchema.safeParse(req.body);
       if (!validationResult.success) {
@@ -2411,7 +2050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update blog post (admin only)
-  app.put("/api/admin/blog/:id", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/blog/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const validationResult = insertBlogPostSchema.safeParse(req.body);
       if (!validationResult.success) {
@@ -2445,7 +2084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete blog post (admin only)
-  app.delete("/api/admin/blog/:id", authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/blog/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const [deleted] = await db
         .delete(blogPosts)
@@ -2584,7 +2223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create new store (authenticated sellers only)
-  app.post("/api/store", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/store", isAuthenticated, async (req: Request, res: Response) => {
     try {
       // Check if user already has a store
       const existingStore = await db.query.stores.findFirst({
@@ -2622,7 +2261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update store (owner only)
-  app.patch("/api/store/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/store/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const store = await db.query.stores.findFirst({
         where: eq(stores.id, req.params.id),
@@ -2664,7 +2303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get my store (owner dashboard)
-  app.get("/api/store/my/dashboard", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/store/my/dashboard", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const myStore = await db.query.stores.findFirst({
         where: eq(stores.ownerId, req.user!.id),
@@ -2693,7 +2332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create store review (authenticated buyers only)
-  app.post("/api/store/:id/review", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/store/:id/review", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const store = await db.query.stores.findFirst({
         where: eq(stores.id, req.params.id),
@@ -2797,7 +2436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload store media (logo/banner) - Owner only
-  app.post("/api/store/:id/media", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/store/:id/media", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const store = await db.query.stores.findFirst({
         where: eq(stores.id, req.params.id),
