@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { PawPrint, Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu } from "lucide-react";
+import { Sparkles, Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu } from "lucide-react";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -34,7 +34,10 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer" data-testid="link-home">
-              <PawPrint className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <div className="relative">
+                <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                <Sparkles className="w-2 h-2 md:w-3 md:h-3 text-yellow-400 absolute -top-0.5 -right-0.5 animate-pulse" />
+              </div>
               <span className="text-lg md:text-xl font-bold">sahibinden<span className="text-primary">hayvan</span></span>
             </div>
           </Link>
@@ -70,7 +73,10 @@ export function Navbar() {
               <SheetContent side="left" className="w-full sm:w-80 overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
-                    <PawPrint className="w-6 h-6 text-primary" />
+                    <div className="relative">
+                      <Sparkles className="w-6 h-6 text-primary" />
+                      <Sparkles className="w-2 h-2 text-yellow-400 absolute -top-0.5 -right-0.5 animate-pulse" />
+                    </div>
                     sahibinden<span className="text-primary">hayvan</span>
                   </SheetTitle>
                   <SheetDescription className="sr-only">

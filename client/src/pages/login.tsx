@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PawPrint, Mail, Lock } from "lucide-react";
+import { Sparkles, Mail, Lock } from "lucide-react";
+import { SiGoogle, SiApple, SiGithub } from "react-icons/si";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,8 +59,9 @@ export default function Login() {
     }
   };
 
-  const handleOAuthLogin = () => {
-    window.location.href = "/api/login";
+  const handleOAuthLogin = (provider?: string) => {
+    const url = provider ? `/api/login/${provider}` : "/api/login";
+    window.location.href = url;
   };
 
   return (
@@ -67,13 +69,16 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PawPrint className="w-12 h-12 text-primary" data-testid="icon-logo" />
+            <div className="relative">
+              <Sparkles className="w-16 h-16 text-primary" data-testid="icon-logo" />
+              <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+            </div>
           </div>
-          <CardTitle className="text-2xl" data-testid="text-title">
-            sahibinden<span className="text-primary">hayvan</span>
+          <CardTitle className="text-3xl font-bold" data-testid="text-title">
+            Tekrar Hoş Geldiniz
           </CardTitle>
-          <CardDescription data-testid="text-description">
-            Hesabınıza giriş yapın
+          <CardDescription className="text-base mt-2" data-testid="text-description">
+            sahibinden<span className="text-primary">hayvan</span> hesabınıza giriş yapın
           </CardDescription>
         </CardHeader>
         
@@ -143,21 +148,44 @@ export default function Login() {
             </form>
           </Form>
 
-          <div className="relative">
+          <div className="relative my-6">
             <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-              veya
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground font-medium">
+              veya sosyal hesaplarınızla
             </span>
           </div>
 
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleOAuthLogin}
-            data-testid="button-oauth-login"
-          >
-            Google / Apple / GitHub ile Giriş Yap
-          </Button>
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              className="w-full gap-3 h-11"
+              onClick={() => handleOAuthLogin("google")}
+              data-testid="button-google-login"
+            >
+              <SiGoogle className="w-5 h-5" />
+              <span>Google ile Giriş Yap</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full gap-3 h-11"
+              onClick={() => handleOAuthLogin("apple")}
+              data-testid="button-apple-login"
+            >
+              <SiApple className="w-5 h-5" />
+              <span>Apple ile Giriş Yap</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full gap-3 h-11"
+              onClick={() => handleOAuthLogin("github")}
+              data-testid="button-github-login"
+            >
+              <SiGithub className="w-5 h-5" />
+              <span>GitHub ile Giriş Yap</span>
+            </Button>
+          </div>
 
           <p className="text-center text-sm text-muted-foreground" data-testid="text-register-link">
             Hesabınız yok mu?{" "}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PawPrint, Mail, ArrowLeft } from "lucide-react";
+import { Sparkles, Mail, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,12 +58,15 @@ export default function ForgotPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PawPrint className="w-12 h-12 text-primary" data-testid="icon-logo" />
+            <div className="relative">
+              <Sparkles className="w-16 h-16 text-primary" data-testid="icon-logo" />
+              <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+            </div>
           </div>
-          <CardTitle className="text-2xl" data-testid="text-title">
+          <CardTitle className="text-2xl font-bold" data-testid="text-title">
             Şifremi Unuttum
           </CardTitle>
-          <CardDescription data-testid="text-description">
+          <CardDescription className="text-base mt-2" data-testid="text-description">
             Email adresinize şifre sıfırlama linki göndereceğiz
           </CardDescription>
         </CardHeader>
