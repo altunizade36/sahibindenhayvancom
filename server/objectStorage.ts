@@ -169,6 +169,29 @@ export class ObjectStorageService {
     const entityId = rawObjectPath.slice(objectEntityDir.length);
     return `/objects/${entityId}`;
   }
+
+  async uploadFileBuffer(buffer: Buffer, contentType: string = 'image/jpeg'): Promise<string> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    if (!privateObjectDir) {
+      throw new Error("PRIVATE_OBJECT_DIR not set");
+    }
+
+    const objectId = randomUUID();
+    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objectName);
+
+    await file.save(buffer, {
+      contentType,
+      metadata: {
+        contentType,
+      },
+    });
+
+    return `/objects/uploads/${objectId}`;
+  }
 }
 
 function parseObjectPath(path: string): {

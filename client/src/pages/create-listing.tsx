@@ -233,23 +233,25 @@ export default function CreateListing() {
           continue;
         }
 
-        // Get presigned upload URL from backend
-        const response = await apiRequest("POST", "/api/objects/upload") as unknown as { uploadURL: string; normalizedPath: string };
-        const { uploadURL, normalizedPath } = response;
+        // Upload file through backend (no CORS issues)
+        const formData = new FormData();
+        formData.append('file', optimizedFile, file.name.replace(/\.[^/.]+$/, '.jpg'));
         
-        // Upload optimized file directly to object storage
-        const uploadResponse = await fetch(uploadURL, {
-          method: "PUT",
-          body: optimizedFile,
-          headers: {
-            "Content-Type": "image/jpeg",
-          },
+        const uploadResponse = await fetch('/api/objects/upload-file', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
         });
 
+        console.log("Upload response:", { ok: uploadResponse.ok, status: uploadResponse.status });
+
         if (uploadResponse.ok) {
-          // Use normalized path for displaying the image
+          const { normalizedPath } = await uploadResponse.json();
+          console.log("File uploaded successfully:", normalizedPath);
           setUploadedImages(prev => [...prev, normalizedPath]);
         } else {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          console.error("Upload failed:", errorData);
           toast({
             title: "Yükleme Hatası",
             description: `${file.name} yüklenemedi`,

@@ -12,6 +12,7 @@ import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from 
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
+import multer from "multer";
 import {
   insertUserSchema,
   insertListingSchema,
@@ -33,6 +34,21 @@ import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 
 // SESSION_SECRET is now used for session management (not JWT)
+
+// ============ Multer Configuration for File Uploads ============
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Sadece resim dosyaları yüklenebilir'));
+    }
+  },
+});
 
 // ============ Rate Limiting Configuration ============
 
@@ -2135,7 +2151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Object Storage Routes ============
   
-  // Get upload URL for object
+  // Get upload URL for object (legacy - presigned URL approach)
   app.post("/api/objects/upload", createLimiter, isAuthenticated, async (req: Request, res: Response) => {
     try {
       const objectStorageService = new ObjectStorageService();
@@ -2147,6 +2163,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ message: "Failed to get upload URL" });
+    }
+  });
+
+  // Direct file upload through backend (no CORS issues)
+  app.post("/api/objects/upload-file", createLimiter, isAuthenticated, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Dosya gerekli" });
+      }
+
+      console.log("Received file upload:", { 
+        originalName: req.file.originalname, 
+        size: req.file.size, 
+        mimetype: req.file.mimetype 
+      });
+
+      const objectStorageService = new ObjectStorageService();
+      const normalizedPath = await objectStorageService.uploadFileBuffer(
+        req.file.buffer, 
+        req.file.mimetype
+      );
+
+      console.log("File uploaded successfully:", normalizedPath);
+      res.json({ normalizedPath });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "Dosya yüklenemedi" });
     }
   });
 
