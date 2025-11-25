@@ -286,7 +286,9 @@ export default function CreateListing() {
     if (!user) {
       navigate("/giris");
     }
-    loadRecaptchaScript().catch(console.error);
+    if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+      loadRecaptchaScript().catch(() => {});
+    }
   }, [user, navigate]);
 
   if (!user) {
