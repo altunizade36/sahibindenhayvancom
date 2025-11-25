@@ -11,6 +11,8 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import CreateListing from "@/pages/create-listing";
 import BlogList from "@/pages/blog-list";
 import BlogDetail from "@/pages/blog-detail";
@@ -62,7 +64,11 @@ function NoSidebarLayout() {
       <main className="flex-1 overflow-auto">
         <Switch>
           <Route path="/giris" component={Login} />
+          <Route path="/login" component={Login} />
           <Route path="/kayit" component={Register} />
+          <Route path="/register" component={Register} />
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/reset-password" component={ResetPassword} />
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/ilan-ver" component={CreateListing} />
           <Route path="/ilan/:id" component={ListingDetail} />
@@ -97,7 +103,12 @@ function NoSidebarLayout() {
 function Router() {
   const [location] = useLocation();
   const isNoSidebarRoute = location.startsWith('/giris') || 
+                           location.startsWith('/login') || 
                            location.startsWith('/kayit') || 
+                           location.startsWith('/register') || 
+                           location.startsWith('/forgot-password') || 
+                           location.startsWith('/reset-password') || 
+                           location.startsWith('/verify-email') || 
                            location.startsWith('/ilan-ver') ||
                            location.startsWith('/ilan/') ||
                            location.startsWith('/blog') ||

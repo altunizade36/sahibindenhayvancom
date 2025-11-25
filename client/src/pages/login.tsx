@@ -1,28 +1,172 @@
-import { useEffect } from "react";
-import { PawPrint } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { PawPrint, Mail, Lock } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+
+const loginSchema = z.object({
+  emailOrUsername: z.string().min(1, "Email veya kullanıcı adı gereklidir"),
+  password: z.string().min(1, "Şifre gereklidir"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  useEffect(() => {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      emailOrUsername: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginForm) => {
+    setIsLoading(true);
+    try {
+      const response = await apiRequest("/api/auth/login", "POST", {
+        emailOrUsername: data.emailOrUsername,
+        password: data.password,
+      });
+
+      toast({
+        title: "Giriş Başarılı!",
+        description: response.message || "Hoş geldiniz!",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Giriş Başarısız",
+        description: error.message || "Email/kullanıcı adı veya şifre hatalı.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuthLogin = () => {
     window.location.href = "/api/login";
-  }, []);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PawPrint className="w-12 h-12 text-primary" />
+            <PawPrint className="w-12 h-12 text-primary" data-testid="icon-logo" />
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl" data-testid="text-title">
             sahibinden<span className="text-primary">hayvan</span>
           </CardTitle>
-          <CardDescription>
-            Giriş sayfasına yönlendiriliyorsunuz...
+          <CardDescription data-testid="text-description">
+            Hesabınıza giriş yapın
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center text-sm text-muted-foreground">
-          Birkaç saniye içinde otomatik olarak yönlendirileceksiniz.
+        
+        <CardContent className="space-y-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-login">
+              <FormField
+                control={form.control}
+                name="emailOrUsername"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email veya Kullanıcı Adı</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          placeholder="ornek@email.com veya kullanici123"
+                          className="pl-10"
+                          data-testid="input-email-username"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Şifre</FormLabel>
+                      <Link href="/forgot-password">
+                        <a className="text-xs text-primary hover:underline" data-testid="link-forgot-password">
+                          Şifremi Unuttum
+                        </a>
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Şifrenizi girin"
+                          className="pl-10"
+                          data-testid="input-password"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+                data-testid="button-login"
+              >
+                {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="relative">
+            <Separator />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+              veya
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleOAuthLogin}
+            data-testid="button-oauth-login"
+          >
+            Google / Apple / GitHub ile Giriş Yap
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground" data-testid="text-register-link">
+            Hesabınız yok mu?{" "}
+            <Link href="/register">
+              <a className="text-primary hover:underline" data-testid="link-register">
+                Kayıt Ol
+              </a>
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>
