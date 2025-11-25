@@ -8,9 +8,10 @@ import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories } from "@shared/schema";
-import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike } from "drizzle-orm";
+import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
+import bcrypt from "bcryptjs";
 import {
   insertUserSchema,
   insertListingSchema,
@@ -293,7 +294,269 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============ Auth Routes (Replit Auth) ============
+  // ============ Auth Routes (Hybrid: Replit Auth + Email/Password) ============
+  
+  // Email/Password Registration
+  app.post('/api/auth/register', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { email, password, username, firstName, lastName } = req.body;
+
+      // Validation
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email ve şifre gereklidir" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
+      }
+
+      // Check if user already exists
+      const existingUser = await db.query.users.findFirst({
+        where: or(eq(users.email, email), username ? eq(users.username, username) : undefined),
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ message: "Bu email veya kullanıcı adı zaten kayıtlı" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Generate verification token
+      const verificationToken = generateVerificationToken();
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Create user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          email,
+          username: username || null,
+          password: hashedPassword,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          emailVerified: shouldAutoVerifyEmail(), // Auto-verify in dev mode
+          verificationToken: shouldAutoVerifyEmail() ? null : verificationToken,
+          verificationTokenExpiry: shouldAutoVerifyEmail() ? null : verificationTokenExpiry,
+        })
+        .returning();
+
+      // Send verification email (unless auto-verified)
+      if (!shouldAutoVerifyEmail()) {
+        await emailService.sendVerificationEmail(
+          email,
+          verificationToken,
+          username || firstName || email.split('@')[0]
+        );
+      }
+
+      // Log user in by creating session
+      (req as any).login({ claims: { sub: newUser.id } }, (err: any) => {
+        if (err) {
+          console.error("Session creation error:", err);
+          return res.status(500).json({ message: "Kayıt başarılı ama oturum açılamadı" });
+        }
+
+        res.status(201).json({
+          message: shouldAutoVerifyEmail() 
+            ? "Kayıt başarılı! Hoş geldiniz." 
+            : "Kayıt başarılı! Email adresinize doğrulama linki gönderdik.",
+          user: {
+            id: newUser.id,
+            email: newUser.email,
+            username: newUser.username,
+            firstName: newUser.firstName,
+            lastName: newUser.lastName,
+            role: newUser.role,
+            emailVerified: newUser.emailVerified,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Kayıt sırasında bir hata oluştu" });
+    }
+  });
+
+  // Email/Password Login
+  app.post('/api/auth/login', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { emailOrUsername, password } = req.body;
+
+      if (!emailOrUsername || !password) {
+        return res.status(400).json({ message: "Email/kullanıcı adı ve şifre gereklidir" });
+      }
+
+      // Find user by email or username
+      const user = await db.query.users.findFirst({
+        where: or(
+          eq(users.email, emailOrUsername),
+          eq(users.username, emailOrUsername)
+        ),
+      });
+
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
+      }
+
+      // Log user in by creating session
+      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
+        if (err) {
+          console.error("Session creation error:", err);
+          return res.status(500).json({ message: "Giriş sırasında bir hata oluştu" });
+        }
+
+        res.json({
+          message: "Giriş başarılı!",
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            emailVerified: user.emailVerified,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Giriş sırasında bir hata oluştu" });
+    }
+  });
+
+  // Forgot Password
+  app.post('/api/auth/forgot-password', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email gereklidir" });
+      }
+
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
+
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.json({ message: "Eğer bu email kayıtlıysa, şifre sıfırlama linki gönderildi" });
+      }
+
+      // Generate reset token
+      const resetToken = generateVerificationToken();
+      const resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Save reset token
+      await db
+        .update(users)
+        .set({ resetToken, resetTokenExpiry })
+        .where(eq(users.id, user.id));
+
+      // Send password reset email
+      await emailService.sendPasswordResetEmail(
+        email,
+        resetToken,
+        user.username || user.firstName || email.split('@')[0]
+      );
+
+      res.json({ message: "Eğer bu email kayıtlıysa, şifre sıfırlama linki gönderildi" });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Reset Password
+  app.post('/api/auth/reset-password', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token ve yeni şifre gereklidir" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
+      }
+
+      // Find user with valid reset token
+      const user = await db.query.users.findFirst({
+        where: and(
+          eq(users.resetToken, token),
+          gte(users.resetTokenExpiry!, new Date())
+        ),
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: "Geçersiz veya süresi dolmuş token" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password and clear reset token
+      await db
+        .update(users)
+        .set({
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExpiry: null,
+        })
+        .where(eq(users.id, user.id));
+
+      res.json({ message: "Şifreniz başarıyla güncellendi" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Verify Email
+  app.get('/api/auth/verify-email', async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Geçersiz doğrulama linki" });
+      }
+
+      // Find user with valid verification token
+      const user = await db.query.users.findFirst({
+        where: and(
+          eq(users.verificationToken, token),
+          gte(users.verificationTokenExpiry!, new Date())
+        ),
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: "Geçersiz veya süresi dolmuş doğrulama linki" });
+      }
+
+      // Verify email
+      await db
+        .update(users)
+        .set({
+          emailVerified: true,
+          verificationToken: null,
+          verificationTokenExpiry: null,
+        })
+        .where(eq(users.id, user.id));
+
+      res.json({ message: "Email adresiniz başarıyla doğrulandı!" });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Get current user (works for both auth methods)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

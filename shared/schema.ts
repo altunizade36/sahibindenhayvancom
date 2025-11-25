@@ -105,10 +105,12 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
-// Users table (Replit Auth compatible)
+// Users table (Hybrid Auth: Replit Auth + Email/Password)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").unique(),
+  username: varchar("username").unique(),
+  password: varchar("password"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -117,6 +119,11 @@ export const users = pgTable("users", {
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  verificationToken: varchar("verification_token"),
+  verificationTokenExpiry: timestamp("verification_token_expiry"),
+  resetToken: varchar("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
