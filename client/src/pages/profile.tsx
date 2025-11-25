@@ -109,14 +109,14 @@ export default function Profile() {
           <CardContent className="p-6">
             <div className="flex items-start gap-6">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={user.avatar || undefined} />
+                <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback className="text-2xl">
-                  {user.fullName[0]}
+                  {user.firstName?.[0] || user.email?.[0] || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold mb-1" data-testid="text-user-name">
-                  {user.fullName}
+                  {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
                 </h1>
                 <Badge variant="secondary" className="mb-3">
                   {user.role === "seller" ? "Satıcı" : user.role === "buyer" ? "Alıcı" : user.role}
