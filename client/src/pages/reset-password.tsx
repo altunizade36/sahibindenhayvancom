@@ -67,7 +67,7 @@ export default function ResetPassword() {
       });
 
       setTimeout(() => {
-        setLocation("/login");
+        setLocation("/giris");
       }, 3000);
     } catch (error: any) {
       toast({
@@ -95,13 +95,21 @@ export default function ResetPassword() {
               Şifre sıfırlama linki geçersiz veya süresi dolmuş.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             <Button
               className="w-full"
               onClick={() => setLocation("/forgot-password")}
               data-testid="button-retry"
             >
               Yeni Link Talep Et
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setLocation("/giris")}
+              data-testid="button-back-login"
+            >
+              Giriş Sayfasına Dön
             </Button>
           </CardContent>
         </Card>
