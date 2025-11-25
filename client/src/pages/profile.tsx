@@ -33,10 +33,12 @@ export default function Profile() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("listings");
 
-  const { data: myListings, isLoading: isLoadingListings } = useQuery<ListingWithDetails[]>({
-    queryKey: ["/api/listings", { sellerId: user?.id }],
+  const { data: myListingsData, isLoading: isLoadingListings } = useQuery<{ data: ListingWithDetails[]; total: number }>({
+    queryKey: [`/api/listings?sellerId=${user?.id}`],
     enabled: !!user,
   });
+  
+  const myListings = myListingsData?.data || [];
 
   const { data: favorites, isLoading: isLoadingFavorites } = useQuery<any[]>({
     queryKey: ["/api/favorites"],
