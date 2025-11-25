@@ -10,6 +10,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as FacebookStrategy } from "passport-facebook";
 import {
   insertUserSchema,
   insertListingSchema,
@@ -139,7 +142,93 @@ async function optionalAuthMiddleware(req: Request, res: Response, next: Functio
   }
 }
 
+// ============ OAuth Configuration ============
+// Helper function to find or create user from OAuth profile
+async function findOrCreateOAuthUser(
+  email: string,
+  profile: { id: string; displayName?: string; photos?: Array<{ value: string }> },
+  provider: 'google' | 'facebook'
+): Promise<User> {
+  // Check if user exists by email
+  let [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (!user) {
+    // Create new user with OAuth data
+    const username = email.split('@')[0] + '_' + provider;
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        email,
+        username,
+        fullName: profile.displayName || email,
+        password: '', // OAuth users don't have password
+        role: 'buyer', // Default role for OAuth users
+        isVerified: true, // OAuth emails are pre-verified
+        avatar: profile.photos?.[0]?.value || null,
+      })
+      .returning();
+    
+    user = newUser;
+  }
+
+  return user;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // ============ Passport OAuth Configuration ============
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/api/auth/google/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            const email = profile.emails?.[0]?.value;
+            if (!email) {
+              return done(new Error("No email from Google"), undefined);
+            }
+            const user = await findOrCreateOAuthUser(email, profile, 'google');
+            return done(null, user);
+          } catch (error) {
+            return done(error, undefined);
+          }
+        }
+      )
+    );
+  }
+
+  if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+    passport.use(
+      new FacebookStrategy(
+        {
+          clientID: process.env.FACEBOOK_APP_ID,
+          clientSecret: process.env.FACEBOOK_APP_SECRET,
+          callbackURL: "/api/auth/facebook/callback",
+          profileFields: ['id', 'displayName', 'photos', 'email'],
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            const email = profile.emails?.[0]?.value;
+            if (!email) {
+              return done(new Error("No email from Facebook"), undefined);
+            }
+            const user = await findOrCreateOAuthUser(email, profile, 'facebook');
+            return done(null, user);
+          } catch (error) {
+            return done(error, undefined);
+          }
+        }
+      )
+    );
+  }
+
   // ============ Health & Monitoring Routes ============
   app.get("/health", healthCheck);
   app.get("/metrics", metricsEndpoint);
@@ -351,6 +440,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Auth Routes ============
+  
+  // Google OAuth Routes
+  app.get("/api/auth/google", 
+    passport.authenticate('google', { 
+      scope: ['profile', 'email'],
+      session: false 
+    })
+  );
+
+  app.get("/api/auth/google/callback",
+    passport.authenticate('google', { session: false, failureRedirect: '/giris?error=google' }),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user as User;
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: user.id, username: user.username, role: user.role },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+        // Redirect to frontend with token
+        res.redirect(`/giris?token=${token}`);
+      } catch (error) {
+        console.error("Google OAuth callback error:", error);
+        res.redirect('/giris?error=google');
+      }
+    }
+  );
+
+  // Facebook OAuth Routes
+  app.get("/api/auth/facebook",
+    passport.authenticate('facebook', { 
+      scope: ['email'],
+      session: false 
+    })
+  );
+
+  app.get("/api/auth/facebook/callback",
+    passport.authenticate('facebook', { session: false, failureRedirect: '/giris?error=facebook' }),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user as User;
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: user.id, username: user.username, role: user.role },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+        // Redirect to frontend with token
+        res.redirect(`/giris?token=${token}`);
+      } catch (error) {
+        console.error("Facebook OAuth callback error:", error);
+        res.redirect('/giris?error=facebook');
+      }
+    }
+  );
+
   app.post("/api/auth/register", registerLimiter, async (req: Request, res: Response) => {
     try {
       // SECURITY: Validate reCAPTCHA before any processing
