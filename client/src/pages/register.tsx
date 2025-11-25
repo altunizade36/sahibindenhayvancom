@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User } from "lucide-react";
-import { SiGoogle, SiApple, SiGithub } from "react-icons/si";
+import { Mail, Lock, User, UserPlus } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +47,7 @@ export default function Register() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest("/api/auth/register", "POST", {
+      const response: any = await apiRequest("/api/auth/register", "POST", {
         email: data.email,
         username: data.username || undefined,
         password: data.password,
@@ -58,7 +57,7 @@ export default function Register() {
 
       toast({
         title: "Kayıt Başarılı!",
-        description: response.message || "Hoş geldiniz!",
+        description: response?.message || "Hoş geldiniz!",
       });
 
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -241,41 +240,23 @@ export default function Register() {
           <div className="relative my-6">
             <Separator />
             <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground font-medium">
-              veya sosyal hesaplarınızla
+              veya
             </span>
           </div>
 
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-google-login"
-            >
-              <SiGoogle className="w-5 h-5" />
-              <span>Google ile Kayıt Ol</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-apple-login"
-            >
-              <SiApple className="w-5 h-5" />
-              <span>Apple ile Kayıt Ol</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-github-login"
-            >
-              <SiGithub className="w-5 h-5" />
-              <span>GitHub ile Kayıt Ol</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="w-full gap-3 h-12 text-base"
+            onClick={handleOAuthLogin}
+            data-testid="button-oauth-register"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Sosyal Hesapla Kayıt Ol</span>
+          </Button>
+          
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Google, Apple veya GitHub hesabınızla hızlıca kayıt olabilirsiniz
+          </p>
 
           <p className="text-center text-sm text-muted-foreground" data-testid="text-login-link">
             Zaten hesabınız var mı?{" "}

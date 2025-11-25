@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock } from "lucide-react";
-import { SiGoogle, SiApple, SiGithub } from "react-icons/si";
+import { Mail, Lock, LogIn } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -150,41 +149,23 @@ export default function Login() {
           <div className="relative my-6">
             <Separator />
             <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground font-medium">
-              veya sosyal hesaplarınızla
+              veya
             </span>
           </div>
 
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-google-login"
-            >
-              <SiGoogle className="w-5 h-5" />
-              <span>Google ile Giriş Yap</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-apple-login"
-            >
-              <SiApple className="w-5 h-5" />
-              <span>Apple ile Giriş Yap</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-11"
-              onClick={handleOAuthLogin}
-              data-testid="button-github-login"
-            >
-              <SiGithub className="w-5 h-5" />
-              <span>GitHub ile Giriş Yap</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="w-full gap-3 h-12 text-base"
+            onClick={handleOAuthLogin}
+            data-testid="button-oauth-login"
+          >
+            <LogIn className="w-5 h-5" />
+            <span>Sosyal Hesapla Giriş Yap</span>
+          </Button>
+          
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Google, Apple veya GitHub hesabınızla giriş yapabilirsiniz
+          </p>
 
           <p className="text-center text-sm text-muted-foreground" data-testid="text-register-link">
             Hesabınız yok mu?{" "}
