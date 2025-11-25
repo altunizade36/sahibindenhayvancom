@@ -123,8 +123,7 @@ export function ObjectUploader({
         let optimizedFile: Blob;
         try {
           optimizedFile = await optimizeImage(file);
-        } catch (err) {
-          console.error('Image optimization error:', err);
+        } catch {
           toast({
             title: "Hata",
             description: `${file.name} optimize edilemedi`,
@@ -162,8 +161,7 @@ export function ObjectUploader({
         title: "Başarılı",
         description: `${uploadedUrls.length} dosya yüklendi`,
       });
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       toast({
         title: "Yükleme hatası",
         description: "Dosyalar yüklenirken bir hata oluştu",

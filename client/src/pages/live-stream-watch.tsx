@@ -55,7 +55,6 @@ export default function LiveStreamWatchPage() {
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log("WebSocket connected for live stream chat");
       ws.send(JSON.stringify({ type: "subscribe", streamId }));
     };
 
@@ -65,13 +64,13 @@ export default function LiveStreamWatchPage() {
         if (data.type === "stream_message" && data.streamId === streamId) {
           setChatMessages((prev) => [...prev, { username: data.username, message: data.message }]);
         }
-      } catch (err) {
-        console.error("WebSocket message parse error:", err);
+      } catch {
+        // Silent parse error
       }
     };
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    ws.onerror = () => {
+      // Silent error handling
     };
 
     return () => {

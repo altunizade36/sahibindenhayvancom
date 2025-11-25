@@ -93,7 +93,7 @@ export default function Messages() {
     const websocket = new WebSocket(wsUrl);
 
     websocket.onopen = () => {
-      console.log("WebSocket connected");
+      // Connected
     };
 
     websocket.onmessage = (event) => {
@@ -103,17 +103,17 @@ export default function Messages() {
           queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
           queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
         }
-      } catch (err) {
-        console.error("WebSocket message parse error:", err);
+      } catch {
+        // Silent parse error
       }
     };
 
-    websocket.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    websocket.onerror = () => {
+      // Silent error handling
     };
 
     websocket.onclose = () => {
-      console.log("WebSocket disconnected");
+      // Disconnected
     };
 
     setWs(websocket);

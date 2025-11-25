@@ -103,8 +103,8 @@ export default function ListingDetail() {
           text: listing?.description,
           url,
         });
-      } catch (err) {
-        console.error("Share failed:", err);
+      } catch {
+        // Share cancelled or failed silently
       }
     } else {
       navigator.clipboard.writeText(url);

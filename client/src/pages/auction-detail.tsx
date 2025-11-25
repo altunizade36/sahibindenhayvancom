@@ -112,7 +112,6 @@ export default function AuctionDetailPage() {
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log("WebSocket connected for auction bids");
       ws.send(JSON.stringify({ type: "subscribe", auctionId }));
     };
 
@@ -126,13 +125,13 @@ export default function AuctionDetailPage() {
             description: `Yeni teklif: ₺${parseFloat(data.amount).toLocaleString('tr-TR')}`,
           });
         }
-      } catch (err) {
-        console.error("WebSocket message parse error:", err);
+      } catch {
+        // Silent parse error
       }
     };
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    ws.onerror = () => {
+      // Silent error handling
     };
 
     return () => {

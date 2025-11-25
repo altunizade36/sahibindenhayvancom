@@ -1,6 +1,9 @@
 /**
  * reCAPTCHA v3 Frontend Helper
  * Handles token generation for form submissions
+ * 
+ * Note: reCAPTCHA is disabled when VITE_RECAPTCHA_SITE_KEY is not configured
+ * to avoid CSP (Content Security Policy) errors in development environment.
  */
 
 declare global {
@@ -11,43 +14,40 @@ declare global {
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
-export async function getRecaptchaToken(action: string): Promise<string | null> {
-  // If no site key configured, return null (optional in development)
+export async function getRecaptchaToken(_action: string): Promise<string | null> {
+  // Return null silently when not configured (no console warnings)
   if (!RECAPTCHA_SITE_KEY) {
-    console.warn('reCAPTCHA site key not configured - skipping verification');
     return null;
   }
 
   // Wait for grecaptcha to load
   if (!window.grecaptcha || !window.grecaptcha.ready) {
-    console.error('reCAPTCHA not loaded');
     return null;
   }
 
   try {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       window.grecaptcha.ready(async () => {
         try {
-          const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action });
+          const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: _action });
           resolve(token);
-        } catch (error) {
-          console.error('reCAPTCHA execution failed:', error);
-          reject(error);
+        } catch {
+          resolve(null);
         }
       });
     });
-  } catch (error) {
-    console.error('reCAPTCHA token generation failed:', error);
+  } catch {
     return null;
   }
 }
 
 export function loadRecaptchaScript(): Promise<void> {
+  // Don't load script if not configured (prevents CSP errors)
   if (!RECAPTCHA_SITE_KEY) {
     return Promise.resolve();
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (window.grecaptcha) {
       resolve();
       return;
@@ -58,7 +58,7 @@ export function loadRecaptchaScript(): Promise<void> {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load reCAPTCHA'));
+    script.onerror = () => resolve(); // Resolve instead of reject to prevent console errors
     document.head.appendChild(script);
   });
 }

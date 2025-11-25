@@ -223,8 +223,7 @@ export default function CreateListing() {
         let optimizedFile: Blob;
         try {
           optimizedFile = await optimizeImage(file);
-        } catch (err) {
-          console.error('Image optimization error:', err);
+        } catch {
           toast({
             title: "Hata",
             description: `${file.name} optimize edilemedi`,
@@ -243,15 +242,10 @@ export default function CreateListing() {
           credentials: 'include',
         });
 
-        console.log("Upload response:", { ok: uploadResponse.ok, status: uploadResponse.status });
-
         if (uploadResponse.ok) {
           const { normalizedPath } = await uploadResponse.json();
-          console.log("File uploaded successfully:", normalizedPath);
           setUploadedImages(prev => [...prev, normalizedPath]);
         } else {
-          const errorData = await uploadResponse.json().catch(() => ({}));
-          console.error("Upload failed:", errorData);
           toast({
             title: "Yükleme Hatası",
             description: `${file.name} yüklenemedi`,
@@ -259,8 +253,7 @@ export default function CreateListing() {
           });
         }
       }
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "Fotoğraf yüklenirken bir hata oluştu",
