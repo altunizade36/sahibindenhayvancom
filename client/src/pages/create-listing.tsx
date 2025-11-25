@@ -104,7 +104,7 @@ export default function CreateListing() {
 
   // Fetch districts based on selected province
   const { data: districts = [] } = useQuery<Location[]>({
-    queryKey: [`/api/locations?parentId=${selectedProvince}&type=ilce`],
+    queryKey: [`/api/locations?parent=${selectedProvince}&type=ilce`],
     enabled: !!selectedProvince,
   });
 
