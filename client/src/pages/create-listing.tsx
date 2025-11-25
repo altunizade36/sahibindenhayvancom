@@ -653,50 +653,89 @@ export default function CreateListing() {
 
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Fotoğraflar</h3>
-                    <p className="text-sm text-muted-foreground">En fazla 10 fotoğraf yükleyebilirsiniz. İlk fotoğraf kapak resmi olarak kullanılacaktır.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Hayvanınızın fotoğraflarını ekleyin. Telefonunuzdan veya bilgisayarınızdan istediğiniz boyutta fotoğraf seçebilirsiniz - sistem otomatik olarak küçültür.
+                    </p>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                      {uploadedImages.map((url, index) => (
-                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
-                          <img src={url} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
-                            data-testid={`button-remove-image-${index}`}
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                          {index === 0 && (
-                            <div className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-xs text-center py-1">
-                              Kapak
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      
-                      {uploadedImages.length < 10 && (
-                        <label className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden"
-                            onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
-                            disabled={uploadingImages}
-                            data-testid="input-image-upload"
-                          />
+                    {/* Ana Yükleme Alanı */}
+                    {uploadedImages.length === 0 && (
+                      <label className="block w-full p-8 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                          disabled={uploadingImages}
+                          data-testid="input-image-upload-main"
+                        />
+                        <div className="flex flex-col items-center justify-center text-center">
                           {uploadingImages ? (
-                            <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+                            <>
+                              <Loader2 className="w-12 h-12 text-primary animate-spin mb-3" />
+                              <span className="text-lg font-medium text-primary">Fotoğraflar yükleniyor...</span>
+                              <span className="text-sm text-muted-foreground mt-1">Lütfen bekleyin</span>
+                            </>
                           ) : (
                             <>
-                              <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
-                              <span className="text-xs text-muted-foreground">Fotoğraf Ekle</span>
+                              <ImagePlus className="w-12 h-12 text-primary mb-3" />
+                              <span className="text-lg font-medium">Fotoğraf Seçmek İçin Tıklayın</span>
+                              <span className="text-sm text-muted-foreground mt-1">veya sürükleyip bırakın</span>
+                              <span className="text-xs text-muted-foreground mt-3">JPG, PNG - En fazla 10 fotoğraf</span>
                             </>
                           )}
-                        </label>
-                      )}
-                    </div>
+                        </div>
+                      </label>
+                    )}
+
+                    {/* Yüklenen Fotoğraflar */}
+                    {uploadedImages.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{uploadedImages.length} fotoğraf yüklendi</span>
+                          {uploadedImages.length < 10 && (
+                            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium cursor-pointer hover:bg-primary/90">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                                disabled={uploadingImages}
+                                data-testid="input-image-upload-more"
+                              />
+                              {uploadingImages ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <ImagePlus className="w-4 h-4" />
+                              )}
+                              Daha Fazla Ekle
+                            </label>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                          {uploadedImages.map((url, index) => (
+                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border">
+                              <img src={url} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-1 right-1 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 shadow-lg"
+                                data-testid={`button-remove-image-${index}`}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                              {index === 0 && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs text-center py-1 font-medium">
+                                  Kapak Fotoğrafı
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
