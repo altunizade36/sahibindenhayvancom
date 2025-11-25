@@ -87,7 +87,7 @@ export function generateListingStructuredData(listing: any) {
       "availability": listing.status === "active" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Person",
-        "name": listing.seller?.fullName || "Anonymous"
+        "name": listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "Anonymous" : "Anonymous"
       }
     }
   };
@@ -123,7 +123,7 @@ export function generateBlogPostStructuredData(post: any) {
     "dateModified": post.updatedAt,
     "author": {
       "@type": "Person",
-      "name": post.author?.fullName || "sahibindenhayvan.com Team"
+      "name": post.author ? `${post.author.firstName || ''} ${post.author.lastName || ''}`.trim() || post.author.username || "sahibindenhayvan.com Team" : "sahibindenhayvan.com Team"
     },
     "publisher": {
       "@type": "Organization",

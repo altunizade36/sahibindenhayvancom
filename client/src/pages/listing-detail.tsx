@@ -218,16 +218,6 @@ export default function ListingDetail() {
                         </div>
                       </>
                     )}
-                    {listing.isPremium && (
-                      <Badge className="absolute top-4 left-4 bg-yellow-500 hover:bg-yellow-600">
-                        Premium
-                      </Badge>
-                    )}
-                    {listing.isUrgent && (
-                      <Badge className="absolute top-4 right-4 bg-red-500 hover:bg-red-600">
-                        Acil
-                      </Badge>
-                    )}
                   </div>
                 ) : (
                   <div className="aspect-video bg-muted flex items-center justify-center">
@@ -383,14 +373,14 @@ export default function ListingDetail() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={listing.seller?.avatar || undefined} />
+                    <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
                     <AvatarFallback>
-                      {listing.seller?.fullName?.[0] || "S"}
+                      {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="font-semibold" data-testid="text-seller-name">
-                      {listing.seller?.fullName || "İsimsiz Satıcı"}
+                      {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
                     </div>
                     {listing.seller?.phone && (
                       <div className="text-sm text-muted-foreground">

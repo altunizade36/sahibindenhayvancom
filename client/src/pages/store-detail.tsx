@@ -253,7 +253,7 @@ export default function StoreDetail() {
                         <div className="flex items-start gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <p className="font-semibold">{review.reviewer?.fullName || "Anonim"}</p>
+                              <p className="font-semibold">{review.reviewer ? `${review.reviewer.firstName || ''} ${review.reviewer.lastName || ''}`.trim() || review.reviewer.username || "Anonim" : "Anonim"}</p>
                               <div className="flex">
                                 {[...Array(review.rating)].map((_, i) => (
                                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -325,11 +325,11 @@ export default function StoreDetail() {
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-lg font-bold text-primary">
-                        {store.owner.fullName.charAt(0)}
+                        {(store.owner.firstName?.[0] || store.owner.username?.[0] || 'M').toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-semibold">{store.owner.fullName}</p>
+                      <p className="font-semibold">{`${store.owner.firstName || ''} ${store.owner.lastName || ''}`.trim() || store.owner.username || 'Mağaza Sahibi'}</p>
                       <p className="text-sm text-muted-foreground">@{store.owner.username}</p>
                     </div>
                   </div>

@@ -19,8 +19,13 @@ interface ListingCardProps {
 
 export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
   const [, setLocation] = useLocation();
-  const mainImage = listing.images[0] || "/placeholder-animal.jpg";
-  const price = parseFloat(listing.price);
+  const mainImage = listing.images?.[0] || "/placeholder-animal.jpg";
+  const price = parseFloat(listing.price || "0");
+  
+  const sellerName = listing.seller 
+    ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || 'Anonim'
+    : 'Anonim';
+  const sellerInitial = sellerName.charAt(0).toUpperCase();
 
   return (
     <Card className="hover-elevate overflow-hidden">
@@ -45,17 +50,7 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
                 }}
               >
                 <Store className="w-3 h-3 mr-1" />
-                Mağaza İlanı
-              </Badge>
-            )}
-            {listing.isPremium && (
-              <Badge variant="default" className="bg-primary text-primary-foreground" data-testid={`badge-premium-${listing.id}`}>
-                Premium
-              </Badge>
-            )}
-            {listing.isUrgent && (
-              <Badge variant="destructive" data-testid={`badge-urgent-${listing.id}`}>
-                Acil
+                Mağaza
               </Badge>
             )}
           </div>
@@ -87,11 +82,11 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
         {listing.seller && (
           <div className="flex items-center gap-2 pt-2 border-t">
             <Avatar className="w-5 h-5 md:w-6 md:h-6">
-              <AvatarImage src={listing.seller.avatar || undefined} />
-              <AvatarFallback>{listing.seller.fullName[0]}</AvatarFallback>
+              <AvatarImage src={listing.seller.profileImageUrl || undefined} />
+              <AvatarFallback>{sellerInitial}</AvatarFallback>
             </Avatar>
             <span className="text-xs md:text-sm text-muted-foreground" data-testid={`text-seller-${listing.id}`}>
-              {listing.seller.fullName}
+              {sellerName}
             </span>
           </div>
         )}
