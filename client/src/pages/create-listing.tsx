@@ -138,6 +138,63 @@ export default function CreateListing() {
     },
   });
 
+  // Otomatik fotoğraf optimize etme fonksiyonu
+  const optimizeImage = useCallback((file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      img.onload = () => {
+        // Maksimum boyutlar (orantılı küçültme)
+        const MAX_WIDTH = 1920;
+        const MAX_HEIGHT = 1080;
+        
+        let { width, height } = img;
+        
+        // Orantılı küçültme
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        if (!ctx) {
+          reject(new Error('Canvas context error'));
+          return;
+        }
+        
+        // Beyaz arka plan (şeffaf PNG'ler için)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Yüksek kaliteli yeniden boyutlandırma
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // JPEG olarak sıkıştır (kalite: 0.85)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Blob oluşturulamadı'));
+            }
+          },
+          'image/jpeg',
+          0.85
+        );
+      };
+      
+      img.onerror = () => reject(new Error('Fotoğraf yüklenemedi'));
+      img.src = URL.createObjectURL(file);
+    });
+  }, []);
+
   const handleImageUpload = useCallback(async (files: FileList) => {
     if (uploadedImages.length + files.length > 10) {
       toast({
@@ -152,10 +209,25 @@ export default function CreateListing() {
     
     try {
       for (const file of Array.from(files)) {
-        if (file.size > 5 * 1024 * 1024) {
+        // Sadece resim dosyalarını kabul et
+        if (!file.type.startsWith('image/')) {
           toast({
             title: "Hata",
-            description: `${file.name} dosyası çok büyük (max 5MB)`,
+            description: `${file.name} bir resim dosyası değil`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        // Fotoğrafı otomatik optimize et (boyut ve kalite)
+        let optimizedFile: Blob;
+        try {
+          optimizedFile = await optimizeImage(file);
+        } catch (err) {
+          console.error('Image optimization error:', err);
+          toast({
+            title: "Hata",
+            description: `${file.name} optimize edilemedi`,
             variant: "destructive",
           });
           continue;
@@ -165,12 +237,12 @@ export default function CreateListing() {
         const response = await apiRequest("POST", "/api/objects/upload") as unknown as { uploadURL: string; normalizedPath: string };
         const { uploadURL, normalizedPath } = response;
         
-        // Upload file directly to object storage
+        // Upload optimized file directly to object storage
         const uploadResponse = await fetch(uploadURL, {
           method: "PUT",
-          body: file,
+          body: optimizedFile,
           headers: {
-            "Content-Type": file.type,
+            "Content-Type": "image/jpeg",
           },
         });
 
@@ -195,7 +267,7 @@ export default function CreateListing() {
     } finally {
       setUploadingImages(false);
     }
-  }, [uploadedImages, toast]);
+  }, [uploadedImages, toast, optimizeImage]);
 
   const removeImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));

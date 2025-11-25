@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { ReactNode, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
@@ -31,6 +31,63 @@ export function ObjectUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Otomatik fotoğraf optimize etme fonksiyonu
+  const optimizeImage = useCallback((file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      img.onload = () => {
+        // Maksimum boyutlar (orantılı küçültme)
+        const MAX_WIDTH = 1920;
+        const MAX_HEIGHT = 1080;
+        
+        let { width, height } = img;
+        
+        // Orantılı küçültme
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        if (!ctx) {
+          reject(new Error('Canvas context error'));
+          return;
+        }
+        
+        // Beyaz arka plan (şeffaf PNG'ler için)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Yüksek kaliteli yeniden boyutlandırma
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // JPEG olarak sıkıştır (kalite: 0.85)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Blob oluşturulamadı'));
+            }
+          },
+          'image/jpeg',
+          0.85
+        );
+      };
+      
+      img.onerror = () => reject(new Error('Fotoğraf yüklenemedi'));
+      img.src = URL.createObjectURL(file);
+    });
+  }, []);
+
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
@@ -45,18 +102,6 @@ export function ObjectUploader({
       });
       return;
     }
-    
-    // Validate file sizes
-    for (const file of files) {
-      if (file.size > maxFileSize) {
-        toast({
-          title: "Dosya çok büyük",
-          description: `${file.name} boyutu ${Math.round(maxFileSize / 1024 / 1024)}MB'dan büyük`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
 
     setUploading(true);
     
@@ -64,16 +109,40 @@ export function ObjectUploader({
       const uploadedUrls: string[] = [];
       
       for (const file of files) {
+        // Sadece resim dosyalarını kabul et
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: "Hata",
+            description: `${file.name} bir resim dosyası değil`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        // Fotoğrafı otomatik optimize et (boyut ve kalite)
+        let optimizedFile: Blob;
+        try {
+          optimizedFile = await optimizeImage(file);
+        } catch (err) {
+          console.error('Image optimization error:', err);
+          toast({
+            title: "Hata",
+            description: `${file.name} optimize edilemedi`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
         // Get upload URL from backend
         const response = await apiRequest("POST", "/api/objects/upload") as unknown as { uploadURL: string; normalizedPath: string };
         const { uploadURL, normalizedPath } = response;
         
-        // Upload file to object storage
+        // Upload optimized file to object storage
         const uploadResponse = await fetch(uploadURL, {
           method: "PUT",
-          body: file,
+          body: optimizedFile,
           headers: {
-            "Content-Type": file.type,
+            "Content-Type": "image/jpeg",
           },
         });
         
@@ -91,7 +160,7 @@ export function ObjectUploader({
       
       toast({
         title: "Başarılı",
-        description: `${files.length} dosya yüklendi`,
+        description: `${uploadedUrls.length} dosya yüklendi`,
       });
     } catch (error) {
       console.error("Upload error:", error);
