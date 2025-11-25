@@ -94,38 +94,43 @@ export const locationTypeEnum = pgEnum("location_type", [
   "koy"        // Village
 ]);
 
-// Users table
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)]
+);
+
+// Users table (Replit Auth compatible)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-  phone: text("phone"),
+  email: text("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").notNull().default("buyer"),
-  avatar: text("avatar"),
-  isVerified: boolean("is_verified").default(false),
-  emailVerificationToken: text("email_verification_token"),
-  emailVerificationExpires: timestamp("email_verification_expires"),
+  phone: text("phone"),
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastLoginAt: timestamp("last_login_at"),
-  lastLoginIp: text("last_login_ip"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-  emailVerificationToken: true,
-  emailVerificationExpires: true,
-  lastLoginAt: true,
-  lastLoginIp: true,
+  updatedAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 
 // Categories table (hierarchical with depth and path support)
 export const categories = pgTable("categories", {

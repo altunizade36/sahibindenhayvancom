@@ -3,7 +3,7 @@ import { db } from "./db";
 import {
   users, categories, listings, auctions, bids, liveStreams,
   messages, blogPosts, vetServices, transportServices, reviews, favorites,
-  type User, type InsertUser,
+  type User, type UpsertUser, type InsertUser,
   type Category, type InsertCategory,
   type Listing, type InsertListing,
   type Auction, type InsertAuction,
@@ -16,20 +16,47 @@ import {
   type Review, type InsertReview,
   type Favorite, type InsertFavorite,
 } from "@shared/schema";
-import type { IStorage } from "./storage";
+
+export interface IStorage {
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, update: Partial<User>): Promise<User | undefined>;
+  getAllCategories(): Promise<Category[]>;
+  getCategory(id: string): Promise<Category | undefined>;
+  getCategoryBySlug(slug: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  getAllListings(filters?: any): Promise<Listing[]>;
+  getListing(id: string): Promise<Listing | undefined>;
+  getListingsBySeller(sellerId: string): Promise<Listing[]>;
+  createListing(listing: InsertListing): Promise<Listing>;
+  updateListing(id: string, update: Partial<Listing>): Promise<Listing | undefined>;
+  deleteListing(id: string): Promise<boolean>;
+  incrementListingViews(id: string): Promise<void>;
+}
 
 export class DbStorage implements IStorage {
-  // ============ Users ============
+  // ============ Users (Replit Auth compatible) ============
   async getUser(id: string): Promise<User | undefined> {
     return await db.query.users.findFirst({
       where: eq(users.id, id),
     });
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
