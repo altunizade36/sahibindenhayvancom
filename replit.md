@@ -11,14 +11,14 @@ No specific user preferences were provided in the original document.
 - **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles with specific permissions.
 - **Free Platform Model**: All listing features are free to encourage user acquisition; payment infrastructure is removed.
 - **Full PostgreSQL Storage**: Complete migration to PostgreSQL (Neon serverless) with Drizzle ORM for all data (users, listings, messages, stores, blog).
-- **Security**: JWT authentication, bcrypt password hashing, role-based access control, Zod validation, email verification system, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
+- **Security**: Replit Auth (OAuth via Google, Apple, GitHub, Email), session-based authentication with PostgreSQL session store, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
 - **Professional Stores System**: Verified sellers can create branded storefronts with custom logos, banners, and color themes. Supports various store types like Petshop, Veterinary, etc., with a review system and admin approval workflow.
 - **Blog System**: Features 32 professional blog posts covering various animal types, including legal disclaimers and citations from Turkish veterinary organizations. Admin-only CRUD for blog management.
 
 **Technical Implementations:**
 - **Frontend**: React + TypeScript + Vite, with React Hook Form + Zod for forms, and TanStack Query for state management.
 - **Backend**: Node.js + Express.
-- **Real-time**: WebSocket for messaging.
+- **Real-time**: WebSocket for messaging with session-based authentication (uses Replit Auth session cookies).
 - **Core Functionality**:
     - **Animal Listings**: Advanced search with 6 filters (price, location, breed, age, health), image galleries, document uploads, and moderation.
     - **Hierarchical Categories**: 459 categories across 14 main domains (e.g., Pets, Farm Animals, Fish, Horses, Beekeeping).
@@ -27,7 +27,7 @@ No specific user preferences were provided in the original document.
     - **User Profiles**: "My Listings" and "Favorites" tabs.
 
 **Key API Endpoints:**
-- **Authentication**: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/profile`
+- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user)
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
 - **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
@@ -48,8 +48,8 @@ No specific user preferences were provided in the original document.
 - **Styling**: Tailwind CSS.
 - **Form Handling**: React Hook Form, Zod.
 - **State Management**: TanStack Query.
-- **Authentication**: JSON Web Tokens (JWT).
-- **Password Hashing**: bcrypt.
+- **Authentication**: Replit Auth (OIDC-based OAuth) with session management via express-session and Passport.js.
+- **Session Storage**: PostgreSQL (sessions table) with 7-day TTL.
 - **Image Storage**: Replit Object Storage.
 - **Bot Protection**: Google reCAPTCHA v3.
 - **Monitoring**: Health checks, Prometheus metrics.
