@@ -84,12 +84,12 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-              <GiUnicorn className="w-16 h-16 text-transparent bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }} data-testid="icon-logo" />
+            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 shadow-sm">
+              <GiUnicorn className="w-16 h-16 text-blue-600 dark:text-blue-400" data-testid="icon-logo" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent" data-testid="text-title">
-            sahibinden<span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">hayvan</span>
+          <CardTitle className="text-3xl font-bold" data-testid="text-title">
+            sahibinden<span className="text-primary">hayvan</span>
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">
             Hesap oluştur ve Türkiye'nin en büyük hayvan pazaryerine katıl
