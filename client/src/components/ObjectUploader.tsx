@@ -65,8 +65,8 @@ export function ObjectUploader({
       
       for (const file of files) {
         // Get upload URL from backend
-        const response = await apiRequest("POST", "/api/objects/upload") as { uploadURL: string };
-        const uploadURL = response.uploadURL;
+        const response = await apiRequest("POST", "/api/objects/upload") as unknown as { uploadURL: string; normalizedPath: string };
+        const { uploadURL, normalizedPath } = response;
         
         // Upload file to object storage
         const uploadResponse = await fetch(uploadURL, {
@@ -81,10 +81,8 @@ export function ObjectUploader({
           throw new Error("Upload failed");
         }
         
-        // Extract object path from upload URL
-        const url = new URL(uploadURL);
-        const objectPath = url.pathname;
-        uploadedUrls.push(objectPath);
+        // Use normalized path for displaying the image
+        uploadedUrls.push(normalizedPath);
       }
       
       const allUrls = [...uploadedFiles, ...uploadedUrls];

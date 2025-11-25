@@ -2140,7 +2140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      // Return normalized path for frontend to use when displaying the image
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      res.json({ uploadURL, normalizedPath });
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ message: "Failed to get upload URL" });

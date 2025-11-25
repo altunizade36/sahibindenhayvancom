@@ -161,19 +161,22 @@ export default function CreateListing() {
           continue;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('directory', 'listings');
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include',
+        // Get presigned upload URL from backend
+        const response = await apiRequest("POST", "/api/objects/upload") as unknown as { uploadURL: string; normalizedPath: string };
+        const { uploadURL, normalizedPath } = response;
+        
+        // Upload file directly to object storage
+        const uploadResponse = await fetch(uploadURL, {
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": file.type,
+          },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          setUploadedImages(prev => [...prev, data.url]);
+        if (uploadResponse.ok) {
+          // Use normalized path for displaying the image
+          setUploadedImages(prev => [...prev, normalizedPath]);
         } else {
           toast({
             title: "Yükleme Hatası",
@@ -183,6 +186,7 @@ export default function CreateListing() {
         }
       }
     } catch (error) {
+      console.error("Upload error:", error);
       toast({
         title: "Hata",
         description: "Fotoğraf yüklenirken bir hata oluştu",
