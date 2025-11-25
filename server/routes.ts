@@ -355,7 +355,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============ Auth Routes ============
+  // ============ Auth Routes (Replit Auth) ============
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // ============ Legacy Auth Routes (DEPRECATED - keeping for migration) ============
   app.post("/api/auth/register", registerLimiter, async (req: Request, res: Response) => {
     try {
       // SECURITY: Validate reCAPTCHA before any processing
@@ -971,7 +986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Flatten the results to match expected shape
       const flattenedListings = listingsData.map(row => ({
         ...row.listing,
-        store: row.store.id ? row.store : null,
+        store: row.store?.id ? row.store : null,
       }));
       
       // If user is authenticated, check favorites
