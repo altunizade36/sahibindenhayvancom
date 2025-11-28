@@ -683,6 +683,16 @@ export type StreamMute = typeof streamMutes.$inferSelect;
 
 // ============ Stores (Mağazalar) System ============
 
+// Store badge enum - Rozet türleri
+export const storeBadgeTypeEnum = pgEnum("store_badge_type", [
+  "verified",         // ✅ Resmi/Onaylı Satıcı
+  "successful",       // ⭐ Başarılı Satıcı (yüksek puan, çok satış)
+  "fast_seller",      // 🚀 Hızlı Satıcı (hızlı yanıt)
+  "top_rated",        // 🏆 En Çok Beğenilen
+  "trusted",          // 🛡️ Güvenilir Satıcı (uzun üyelik)
+  "premium",          // 💎 Premium Satıcı
+]);
+
 // Stores table - Professional seller/business storefronts
 export const stores = pgTable("stores", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -707,12 +717,24 @@ export const stores = pgTable("stores", {
   banner: text("banner"), // Object storage key
   primaryColor: text("primary_color").default("#0066CC"), // Brand color
   secondaryColor: text("secondary_color").default("#FFA500"),
+  bannerTemplate: text("banner_template"), // Hazır şablon ID'si (template-1, template-2, vb.)
   
   // Stats
   totalListings: integer("total_listings").default(0),
   totalSales: integer("total_sales").default(0),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   reviewCount: integer("review_count").default(0),
+  followerCount: integer("follower_count").default(0), // Takipçi sayısı
+  viewCount: integer("view_count").default(0), // Görüntülenme sayısı
+  responseTime: integer("response_time"), // Ortalama yanıt süresi (dakika)
+  
+  // Badges - Rozetler (JSON array of badge types)
+  badges: jsonb("badges").$type<string[]>().default(sql`'[]'::jsonb`),
+  
+  // Veteriner/Hizmet profili için ekstra alanlar
+  workingHours: jsonb("working_hours").$type<{day: string, open: string, close: string}[]>(),
+  services: jsonb("services").$type<string[]>(), // Sunulan hizmetler listesi
+  specializations: jsonb("specializations").$type<string[]>(), // Uzmanlık alanları
   
   // Status
   status: storeStatusEnum("status").default("draft").notNull(),
@@ -736,11 +758,35 @@ export const insertStoreSchema = createInsertSchema(stores).omit({
   totalSales: true,
   rating: true,
   reviewCount: true,
+  followerCount: true,
+  viewCount: true,
+  responseTime: true,
+  badges: true,
   verifiedAt: true,
 });
 
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type Store = typeof stores.$inferSelect;
+
+// Store Followers table - Takipçi sistemi
+export const storeFollowers = pgTable("store_followers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  storeIdx: index("store_follower_store_idx").on(table.storeId),
+  userIdx: index("store_follower_user_idx").on(table.userId),
+  storeUserUnique: index("store_follower_unique").on(table.storeId, table.userId),
+}));
+
+export const insertStoreFollowerSchema = createInsertSchema(storeFollowers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStoreFollower = z.infer<typeof insertStoreFollowerSchema>;
+export type StoreFollower = typeof storeFollowers.$inferSelect;
 
 // Store Media table - Additional images/videos for store gallery
 export const storeMedia = pgTable("store_media", {
@@ -819,6 +865,18 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
   listings: many(listings),
   reviews: many(storeReviews),
   media: many(storeMedia),
+  followers: many(storeFollowers),
+}));
+
+export const storeFollowersRelations = relations(storeFollowers, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeFollowers.storeId],
+    references: [stores.id],
+  }),
+  user: one(users, {
+    fields: [storeFollowers.userId],
+    references: [users.id],
+  }),
 }));
 
 export const storeReviewsRelations = relations(storeReviews, ({ one }) => ({
