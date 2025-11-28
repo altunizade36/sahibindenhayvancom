@@ -71,7 +71,7 @@ export default function StoreDetail() {
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/store/${store.id}/follow`, "POST", {});
+      return apiRequest("POST", `/api/store/${store.id}/follow`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/store", slug] });
@@ -89,7 +89,7 @@ export default function StoreDetail() {
 
   const unfollowMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/store/${store.id}/follow`, "DELETE");
+      return apiRequest("DELETE", `/api/store/${store.id}/follow`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/store", slug] });
@@ -107,7 +107,7 @@ export default function StoreDetail() {
 
   const reviewMutation = useMutation({
     mutationFn: async (data: { rating: number; comment: string }) => {
-      return apiRequest(`/api/store/${store.id}/review`, "POST", data);
+      return apiRequest("POST", `/api/store/${store.id}/review`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/store", slug] });

@@ -225,7 +225,7 @@ export default function MyStore() {
 
   const uploadMediaMutation = useMutation({
     mutationFn: async ({ storeId, mediaType, url }: { storeId: string; mediaType: string; url: string }) => {
-      return apiRequest(`/api/store/${storeId}/media`, "POST", { mediaType, url });
+      return apiRequest("POST", `/api/store/${storeId}/media`, { mediaType, url });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
@@ -234,7 +234,7 @@ export default function MyStore() {
 
   const createMutation = useMutation({
     mutationFn: async (data: StoreFormValues) => {
-      return apiRequest("/api/store", "POST", data);
+      return apiRequest("POST", "/api/store", data);
     },
     onSuccess: (newStore: any) => {
       if (logoUrl && newStore.id) {
@@ -258,7 +258,7 @@ export default function MyStore() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: StoreFormValues) => {
-      return apiRequest(`/api/store/${myStore.id}`, "PATCH", {
+      return apiRequest("PATCH", `/api/store/${myStore.id}`, {
         ...data,
         bannerTemplate: selectedTemplate,
       });
