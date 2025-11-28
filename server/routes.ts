@@ -1234,8 +1234,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user!;
 
-      // SECURITY: Email verification required to create listings
-      if (!(user as any).emailVerified) {
+      // SECURITY: Email verification required to create listings (skip in development)
+      if (!(user as any).emailVerified && process.env.NODE_ENV === 'production') {
         return res.status(403).json({
           message: "İlan oluşturabilmek için email adresinizi doğrulamanız gerekmektedir.",
           requiresVerification: true,
