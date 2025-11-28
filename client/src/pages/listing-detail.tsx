@@ -14,7 +14,6 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   MapPin,
-  DollarSign,
   Heart,
   MessageSquare,
   Share2,
@@ -25,6 +24,8 @@ import {
   ChevronRight,
   Pencil,
   Flag,
+  Phone,
+  ShieldCheck,
 } from "lucide-react";
 import type { Listing, User, Category, Location } from "@shared/schema";
 
@@ -136,16 +137,16 @@ export default function ListingDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-32 mb-6" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Skeleton className="aspect-video w-full" />
-              <Skeleton className="h-64" />
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+          <Skeleton className="h-8 w-32 mb-4 md:mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
+              <Skeleton className="aspect-[4/3] md:aspect-video w-full" />
+              <Skeleton className="h-48 md:h-64" />
             </div>
             <div className="space-y-4">
-              <Skeleton className="h-48" />
-              <Skeleton className="h-64" />
+              <Skeleton className="h-40 md:h-48" />
+              <Skeleton className="h-48 md:h-64" />
             </div>
           </div>
         </div>
@@ -155,15 +156,15 @@ export default function ListingDetail() {
 
   if (!listing) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
-          <CardContent className="p-12 text-center">
-            <h2 className="text-2xl font-bold mb-2">İlan Bulunamadı</h2>
-            <p className="text-muted-foreground mb-6">
+          <CardContent className="p-8 md:p-12 text-center">
+            <h2 className="text-xl md:text-2xl font-bold mb-2">İlan Bulunamadı</h2>
+            <p className="text-muted-foreground mb-6 text-sm md:text-base">
               Aradığınız ilan mevcut değil veya kaldırılmış olabilir
             </p>
             <Link href="/ilanlar">
-              <Button data-testid="button-back-to-listings">İlanlara Dön</Button>
+              <Button className="w-full sm:w-auto" data-testid="button-back-to-listings">İlanlara Dön</Button>
             </Link>
           </CardContent>
         </Card>
@@ -172,25 +173,50 @@ export default function ListingDetail() {
   }
 
   const images = listing.images && listing.images.length > 0 ? listing.images : null;
+  const price = parseFloat(listing.price as string);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+        {/* Back Button */}
         <Link href="/ilanlar">
-          <Button variant="ghost" className="mb-6" data-testid="button-back">
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            İlanlara Dön
+          <Button variant="ghost" size="sm" className="mb-4 md:mb-6 -ml-2" data-testid="button-back">
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            <span className="text-sm">Geri</span>
           </Button>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Mobile Price Header */}
+        <div className="lg:hidden mb-4">
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-lg font-bold line-clamp-2 flex-1" data-testid="text-listing-title-mobile">
+              {listing.title}
+            </h1>
+            <div className="text-xl font-bold text-primary whitespace-nowrap" data-testid="text-price-mobile">
+              {price.toLocaleString("tr-TR")}₺
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {listing.category && (
+              <Badge variant="secondary" className="text-xs" data-testid="badge-category-mobile">
+                {listing.category.name}
+              </Badge>
+            )}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="w-3 h-3" />
+              <span>{listing.city}, {listing.district}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Image Gallery */}
-            <Card>
+            <Card className="overflow-hidden">
               <CardContent className="p-0">
                 {images ? (
-                  <div className="relative aspect-video bg-muted">
+                  <div className="relative aspect-[4/3] md:aspect-video bg-muted">
                     <img
                       src={images[currentImageIndex]}
                       alt={listing.title}
@@ -202,7 +228,7 @@ export default function ListingDetail() {
                         <Button
                           variant="secondary"
                           size="icon"
-                          className="absolute left-2 top-1/2 -translate-y-1/2"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
                           onClick={prevImage}
                           data-testid="button-prev-image"
                         >
@@ -211,48 +237,78 @@ export default function ListingDetail() {
                         <Button
                           variant="secondary"
                           size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
                           onClick={nextImage}
                           data-testid="button-next-image"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </Button>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-full text-white text-sm">
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full text-white text-xs md:text-sm">
                           {currentImageIndex + 1} / {images.length}
                         </div>
                       </>
                     )}
                   </div>
                 ) : (
-                  <div className="aspect-video bg-muted flex items-center justify-center">
-                    <span className="text-6xl">🐾</span>
+                  <div className="aspect-[4/3] md:aspect-video bg-muted flex items-center justify-center">
+                    <span className="text-5xl md:text-6xl">🐾</span>
                   </div>
                 )}
                 {images && images.length > 1 && (
-                  <div className="p-4 grid grid-cols-6 gap-2">
-                    {images.map((img, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`aspect-square bg-muted overflow-hidden rounded border-2 ${
-                          idx === currentImageIndex ? "border-primary" : "border-transparent"
-                        }`}
-                        data-testid={`button-thumbnail-${idx}`}
-                      >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
+                  <div className="p-2 md:p-4 overflow-x-auto">
+                    <div className="flex gap-2 min-w-min">
+                      {images.map((img, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentImageIndex(idx)}
+                          className={`w-14 h-14 md:w-16 md:h-16 flex-shrink-0 bg-muted overflow-hidden rounded border-2 ${
+                            idx === currentImageIndex ? "border-primary" : "border-transparent"
+                          }`}
+                          data-testid={`button-thumbnail-${idx}`}
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
 
+            {/* Mobile Quick Actions */}
+            <div className="lg:hidden grid grid-cols-2 gap-2">
+              <Button
+                className="h-11"
+                onClick={handleMessageSeller}
+                disabled={listing.sellerId === user?.id}
+                data-testid="button-message-seller-mobile"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj Gönder"}
+              </Button>
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => toggleFavoriteMutation.mutate()}
+                disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
+                data-testid="button-toggle-favorite-mobile"
+              >
+                <Heart
+                  className={`w-4 h-4 mr-2 ${
+                    isFavorited ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+                {isFavorited ? "Favoride" : "Favorile"}
+              </Button>
+            </div>
+
             {/* Details */}
             <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
+              <CardHeader className="p-4 md:p-6">
+                {/* Desktop Title and Price */}
+                <div className="hidden lg:flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <CardTitle className="text-2xl mb-2" data-testid="text-listing-title">
+                    <CardTitle className="text-xl md:text-2xl mb-2" data-testid="text-listing-title">
                       {listing.title}
                     </CardTitle>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -276,16 +332,16 @@ export default function ListingDetail() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-primary" data-testid="text-price">
-                      {parseFloat(listing.price as string).toLocaleString("tr-TR")}₺
+                    <div className="text-2xl md:text-3xl font-bold text-primary" data-testid="text-price">
+                      {price.toLocaleString("tr-TR")}₺
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="p-4 md:p-6 pt-0 space-y-4 md:space-y-6">
                 <div>
-                  <h3 className="font-semibold mb-2">Açıklama</h3>
-                  <p className="text-muted-foreground whitespace-pre-wrap" data-testid="text-description">
+                  <h3 className="font-semibold mb-2 text-sm md:text-base">Açıklama</h3>
+                  <p className="text-muted-foreground whitespace-pre-wrap text-sm md:text-base" data-testid="text-description">
                     {listing.description}
                   </p>
                 </div>
@@ -294,23 +350,23 @@ export default function ListingDetail() {
                   <>
                     <Separator />
                     <div>
-                      <h3 className="font-semibold mb-3">Detaylar</h3>
-                      <div className="grid grid-cols-2 gap-3">
+                      <h3 className="font-semibold mb-3 text-sm md:text-base">Detaylar</h3>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
                         {listing.breed && (
                           <div>
-                            <div className="text-sm text-muted-foreground">Cins</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Cins</div>
                             <div className="font-medium">{listing.breed}</div>
                           </div>
                         )}
                         {listing.age && (
                           <div>
-                            <div className="text-sm text-muted-foreground">Yaş</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Yaş</div>
                             <div className="font-medium">{listing.age}</div>
                           </div>
                         )}
                         {listing.gender && (
                           <div>
-                            <div className="text-sm text-muted-foreground">Cinsiyet</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Cinsiyet</div>
                             <div className="font-medium">
                               {listing.gender === "male" ? "Erkek" : "Dişi"}
                             </div>
@@ -318,7 +374,7 @@ export default function ListingDetail() {
                         )}
                         {listing.healthStatus && (
                           <div>
-                            <div className="text-sm text-muted-foreground">Sağlık Durumu</div>
+                            <div className="text-xs md:text-sm text-muted-foreground">Sağlık Durumu</div>
                             <div className="font-medium">{listing.healthStatus}</div>
                           </div>
                         )}
@@ -329,35 +385,35 @@ export default function ListingDetail() {
 
                 <Separator />
                 <div>
-                  <h3 className="font-semibold mb-3">Sağlık Bilgileri</h3>
-                  <div className="space-y-2">
+                  <h3 className="font-semibold mb-3 text-sm md:text-base">Sağlık Bilgileri</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                     <div className="flex items-center gap-2">
                       {listing.vaccinated ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-muted-foreground" />
+                        <XCircle className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0" />
                       )}
-                      <span className={listing.vaccinated ? "" : "text-muted-foreground"}>
+                      <span className={`text-sm ${listing.vaccinated ? "" : "text-muted-foreground"}`}>
                         Aşılı
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {listing.neutered ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-muted-foreground" />
+                        <XCircle className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0" />
                       )}
-                      <span className={listing.neutered ? "" : "text-muted-foreground"}>
+                      <span className={`text-sm ${listing.neutered ? "" : "text-muted-foreground"}`}>
                         Kısırlaştırılmış
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {listing.pedigree ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-muted-foreground" />
+                        <XCircle className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0" />
                       )}
-                      <span className={listing.pedigree ? "" : "text-muted-foreground"}>
+                      <span className={`text-sm ${listing.pedigree ? "" : "text-muted-foreground"}`}>
                         Soy Ağacı Var
                       </span>
                     </div>
@@ -371,30 +427,31 @@ export default function ListingDetail() {
           <div className="space-y-4">
             {/* Seller Info */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Satıcı Bilgileri</CardTitle>
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base md:text-lg">Satıcı Bilgileri</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 pt-2 space-y-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12">
+                  <Avatar className="w-10 h-10 md:w-12 md:h-12">
                     <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
                     <AvatarFallback>
                       {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <div className="font-semibold" data-testid="text-seller-name">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold truncate text-sm md:text-base" data-testid="text-seller-name">
                       {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
                     </div>
                     {listing.seller?.phone && (
-                      <div className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
+                        <Phone className="w-3 h-3" />
                         {listing.seller.phone}
                       </div>
                     )}
                   </div>
                 </div>
                 <Button
-                  className="w-full"
+                  className="w-full h-10 md:h-11 hidden lg:flex"
                   onClick={handleMessageSeller}
                   disabled={listing.sellerId === user?.id}
                   data-testid="button-message-seller"
@@ -407,11 +464,11 @@ export default function ListingDetail() {
 
             {/* Actions */}
             <Card>
-              <CardContent className="p-4 space-y-2">
+              <CardContent className="p-3 md:p-4 space-y-2">
                 {listing.sellerId === user?.id && (
                   <Link href={`/ilan-duzenle/${listing.id}`}>
                     <Button
-                      className="w-full"
+                      className="w-full h-10"
                       data-testid="button-edit-listing"
                     >
                       <Pencil className="w-4 h-4 mr-2" />
@@ -421,7 +478,7 @@ export default function ListingDetail() {
                 )}
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10 hidden lg:flex"
                   onClick={() => toggleFavoriteMutation.mutate()}
                   disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
                   data-testid="button-toggle-favorite"
@@ -435,7 +492,7 @@ export default function ListingDetail() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10"
                   onClick={handleShare}
                   data-testid="button-share"
                 >
@@ -445,7 +502,7 @@ export default function ListingDetail() {
                 {isAuthenticated && listing.sellerId !== user?.id && (
                   <Button
                     variant="ghost"
-                    className="w-full text-muted-foreground hover:text-destructive"
+                    className="w-full h-10 text-muted-foreground hover:text-destructive"
                     onClick={() => setReportDialogOpen(true)}
                     data-testid="button-report-listing"
                   >
@@ -457,11 +514,14 @@ export default function ListingDetail() {
             </Card>
 
             {/* Safety Tips */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Güvenlik İpuçları</CardTitle>
+            <Card className="bg-muted/30">
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  Güvenlik İpuçları
+                </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
+              <CardContent className="p-4 pt-2 text-xs md:text-sm text-muted-foreground space-y-1.5">
                 <p>• Alışverişinizi güvenli bir yerde yapın</p>
                 <p>• Ödeme yapmadan önce hayvanı görün</p>
                 <p>• Sağlık belgelerini kontrol edin</p>
@@ -473,9 +533,9 @@ export default function ListingDetail() {
 
         {/* Similar Listings */}
         {similarListings.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Benzer İlanlar</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mt-8 md:mt-12">
+            <h2 className="text-lg md:text-2xl font-bold mb-4 md:mb-6">Benzer İlanlar</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {similarListings.slice(0, 4).map((similarListing) => (
                 <ListingCard key={similarListing.id} listing={similarListing} />
               ))}

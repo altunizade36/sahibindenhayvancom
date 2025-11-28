@@ -1983,6 +1983,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(messages)
         .values(data)
         .returning();
+
+      // Send notification to receiver
+      try {
+        const sender = req.user as any;
+        const senderName = sender.firstName 
+          ? `${sender.firstName} ${sender.lastName || ''}`.trim() 
+          : sender.username || 'Birisi';
+        
+        await db.insert(notifications).values({
+          userId: data.receiverId,
+          type: 'new_message',
+          title: 'Yeni Mesaj',
+          message: `${senderName} size bir mesaj gönderdi`,
+          link: `/mesajlar?userId=${sender.id}`,
+          relatedId: message.id,
+        });
+      } catch (notifError) {
+        console.error("Failed to create message notification:", notifError);
+      }
       
       res.status(201).json(message);
     } catch (error) {
@@ -2325,6 +2344,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(favorites)
         .values(data)
         .returning();
+
+      // Send notification to listing owner
+      try {
+        const [listing] = await db
+          .select()
+          .from(listings)
+          .where(eq(listings.id, data.listingId))
+          .limit(1);
+        
+        if (listing && listing.sellerId !== (req.user as any).id) {
+          const favUser = req.user as any;
+          const userName = favUser.firstName 
+            ? `${favUser.firstName} ${favUser.lastName || ''}`.trim() 
+            : favUser.username || 'Birisi';
+          
+          await db.insert(notifications).values({
+            userId: listing.sellerId,
+            type: 'new_favorite',
+            title: 'Yeni Favori',
+            message: `${userName} "${listing.title}" ilanınızı favorilere ekledi`,
+            link: `/ilanlar/${listing.id}`,
+            relatedId: listing.id,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create favorite notification:", notifError);
+      }
       
       res.status(201).json(favorite);
     } catch (error) {
@@ -2646,6 +2692,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(listings.id, req.params.id))
         .returning();
+
+      // Send notification to seller about moderation result
+      try {
+        if (status === 'active') {
+          await db.insert(notifications).values({
+            userId: listing.sellerId,
+            type: 'listing_approved',
+            title: 'İlan Onaylandı',
+            message: `"${listing.title}" ilanınız onaylandı ve yayına girdi`,
+            link: `/ilanlar/${listing.id}`,
+            relatedId: listing.id,
+          });
+        } else if (status === 'rejected') {
+          await db.insert(notifications).values({
+            userId: listing.sellerId,
+            type: 'listing_rejected',
+            title: 'İlan Reddedildi',
+            message: `"${listing.title}" ilanınız reddedildi${reason ? `: ${reason}` : ''}`,
+            link: `/ilanlar/${listing.id}`,
+            relatedId: listing.id,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create moderation notification:", notifError);
+      }
 
       res.json({
         ...updated,

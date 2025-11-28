@@ -294,41 +294,43 @@ export default function CreateListing() {
   const canProceedStep2 = form.watch("title") && form.watch("description") && form.watch("price");
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-6">
+    <div className="container max-w-4xl mx-auto py-4 md:py-8 px-3 md:px-4">
+      <div className="mb-4 md:mb-6">
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => navigate("/")}
+          className="-ml-2"
           data-testid="button-back"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Ana Sayfaya Dön
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          <span className="text-sm">Geri</span>
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Ücretsiz İlan Ver</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">Ücretsiz İlan Ver</CardTitle>
+          <CardDescription className="text-sm">
             Adım {step} / {totalSteps} - {step === 1 ? "Kategori ve Konum" : "İlan Detayları ve Fotoğraflar"}
           </CardDescription>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-3 md:mt-4">
             {[1, 2].map((s) => (
               <div
                 key={s}
-                className={`h-2 flex-1 rounded-full ${s <= step ? "bg-primary" : "bg-muted"}`}
+                className={`h-1.5 md:h-2 flex-1 rounded-full ${s <= step ? "bg-primary" : "bg-muted"}`}
               />
             ))}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
               {/* Step 1: Category & Location */}
               {step === 1 && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Kategori Seçimi</h3>
+                <div className="space-y-5 md:space-y-6">
+                  <div className="space-y-3 md:space-y-4">
+                    <h3 className="text-base md:text-lg font-semibold">Kategori Seçimi</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormItem>
@@ -390,8 +392,8 @@ export default function CreateListing() {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Konum Bilgisi</h3>
+                  <div className="space-y-3 md:space-y-4">
+                    <h3 className="text-base md:text-lg font-semibold">Konum Bilgisi</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
@@ -467,9 +469,9 @@ export default function CreateListing() {
 
               {/* Step 2: Listing Details & Photos */}
               {step === 2 && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">İlan Bilgileri</h3>
+                <div className="space-y-5 md:space-y-6">
+                  <div className="space-y-3 md:space-y-4">
+                    <h3 className="text-base md:text-lg font-semibold">İlan Bilgileri</h3>
 
                     <FormField
                       control={form.control}
@@ -529,10 +531,10 @@ export default function CreateListing() {
                     />
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Hayvan Özellikleri (Opsiyonel)</h3>
+                  <div className="space-y-3 md:space-y-4">
+                    <h3 className="text-base md:text-lg font-semibold">Hayvan Özellikleri (Opsiyonel)</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                       <FormField
                         control={form.control}
                         name="breed"
@@ -594,13 +596,13 @@ export default function CreateListing() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 md:gap-4">
                       <FormField
                         control={form.control}
                         name="vaccinated"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                            <FormLabel className="cursor-pointer">Aşılı</FormLabel>
+                          <FormItem className="flex items-center justify-between rounded-lg border p-2.5 md:p-3">
+                            <FormLabel className="cursor-pointer text-sm">Aşılı</FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
@@ -616,8 +618,8 @@ export default function CreateListing() {
                         control={form.control}
                         name="neutered"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                            <FormLabel className="cursor-pointer">Kısır</FormLabel>
+                          <FormItem className="flex items-center justify-between rounded-lg border p-2.5 md:p-3">
+                            <FormLabel className="cursor-pointer text-sm">Kısır</FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
@@ -633,8 +635,8 @@ export default function CreateListing() {
                         control={form.control}
                         name="pedigree"
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                            <FormLabel className="cursor-pointer">Pedigree</FormLabel>
+                          <FormItem className="flex items-center justify-between rounded-lg border p-2.5 md:p-3">
+                            <FormLabel className="cursor-pointer text-sm">Pedigree</FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
@@ -648,15 +650,15 @@ export default function CreateListing() {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Fotoğraflar</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Hayvanınızın fotoğraflarını ekleyin. Telefonunuzdan veya bilgisayarınızdan istediğiniz boyutta fotoğraf seçebilirsiniz - sistem otomatik olarak küçültür.
+                  <div className="space-y-3 md:space-y-4">
+                    <h3 className="text-base md:text-lg font-semibold">Fotoğraflar</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      Hayvanınızın fotoğraflarını ekleyin. Sistem otomatik olarak optimize eder.
                     </p>
                     
                     {/* Ana Yükleme Alanı */}
                     {uploadedImages.length === 0 && (
-                      <label className="block w-full p-8 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all">
+                      <label className="block w-full p-6 md:p-8 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all active:scale-[0.99]">
                         <input
                           type="file"
                           accept="image/*"
@@ -669,16 +671,16 @@ export default function CreateListing() {
                         <div className="flex flex-col items-center justify-center text-center">
                           {uploadingImages ? (
                             <>
-                              <Loader2 className="w-12 h-12 text-primary animate-spin mb-3" />
-                              <span className="text-lg font-medium text-primary">Fotoğraflar yükleniyor...</span>
-                              <span className="text-sm text-muted-foreground mt-1">Lütfen bekleyin</span>
+                              <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-primary animate-spin mb-2 md:mb-3" />
+                              <span className="text-base md:text-lg font-medium text-primary">Yükleniyor...</span>
+                              <span className="text-xs md:text-sm text-muted-foreground mt-1">Lütfen bekleyin</span>
                             </>
                           ) : (
                             <>
-                              <ImagePlus className="w-12 h-12 text-primary mb-3" />
-                              <span className="text-lg font-medium">Fotoğraf Seçmek İçin Tıklayın</span>
-                              <span className="text-sm text-muted-foreground mt-1">veya sürükleyip bırakın</span>
-                              <span className="text-xs text-muted-foreground mt-3">JPG, PNG - En fazla 10 fotoğraf</span>
+                              <ImagePlus className="w-10 h-10 md:w-12 md:h-12 text-primary mb-2 md:mb-3" />
+                              <span className="text-base md:text-lg font-medium">Fotoğraf Seç</span>
+                              <span className="text-xs md:text-sm text-muted-foreground mt-1">Tıklayın veya sürükleyin</span>
+                              <span className="text-[10px] md:text-xs text-muted-foreground mt-2 md:mt-3">JPG, PNG - En fazla 10 fotoğraf</span>
                             </>
                           )}
                         </div>
@@ -687,11 +689,11 @@ export default function CreateListing() {
 
                     {/* Yüklenen Fotoğraflar */}
                     {uploadedImages.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{uploadedImages.length} fotoğraf yüklendi</span>
+                      <div className="space-y-2 md:space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs md:text-sm font-medium">{uploadedImages.length} fotoğraf</span>
                           {uploadedImages.length < 10 && (
-                            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium cursor-pointer hover:bg-primary/90">
+                            <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs md:text-sm font-medium cursor-pointer hover:bg-primary/90 active:scale-[0.98]">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -702,16 +704,17 @@ export default function CreateListing() {
                                 data-testid="input-image-upload-more"
                               />
                               {uploadingImages ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
                               ) : (
-                                <ImagePlus className="w-4 h-4" />
+                                <ImagePlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                               )}
-                              Daha Fazla Ekle
+                              <span className="hidden xs:inline">Daha Fazla</span>
+                              <span className="xs:hidden">Ekle</span>
                             </label>
                           )}
                         </div>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
                           {uploadedImages.map((url, index) => (
                             <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border">
                               <img src={url} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" />
@@ -738,15 +741,16 @@ export default function CreateListing() {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between pt-6 border-t">
+              <div className="flex justify-between gap-3 pt-4 md:pt-6 border-t">
                 {step > 1 ? (
                   <Button
                     type="button"
                     variant="outline"
+                    className="h-10 md:h-11"
                     onClick={() => setStep(step - 1)}
                     data-testid="button-prev-step"
                   >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <ArrowLeft className="w-4 h-4 mr-1.5" />
                     Geri
                   </Button>
                 ) : (
@@ -756,23 +760,26 @@ export default function CreateListing() {
                 {step < totalSteps ? (
                   <Button
                     type="button"
+                    className="h-10 md:h-11"
                     onClick={() => setStep(step + 1)}
                     disabled={!canProceedStep1}
                     data-testid="button-next-step"
                   >
-                    İleri
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    Devam
+                    <ArrowRight className="w-4 h-4 ml-1.5" />
                   </Button>
                 ) : (
                   <Button
                     type="submit"
+                    className="h-10 md:h-11 min-w-[140px]"
                     disabled={createListingMutation.isPending || !canProceedStep2}
                     data-testid="button-submit-listing"
                   >
                     {createListingMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Oluşturuluyor...
+                        <span className="hidden xs:inline">Oluşturuluyor...</span>
+                        <span className="xs:hidden">Bekleyin</span>
                       </>
                     ) : (
                       "İlanı Yayınla"
