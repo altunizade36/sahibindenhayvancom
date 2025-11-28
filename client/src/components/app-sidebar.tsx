@@ -273,7 +273,7 @@ export function AppSidebar() {
   });
 
   return (
-    <Sidebar collapsible="none" data-testid="app-sidebar">
+    <Sidebar collapsible="offcanvas" data-testid="app-sidebar">
       <SidebarContent>
         {/* Main Navigation */}
         <SidebarGroup>

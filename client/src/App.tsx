@@ -48,6 +48,10 @@ function SidebarLayout() {
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
+          {/* Mobilde sidebar toggle butonu */}
+          <div className="md:hidden sticky top-0 z-40 bg-background border-b p-2">
+            <SidebarTrigger data-testid="button-sidebar-toggle" />
+          </div>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={ListingList} />
