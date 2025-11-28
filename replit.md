@@ -27,14 +27,16 @@ No specific user preferences were provided in the original document.
     - **User Profiles**: "My Listings" and "Favorites" tabs.
 
 **Key API Endpoints:**
-- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user)
+- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile)
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
 - **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
+- **Notifications**: `/api/notifications` (GET list, POST create), `/api/notifications/count` (unread count), `/api/notifications/:id/read` (PATCH mark read), `/api/notifications/read-all` (POST mark all read), `/api/notifications/:id` (DELETE)
+- **Reports**: `/api/reports` (POST create report), `/api/reports/my` (GET user's reports), `/api/admin/reports` (GET all, PATCH update status)
 - **Services**: `/api/vet-services`, `/api/transport-services`
 - **Blog**: `/api/blog` (public read-only), `/api/admin/blog` (admin-only CRUD)
 - **Favorites**: `/api/favorites`
-- **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`
+- **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management)
 
 **WebSocket Events:**
 - **Client → Server**: `chat`

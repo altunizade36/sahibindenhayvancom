@@ -20,6 +20,7 @@ import {
   MapPin,
   DollarSign,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import type { Listing, Location, Category } from "@shared/schema";
 
@@ -234,17 +235,28 @@ export default function Profile() {
                           {listing.category?.name || "Kategori Yok"}
                         </Badge>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => deleteListingMutation.mutate(listing.id)}
-                        disabled={deleteListingMutation.isPending}
-                        data-testid={`button-delete-${listing.id}`}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Sil
-                      </Button>
+                      <div className="flex gap-2">
+                        <Link href={`/ilan-duzenle/${listing.id}`} className="flex-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            data-testid={`button-edit-${listing.id}`}
+                          >
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Düzenle
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteListingMutation.mutate(listing.id)}
+                          disabled={deleteListingMutation.isPending}
+                          data-testid={`button-delete-${listing.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

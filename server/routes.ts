@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, notifications, insertNotificationSchema, reports, insertReportSchema } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -617,6 +617,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Update user profile
+  app.patch('/api/auth/profile', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      const { firstName, lastName, phone, city, district, bio, profileImageUrl } = req.body;
+
+      // Validate phone format if provided
+      if (phone && !/^[0-9+\-\s()]{10,20}$/.test(phone)) {
+        return res.status(400).json({ message: "Geçersiz telefon numarası formatı" });
+      }
+
+      // Update user profile
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          phone: phone || undefined,
+          city: city || undefined,
+          district: district || undefined,
+          bio: bio || undefined,
+          profileImageUrl: profileImageUrl || undefined,
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      // Return sanitized user (without password)
+      const { password: _, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Profil güncellenirken bir hata oluştu" });
+    }
+  });
+
+  // Change password
+  app.post('/api/auth/change-password', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Mevcut ve yeni şifre gereklidir" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Yeni şifre en az 8 karakter olmalıdır" });
+      }
+
+      // Get current user
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!existingUser || !existingUser.password) {
+        return res.status(400).json({ message: "Bu hesap için şifre değiştirilemez" });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, existingUser.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Mevcut şifre hatalı" });
+      }
+
+      // Hash and save new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, userId));
+
+      res.json({ message: "Şifreniz başarıyla güncellendi" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ message: "Şifre değiştirilirken bir hata oluştu" });
     }
   });
 
@@ -1711,6 +1807,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ Notification Routes ============
+  
+  // Get user notifications
+  app.get("/api/notifications", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const unreadOnly = req.query.unreadOnly === 'true';
+
+      let query = db
+        .select()
+        .from(notifications)
+        .where(
+          unreadOnly 
+            ? and(eq(notifications.userId, userId), eq(notifications.isRead, false))
+            : eq(notifications.userId, userId)
+        )
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+
+      const userNotifications = await query;
+      res.json(userNotifications);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Get unread notification count
+  app.get("/api/notifications/count", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const [result] = await db
+        .select({ count: count() })
+        .from(notifications)
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+
+      res.json({ count: result?.count || 0 });
+    } catch (error) {
+      console.error("Failed to fetch notification count:", error);
+      res.status(500).json({ message: "Failed to fetch notification count" });
+    }
+  });
+
+  // Mark notification as read
+  app.patch("/api/notifications/:id/read", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const notificationId = req.params.id;
+
+      const [notification] = await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)))
+        .returning();
+
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      res.json(notification);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      res.status(500).json({ message: "Failed to update notification" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.post("/api/notifications/read-all", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+      res.status(500).json({ message: "Failed to update notifications" });
+    }
+  });
+
+  // Delete notification
+  app.delete("/api/notifications/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const notificationId = req.params.id;
+
+      const [deleted] = await db
+        .delete(notifications)
+        .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)))
+        .returning();
+
+      if (!deleted) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      res.json({ message: "Notification deleted" });
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+
   // ============ Message Routes ============
   app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
@@ -2222,6 +2425,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching for public object:", error);
       return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ============ Report Routes ============
+
+  // Create a report
+  app.post("/api/reports", isAuthenticated, createLimiter, async (req: Request, res: Response) => {
+    try {
+      const data = insertReportSchema.parse({
+        ...req.body,
+        reporterId: (req.user as any).id,
+      });
+
+      const [report] = await db
+        .insert(reports)
+        .values(data)
+        .returning();
+
+      res.status(201).json(report);
+    } catch (error) {
+      console.error("Failed to create report:", error);
+      res.status(400).json({ message: "Şikayet oluşturulamadı", error });
+    }
+  });
+
+  // Get user's reports
+  app.get("/api/reports/my", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const userReports = await db
+        .select()
+        .from(reports)
+        .where(eq(reports.reporterId, userId))
+        .orderBy(desc(reports.createdAt));
+
+      res.json(userReports);
+    } catch (error) {
+      console.error("Failed to fetch user reports:", error);
+      res.status(500).json({ message: "Şikayetler getirilemedi" });
+    }
+  });
+
+  // Admin: Get all reports
+  app.get("/api/admin/reports", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      if ((req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Admin yetkisi gereklidir" });
+      }
+
+      const status = req.query.status as string;
+      
+      let query = db.select().from(reports);
+      
+      if (status && status !== 'all') {
+        query = query.where(eq(reports.status, status as any)) as any;
+      }
+
+      const allReports = await query.orderBy(desc(reports.createdAt));
+
+      res.json(allReports);
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+      res.status(500).json({ message: "Şikayetler getirilemedi" });
+    }
+  });
+
+  // Admin: Update report status
+  app.patch("/api/admin/reports/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      if ((req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Admin yetkisi gereklidir" });
+      }
+
+      const reportId = req.params.id;
+      const { status, adminNotes } = req.body;
+
+      const updateData: any = {};
+      if (status) updateData.status = status;
+      if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
+      
+      if (status === 'resolved' || status === 'dismissed') {
+        updateData.resolvedAt = new Date();
+        updateData.resolvedBy = (req.user as any).id;
+      }
+
+      const [updatedReport] = await db
+        .update(reports)
+        .set(updateData)
+        .where(eq(reports.id, reportId))
+        .returning();
+
+      if (!updatedReport) {
+        return res.status(404).json({ message: "Şikayet bulunamadı" });
+      }
+
+      res.json(updatedReport);
+    } catch (error) {
+      console.error("Failed to update report:", error);
+      res.status(500).json({ message: "Şikayet güncellenemedi" });
     }
   });
 

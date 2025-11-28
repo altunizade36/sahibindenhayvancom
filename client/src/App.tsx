@@ -36,6 +36,9 @@ import VerifyEmail from "@/pages/verify-email";
 import StoresList from "@/pages/stores-list";
 import StoreDetail from "@/pages/store-detail";
 import MyStore from "@/pages/my-store";
+import EditListing from "@/pages/edit-listing";
+import EditProfile from "@/pages/edit-profile";
+import NotificationsPage from "@/pages/notifications";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -71,11 +74,14 @@ function NoSidebarLayout() {
           <Route path="/reset-password" component={ResetPassword} />
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/ilan-ver" component={CreateListing} />
+          <Route path="/ilan-duzenle/:id" component={EditListing} />
           <Route path="/ilan/:id" component={ListingDetail} />
           <Route path="/profil" component={Profile} />
+          <Route path="/profil-duzenle" component={EditProfile} />
           <Route path="/panel" component={Profile} />
-          <Route path="/ayarlar" component={Profile} />
+          <Route path="/ayarlar" component={EditProfile} />
           <Route path="/favoriler" component={Profile} />
+          <Route path="/bildirimler" component={NotificationsPage} />
           <Route path="/mesajlar" component={Messages} />
           <Route path="/veterinerler" component={VetServices} />
           <Route path="/tasima" component={TransportServices} />
@@ -110,13 +116,16 @@ function Router() {
                            location.startsWith('/reset-password') || 
                            location.startsWith('/verify-email') || 
                            location.startsWith('/ilan-ver') ||
+                           location.startsWith('/ilan-duzenle/') ||
                            location.startsWith('/ilan/') ||
                            location.startsWith('/blog') ||
                            location.startsWith('/magaza') ||
                            location.startsWith('/profil') ||
+                           location.startsWith('/profil-duzenle') ||
                            location.startsWith('/panel') ||
                            location.startsWith('/ayarlar') ||
                            location.startsWith('/favoriler') ||
+                           location.startsWith('/bildirimler') ||
                            location.startsWith('/mesajlar') ||
                            location.startsWith('/veterinerler') ||
                            location.startsWith('/tasima') ||

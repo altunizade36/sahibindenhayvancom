@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard } from "@/components/listing-card";
+import { ReportDialog } from "@/components/report-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -22,6 +23,8 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Flag,
 } from "lucide-react";
 import type { Listing, User, Category, Location } from "@shared/schema";
 
@@ -37,6 +40,7 @@ export default function ListingDetail() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery<ListingWithDetails>({
     queryKey: ["/api/listings", id],
@@ -404,6 +408,17 @@ export default function ListingDetail() {
             {/* Actions */}
             <Card>
               <CardContent className="p-4 space-y-2">
+                {listing.sellerId === user?.id && (
+                  <Link href={`/ilan-duzenle/${listing.id}`}>
+                    <Button
+                      className="w-full"
+                      data-testid="button-edit-listing"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      İlanı Düzenle
+                    </Button>
+                  </Link>
+                )}
                 <Button
                   variant="outline"
                   className="w-full"
@@ -427,6 +442,17 @@ export default function ListingDetail() {
                   <Share2 className="w-4 h-4 mr-2" />
                   Paylaş
                 </Button>
+                {isAuthenticated && listing.sellerId !== user?.id && (
+                  <Button
+                    variant="ghost"
+                    className="w-full text-muted-foreground hover:text-destructive"
+                    onClick={() => setReportDialogOpen(true)}
+                    data-testid="button-report-listing"
+                  >
+                    <Flag className="w-4 h-4 mr-2" />
+                    Şikayet Et
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -456,6 +482,15 @@ export default function ListingDetail() {
             </div>
           </div>
         )}
+
+        {/* Report Dialog */}
+        <ReportDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+          reportedType="listing"
+          reportedId={id || ""}
+          reportedTitle={listing.title}
+        />
       </div>
     </div>
   );

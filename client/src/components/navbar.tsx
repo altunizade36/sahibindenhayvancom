@@ -19,8 +19,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu } from "lucide-react";
+import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
+import { NotificationDropdown } from "@/components/notification-dropdown";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -134,6 +135,12 @@ export function Navbar() {
                             Mesajlar
                           </Button>
                         </Link>
+                        <Link href="/bildirimler">
+                          <Button variant="ghost" className="w-full justify-start text-lg h-12" onClick={closeMobileMenu} data-testid="mobile-link-notifications">
+                            <Bell className="w-5 h-5 mr-2" />
+                            Bildirimler
+                          </Button>
+                        </Link>
                         <Link href="/ayarlar">
                           <Button variant="ghost" className="w-full justify-start text-lg h-12" onClick={closeMobileMenu} data-testid="mobile-link-settings">
                             <Settings className="w-5 h-5 mr-2" />
@@ -174,6 +181,8 @@ export function Navbar() {
                       İlan Ver
                     </Button>
                   </Link>
+
+                  <NotificationDropdown />
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

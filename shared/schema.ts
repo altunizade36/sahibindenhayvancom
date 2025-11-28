@@ -505,6 +505,93 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 
+// Notification type enum
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "new_message",        // Yeni mesaj geldi
+  "listing_approved",   // İlan onaylandı
+  "listing_rejected",   // İlan reddedildi
+  "new_favorite",       // Birisi ilanını favoriledi
+  "price_drop",         // Favorideki ilan fiyatı düştü
+  "auction_outbid",     // Açık artırmada birisi geçti
+  "auction_won",        // Açık artırmayı kazandı
+  "auction_ending",     // Açık artırma bitiyor
+  "system",             // Sistem bildirimi
+]);
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  link: text("link"),
+  relatedId: varchar("related_id"),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userReadIdx: index("notifications_user_read_idx").on(table.userId, table.isRead),
+  userCreatedIdx: index("notifications_user_created_idx").on(table.userId, table.createdAt),
+}));
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  isRead: true,
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+// Report type enum
+export const reportTypeEnum = pgEnum("report_type", [
+  "spam",
+  "fraud",
+  "inappropriate",
+  "fake_listing",
+  "harassment",
+  "copyright",
+  "other"
+]);
+
+// Report status enum
+export const reportStatusEnum = pgEnum("report_status", [
+  "pending",
+  "under_review",
+  "resolved",
+  "dismissed"
+]);
+
+// Reports table
+export const reports = pgTable("reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reporterId: varchar("reporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reportedType: varchar("reported_type").notNull(),
+  reportedId: varchar("reported_id").notNull(),
+  type: reportTypeEnum("type").notNull(),
+  reason: text("reason").notNull(),
+  status: reportStatusEnum("status").default("pending").notNull(),
+  adminNotes: text("admin_notes"),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: varchar("resolved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  reporterIdx: index("reports_reporter_idx").on(table.reporterId),
+  statusIdx: index("reports_status_idx").on(table.status),
+  typeIdx: index("reports_type_idx").on(table.type),
+}));
+
+export const insertReportSchema = createInsertSchema(reports).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+  adminNotes: true,
+  resolvedAt: true,
+  resolvedBy: true,
+});
+
+export type InsertReport = z.infer<typeof insertReportSchema>;
+export type Report = typeof reports.$inferSelect;
 
 // Stream Chat Messages table
 export const streamChatMessages = pgTable("stream_chat_messages", {
