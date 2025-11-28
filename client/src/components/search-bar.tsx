@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Search, MapPin, X, ChevronDown } from "lucide-react";
+import { useState, useRef } from "react";
+import { Search, MapPin, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,19 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { Location } from "@shared/schema";
@@ -36,7 +23,6 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  const [cityOpen, setCityOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -127,54 +113,22 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
         <div className="h-8 w-px bg-border" />
 
         {/* City Select */}
-        <Popover open={cityOpen} onOpenChange={setCityOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              role="combobox"
-              aria-expanded={cityOpen}
-              className="w-40 h-12 justify-between font-normal cursor-pointer"
-              data-testid="select-city"
-            >
-              <div className="flex items-center gap-2 truncate pointer-events-none">
-                <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
-                <span className="truncate">{selectedCityName || "Tüm Türkiye"}</span>
-              </div>
-              <ChevronDown className="w-4 h-4 shrink-0 opacity-50 pointer-events-none" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-52 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Şehir ara..." />
-              <CommandList>
-                <CommandEmpty>Şehir bulunamadı.</CommandEmpty>
-                <CommandGroup>
-                  <CommandItem
-                    value=""
-                    onSelect={() => {
-                      setSelectedCity("");
-                      setCityOpen(false);
-                    }}
-                  >
-                    Tüm Türkiye
-                  </CommandItem>
-                  {cities.map((city) => (
-                    <CommandItem
-                      key={city.id}
-                      value={city.name}
-                      onSelect={() => {
-                        setSelectedCity(city.slug);
-                        setCityOpen(false);
-                      }}
-                    >
-                      {city.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Select value={selectedCity || "all"} onValueChange={(value) => setSelectedCity(value === "all" ? "" : value)}>
+          <SelectTrigger className="w-40 h-12 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-city">
+            <div className="flex items-center gap-2 pointer-events-none">
+              <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{selectedCityName || "Tüm Türkiye"}</span>
+            </div>
+          </SelectTrigger>
+          <SelectContent className="max-h-60">
+            <SelectItem value="all">Tüm Türkiye</SelectItem>
+            {cities.map((city) => (
+              <SelectItem key={city.id} value={city.slug}>
+                {city.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Search Button */}
         <Button type="submit" size="lg" className="h-12 px-6" data-testid="button-search">
@@ -230,56 +184,22 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
           </Select>
 
           {/* City */}
-          <Popover open={cityOpen} onOpenChange={setCityOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={cityOpen}
-                className="w-[calc(50%-3px)] h-9 justify-between font-normal text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2 cursor-pointer"
-                data-testid="select-city-mobile"
-              >
-                <div className="flex items-center gap-0.5 truncate flex-1 min-w-0 pointer-events-none">
-                  <MapPin className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{selectedCityName || "Şehir"}</span>
-                </div>
-                <ChevronDown className="w-3 h-3 shrink-0 opacity-50 ml-0.5 pointer-events-none" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Şehir ara..." className="h-9 text-sm" />
-                <CommandList className="max-h-48">
-                  <CommandEmpty>Bulunamadı</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      value=""
-                      onSelect={() => {
-                        setSelectedCity("");
-                        setCityOpen(false);
-                      }}
-                      className="text-sm"
-                    >
-                      Tüm Türkiye
-                    </CommandItem>
-                    {cities.map((city) => (
-                      <CommandItem
-                        key={city.id}
-                        value={city.name}
-                        onSelect={() => {
-                          setSelectedCity(city.slug);
-                          setCityOpen(false);
-                        }}
-                        className="text-sm"
-                      >
-                        {city.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Select value={selectedCity || "all"} onValueChange={(value) => setSelectedCity(value === "all" ? "" : value)}>
+            <SelectTrigger className="w-[calc(50%-3px)] h-9 text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2 hover:bg-accent/50" data-testid="select-city-mobile">
+              <div className="flex items-center gap-0.5 truncate flex-1 min-w-0 pointer-events-none">
+                <MapPin className="w-3 h-3 shrink-0" />
+                <span className="truncate">{selectedCityName || "Şehir"}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              <SelectItem value="all">Tüm Türkiye</SelectItem>
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.slug}>
+                  {city.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Search Button */}
