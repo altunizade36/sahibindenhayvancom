@@ -222,10 +222,10 @@ export function Navbar() {
             <Link href="/">
               <div className="flex items-center gap-1.5 cursor-pointer" data-testid="link-home">
                 <GiUnicorn className="w-6 h-6 md:w-8 md:h-8 text-primary shrink-0" />
-                <span className="text-sm md:text-lg font-bold hidden xs:inline">
+                <span className="text-sm md:text-lg font-bold hidden sm:inline">
                   sahibinden<span className="text-primary">hayvan</span>
                 </span>
-                <span className="text-sm font-bold xs:hidden">
+                <span className="text-sm font-bold sm:hidden">
                   s<span className="text-primary">h</span>
                 </span>
               </div>
