@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, notifications, insertNotificationSchema, reports, insertReportSchema } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -3028,7 +3028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [updated] = await db
         .update(stores)
         .set({
-          ...validationResult.data,
+          ...validationResult.data as any,
           updatedAt: new Date(),
         })
         .where(eq(stores.id, req.params.id))
@@ -3224,6 +3224,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading store media:", error);
       res.status(500).json({ message: "Medya yüklenemedi" });
+    }
+  });
+
+  // Follow a store
+  app.post("/api/store/:id/follow", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const storeId = req.params.id;
+      const userId = (req.user as any).id;
+      
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, storeId),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      // Can't follow own store
+      if (store.ownerId === userId) {
+        return res.status(400).json({ message: "Kendi mağazanızı takip edemezsiniz" });
+      }
+      
+      // Check if already following
+      const existingFollow = await db.query.storeFollowers.findFirst({
+        where: and(
+          eq(storeFollowers.storeId, storeId),
+          eq(storeFollowers.userId, userId)
+        ),
+      });
+      
+      if (existingFollow) {
+        return res.status(400).json({ message: "Bu mağazayı zaten takip ediyorsunuz" });
+      }
+      
+      // Add follow
+      await db.insert(storeFollowers).values({
+        storeId,
+        userId,
+      });
+      
+      // Update follower count
+      await db
+        .update(stores)
+        .set({ followerCount: sql`COALESCE(follower_count, 0) + 1` })
+        .where(eq(stores.id, storeId));
+      
+      res.status(201).json({ message: "Mağaza takip edildi", following: true });
+    } catch (error) {
+      console.error("Error following store:", error);
+      res.status(500).json({ message: "Mağaza takip edilemedi" });
+    }
+  });
+  
+  // Unfollow a store
+  app.delete("/api/store/:id/follow", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const storeId = req.params.id;
+      const userId = (req.user as any).id;
+      
+      const result = await db
+        .delete(storeFollowers)
+        .where(and(
+          eq(storeFollowers.storeId, storeId),
+          eq(storeFollowers.userId, userId)
+        ))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Bu mağazayı takip etmiyorsunuz" });
+      }
+      
+      // Update follower count
+      await db
+        .update(stores)
+        .set({ followerCount: sql`GREATEST(COALESCE(follower_count, 0) - 1, 0)` })
+        .where(eq(stores.id, storeId));
+      
+      res.json({ message: "Takipten çıkıldı", following: false });
+    } catch (error) {
+      console.error("Error unfollowing store:", error);
+      res.status(500).json({ message: "Takipten çıkılamadı" });
+    }
+  });
+  
+  // Get user's followed stores
+  app.get("/api/my/followed-stores", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      const followedStores = await db
+        .select({
+          id: stores.id,
+          slug: stores.slug,
+          displayName: stores.displayName,
+          storeType: stores.storeType,
+          summary: stores.summary,
+          logo: stores.logo,
+          primaryColor: stores.primaryColor,
+          city: stores.city,
+          rating: stores.rating,
+          reviewCount: stores.reviewCount,
+          totalListings: stores.totalListings,
+          verifiedAt: stores.verifiedAt,
+          followerCount: stores.followerCount,
+          badges: stores.badges,
+          followedAt: storeFollowers.createdAt,
+        })
+        .from(storeFollowers)
+        .innerJoin(stores, eq(storeFollowers.storeId, stores.id))
+        .where(eq(storeFollowers.userId, userId))
+        .orderBy(desc(storeFollowers.createdAt));
+      
+      res.json(followedStores);
+    } catch (error) {
+      console.error("Error fetching followed stores:", error);
+      res.status(500).json({ message: "Takip edilen mağazalar getirilemedi" });
+    }
+  });
+  
+  // Check if user is following a store
+  app.get("/api/store/:id/is-following", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const storeId = req.params.id;
+      const userId = (req.user as any).id;
+      
+      const follow = await db.query.storeFollowers.findFirst({
+        where: and(
+          eq(storeFollowers.storeId, storeId),
+          eq(storeFollowers.userId, userId)
+        ),
+      });
+      
+      res.json({ following: !!follow });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "Takip durumu kontrol edilemedi" });
+    }
+  });
+  
+  // Increment store view count
+  app.post("/api/store/:id/view", async (req: Request, res: Response) => {
+    try {
+      const storeId = req.params.id;
+      
+      await db
+        .update(stores)
+        .set({ viewCount: sql`COALESCE(view_count, 0) + 1` })
+        .where(eq(stores.id, storeId));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error incrementing view count:", error);
+      res.status(500).json({ message: "Görüntülenme kaydedilemedi" });
     }
   });
 
