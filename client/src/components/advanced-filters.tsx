@@ -168,7 +168,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                 value={localFilters.city || 'all'}
                 onValueChange={(value) => setLocalFilters({ ...localFilters, city: value === 'all' ? undefined : value })}
               >
-                <SelectTrigger className="h-10" data-testid="select-city">
+                <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-city">
                   <SelectValue placeholder="Şehir Seçin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,7 +201,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                   value={localFilters.gender || 'all'}
                   onValueChange={(value) => setLocalFilters({ ...localFilters, gender: value === 'all' ? undefined : value })}
                 >
-                  <SelectTrigger className="h-10" data-testid="select-gender">
+                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-gender">
                     <SelectValue placeholder="Tümü" />
                   </SelectTrigger>
                   <SelectContent>
@@ -255,7 +255,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                   value={localFilters.healthStatus || 'all'}
                   onValueChange={(value) => setLocalFilters({ ...localFilters, healthStatus: value === 'all' ? undefined : value })}
                 >
-                  <SelectTrigger className="h-10" data-testid="select-health-status">
+                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-health-status">
                     <SelectValue placeholder="Tümü" />
                   </SelectTrigger>
                   <SelectContent>
@@ -274,7 +274,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                   value={localFilters.vaccinated || 'all'}
                   onValueChange={(value) => setLocalFilters({ ...localFilters, vaccinated: value === 'all' ? undefined : value })}
                 >
-                  <SelectTrigger className="h-10" data-testid="select-vaccinated">
+                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-vaccinated">
                     <SelectValue placeholder="Tümü" />
                   </SelectTrigger>
                   <SelectContent>
@@ -318,8 +318,8 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
         <div className="flex gap-2">
           {/* Sort Dropdown */}
           <Select value={currentSort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-full sm:w-48 h-9" data-testid="select-sort">
-              <ArrowUpDown className="w-4 h-4 mr-2 shrink-0" />
+            <SelectTrigger className="w-full sm:w-48 h-9 hover:bg-accent/50" data-testid="select-sort">
+              <ArrowUpDown className="w-4 h-4 mr-2 shrink-0 pointer-events-none" />
               <SelectValue placeholder="Sırala" />
             </SelectTrigger>
             <SelectContent>

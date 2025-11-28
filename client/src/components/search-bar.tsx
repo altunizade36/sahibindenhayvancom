@@ -110,7 +110,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
         {/* Category Select */}
         {mainCategories.length > 0 && (
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-44 h-12 border-0 shadow-none focus:ring-0" data-testid="select-category">
+            <SelectTrigger className="w-44 h-12 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-category">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -133,14 +133,14 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
               variant="ghost"
               role="combobox"
               aria-expanded={cityOpen}
-              className="w-40 h-12 justify-between font-normal"
+              className="w-40 h-12 justify-between font-normal cursor-pointer"
               data-testid="select-city"
             >
-              <div className="flex items-center gap-2 truncate">
+              <div className="flex items-center gap-2 truncate pointer-events-none">
                 <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
                 <span className="truncate">{selectedCityName || "Tüm Türkiye"}</span>
               </div>
-              <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+              <ChevronDown className="w-4 h-4 shrink-0 opacity-50 pointer-events-none" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-52 p-0" align="start">
@@ -216,7 +216,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
         <div className="flex gap-1.5 min-[400px]:gap-2">
           {/* Category */}
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[calc(50%-3px)] h-9 text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2" data-testid="select-category-mobile">
+            <SelectTrigger className="w-[calc(50%-3px)] h-9 text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2 hover:bg-accent/50" data-testid="select-category-mobile">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent className="max-h-60">
@@ -236,14 +236,14 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
                 variant="outline"
                 role="combobox"
                 aria-expanded={cityOpen}
-                className="w-[calc(50%-3px)] h-9 justify-between font-normal text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2"
+                className="w-[calc(50%-3px)] h-9 justify-between font-normal text-xs min-[400px]:text-sm px-1.5 min-[400px]:px-2 cursor-pointer"
                 data-testid="select-city-mobile"
               >
-                <div className="flex items-center gap-0.5 truncate flex-1 min-w-0">
+                <div className="flex items-center gap-0.5 truncate flex-1 min-w-0 pointer-events-none">
                   <MapPin className="w-3 h-3 shrink-0" />
                   <span className="truncate">{selectedCityName || "Şehir"}</span>
                 </div>
-                <ChevronDown className="w-3 h-3 shrink-0 opacity-50 ml-0.5" />
+                <ChevronDown className="w-3 h-3 shrink-0 opacity-50 ml-0.5 pointer-events-none" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-0" align="start">
