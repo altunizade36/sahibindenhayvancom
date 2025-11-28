@@ -20,36 +20,53 @@ export async function seedDatabase() {
     const categoryCount = await db.query.categories.findMany({});
     console.log(`📁 Current categories in DB: ${categoryCount.length}, will seed ${categoriesHierarchy.length} categories`);
     
-    // Force re-seed to ensure all 431 categories are loaded
+    // Force re-seed to ensure all categories are loaded
     if (categoryCount.length < categoriesHierarchy.length) {
       console.log(`📁 Seeding/updating categories (${categoriesHierarchy.length} total)...`);
       
-      // Insert all categories with their pre-calculated hierarchy info
-      // Batch insert for performance
-      const batchSize = 100;
-      for (let i = 0; i < categoriesHierarchy.length; i += batchSize) {
-        const batch = categoriesHierarchy.slice(i, i + batchSize);
-        await db
-          .insert(categories)
-          .values(batch)
-          .onConflictDoUpdate({
-            target: categories.slug,
-            set: {
-              name: sql`excluded.name`,
-              description: sql`excluded.description`,
-              icon: sql`excluded.icon`,
-              order: sql`excluded.order`,
-              parentId: sql`excluded.parent_id`,
-              depth: sql`excluded.depth`,
-              path: sql`excluded.path`,
-            },
-          })
-          .execute();
+      // Deduplicate categories by slug (keep first occurrence)
+      const seenSlugs = new Set<string>();
+      const uniqueCategories = categoriesHierarchy.filter(cat => {
+        if (seenSlugs.has(cat.slug)) {
+          console.log(`  ⚠️ Duplicate slug skipped: ${cat.slug}`);
+          return false;
+        }
+        seenSlugs.add(cat.slug);
+        return true;
+      });
+      
+      console.log(`  📁 Unique categories: ${uniqueCategories.length}`);
+      
+      // Insert categories one by one to avoid batch conflict issues
+      let inserted = 0;
+      for (const cat of uniqueCategories) {
+        try {
+          await db
+            .insert(categories)
+            .values(cat)
+            .onConflictDoUpdate({
+              target: categories.slug,
+              set: {
+                name: cat.name,
+                description: cat.description,
+                icon: cat.icon,
+                order: cat.order,
+                parentId: cat.parentId,
+                depth: cat.depth,
+                path: cat.path,
+              },
+            })
+            .execute();
+          inserted++;
+        } catch (err: any) {
+          console.log(`  ⚠️ Error inserting ${cat.slug}: ${err.message}`);
+        }
         
-        if ((i + batchSize) % 200 === 0 || i + batchSize >= categoriesHierarchy.length) {
-          console.log(`  - Inserted ${Math.min(i + batchSize, categoriesHierarchy.length)} / ${categoriesHierarchy.length}`);
+        if (inserted % 100 === 0) {
+          console.log(`  - Inserted ${inserted} / ${uniqueCategories.length}`);
         }
       }
+      console.log(`  - Inserted ${inserted} / ${uniqueCategories.length}`);
       
       // Count by depth for stats
       const depth0 = categoriesHierarchy.filter(c => c.depth === 0).length;

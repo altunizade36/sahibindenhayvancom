@@ -68,15 +68,24 @@ categoriesHierarchy.push(
 const kopekler = createCategory("Köpekler", "kopekler", "Dog", 0, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(kopekler);
 
-// Köpek Irkları (Dog Breeds)
+// Köpek Irkları (Dog Breeds) - Genişletilmiş liste
 const dogBreeds = [
+  // Popüler Irklar
   "Golden Retriever", "German Shepherd", "Rottweiler", "Pomeranian", 
   "Labrador", "Husky", "Doberman", "Pug", "Terrier", "Cane Corso", 
   "Maltese", "Chihuahua", "Beagle", "Kangal", "Akita", "Shiba Inu",
   "Bulldog", "French Bulldog", "Yorkshire Terrier", "Poodle",
   "Border Collie", "Cavalier King Charles", "Corgi", "Boxer",
   "Samoyed", "Cocker Spaniel", "Dachshund", "Jack Russell",
-  "Akbaş", "Malaklı", "Sivas Kangalı", "Kars Köpeği"
+  // Türk Köpek Irkları
+  "Akbaş", "Malaklı", "Sivas Kangalı", "Kars Köpeği", "Çatalburun",
+  "Aksaray Malaklısı", "Anadolu Çoban Köpeği", "Türk Tazısı",
+  // Ek Popüler Irklar
+  "Bichon Frise", "Shih Tzu", "Bernese Mountain Dog", "Great Dane",
+  "Dalmatian", "St. Bernard", "Australian Shepherd", "Miniature Schnauzer",
+  "Weimaraner", "Vizsla", "Belgian Malinois", "Chow Chow",
+  "Newfoundland", "Collie", "Basenji", "Whippet", "Greyhound",
+  "American Staffordshire", "Pit Bull", "Bull Terrier"
 ];
 dogBreeds.forEach((breed, i) => {
   categoriesHierarchy.push(
@@ -114,13 +123,19 @@ categoriesHierarchy.push(kopekTurleri);
 const kediler = createCategory("Kediler", "kediler", "Cat", 1, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(kediler);
 
-// Kedi Irkları (Cat Breeds)
+// Kedi Irkları (Cat Breeds) - Genişletilmiş liste
 const catBreeds = [
+  // Popüler Irklar
   "British Shorthair", "Scottish Fold", "Bengal", "Van Kedisi", 
   "Ankara Kedisi", "Maine Coon", "Persian", "Ragdoll", 
   "Exotic Shorthair", "Sphynx", "Siamese", "Russian Blue",
   "Abyssinian", "Birman", "American Shorthair", "Devon Rex",
-  "Norwegian Forest", "Munchkin", "Bombay", "Chartreux"
+  "Norwegian Forest", "Munchkin", "Bombay", "Chartreux",
+  // Ek Popüler Irklar
+  "Turkish Angora", "Himalayan", "Burmese", "Tonkinese",
+  "Oriental Shorthair", "Cornish Rex", "Selkirk Rex", "Savannah",
+  "Ocicat", "Singapura", "Korat", "Somali", "Japanese Bobtail",
+  "Manx", "Egyptian Mau", "Balinese", "Siberian", "Snowshoe"
 ];
 catBreeds.forEach((breed, i) => {
   categoriesHierarchy.push(
@@ -159,9 +174,14 @@ const evcilKuslar = createCategory("Kuşlar", "evcil-kuslar", "Bird", 2, evcilHa
 categoriesHierarchy.push(evcilKuslar);
 
 const birdTypes = [
+  // Popüler Kuşlar
   "Muhabbet Kuşu", "Papağan", "Kanarya", "Sultan Papağanı", 
   "Cennet Papağanı", "Jako", "Amazon Papağanı", "Güvercin", 
-  "Kumru", "Saka", "İspinoz"
+  "Kumru", "Saka", "İspinoz",
+  // Ek Kuş Türleri
+  "Forpus", "Kakadu", "Macaw", "Ara Papağan", "Florya",
+  "Bülbül", "Saka Kuşu", "Makaronez", "Finch", "Zebra Finch",
+  "Serçe", "Ötücü Kuş", "Keklik", "Bıldırcın"
 ];
 birdTypes.forEach((type, i) => {
   categoriesHierarchy.push(
@@ -200,8 +220,13 @@ const evcilBaliklar = createCategory("Akvaryum", "evcil-akvaryum", "Fish", 3, ev
 categoriesHierarchy.push(evcilBaliklar);
 
 const fishTypes = [
+  // Popüler Akvaryum Balıkları
   "Akvaryum Balıkları", "Japon Balığı", "Betta", "Koi", "Discus", 
-  "Lepistes", "Tetra", "Ciklet", "Melek Balığı"
+  "Lepistes", "Tetra", "Ciklet", "Melek Balığı",
+  // Ek Akvaryum Balıkları
+  "Neon Tetra", "Guppy", "Molly", "Platy", "Oscar",
+  "Vatoz", "Palyaço Balığı", "Tang", "Denizel Balık",
+  "Arowona", "Piranha", "Yayın Balığı", "Çöpçü Balık"
 ];
 fishTypes.forEach((type, i) => {
   categoriesHierarchy.push(
@@ -239,7 +264,11 @@ categoriesHierarchy.push(evcilAkvaryumEkipmanlari);
 const evcilKemirgenler = createCategory("Kemirgenler", "evcil-kemirgenler", "Rabbit", 4, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(evcilKemirgenler);
 
-const rodentTypes = ["Hamster", "Ginepig", "Tavşan", "Sincap", "Fare", "Gerbil", "Çinçilla"];
+const rodentTypes = [
+  "Hamster", "Ginepig", "Tavşan", "Sincap", "Fare", "Gerbil", "Çinçilla",
+  // Ek Kemirgenler
+  "Huron", "Degu", "Prairie Dog", "Sugar Glider", "Tarla Faresi"
+];
 rodentTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
@@ -258,7 +287,12 @@ rodentTypes.forEach((type, i) => {
 const evcilSurungenler = createCategory("Sürüngenler", "evcil-surungenler", "Bug", 5, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(evcilSurungenler);
 
-const reptileTypes = ["Yılan", "Bukalemun", "Geko", "İguana", "Kaplumbağa", "Ejder"];
+const reptileTypes = [
+  "Yılan", "Bukalemun", "Geko", "İguana", "Kaplumbağa", "Ejder",
+  // Ek Sürüngenler
+  "Python", "Boa", "Kral Yılanı", "Leopar Gekko", "Sakallı Ejder",
+  "Monitor Kertenkele", "Tegu", "Skink"
+];
 reptileTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
@@ -295,7 +329,12 @@ categoriesHierarchy.push(amfibiler);
 const evcilEgzotikHayvanlar = createCategory("Egzotik Hayvanlar", "evcil-egzotik-hayvanlar", "Sparkles", 7, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
 categoriesHierarchy.push(evcilEgzotikHayvanlar);
 
-const exoticTypes = ["Kirpi", "Rakun", "Tilki", "Lemur", "Maymun", "Marmoset", "Koati"];
+const exoticTypes = [
+  "Kirpi", "Rakun", "Tilki", "Lemur", "Maymun", "Marmoset", "Koati",
+  // Ek Egzotik Hayvanlar
+  "Kinkajou", "Kapibara", "Şinşilla", "Panda Faresi", "Meerkat",
+  "Fennec", "Serval", "Ocelot"
+];
 exoticTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
@@ -316,7 +355,13 @@ exoticTypes.forEach((type, i) => {
 const buyukbas = createCategory("Büyükbaş Hayvanlar", "buyukbas-hayvanlar", "Beef", 0, ciftlikHayvanlari.id, 1, [ciftlikHayvanlari.id]);
 categoriesHierarchy.push(buyukbas);
 
-const cattleTypes = ["İnek", "Boğa", "Dana", "Düve", "Tosun", "Simental", "Holstein", "Montofon", "Jersey"];
+const cattleTypes = [
+  "İnek", "Boğa", "Dana", "Düve", "Tosun", 
+  // Irklara Göre
+  "Simental", "Holstein", "Montofon", "Jersey", "Angus",
+  "Hereford", "Limousin", "Charolais", "Brahman", "Yerli Kara",
+  "Boz Irk", "Şarole"
+];
 cattleTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
@@ -335,7 +380,14 @@ cattleTypes.forEach((type, i) => {
 const kucukbas = createCategory("Küçükbaş Hayvanlar", "kucukbas-hayvanlar", "Sheep", 1, ciftlikHayvanlari.id, 1, [ciftlikHayvanlari.id]);
 categoriesHierarchy.push(kucukbas);
 
-const smallLivestockTypes = ["Koyun", "Koç", "Keçi", "Oğlak", "Kurbanlık"];
+const smallLivestockTypes = [
+  "Koyun", "Koç", "Keçi", "Oğlak", "Kurbanlık",
+  // Koyun Irkları
+  "Akkaraman", "Sakız", "İvesi", "Merinos", "Morkaraman",
+  "Kıvırcık", "Karacabey Merinosu", "Dağlıç", "Tuj",
+  // Keçi Irkları
+  "Saanen", "Kıl Keçisi", "Ankara Keçisi", "Maltız", "Kilis"
+];
 smallLivestockTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
@@ -373,7 +425,12 @@ horseTypes.forEach((type, i) => {
 const kumes = createCategory("Kümes Hayvanları", "kumes-hayvanlari", "Egg", 3, ciftlikHayvanlari.id, 1, [ciftlikHayvanlari.id]);
 categoriesHierarchy.push(kumes);
 
-const poultryTypes = ["Tavuk", "Horoz", "Ördek", "Kaz", "Hindi", "Bıldırcın", "Sülün", "Keklik", "Güvercin"];
+const poultryTypes = [
+  "Tavuk", "Horoz", "Ördek", "Kaz", "Hindi", "Bıldırcın", "Sülün", "Keklik", "Güvercin",
+  // Tavuk Irkları
+  "Brahma", "Süs Tavuğu", "Yumurta Tavuğu", "Et Tavuğu", "Denizli Horozu",
+  "Leghorn", "Rhode Island", "Sussex", "Australorp", "Wyandotte"
+];
 poultryTypes.forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(
