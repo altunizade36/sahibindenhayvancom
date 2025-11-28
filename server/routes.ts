@@ -53,12 +53,15 @@ const upload = multer({
 // ============ Rate Limiting Configuration ============
 
 // Moderate rate limiter for resource creation
+// More generous limits for development, stricter in production
+const isDevelopment = process.env.NODE_ENV !== 'production';
 const createLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 10, // 10 requests per minute
+  max: isDevelopment ? 60 : 20, // 60 requests/min in dev, 20 in production
   message: "Çok fazla istek gönderdiniz. Lütfen bir dakika bekleyin.",
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => isDevelopment && req.path === '/api/listings', // Skip rate limit for listings in dev
 });
 
 // Extended user type for authenticated requests (combines session user with DB user)
