@@ -2,12 +2,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search-bar";
 import { ListingCard } from "@/components/listing-card";
-import { CategoryGrid } from "@/components/category-grid";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { ArrowRight, Gavel, TrendingUp } from "lucide-react";
+import { Gavel } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
 import { SEOHead, generateOrganizationStructuredData } from "@/components/seo-head";
 
@@ -26,23 +24,20 @@ export default function Home() {
     queryKey: ["/api/categories"],
   });
 
-  const { data: listingsResponse } = useQuery<ListingsResponse>({
-    queryKey: ["/api/listings", { page: currentPage, limit: 50 }],
+  const { data: listingsResponse, isLoading } = useQuery<ListingsResponse>({
+    queryKey: ["/api/listings", { page: currentPage, limit: 20 }],
   });
   
-  const featuredListings = listingsResponse?.data || [];
+  const listings = listingsResponse?.data || [];
 
   const { data: activeAuctions = [] } = useQuery<any[]>({
     queryKey: ["/api/auctions", { status: "live" }],
   });
 
-  const { data: hotListings = [] } = useQuery<Listing[]>({
-    queryKey: ["/api/listings/hot"],
-  });
-
-  const { data: categoryStats = [] } = useQuery<{ categoryId: string; count: number }[]>({
-    queryKey: ["/api/categories/stats"],
-  });
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen">
@@ -51,6 +46,7 @@ export default function Home() {
         description="Evcil hayvanlarınızı bulun, satın alın, sahiplenin. Köpek, kedi, kuş, balık ve daha fazlası için binlerce ilan. Ücretsiz ilan verin!"
         structuredData={generateOrganizationStructuredData()}
       />
+      
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-12 md:py-20">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center mb-8 md:mb-12">
@@ -68,63 +64,32 @@ export default function Home() {
 
       <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Popüler Kategoriler</h2>
-            <p className="text-sm md:text-base text-muted-foreground">
-              En çok aranan hayvan kategorilerine göz atın
-            </p>
-          </div>
-          <CategoryGrid 
-            categories={categories.filter(c => c.parentId === null).slice(0, 6)} 
-            stats={categoryStats}
-          />
-        </div>
-      </section>
-
-      {hotListings.length > 0 && (
-        <section className="py-12 md:py-16 bg-background">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold">Popüler İlanlar</h2>
-                  <p className="text-sm md:text-base text-muted-foreground mt-1">En çok görüntülenen ilanlar</p>
-                </div>
-              </div>
-              <Link href="/ilanlar">
-                <Button variant="ghost" size="sm" className="md:h-10" data-testid="link-all-listings">
-                  <span className="hidden sm:inline">Tümünü Gör</span>
-                  <ArrowRight className="w-4 h-4 sm:ml-2" />
-                </Button>
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {hotListings.slice(0, 8).map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold">Tüm İlanlar</h2>
               {listingsResponse && (
                 <p className="text-sm md:text-base text-muted-foreground mt-2">
                   {listingsResponse.total} ilan bulundu
+                  {listingsResponse.totalPages > 1 && (
+                    <span className="ml-2">
+                      (Sayfa {currentPage} / {listingsResponse.totalPages})
+                    </span>
+                  )}
                 </p>
               )}
             </div>
           </div>
           
-          {featuredListings.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+              ))}
+            </div>
+          ) : listings.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {featuredListings.map((listing) => (
+                {listings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -132,7 +97,7 @@ export default function Home() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={listingsResponse?.totalPages || 1}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
               />
             </>
           ) : (
@@ -156,8 +121,7 @@ export default function Home() {
               </div>
               <Link href="/muzayedeler">
                 <Button variant="ghost" size="sm" className="md:h-10" data-testid="link-all-auctions">
-                  <span className="hidden sm:inline">Tümünü Gör</span>
-                  <ArrowRight className="w-4 h-4 sm:ml-2" />
+                  Tümünü Gör
                 </Button>
               </Link>
             </div>
