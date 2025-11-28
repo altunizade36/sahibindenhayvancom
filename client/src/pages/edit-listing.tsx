@@ -476,11 +476,11 @@ export default function EditListing() {
                       value={selectedMainCategory}
                     >
                       <FormControl>
-                        <SelectTrigger data-testid="select-main-category">
+                        <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-main-category">
                           <SelectValue placeholder="Ana kategori seçiniz" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60">
                         {categoryTree.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
@@ -505,11 +505,11 @@ export default function EditListing() {
                           disabled={!selectedMainCategory || subCategories.length === 0}
                         >
                           <FormControl>
-                            <SelectTrigger data-testid="select-sub-category">
+                            <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-sub-category">
                               <SelectValue placeholder={subCategories.length === 0 && selectedMainCategory ? "Alt kategori yok" : "Alt kategori seçiniz"} />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-60">
                             {subCategories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 {category.name}
@@ -545,11 +545,11 @@ export default function EditListing() {
                           value={selectedProvince}
                         >
                           <FormControl>
-                            <SelectTrigger data-testid="select-province">
+                            <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-province">
                               <SelectValue placeholder="İl seçiniz" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-60">
                             {provinces.map((province) => (
                               <SelectItem key={province.id} value={province.id}>
                                 {province.name}
@@ -578,11 +578,11 @@ export default function EditListing() {
                           disabled={!selectedProvince}
                         >
                           <FormControl>
-                            <SelectTrigger data-testid="select-district">
+                            <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-district">
                               <SelectValue placeholder="İlçe seçiniz" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-60">
                             {districts.map((district) => (
                               <SelectItem key={district.id} value={district.id}>
                                 {district.name}
@@ -696,7 +696,7 @@ export default function EditListing() {
                         <FormLabel>Cinsiyet</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-gender">
+                            <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-gender">
                               <SelectValue placeholder="Seçiniz" />
                             </SelectTrigger>
                           </FormControl>
