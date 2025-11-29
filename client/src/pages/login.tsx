@@ -49,11 +49,15 @@ export default function Login() {
   const [otpCode, setOtpCode] = useState("");
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  // Setup reCAPTCHA on component mount
+  // Setup reCAPTCHA after component mount (with delay to ensure DOM is ready)
   useEffect(() => {
-    setupRecaptcha('recaptcha-container');
+    // Small delay to ensure DOM container is ready
+    const timeoutId = setTimeout(() => {
+      setupRecaptcha('recaptcha-container');
+    }, 100);
     
     return () => {
+      clearTimeout(timeoutId);
       cleanupRecaptcha();
     };
   }, []);

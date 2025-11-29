@@ -54,12 +54,23 @@ export function formatPhoneNumber(phone: string): string {
   return '+90' + digits;
 }
 
-// Setup invisible reCAPTCHA
+// Setup invisible reCAPTCHA with retry mechanism
 export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier | null {
   try {
+    // Check if container exists in DOM
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.warn(`reCAPTCHA container '${containerId}' not found in DOM yet, will retry on OTP send`);
+      return null;
+    }
+
     // Clear existing verifier if any
     if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.warn('Error clearing existing reCAPTCHA:', e);
+      }
       window.recaptchaVerifier = undefined;
     }
 
@@ -71,7 +82,11 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       'expired-callback': () => {
         console.log('reCAPTCHA expired');
         if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.clear();
+          try {
+            window.recaptchaVerifier.clear();
+          } catch (e) {
+            console.warn('Error clearing expired reCAPTCHA:', e);
+          }
           window.recaptchaVerifier = undefined;
         }
       }
@@ -85,24 +100,43 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
   }
 }
 
+// Ensure recaptcha is ready before sending OTP
+async function ensureRecaptchaReady(containerId: string = 'recaptcha-container'): Promise<RecaptchaVerifier> {
+  // Wait for container to be in DOM
+  let attempts = 0;
+  while (!document.getElementById(containerId) && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
+  if (!document.getElementById(containerId)) {
+    throw new Error('reCAPTCHA container not found after waiting');
+  }
+
+  // Setup or reuse existing verifier
+  if (!window.recaptchaVerifier) {
+    const verifier = setupRecaptcha(containerId);
+    if (!verifier) {
+      throw new Error('reCAPTCHA doğrulaması başlatılamadı');
+    }
+    return verifier;
+  }
+  
+  return window.recaptchaVerifier;
+}
+
 // Send OTP via Firebase
 export async function sendFirebaseOTP(phoneNumber: string): Promise<ConfirmationResult> {
   const formattedPhone = formatPhoneNumber(phoneNumber);
   
-  // Ensure recaptcha is set up
-  if (!window.recaptchaVerifier) {
-    setupRecaptcha();
-  }
-  
-  if (!window.recaptchaVerifier) {
-    throw new Error('reCAPTCHA doğrulaması başlatılamadı');
-  }
+  // Ensure recaptcha is ready (waits for DOM if needed)
+  const verifier = await ensureRecaptchaReady();
 
   try {
     const confirmationResult = await signInWithPhoneNumber(
       auth, 
       formattedPhone, 
-      window.recaptchaVerifier
+      verifier
     );
     
     window.confirmationResult = confirmationResult;
@@ -110,7 +144,11 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
   } catch (error: any) {
     // Clear recaptcha on error
     if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.warn('Error clearing reCAPTCHA after error:', e);
+      }
       window.recaptchaVerifier = undefined;
     }
     
