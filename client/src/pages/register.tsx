@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { 
+  sendFirebaseOTP, 
+  verifyFirebaseOTP, 
+  setupRecaptcha, 
+  cleanupRecaptcha,
+  formatPhoneNumber
+} from "@/lib/firebase";
+import type { ConfirmationResult } from "@/lib/firebase";
 
 const registerSchema = z.object({
   email: z.string().email("Geçerli bir email adresi girin"),
@@ -27,7 +35,13 @@ const registerSchema = z.object({
 });
 
 const phoneRegisterSchema = z.object({
-  phone: z.string().min(10, "Geçerli bir telefon numarası girin").max(15),
+  phone: z.string()
+    .min(10, "Geçerli bir telefon numarası girin")
+    .max(15)
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 12;
+    }, "Geçerli bir Türk telefon numarası girin (05XX XXX XX XX)"),
   firstName: z.string().min(1, "Ad gereklidir"),
   lastName: z.string().optional(),
 });
@@ -42,7 +56,16 @@ export default function Register() {
   const [phoneStep, setPhoneStep] = useState<"info" | "otp">("info");
   const [phoneData, setPhoneData] = useState<{ phone: string; firstName: string; lastName?: string }>({ phone: "", firstName: "" });
   const [otpCode, setOtpCode] = useState("");
-  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  // Setup reCAPTCHA on component mount
+  useEffect(() => {
+    setupRecaptcha('recaptcha-container');
+    
+    return () => {
+      cleanupRecaptcha();
+    };
+  }, []);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -98,19 +121,15 @@ export default function Register() {
   const onPhoneSubmit = async (data: PhoneRegisterForm) => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
-        phone: data.phone,
-        purpose: "register",
-      });
-      const response: any = await res.json();
-
+      // Use Firebase Phone Auth
+      const result = await sendFirebaseOTP(data.phone);
+      setConfirmationResult(result);
       setPhoneData({ phone: data.phone, firstName: data.firstName, lastName: data.lastName });
-      setOtpExpiry(response.expiresIn);
       setPhoneStep("otp");
       
       toast({
         title: "Kod Gönderildi",
-        description: "Telefonunuza doğrulama kodu gönderdik.",
+        description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
       });
     } catch (error: any) {
       toast({
@@ -118,6 +137,8 @@ export default function Register() {
         title: "Hata",
         description: error.message || "Kod gönderilemedi.",
       });
+      // Re-setup recaptcha after error
+      setupRecaptcha('recaptcha-container');
     } finally {
       setIsLoading(false);
     }
@@ -135,12 +156,16 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/verify", {
-        phone: phoneData.phone,
-        code: otpCode,
-        purpose: "register",
+      // Verify with Firebase and get ID token
+      const firebaseIdToken = await verifyFirebaseOTP(otpCode);
+      
+      // Send to backend for user creation/login
+      const res = await apiRequest("POST", "/api/auth/firebase/verify", {
+        idToken: firebaseIdToken,
+        phone: formatPhoneNumber(phoneData.phone),
         firstName: phoneData.firstName,
         lastName: phoneData.lastName,
+        purpose: "register",
       });
       const response: any = await res.json();
 
@@ -165,13 +190,10 @@ export default function Register() {
   const resendOtp = async () => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
-        phone: phoneData.phone,
-        purpose: "register",
-      });
-      const response: any = await res.json();
-      
-      setOtpExpiry(response.expiresIn);
+      // Re-setup recaptcha and send new OTP
+      setupRecaptcha('recaptcha-container');
+      const result = await sendFirebaseOTP(phoneData.phone);
+      setConfirmationResult(result);
       setOtpCode("");
       
       toast({
@@ -191,6 +213,9 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -357,7 +382,12 @@ export default function Register() {
                     disabled={isLoading}
                     data-testid="button-register"
                   >
-                    {isLoading ? "Kayıt Olunuyor..." : "Kayıt Ol"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Kayıt Olunuyor...
+                      </>
+                    ) : "Kayıt Ol"}
                   </Button>
                 </form>
               </Form>
@@ -434,7 +464,12 @@ export default function Register() {
                       disabled={isLoading}
                       data-testid="button-send-otp"
                     >
-                      {isLoading ? "Gönderiliyor..." : (
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Gönderiliyor...
+                        </>
+                      ) : (
                         <>
                           Doğrulama Kodu Gönder
                           <ArrowRight className="w-4 h-4 ml-2" />
@@ -449,11 +484,9 @@ export default function Register() {
                     <p className="text-sm text-muted-foreground mb-2">
                       <span className="font-medium text-foreground">{phoneData.phone}</span> numarasına gönderilen 6 haneli kodu girin
                     </p>
-                    {otpExpiry && (
-                      <p className="text-xs text-muted-foreground">
-                        Kod {Math.floor(otpExpiry / 60)} dakika geçerlidir
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      SMS ile gönderilen kodu 5 dakika içinde girin
+                    </p>
                   </div>
 
                   <div className="flex justify-center">
@@ -481,7 +514,12 @@ export default function Register() {
                     onClick={onVerifyOtp}
                     data-testid="button-verify-otp"
                   >
-                    {isLoading ? "Kayıt Olunuyor..." : "Kayıt Ol"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Kayıt Olunuyor...
+                      </>
+                    ) : "Kayıt Ol"}
                   </Button>
 
                   <div className="flex flex-col gap-2 items-center">
@@ -503,6 +541,7 @@ export default function Register() {
                       onClick={() => {
                         setPhoneStep("info");
                         setOtpCode("");
+                        setConfirmationResult(null);
                       }}
                       data-testid="button-change-phone"
                     >
