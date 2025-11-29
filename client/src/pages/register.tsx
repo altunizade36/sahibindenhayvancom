@@ -68,13 +68,14 @@ export default function Register() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/register", "POST", {
+      const res = await apiRequest("POST", "/api/auth/register", {
         email: data.email,
         username: data.username || undefined,
         password: data.password,
         firstName: data.firstName || undefined,
         lastName: data.lastName || undefined,
       });
+      const response: any = await res.json();
 
       toast({
         title: "Kayıt Başarılı!",
@@ -97,10 +98,11 @@ export default function Register() {
   const onPhoneSubmit = async (data: PhoneRegisterForm) => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/send-otp", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
         phone: data.phone,
         purpose: "register",
       });
+      const response: any = await res.json();
 
       setPhoneData({ phone: data.phone, firstName: data.firstName, lastName: data.lastName });
       setOtpExpiry(response.expiresIn);
@@ -133,13 +135,14 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/verify", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/verify", {
         phone: phoneData.phone,
         code: otpCode,
         purpose: "register",
         firstName: phoneData.firstName,
         lastName: phoneData.lastName,
       });
+      const response: any = await res.json();
 
       toast({
         title: "Kayıt Başarılı!",
@@ -162,10 +165,11 @@ export default function Register() {
   const resendOtp = async () => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/send-otp", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
         phone: phoneData.phone,
         purpose: "register",
       });
+      const response: any = await res.json();
       
       setOtpExpiry(response.expiresIn);
       setOtpCode("");

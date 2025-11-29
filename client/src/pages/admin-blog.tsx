@@ -98,7 +98,7 @@ export default function AdminBlog() {
 
   const createMutation = useMutation({
     mutationFn: async (data: BlogFormSubmitData) => {
-      return apiRequest("/api/admin/blog", "POST", data);
+      return apiRequest("POST", "/api/admin/blog", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
@@ -118,7 +118,7 @@ export default function AdminBlog() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BlogFormSubmitData }) => {
-      return apiRequest(`/api/admin/blog/${id}`, "PUT", data);
+      return apiRequest("PUT", `/api/admin/blog/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });
@@ -138,7 +138,7 @@ export default function AdminBlog() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/admin/blog/${id}`, "DELETE");
+      return apiRequest("DELETE", `/api/admin/blog/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/blog"] });

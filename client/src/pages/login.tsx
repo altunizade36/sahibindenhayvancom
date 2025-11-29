@@ -53,10 +53,11 @@ export default function Login() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/login", "POST", {
+      const res = await apiRequest("POST", "/api/auth/login", {
         emailOrUsername: data.emailOrUsername,
         password: data.password,
       });
+      const response: any = await res.json();
 
       toast({
         title: "Giriş Başarılı!",
@@ -79,10 +80,11 @@ export default function Login() {
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/send-otp", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
         phone: data.phone,
         purpose: "login",
       });
+      const response: any = await res.json();
 
       setPhoneNumber(data.phone);
       setOtpExpiry(response.expiresIn);
@@ -115,11 +117,12 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/verify", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/verify", {
         phone: phoneNumber,
         code: otpCode,
         purpose: "login",
       });
+      const response: any = await res.json();
 
       toast({
         title: "Giriş Başarılı!",
@@ -142,10 +145,11 @@ export default function Login() {
   const resendOtp = async () => {
     setIsLoading(true);
     try {
-      const response: any = await apiRequest("/api/auth/phone/send-otp", "POST", {
+      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
         phone: phoneNumber,
         purpose: "login",
       });
+      const response: any = await res.json();
       
       setOtpExpiry(response.expiresIn);
       setOtpCode("");
