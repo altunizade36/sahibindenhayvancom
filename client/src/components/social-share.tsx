@@ -170,7 +170,7 @@ export function SocialShare({ listingId, title, url, compact = false }: SocialSh
         )}
       </Button>
       
-      {navigator.share && (
+      {typeof navigator !== 'undefined' && 'share' in navigator && (
         <Button
           variant="outline"
           size="sm"
