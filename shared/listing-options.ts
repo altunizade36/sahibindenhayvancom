@@ -20,21 +20,21 @@ export const HEALTH_STATUS_OPTIONS = [
 ] as const;
 
 export const CHARACTER_TRAITS = [
-  { value: "friendly", label: "Sevecen", icon: "❤️" },
-  { value: "playful", label: "Oyuncu", icon: "🎾" },
-  { value: "calm", label: "Sakin", icon: "😌" },
-  { value: "energetic", label: "Enerjik", icon: "⚡" },
-  { value: "protective", label: "Koruyucu", icon: "🛡️" },
-  { value: "independent", label: "Bağımsız", icon: "🦁" },
-  { value: "loyal", label: "Sadık", icon: "🤝" },
-  { value: "social", label: "Sosyal", icon: "👥" },
-  { value: "shy", label: "Utangaç", icon: "🙈" },
-  { value: "intelligent", label: "Zeki", icon: "🧠" },
-  { value: "trained", label: "Eğitimli", icon: "🎓" },
-  { value: "child-friendly", label: "Çocuklarla İyi", icon: "👶" },
-  { value: "pet-friendly", label: "Diğer Hayvanlarla İyi", icon: "🐾" },
-  { value: "apartment-suitable", label: "Apartman İçin Uygun", icon: "🏠" },
-  { value: "garden-needed", label: "Bahçe Gerektirir", icon: "🌳" },
+  { value: "friendly", label: "Sevecen" },
+  { value: "playful", label: "Oyuncu" },
+  { value: "calm", label: "Sakin" },
+  { value: "energetic", label: "Enerjik" },
+  { value: "protective", label: "Koruyucu" },
+  { value: "independent", label: "Bağımsız" },
+  { value: "loyal", label: "Sadık" },
+  { value: "social", label: "Sosyal" },
+  { value: "shy", label: "Utangaç" },
+  { value: "intelligent", label: "Zeki" },
+  { value: "trained", label: "Eğitimli" },
+  { value: "child-friendly", label: "Çocuklarla İyi" },
+  { value: "pet-friendly", label: "Diğer Hayvanlarla İyi" },
+  { value: "apartment-suitable", label: "Apartman İçin Uygun" },
+  { value: "garden-needed", label: "Bahçe Gerektirir" },
 ] as const;
 
 export const DOG_BREEDS = [

@@ -42,7 +42,14 @@ function serializeQueryKey(queryKey: readonly unknown[]): string {
     if (item && typeof item === 'object' && !Array.isArray(item)) {
       Object.entries(item).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          params.append(key, String(value));
+          // Handle arrays by appending as comma-separated string (backend parses this)
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              params.append(key, value.join(','));
+            }
+          } else {
+            params.append(key, String(value));
+          }
         }
       });
     }

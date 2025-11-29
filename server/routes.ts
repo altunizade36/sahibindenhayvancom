@@ -1063,15 +1063,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Character traits filtering (JSONB array contains)
       if (characterTraits) {
-        const traitsArray = Array.isArray(characterTraits) 
-          ? characterTraits 
-          : (characterTraits as string).split(',');
+        // Parse traits from query - handle both array format and comma-separated string
+        let traitsArray: string[] = [];
+        if (Array.isArray(characterTraits)) {
+          traitsArray = characterTraits.filter(t => typeof t === 'string' && t.trim());
+        } else if (typeof characterTraits === 'string' && characterTraits.trim()) {
+          traitsArray = characterTraits.split(',').map(t => t.trim()).filter(Boolean);
+        }
         
-        // Filter listings that have ANY of the selected traits
-        const traitConditions = traitsArray.map(trait => 
-          sql`${listings.characterTraits}::jsonb ? ${trait}`
-        );
-        if (traitConditions.length > 0) {
+        // Filter listings that have ANY of the selected traits using JSONB @> operator
+        // Check if the characterTraits column contains any of the selected traits
+        if (traitsArray.length > 0) {
+          const traitConditions = traitsArray.map(trait => 
+            sql`${listings.characterTraits}::jsonb @> ${JSON.stringify([trait])}::jsonb`
+          );
           conditions.push(sql`(${sql.join(traitConditions, sql` OR `)})`);
         }
       }
