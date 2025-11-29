@@ -87,6 +87,23 @@ export const messageStatusEnum = pgEnum("message_status", [
   "read"
 ]);
 
+export const sellerLevelEnum = pgEnum("seller_level", [
+  "bronze",
+  "silver", 
+  "gold",
+  "platinum",
+  "diamond"
+]);
+
+export const offerStatusEnum = pgEnum("offer_status", [
+  "pending",
+  "accepted",
+  "rejected",
+  "countered",
+  "expired",
+  "withdrawn"
+]);
+
 export const locationTypeEnum = pgEnum("location_type", [
   "il",        // Province
   "ilce",      // District
@@ -124,6 +141,22 @@ export const users = pgTable("users", {
   verificationTokenExpiry: timestamp("verification_token_expiry"),
   resetToken: varchar("reset_token"),
   resetTokenExpiry: timestamp("reset_token_expiry"),
+  
+  // Seller stats & level system
+  sellerLevel: sellerLevelEnum("seller_level").default("bronze"),
+  totalListings: integer("total_listings").default(0),
+  totalSales: integer("total_sales").default(0),
+  totalViews: integer("total_views").default(0),
+  responseRate: integer("response_rate").default(100), // Percentage 0-100
+  avgResponseTime: integer("avg_response_time"), // Minutes
+  positiveReviews: integer("positive_reviews").default(0),
+  negativeReviews: integer("negative_reviews").default(0),
+  sellerScore: integer("seller_score").default(0), // Computed score for level
+  badges: jsonb("badges").$type<string[]>().default(sql`'[]'::jsonb`), // Achievement badges
+  
+  // Language preference
+  preferredLanguage: text("preferred_language").default("tr"), // tr or en
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -232,6 +265,9 @@ export const listings = pgTable("listings", {
   isPremium: boolean("is_premium").default(false),
   isUrgent: boolean("is_urgent").default(false),
   views: integer("views").default(0),
+  favoriteCount: integer("favorite_count").default(0),
+  shareCount: integer("share_count").default(0),
+  allowOffers: boolean("allow_offers").default(true), // Allow "Make Offer" on this listing
   moderationReason: text("moderation_reason"),
   moderatedBy: varchar("moderated_by").references(() => users.id),
   moderatedAt: timestamp("moderated_at"),
@@ -315,6 +351,41 @@ export const insertBidSchema = createInsertSchema(bids, {
 
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type Bid = typeof bids.$inferSelect;
+
+// Offers table (Make Offer feature for regular listings)
+export const offers = pgTable("offers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  buyerId: varchar("buyer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  message: text("message"), // Optional message with the offer
+  status: offerStatusEnum("status").default("pending"),
+  counterAmount: decimal("counter_amount", { precision: 10, scale: 2 }), // If seller counters
+  counterMessage: text("counter_message"),
+  expiresAt: timestamp("expires_at"), // Offer expiration
+  respondedAt: timestamp("responded_at"), // When seller responded
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdx: index("offers_listing_idx").on(table.listingId),
+  buyerIdx: index("offers_buyer_idx").on(table.buyerId),
+  sellerIdx: index("offers_seller_idx").on(table.sellerId),
+  statusIdx: index("offers_status_idx").on(table.status),
+}));
+
+export const insertOfferSchema = createInsertSchema(offers, {
+  amount: z.union([z.string(), z.number()]).transform(val => String(val)),
+}).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+  counterAmount: true,
+  counterMessage: true,
+  respondedAt: true,
+});
+
+export type InsertOffer = z.infer<typeof insertOfferSchema>;
+export type Offer = typeof offers.$inferSelect;
 
 // Live Streams table
 export const liveStreams = pgTable("live_streams", {

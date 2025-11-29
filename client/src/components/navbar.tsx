@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { NotificationDropdown } from "@/components/notification-dropdown";
+import { LanguageToggle } from "@/components/language-toggle";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -315,6 +316,8 @@ export function Navbar() {
                   </Link>
 
                   <NotificationDropdown />
+                  
+                  <LanguageToggle />
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -378,6 +381,7 @@ export function Navbar() {
                 </>
               ) : (
                 <>
+                  <LanguageToggle />
                   <Link href="/giris">
                     <Button variant="ghost" size="sm" data-testid="button-login">
                       Giriş

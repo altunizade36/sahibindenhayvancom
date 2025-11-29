@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema } from "@shared/schema";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -2452,6 +2452,429 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to remove favorite:", error);
       res.status(400).json({ message: "Failed to remove favorite", error });
+    }
+  });
+
+  // ============ Offer Routes (Make Offer feature) ============
+
+  // Get offers for a listing (seller view only)
+  app.get("/api/listings/:listingId/offers", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Verify the user owns the listing
+      const [listing] = await db
+        .select({ sellerId: listings.sellerId })
+        .from(listings)
+        .where(eq(listings.id, req.params.listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      if (listing.sellerId !== userId) {
+        return res.status(403).json({ message: "Not authorized to view offers for this listing" });
+      }
+      
+      const listingOffers = await db
+        .select({
+          offer: offers,
+          buyer: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            sellerLevel: users.sellerLevel,
+          }
+        })
+        .from(offers)
+        .innerJoin(users, eq(offers.buyerId, users.id))
+        .where(eq(offers.listingId, req.params.listingId))
+        .orderBy(desc(offers.createdAt));
+
+      res.json(listingOffers.map(o => ({
+        ...o.offer,
+        buyer: o.buyer
+      })));
+    } catch (error) {
+      console.error("Failed to fetch offers:", error);
+      res.status(500).json({ message: "Failed to fetch offers" });
+    }
+  });
+
+  // Get user's sent offers
+  app.get("/api/offers/sent", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const sentOffers = await db
+        .select({
+          offer: offers,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            price: listings.price,
+            images: listings.images,
+          },
+          seller: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+          }
+        })
+        .from(offers)
+        .innerJoin(listings, eq(offers.listingId, listings.id))
+        .innerJoin(users, eq(offers.sellerId, users.id))
+        .where(eq(offers.buyerId, userId))
+        .orderBy(desc(offers.createdAt));
+
+      res.json(sentOffers.map(o => ({
+        ...o.offer,
+        listing: o.listing,
+        seller: o.seller
+      })));
+    } catch (error) {
+      console.error("Failed to fetch sent offers:", error);
+      res.status(500).json({ message: "Failed to fetch sent offers" });
+    }
+  });
+
+  // Get user's received offers
+  app.get("/api/offers/received", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const receivedOffers = await db
+        .select({
+          offer: offers,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            price: listings.price,
+            images: listings.images,
+          },
+          buyer: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            sellerLevel: users.sellerLevel,
+          }
+        })
+        .from(offers)
+        .innerJoin(listings, eq(offers.listingId, listings.id))
+        .innerJoin(users, eq(offers.buyerId, users.id))
+        .where(eq(offers.sellerId, userId))
+        .orderBy(desc(offers.createdAt));
+
+      res.json(receivedOffers.map(o => ({
+        ...o.offer,
+        listing: o.listing,
+        buyer: o.buyer
+      })));
+    } catch (error) {
+      console.error("Failed to fetch received offers:", error);
+      res.status(500).json({ message: "Failed to fetch received offers" });
+    }
+  });
+
+  // Create a new offer
+  app.post("/api/offers", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const { listingId, amount, message, expiresAt } = req.body;
+      
+      // Get listing details
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      if (listing.sellerId === userId) {
+        return res.status(400).json({ message: "Cannot make an offer on your own listing" });
+      }
+      
+      if (!listing.allowOffers) {
+        return res.status(400).json({ message: "This listing does not accept offers" });
+      }
+      
+      // Check for existing pending offer
+      const [existingOffer] = await db
+        .select()
+        .from(offers)
+        .where(
+          and(
+            eq(offers.listingId, listingId),
+            eq(offers.buyerId, userId),
+            eq(offers.status, 'pending')
+          )
+        )
+        .limit(1);
+      
+      if (existingOffer) {
+        return res.status(400).json({ message: "You already have a pending offer on this listing" });
+      }
+      
+      // Create offer
+      const [newOffer] = await db
+        .insert(offers)
+        .values({
+          listingId,
+          buyerId: userId,
+          sellerId: listing.sellerId,
+          amount: String(amount),
+          message,
+          expiresAt: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days default
+        } as any)
+        .returning();
+      
+      // Notify seller
+      try {
+        await db.insert(notifications).values({
+          userId: listing.sellerId,
+          type: 'system',
+          title: 'Yeni Teklif',
+          message: `${listing.title} ilanınıza ₺${amount} teklif geldi`,
+          link: `/ilan/${listing.id}`,
+          relatedId: newOffer.id,
+        });
+      } catch (notifError) {
+        console.error("Failed to create offer notification:", notifError);
+      }
+      
+      res.status(201).json(newOffer);
+    } catch (error) {
+      console.error("Failed to create offer:", error);
+      res.status(400).json({ message: "Failed to create offer", error });
+    }
+  });
+
+  // Respond to an offer (accept/reject/counter)
+  app.patch("/api/offers/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const { status, counterAmount, counterMessage } = req.body;
+      
+      // Get offer
+      const [offer] = await db
+        .select()
+        .from(offers)
+        .where(eq(offers.id, req.params.id))
+        .limit(1);
+      
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.sellerId !== userId) {
+        return res.status(403).json({ message: "Not authorized to respond to this offer" });
+      }
+      
+      if (offer.status !== 'pending') {
+        return res.status(400).json({ message: "Can only respond to pending offers" });
+      }
+      
+      const updateData: any = {
+        status,
+        respondedAt: new Date(),
+      };
+      
+      if (status === 'countered' && counterAmount) {
+        updateData.counterAmount = String(counterAmount);
+        updateData.counterMessage = counterMessage;
+      }
+      
+      const [updatedOffer] = await db
+        .update(offers)
+        .set(updateData)
+        .where(eq(offers.id, req.params.id))
+        .returning();
+      
+      // Get listing for notification
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, offer.listingId))
+        .limit(1);
+      
+      // Notify buyer
+      try {
+        let notifMessage = '';
+        if (status === 'accepted') {
+          notifMessage = `${listing?.title} ilanındaki teklifiniz kabul edildi!`;
+        } else if (status === 'rejected') {
+          notifMessage = `${listing?.title} ilanındaki teklifiniz reddedildi`;
+        } else if (status === 'countered') {
+          notifMessage = `${listing?.title} ilanında ₺${counterAmount} karşı teklif geldi`;
+        }
+        
+        await db.insert(notifications).values({
+          userId: offer.buyerId,
+          type: 'system',
+          title: status === 'accepted' ? 'Teklif Kabul Edildi' : status === 'countered' ? 'Karşı Teklif' : 'Teklif Yanıtı',
+          message: notifMessage,
+          link: `/ilan/${offer.listingId}`,
+          relatedId: offer.id,
+        });
+      } catch (notifError) {
+        console.error("Failed to create offer response notification:", notifError);
+      }
+      
+      res.json(updatedOffer);
+    } catch (error) {
+      console.error("Failed to update offer:", error);
+      res.status(400).json({ message: "Failed to update offer", error });
+    }
+  });
+
+  // Withdraw an offer
+  app.delete("/api/offers/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user.dbUserId || user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const [offer] = await db
+        .select()
+        .from(offers)
+        .where(eq(offers.id, req.params.id))
+        .limit(1);
+      
+      if (!offer) {
+        return res.status(404).json({ message: "Offer not found" });
+      }
+      
+      if (offer.buyerId !== userId) {
+        return res.status(403).json({ message: "Not authorized to withdraw this offer" });
+      }
+      
+      if (offer.status !== 'pending') {
+        return res.status(400).json({ message: "Can only withdraw pending offers" });
+      }
+      
+      await db
+        .update(offers)
+        .set({ status: 'withdrawn' })
+        .where(eq(offers.id, req.params.id));
+      
+      res.json({ message: "Offer withdrawn" });
+    } catch (error) {
+      console.error("Failed to withdraw offer:", error);
+      res.status(400).json({ message: "Failed to withdraw offer", error });
+    }
+  });
+
+  // Track listing share
+  app.post("/api/listings/:id/share", async (req: Request, res: Response) => {
+    try {
+      await db
+        .update(listings)
+        .set({ shareCount: sql`COALESCE(share_count, 0) + 1` })
+        .where(eq(listings.id, req.params.id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to track share:", error);
+      res.status(400).json({ message: "Failed to track share" });
+    }
+  });
+
+  // Get similar listings for price comparison
+  app.get("/api/listings/:id/compare", async (req: Request, res: Response) => {
+    try {
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, req.params.id))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      
+      // Find similar listings (same category, different sellers)
+      const similarListings = await db
+        .select({
+          id: listings.id,
+          title: listings.title,
+          price: listings.price,
+          images: listings.images,
+          city: listings.city,
+          breed: listings.breed,
+          age: listings.age,
+          views: listings.views,
+          createdAt: listings.createdAt,
+        })
+        .from(listings)
+        .where(
+          and(
+            eq(listings.categoryId, listing.categoryId),
+            eq(listings.status, 'active'),
+            sql`${listings.id} != ${listing.id}`
+          )
+        )
+        .orderBy(sql`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`)
+        .limit(6);
+      
+      // Calculate price stats
+      const allPrices = [parseFloat(listing.price), ...similarListings.map(l => parseFloat(l.price))];
+      const avgPrice = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
+      const minPrice = Math.min(...allPrices);
+      const maxPrice = Math.max(...allPrices);
+      
+      res.json({
+        currentListing: {
+          id: listing.id,
+          price: listing.price,
+          pricePosition: parseFloat(listing.price) < avgPrice ? 'below_avg' : parseFloat(listing.price) > avgPrice ? 'above_avg' : 'average',
+        },
+        similarListings,
+        priceStats: {
+          average: avgPrice.toFixed(2),
+          min: minPrice.toFixed(2),
+          max: maxPrice.toFixed(2),
+          count: allPrices.length,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to get price comparison:", error);
+      res.status(500).json({ message: "Failed to get price comparison" });
     }
   });
 

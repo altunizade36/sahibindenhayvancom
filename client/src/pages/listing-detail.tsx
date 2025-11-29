@@ -9,6 +9,11 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard } from "@/components/listing-card";
 import { ReportDialog } from "@/components/report-dialog";
+import { SocialShare } from "@/components/social-share";
+import { ListingStats } from "@/components/listing-stats";
+import { MakeOfferModal } from "@/components/make-offer-modal";
+import { PriceComparison } from "@/components/price-comparison";
+import { SellerLevelBadge } from "@/components/seller-level-badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -26,6 +31,7 @@ import {
   Flag,
   Phone,
   ShieldCheck,
+  HandCoins,
 } from "lucide-react";
 import type { Listing, User, Category, Location } from "@shared/schema";
 import { CHARACTER_TRAITS, HEALTH_STATUS_OPTIONS, AGE_CATEGORIES, GENDER_OPTIONS } from "@shared/listing-options";
@@ -43,6 +49,7 @@ export default function ListingDetail() {
   const { user, isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [makeOfferOpen, setMakeOfferOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery<ListingWithDetails>({
     queryKey: ["/api/listings", id],
@@ -331,6 +338,15 @@ export default function ListingDetail() {
                         </span>
                       </div>
                     </div>
+                    <div className="mt-2">
+                      <ListingStats 
+                        views={listing.views || 0} 
+                        favoriteCount={(listing as any).favoriteCount || 0}
+                        shareCount={(listing as any).shareCount || 0}
+                        compact
+                        showTrending
+                      />
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl md:text-3xl font-bold text-primary" data-testid="text-price">
@@ -478,6 +494,15 @@ export default function ListingDetail() {
                     )}
                   </div>
                 </div>
+                {(listing.seller as any)?.sellerLevel && (
+                  <div className="mt-2">
+                    <SellerLevelBadge 
+                      level={(listing.seller as any).sellerLevel} 
+                      score={(listing.seller as any).sellerScore}
+                      size="sm"
+                    />
+                  </div>
+                )}
                 <Button
                   className="w-full h-10 md:h-11 hidden lg:flex"
                   onClick={handleMessageSeller}
@@ -504,6 +529,17 @@ export default function ListingDetail() {
                     </Button>
                   </Link>
                 )}
+                {isAuthenticated && listing.sellerId !== user?.id && (listing as any).allowOffers && (
+                  <Button
+                    variant="secondary"
+                    className="w-full h-10"
+                    onClick={() => setMakeOfferOpen(true)}
+                    data-testid="button-make-offer"
+                  >
+                    <HandCoins className="w-4 h-4 mr-2" />
+                    Teklif Ver
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   className="w-full h-10 hidden lg:flex"
@@ -518,15 +554,6 @@ export default function ListingDetail() {
                   />
                   {isFavorited ? "Favorilerden Çıkar" : "Favorilere Ekle"}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full h-10"
-                  onClick={handleShare}
-                  data-testid="button-share"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Paylaş
-                </Button>
                 {isAuthenticated && listing.sellerId !== user?.id && (
                   <Button
                     variant="ghost"
@@ -540,6 +567,28 @@ export default function ListingDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Social Share */}
+            <Card>
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Share2 className="w-4 h-4" />
+                  Paylaş
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-2">
+                <SocialShare 
+                  listingId={id || ""} 
+                  title={listing.title}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Price Comparison */}
+            <PriceComparison 
+              listingId={id || ""} 
+              currentPrice={listing.price as string} 
+            />
 
             {/* Safety Tips */}
             <Card className="bg-muted/30">
@@ -578,6 +627,16 @@ export default function ListingDetail() {
           reportedType="listing"
           reportedId={id || ""}
           reportedTitle={listing.title}
+        />
+
+        {/* Make Offer Modal */}
+        <MakeOfferModal
+          open={makeOfferOpen}
+          onOpenChange={setMakeOfferOpen}
+          listingId={id || ""}
+          listingTitle={listing.title}
+          listingPrice={listing.price as string}
+          sellerId={listing.sellerId}
         />
       </div>
     </div>
