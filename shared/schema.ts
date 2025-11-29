@@ -223,6 +223,8 @@ export const listings = pgTable("listings", {
   pedigree: boolean("pedigree").default(false),
   pedigreeDocument: text("pedigree_document"),
   healthDocuments: jsonb("health_documents").$type<string[]>().default([]),
+  characterTraits: jsonb("character_traits").$type<string[]>().default([]),
+  ageCategory: text("age_category"),
   locationId: varchar("location_id").references(() => locations.id, { onDelete: "set null" }),
   city: text("city").notNull(), // Denormalized for backward compatibility (should sync with locationId)
   district: text("district").notNull(), // Denormalized for backward compatibility
@@ -246,6 +248,7 @@ export const insertListingSchema = createInsertSchema(listings, {
   price: z.union([z.string(), z.number()]).transform(val => String(val)),
   images: z.array(z.string()).optional().default([]),
   healthDocuments: z.array(z.string()).optional().default([]),
+  characterTraits: z.array(z.string()).optional().default([]),
 }).omit({
   id: true,
   createdAt: true,
