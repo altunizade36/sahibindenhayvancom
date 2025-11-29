@@ -1,27 +1,27 @@
-const CACHE_NAME = 'sahibinden-hayvan-v1';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const CACHE_NAME = 'sahibinden-hayvan-v2';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
 
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/offline.html',
 ];
 
-const API_CACHE_PATTERNS = [
-  /\/api\/categories/,
-  /\/api\/listings\?/,
-  /\/api\/blog/,
+// Skip caching for these patterns
+const SKIP_CACHE_PATTERNS = [
+  /\/api\//,
+  /\.hot-update\./,
+  /sockjs-node/,
+  /ws:/,
+  /wss:/,
+  /__vite/,
+  /node_modules/,
+  /chrome-extension/,
+  /extensions/,
 ];
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Service Worker');
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -31,7 +31,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+          .filter((name) => !name.includes('-v2'))
           .map((name) => {
             console.log('[SW] Deleting old cache:', name);
             return caches.delete(name);
@@ -44,47 +44,69 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
   
+  // Only handle GET requests
   if (request.method !== 'GET') {
     return;
   }
   
-  if (url.origin !== location.origin) {
+  // Skip non-http(s) requests
+  if (!request.url.startsWith('http')) {
     return;
   }
   
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(request));
+  // Check if we should skip caching
+  const shouldSkip = SKIP_CACHE_PATTERNS.some(pattern => pattern.test(request.url));
+  if (shouldSkip) {
     return;
   }
   
+  // For navigation requests, use network-first
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/'))
+    );
+    return;
+  }
+  
+  // For images, use cache-first
   if (request.destination === 'image') {
-    event.respondWith(cacheFirst(request));
+    event.respondWith(cacheFirstSafe(request));
     return;
   }
   
-  event.respondWith(staleWhileRevalidate(request));
+  // For other requests, use network-first
+  event.respondWith(networkFirstSafe(request));
 });
 
-async function networkFirst(request) {
+async function networkFirstSafe(request) {
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
+    
+    // Only cache successful responses
+    if (networkResponse.ok && networkResponse.status === 200) {
+      const responseToCache = networkResponse.clone();
+      caches.open(DYNAMIC_CACHE).then((cache) => {
+        cache.put(request, responseToCache);
+      });
     }
+    
     return networkResponse;
   } catch (error) {
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
-    throw error;
+    
+    // Return a simple error response
+    return new Response('Network error', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
   }
 }
 
-async function cacheFirst(request) {
+async function cacheFirstSafe(request) {
   const cachedResponse = await caches.match(request);
   if (cachedResponse) {
     return cachedResponse;
@@ -92,30 +114,18 @@ async function cacheFirst(request) {
   
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
+    
+    if (networkResponse.ok && networkResponse.status === 200) {
+      const responseToCache = networkResponse.clone();
+      caches.open(DYNAMIC_CACHE).then((cache) => {
+        cache.put(request, responseToCache);
+      });
     }
+    
     return networkResponse;
   } catch (error) {
     return new Response('Image not available', { status: 404 });
   }
-}
-
-async function staleWhileRevalidate(request) {
-  const cachedResponse = await caches.match(request);
-  
-  const fetchPromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok) {
-      const cache = caches.open(DYNAMIC_CACHE);
-      cache.then((c) => c.put(request, networkResponse.clone()));
-    }
-    return networkResponse;
-  }).catch(() => {
-    return cachedResponse || caches.match('/offline.html');
-  });
-  
-  return cachedResponse || fetchPromise;
 }
 
 self.addEventListener('push', (event) => {
@@ -140,10 +150,6 @@ self.addEventListener('push', (event) => {
       url: data.url || '/',
       dateOfArrival: Date.now(),
     },
-    actions: data.actions || [
-      { action: 'open', title: 'Goruntule' },
-      { action: 'close', title: 'Kapat' },
-    ],
   };
   
   event.waitUntil(
@@ -154,10 +160,6 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked');
   event.notification.close();
-  
-  if (event.action === 'close') {
-    return;
-  }
   
   const urlToOpen = event.notification.data?.url || '/';
   
@@ -174,15 +176,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
-  
-  if (event.tag === 'sync-messages') {
-    event.waitUntil(syncMessages());
-  }
-});
-
-async function syncMessages() {
-  console.log('[SW] Syncing messages...');
-}

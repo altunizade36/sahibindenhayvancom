@@ -1066,7 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Parse traits from query - handle both array format and comma-separated string
         let traitsArray: string[] = [];
         if (Array.isArray(characterTraits)) {
-          traitsArray = characterTraits.filter(t => typeof t === 'string' && t.trim());
+          traitsArray = characterTraits.filter((t): t is string => typeof t === 'string' && !!t.trim());
         } else if (typeof characterTraits === 'string' && characterTraits.trim()) {
           traitsArray = characterTraits.split(',').map(t => t.trim()).filter(Boolean);
         }
