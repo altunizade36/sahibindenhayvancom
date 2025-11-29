@@ -33,6 +33,7 @@ import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "
 import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms";
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
+import { verifyFirebaseToken, formatPhoneFromFirebase } from "./firebaseAdmin";
 
 // SESSION_SECRET is now used for session management (not JWT)
 
@@ -800,6 +801,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Verify OTP error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Firebase Phone Authentication - Verify Firebase ID Token and create/login user
+  app.post('/api/auth/firebase/verify', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { idToken, phone, firstName, lastName, purpose = 'login' } = req.body;
+
+      if (!idToken) {
+        return res.status(400).json({ message: "Firebase token gereklidir" });
+      }
+
+      // Verify Firebase ID token
+      const decodedToken = await verifyFirebaseToken(idToken);
+      
+      if (!decodedToken) {
+        return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
+      }
+
+      // Get phone from Firebase token or request
+      const firebasePhone = decodedToken.phone_number;
+      const normalizedPhone = firebasePhone ? formatPhoneFromFirebase(firebasePhone) : (phone || null);
+
+      if (!normalizedPhone) {
+        return res.status(400).json({ message: "Telefon numarası bulunamadı" });
+      }
+
+      let user;
+
+      // Check if user exists with this phone
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.phone, normalizedPhone),
+      });
+
+      if (purpose === 'register') {
+        if (existingUser) {
+          return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin." });
+        }
+
+        // Create new user
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            phone: normalizedPhone,
+            phoneVerified: true,
+            firstName: firstName || null,
+            lastName: lastName || null,
+            emailVerified: false,
+            firebaseUid: decodedToken.uid,
+          })
+          .returning();
+        user = newUser;
+      } else {
+        // Login - find existing user or create new one
+        if (existingUser) {
+          user = existingUser;
+          
+          // Update Firebase UID if not set
+          if (!existingUser.firebaseUid) {
+            await db
+              .update(users)
+              .set({ 
+                firebaseUid: decodedToken.uid,
+                phoneVerified: true 
+              })
+              .where(eq(users.id, existingUser.id));
+          }
+        } else {
+          // Auto-register if phone login doesn't find user
+          const [newUser] = await db
+            .insert(users)
+            .values({
+              phone: normalizedPhone,
+              phoneVerified: true,
+              firstName: firstName || null,
+              lastName: lastName || null,
+              emailVerified: false,
+              firebaseUid: decodedToken.uid,
+            })
+            .returning();
+          user = newUser;
+        }
+      }
+
+      // Create session
+      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
+        if (err) {
+          console.error("Session creation error:", err);
+          return res.status(500).json({ message: "Oturum oluşturulamadı" });
+        }
+
+        res.json({
+          message: purpose === 'register' ? "Kayıt başarılı! Hoş geldiniz." : "Giriş başarılı!",
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            phoneVerified: true,
+            emailVerified: user.emailVerified,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Firebase verify error:", error);
       res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
     }
   });

@@ -143,6 +143,9 @@ export const users = pgTable("users", {
   resetToken: varchar("reset_token"),
   resetTokenExpiry: timestamp("reset_token_expiry"),
   
+  // Firebase Authentication
+  firebaseUid: varchar("firebase_uid").unique(),
+  
   // Seller stats & level system
   sellerLevel: sellerLevelEnum("seller_level").default("bronze"),
   totalListings: integer("total_listings").default(0),

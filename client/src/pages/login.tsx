@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, Phone, ArrowRight } from "lucide-react";
+import { Mail, Lock, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { 
+  sendFirebaseOTP, 
+  verifyFirebaseOTP, 
+  setupRecaptcha, 
+  cleanupRecaptcha,
+  formatPhoneNumber
+} from "@/lib/firebase";
+import type { ConfirmationResult } from "@/lib/firebase";
 
 const loginSchema = z.object({
   emailOrUsername: z.string().min(1, "Email veya kullanıcı adı gereklidir"),
@@ -20,7 +28,13 @@ const loginSchema = z.object({
 });
 
 const phoneSchema = z.object({
-  phone: z.string().min(10, "Geçerli bir telefon numarası girin").max(15),
+  phone: z.string()
+    .min(10, "Geçerli bir telefon numarası girin")
+    .max(15)
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 12;
+    }, "Geçerli bir Türk telefon numarası girin (05XX XXX XX XX)"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -33,7 +47,16 @@ export default function Login() {
   const [phoneStep, setPhoneStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpCode, setOtpCode] = useState("");
-  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  // Setup reCAPTCHA on component mount
+  useEffect(() => {
+    setupRecaptcha('recaptcha-container');
+    
+    return () => {
+      cleanupRecaptcha();
+    };
+  }, []);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -80,19 +103,15 @@ export default function Login() {
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
-        phone: data.phone,
-        purpose: "login",
-      });
-      const response: any = await res.json();
-
+      // Use Firebase Phone Auth
+      const result = await sendFirebaseOTP(data.phone);
+      setConfirmationResult(result);
       setPhoneNumber(data.phone);
-      setOtpExpiry(response.expiresIn);
       setPhoneStep("otp");
       
       toast({
         title: "Kod Gönderildi",
-        description: "Telefonunuza doğrulama kodu gönderdik.",
+        description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
       });
     } catch (error: any) {
       toast({
@@ -100,6 +119,8 @@ export default function Login() {
         title: "Hata",
         description: error.message || "Kod gönderilemedi.",
       });
+      // Re-setup recaptcha after error
+      setupRecaptcha('recaptcha-container');
     } finally {
       setIsLoading(false);
     }
@@ -117,9 +138,13 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/verify", {
-        phone: phoneNumber,
-        code: otpCode,
+      // Verify with Firebase and get ID token
+      const firebaseIdToken = await verifyFirebaseOTP(otpCode);
+      
+      // Send to backend for user login
+      const res = await apiRequest("POST", "/api/auth/firebase/verify", {
+        idToken: firebaseIdToken,
+        phone: formatPhoneNumber(phoneNumber),
         purpose: "login",
       });
       const response: any = await res.json();
@@ -145,13 +170,10 @@ export default function Login() {
   const resendOtp = async () => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
-        phone: phoneNumber,
-        purpose: "login",
-      });
-      const response: any = await res.json();
-      
-      setOtpExpiry(response.expiresIn);
+      // Re-setup recaptcha and send new OTP
+      setupRecaptcha('recaptcha-container');
+      const result = await sendFirebaseOTP(phoneNumber);
+      setConfirmationResult(result);
       setOtpCode("");
       
       toast({
@@ -171,6 +193,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -260,7 +285,12 @@ export default function Login() {
                     disabled={isLoading}
                     data-testid="button-login"
                   >
-                    {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Giriş Yapılıyor...
+                      </>
+                    ) : "Giriş Yap"}
                   </Button>
                 </form>
               </Form>
@@ -299,7 +329,12 @@ export default function Login() {
                       disabled={isLoading}
                       data-testid="button-send-otp"
                     >
-                      {isLoading ? "Gönderiliyor..." : (
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Gönderiliyor...
+                        </>
+                      ) : (
                         <>
                           Doğrulama Kodu Gönder
                           <ArrowRight className="w-4 h-4 ml-2" />
@@ -314,11 +349,9 @@ export default function Login() {
                     <p className="text-sm text-muted-foreground mb-2">
                       <span className="font-medium text-foreground">{phoneNumber}</span> numarasına gönderilen 6 haneli kodu girin
                     </p>
-                    {otpExpiry && (
-                      <p className="text-xs text-muted-foreground">
-                        Kod {Math.floor(otpExpiry / 60)} dakika geçerlidir
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      SMS ile gönderilen kodu 5 dakika içinde girin
+                    </p>
                   </div>
 
                   <div className="flex justify-center">
@@ -346,7 +379,12 @@ export default function Login() {
                     onClick={onVerifyOtp}
                     data-testid="button-verify-otp"
                   >
-                    {isLoading ? "Doğrulanıyor..." : "Giriş Yap"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Doğrulanıyor...
+                      </>
+                    ) : "Giriş Yap"}
                   </Button>
 
                   <div className="flex flex-col gap-2 items-center">
@@ -368,6 +406,7 @@ export default function Login() {
                       onClick={() => {
                         setPhoneStep("phone");
                         setOtpCode("");
+                        setConfirmationResult(null);
                       }}
                       data-testid="button-change-phone"
                     >
