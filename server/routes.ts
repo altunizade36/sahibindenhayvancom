@@ -30,7 +30,7 @@ import {
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "./email";
-import { smsService, generateOtp } from "./sms";
+import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms";
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 
@@ -598,15 +598,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Telefon numarası gereklidir" });
       }
 
-      // Validate Turkish phone format
-      const cleanPhone = phone.replace(/\D/g, '');
-      if (cleanPhone.length < 10 || cleanPhone.length > 12) {
-        return res.status(400).json({ message: "Geçersiz telefon numarası formatı" });
+      // Validate and normalize Turkish phone format
+      const phoneValidation = validateAndNormalizeTurkishPhone(phone);
+      if (!phoneValidation.valid) {
+        return res.status(400).json({ message: phoneValidation.error });
       }
+      
+      const normalizedPhone = phoneValidation.normalized;
 
       // Check if user exists (for login) or doesn't exist (for register)
       const existingUser = await db.query.users.findFirst({
-        where: eq(users.phone, phone),
+        where: eq(users.phone, normalizedPhone),
       });
 
       if (purpose === 'login' && !existingUser) {
@@ -620,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Rate limit: max 3 OTPs per phone per 15 minutes
       const recentOtps = await db.query.phoneVerifications.findMany({
         where: and(
-          eq(phoneVerifications.phone, phone),
+          eq(phoneVerifications.phone, normalizedPhone),
           gte(phoneVerifications.createdAt, new Date(Date.now() - 15 * 60 * 1000))
         ),
       });
@@ -634,14 +636,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
       await db.insert(phoneVerifications).values({
-        phone,
+        phone: normalizedPhone,
         code,
         purpose,
         expiresAt,
       });
 
       // Send SMS
-      const sent = await smsService.sendOtp(phone, code);
+      const sent = await smsService.sendOtp(normalizedPhone, code);
       
       if (!sent) {
         return res.status(500).json({ message: "SMS gönderilemedi. Lütfen daha sonra tekrar deneyin." });
@@ -666,10 +668,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Telefon numarası ve doğrulama kodu gereklidir" });
       }
 
-      // Find valid OTP
+      // Validate and normalize phone format
+      const phoneValidation = validateAndNormalizeTurkishPhone(phone);
+      if (!phoneValidation.valid) {
+        return res.status(400).json({ message: phoneValidation.error });
+      }
+      
+      const normalizedPhone = phoneValidation.normalized;
+
+      // First find any pending verification for this phone
+      const latestVerification = await db.query.phoneVerifications.findFirst({
+        where: and(
+          eq(phoneVerifications.phone, normalizedPhone),
+          eq(phoneVerifications.purpose, purpose),
+          eq(phoneVerifications.verified, false),
+          gte(phoneVerifications.expiresAt, new Date())
+        ),
+        orderBy: desc(phoneVerifications.createdAt),
+      });
+
+      // Check if max attempts reached
+      if (latestVerification && latestVerification.attempts >= 5) {
+        return res.status(400).json({ message: "Çok fazla hatalı deneme. Yeni kod isteyin." });
+      }
+
+      // Find valid OTP with matching code
       const verification = await db.query.phoneVerifications.findFirst({
         where: and(
-          eq(phoneVerifications.phone, phone),
+          eq(phoneVerifications.phone, normalizedPhone),
           eq(phoneVerifications.code, code),
           eq(phoneVerifications.purpose, purpose),
           eq(phoneVerifications.verified, false),
@@ -679,10 +705,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!verification) {
+        // Increment attempts on the latest verification record
+        if (latestVerification) {
+          await db
+            .update(phoneVerifications)
+            .set({ attempts: latestVerification.attempts + 1 })
+            .where(eq(phoneVerifications.id, latestVerification.id));
+          
+          const remainingAttempts = 5 - latestVerification.attempts - 1;
+          if (remainingAttempts <= 0) {
+            return res.status(400).json({ message: "Çok fazla hatalı deneme. Yeni kod isteyin." });
+          }
+          return res.status(400).json({ message: `Geçersiz doğrulama kodu. ${remainingAttempts} deneme hakkınız kaldı.` });
+        }
+
         // Check if code exists but expired or already used
         const expiredOrUsed = await db.query.phoneVerifications.findFirst({
           where: and(
-            eq(phoneVerifications.phone, phone),
+            eq(phoneVerifications.phone, normalizedPhone),
             eq(phoneVerifications.code, code)
           ),
         });
@@ -695,11 +735,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         return res.status(400).json({ message: "Geçersiz doğrulama kodu" });
-      }
-
-      // Check max attempts
-      if (verification.attempts >= 5) {
-        return res.status(400).json({ message: "Çok fazla hatalı deneme. Yeni kod isteyin." });
       }
 
       // Mark as verified
@@ -715,7 +750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [newUser] = await db
           .insert(users)
           .values({
-            phone,
+            phone: normalizedPhone,
             phoneVerified: true,
             firstName: firstName || null,
             lastName: lastName || null,
@@ -726,7 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Find existing user
         user = await db.query.users.findFirst({
-          where: eq(users.phone, phone),
+          where: eq(users.phone, normalizedPhone),
         });
 
         if (!user) {

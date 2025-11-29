@@ -4,6 +4,69 @@ export interface SmsService {
   sendOtp(phone: string, code: string): Promise<boolean>;
 }
 
+export interface PhoneValidationResult {
+  valid: boolean;
+  normalized: string;
+  error?: string;
+}
+
+export function validateAndNormalizeTurkishPhone(phone: string): PhoneValidationResult {
+  const cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
+  
+  const patterns = [
+    /^0(5\d{9})$/,
+    /^(5\d{9})$/,
+    /^\+90(5\d{9})$/,
+    /^90(5\d{9})$/,
+    /^00(905\d{9})$/,
+  ];
+  
+  let mobileNumber: string | null = null;
+  
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      mobileNumber = match[1] || cleaned.replace(/^(\+90|90|0090|0)/, '');
+      break;
+    }
+  }
+  
+  if (!mobileNumber) {
+    const numericOnly = cleaned.replace(/\D/g, '');
+    if (numericOnly.length === 10 && numericOnly.startsWith('5')) {
+      mobileNumber = numericOnly;
+    } else if (numericOnly.length === 11 && numericOnly.startsWith('05')) {
+      mobileNumber = numericOnly.substring(1);
+    } else if (numericOnly.length === 12 && numericOnly.startsWith('905')) {
+      mobileNumber = numericOnly.substring(2);
+    }
+  }
+  
+  if (!mobileNumber || mobileNumber.length !== 10 || !mobileNumber.startsWith('5')) {
+    return {
+      valid: false,
+      normalized: '',
+      error: 'Geçerli bir Türkiye cep telefonu numarası girin (05XX XXX XX XX)',
+    };
+  }
+  
+  const validPrefixes = ['50', '51', '52', '53', '54', '55', '56', '57', '58', '59'];
+  const prefix = mobileNumber.substring(0, 2);
+  
+  if (!validPrefixes.includes(prefix)) {
+    return {
+      valid: false,
+      normalized: '',
+      error: 'Geçersiz operatör kodu. Geçerli kodlar: 50-59',
+    };
+  }
+  
+  return {
+    valid: true,
+    normalized: '0' + mobileNumber,
+  };
+}
+
 function generateOtp(): string {
   return crypto.randomInt(100000, 999999).toString();
 }
