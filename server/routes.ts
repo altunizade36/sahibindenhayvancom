@@ -907,10 +907,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Advanced filters
         minAge,
         maxAge,
+        ageCategory,
         gender,
         breed,
         healthStatus,
-        vaccinated
+        vaccinated,
+        neutered,
+        pedigree,
+        characterTraits
       } = req.query;
       
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
@@ -1025,6 +1029,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (vaccinated !== undefined && vaccinated !== 'all') {
         const isVaccinated = vaccinated === 'true' || vaccinated === '1';
         conditions.push(eq(listings.vaccinated, isVaccinated));
+      }
+      
+      if (neutered !== undefined && neutered !== 'all') {
+        const isNeutered = neutered === 'true' || neutered === '1';
+        conditions.push(eq(listings.neutered, isNeutered));
+      }
+      
+      if (pedigree !== undefined && pedigree !== 'all') {
+        const hasPedigree = pedigree === 'true' || pedigree === '1';
+        conditions.push(eq(listings.pedigree, hasPedigree));
+      }
+      
+      // Age category filtering (maps to age ranges)
+      if (ageCategory && ageCategory !== 'all') {
+        const ageRanges: Record<string, [number, number]> = {
+          '0-3-ay': [0, 3],
+          '3-6-ay': [3, 6],
+          '6-12-ay': [6, 12],
+          '1-3-yas': [12, 36],
+          '3-7-yas': [36, 84],
+          '7-plus-yas': [84, 999],
+        };
+        const range = ageRanges[ageCategory as string];
+        if (range) {
+          // Check if age field contains the category value or falls in the range
+          conditions.push(
+            sql`(${listings.age} = ${ageCategory} OR 
+                (${listings.age} ~ '^[0-9]+$' AND CAST(${listings.age} AS INTEGER) >= ${range[0]} AND CAST(${listings.age} AS INTEGER) < ${range[1]}))`
+          );
+        }
+      }
+      
+      // Character traits filtering (JSONB array contains)
+      if (characterTraits) {
+        const traitsArray = Array.isArray(characterTraits) 
+          ? characterTraits 
+          : (characterTraits as string).split(',');
+        
+        // Filter listings that have ANY of the selected traits
+        const traitConditions = traitsArray.map(trait => 
+          sql`${listings.characterTraits}::jsonb ? ${trait}`
+        );
+        if (traitConditions.length > 0) {
+          conditions.push(sql`(${sql.join(traitConditions, sql` OR `)})`);
+        }
       }
       
       // Filter out undefined conditions before applying

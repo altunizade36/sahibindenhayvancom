@@ -28,6 +28,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Listing, User, Category, Location } from "@shared/schema";
+import { CHARACTER_TRAITS, HEALTH_STATUS_OPTIONS, AGE_CATEGORIES, GENDER_OPTIONS } from "@shared/listing-options";
 
 type ListingWithDetails = Listing & {
   seller?: User;
@@ -368,14 +369,16 @@ export default function ListingDetail() {
                           <div>
                             <div className="text-xs md:text-sm text-muted-foreground">Cinsiyet</div>
                             <div className="font-medium">
-                              {listing.gender === "male" ? "Erkek" : "Dişi"}
+                              {GENDER_OPTIONS.find(g => g.value === listing.gender)?.label || listing.gender}
                             </div>
                           </div>
                         )}
                         {listing.healthStatus && (
                           <div>
                             <div className="text-xs md:text-sm text-muted-foreground">Sağlık Durumu</div>
-                            <div className="font-medium">{listing.healthStatus}</div>
+                            <div className="font-medium">
+                              {HEALTH_STATUS_OPTIONS.find(h => h.value === listing.healthStatus)?.label || listing.healthStatus}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -419,6 +422,31 @@ export default function ListingDetail() {
                     </div>
                   </div>
                 </div>
+
+                {/* Character Traits */}
+                {listing.characterTraits && Array.isArray(listing.characterTraits) && listing.characterTraits.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base">Karakter Özellikleri</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {(listing.characterTraits as string[]).map((trait) => {
+                          const traitInfo = CHARACTER_TRAITS.find(t => t.value === trait);
+                          return (
+                            <Badge 
+                              key={trait} 
+                              variant="secondary"
+                              className="text-xs px-2.5 py-1"
+                              data-testid={`badge-trait-${trait}`}
+                            >
+                              {traitInfo?.label || trait}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

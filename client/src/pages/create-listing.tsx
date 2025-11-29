@@ -28,9 +28,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2, Check } from "lucide-react";
 import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
 import type { Location } from "@shared/schema";
+import { AGE_CATEGORIES, GENDER_OPTIONS, HEALTH_STATUS_OPTIONS, CHARACTER_TRAITS } from "@shared/listing-options";
 
 interface CategoryNode {
   id: string;
@@ -47,11 +49,13 @@ const listingFormSchema = z.object({
   price: z.string().min(1, "Fiyat giriniz"),
   breed: z.string().optional(),
   age: z.string().optional(),
+  ageCategory: z.string().optional(),
   gender: z.string().optional(),
   healthStatus: z.string().optional(),
   vaccinated: z.boolean().default(false),
   neutered: z.boolean().default(false),
   pedigree: z.boolean().default(false),
+  characterTraits: z.array(z.string()).default([]),
   locationId: z.string().optional(),
   city: z.string().min(1, "İl seçiniz"),
   district: z.string().min(1, "İlçe seçiniz"),
@@ -72,6 +76,8 @@ export default function CreateListing() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+
   const form = useForm<ListingFormData>({
     resolver: zodResolver(listingFormSchema),
     defaultValues: {
@@ -81,11 +87,13 @@ export default function CreateListing() {
       price: "",
       breed: "",
       age: "",
+      ageCategory: "",
       gender: "",
       healthStatus: "",
       vaccinated: false,
       neutered: false,
       pedigree: false,
+      characterTraits: [],
       city: "",
       district: "",
       images: [],
@@ -118,6 +126,7 @@ export default function CreateListing() {
       return await apiRequest("POST", "/api/listings", {
         ...data,
         images: uploadedImages,
+        characterTraits: selectedTraits,
         recaptchaToken,
       });
     },
@@ -550,13 +559,22 @@ export default function CreateListing() {
 
                       <FormField
                         control={form.control}
-                        name="age"
+                        name="ageCategory"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Yaş</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Örn: 3 aylık" data-testid="input-age" />
-                            </FormControl>
+                            <FormLabel>Yaş Kategorisi</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-age-category">
+                                  <SelectValue placeholder="Seçiniz" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {AGE_CATEGORIES.map((cat) => (
+                                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormItem>
                         )}
                       />
@@ -574,8 +592,9 @@ export default function CreateListing() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Erkek">Erkek</SelectItem>
-                                <SelectItem value="Dişi">Dişi</SelectItem>
+                                {GENDER_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormItem>
@@ -588,9 +607,18 @@ export default function CreateListing() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Sağlık Durumu</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Örn: Sağlıklı" data-testid="input-health-status" />
-                            </FormControl>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-11 hover:bg-accent/50" data-testid="select-health-status">
+                                  <SelectValue placeholder="Seçiniz" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {HEALTH_STATUS_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormItem>
                         )}
                       />
@@ -647,6 +675,37 @@ export default function CreateListing() {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <FormLabel>Karakter Özellikleri</FormLabel>
+                      <p className="text-xs text-muted-foreground">Hayvanınızın karakter özelliklerini seçin (en fazla 5)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {CHARACTER_TRAITS.map((trait) => {
+                          const isSelected = selectedTraits.includes(trait.value);
+                          return (
+                            <Badge
+                              key={trait.value}
+                              variant={isSelected ? "default" : "outline"}
+                              className={`cursor-pointer transition-all px-3 py-1.5 text-sm ${isSelected ? "bg-primary" : "hover:bg-accent"}`}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedTraits(prev => prev.filter(t => t !== trait.value));
+                                } else if (selectedTraits.length < 5) {
+                                  setSelectedTraits(prev => [...prev, trait.value]);
+                                }
+                              }}
+                              data-testid={`badge-trait-${trait.value}`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 mr-1" />}
+                              {trait.label}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      {selectedTraits.length > 0 && (
+                        <p className="text-xs text-muted-foreground">{selectedTraits.length}/5 seçildi</p>
+                      )}
                     </div>
                   </div>
 

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -29,8 +30,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Filter, X, SlidersHorizontal, MapPin, Calendar, Heart, Tag, ArrowUpDown, Check } from "lucide-react";
+import { Filter, X, SlidersHorizontal, MapPin, Calendar, Heart, Tag, ArrowUpDown, Check, Syringe, Scissors, Award } from "lucide-react";
 import type { Location, Category } from "@shared/schema";
+import { AGE_CATEGORIES, GENDER_OPTIONS, HEALTH_STATUS_OPTIONS, CHARACTER_TRAITS } from "@shared/listing-options";
 
 interface AdvancedFiltersProps {
   onFilterChange: (filters: FilterValues) => void;
@@ -43,10 +45,14 @@ export interface FilterValues {
   city?: string;
   minAge?: string;
   maxAge?: string;
+  ageCategory?: string;
   gender?: string;
   breed?: string;
   healthStatus?: string;
   vaccinated?: string;
+  neutered?: string;
+  pedigree?: string;
+  characterTraits?: string[];
   sortBy?: string;
   sortOrder?: string;
 }
@@ -60,7 +66,9 @@ const sortOptions = [
 ];
 
 const quickFilters = [
-  { key: "vaccinated", value: "true", label: "Aşılı", icon: Check },
+  { key: "vaccinated", value: "true", label: "Aşılı", icon: Syringe },
+  { key: "neutered", value: "true", label: "Kısır", icon: Scissors },
+  { key: "pedigree", value: "true", label: "Pedigree", icon: Award },
   { key: "healthStatus", value: "healthy", label: "Sağlıklı", icon: Heart },
   { key: "gender", value: "male", label: "Erkek", icon: Tag },
   { key: "gender", value: "female", label: "Dişi", icon: Tag },
@@ -105,11 +113,12 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
     onFilterChange({ ...currentFilters, sortBy, sortOrder });
   };
 
-  const activeFilterCount = Object.keys(currentFilters).filter(
-    key => currentFilters[key as keyof FilterValues] !== undefined && 
-           currentFilters[key as keyof FilterValues] !== '' &&
-           key !== 'sortBy' && key !== 'sortOrder'
-  ).length;
+  const activeFilterCount = Object.keys(currentFilters).filter(key => {
+    const value = currentFilters[key as keyof FilterValues];
+    if (key === 'sortBy' || key === 'sortOrder') return false;
+    if (key === 'characterTraits') return Array.isArray(value) && value.length > 0;
+    return value !== undefined && value !== '';
+  }).length + (currentFilters.characterTraits?.length ? currentFilters.characterTraits.length - 1 : 0);
 
   const currentSort = currentFilters.sortBy && currentFilters.sortOrder 
     ? `${currentFilters.sortBy}_${currentFilters.sortOrder}` 
@@ -117,7 +126,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
 
   const FilterContent = () => (
     <div className="space-y-4">
-      <Accordion type="multiple" defaultValue={["price", "location", "animal"]} className="w-full">
+      <Accordion type="multiple" defaultValue={["price", "location", "animal", "traits"]} className="w-full">
         {/* Price Filter */}
         <AccordionItem value="price">
           <AccordionTrigger className="text-sm font-medium">
@@ -206,33 +215,30 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tümü</SelectItem>
-                    <SelectItem value="male">Erkek</SelectItem>
-                    <SelectItem value="female">Dişi</SelectItem>
+                    {GENDER_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Age Range */}
+              {/* Age Category */}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Yaş (ay)</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Min"
-                    value={localFilters.minAge || ''}
-                    onChange={(e) => setLocalFilters({ ...localFilters, minAge: e.target.value })}
-                    className="h-10"
-                    data-testid="input-min-age"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Max"
-                    value={localFilters.maxAge || ''}
-                    onChange={(e) => setLocalFilters({ ...localFilters, maxAge: e.target.value })}
-                    className="h-10"
-                    data-testid="input-max-age"
-                  />
-                </div>
+                <Label className="text-xs text-muted-foreground">Yaş Kategorisi</Label>
+                <Select
+                  value={localFilters.ageCategory || 'all'}
+                  onValueChange={(value) => setLocalFilters({ ...localFilters, ageCategory: value === 'all' ? undefined : value })}
+                >
+                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-age-category">
+                    <SelectValue placeholder="Tümü" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tümü</SelectItem>
+                    {AGE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Breed */}
@@ -260,30 +266,87 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tümü</SelectItem>
-                    <SelectItem value="healthy">Sağlıklı</SelectItem>
-                    <SelectItem value="needs_attention">Dikkat Gerekiyor</SelectItem>
-                    <SelectItem value="under_treatment">Tedavi Altında</SelectItem>
+                    {HEALTH_STATUS_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Vaccinated */}
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Aşı Durumu</Label>
-                <Select
-                  value={localFilters.vaccinated || 'all'}
-                  onValueChange={(value) => setLocalFilters({ ...localFilters, vaccinated: value === 'all' ? undefined : value })}
-                >
-                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-vaccinated">
-                    <SelectValue placeholder="Tümü" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tümü</SelectItem>
-                    <SelectItem value="true">Aşılı</SelectItem>
-                    <SelectItem value="false">Aşısız</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Toggle Switches */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="filter-vaccinated" className="text-xs cursor-pointer flex items-center gap-2">
+                    <Syringe className="w-3.5 h-3.5" />
+                    Aşılı
+                  </Label>
+                  <Switch
+                    id="filter-vaccinated"
+                    checked={localFilters.vaccinated === 'true'}
+                    onCheckedChange={(checked) => setLocalFilters({ ...localFilters, vaccinated: checked ? 'true' : undefined })}
+                    data-testid="switch-filter-vaccinated"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="filter-neutered" className="text-xs cursor-pointer flex items-center gap-2">
+                    <Scissors className="w-3.5 h-3.5" />
+                    Kısırlaştırılmış
+                  </Label>
+                  <Switch
+                    id="filter-neutered"
+                    checked={localFilters.neutered === 'true'}
+                    onCheckedChange={(checked) => setLocalFilters({ ...localFilters, neutered: checked ? 'true' : undefined })}
+                    data-testid="switch-filter-neutered"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="filter-pedigree" className="text-xs cursor-pointer flex items-center gap-2">
+                    <Award className="w-3.5 h-3.5" />
+                    Pedigree Belgeli
+                  </Label>
+                  <Switch
+                    id="filter-pedigree"
+                    checked={localFilters.pedigree === 'true'}
+                    onCheckedChange={(checked) => setLocalFilters({ ...localFilters, pedigree: checked ? 'true' : undefined })}
+                    data-testid="switch-filter-pedigree"
+                  />
+                </div>
               </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Character Traits */}
+        <AccordionItem value="traits">
+          <AccordionTrigger className="text-sm font-medium">
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              Karakter Özellikleri
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {CHARACTER_TRAITS.map((trait) => {
+                const isSelected = localFilters.characterTraits?.includes(trait.value);
+                return (
+                  <Badge
+                    key={trait.value}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer transition-all px-2.5 py-1 text-xs ${isSelected ? "bg-primary" : ""}`}
+                    onClick={() => {
+                      const currentTraits = localFilters.characterTraits || [];
+                      const newTraits = isSelected
+                        ? currentTraits.filter(t => t !== trait.value)
+                        : [...currentTraits, trait.value];
+                      setLocalFilters({ ...localFilters, characterTraits: newTraits.length > 0 ? newTraits : undefined });
+                    }}
+                    data-testid={`badge-filter-trait-${trait.value}`}
+                  >
+                    {isSelected && <Check className="w-3 h-3 mr-1" />}
+                    {trait.label}
+                  </Badge>
+                );
+              })}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -426,28 +489,55 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
           )}
           {currentFilters.gender && (
             <Badge variant="secondary" className="text-xs gap-1">
-              {currentFilters.gender === 'male' ? 'Erkek' : 'Dişi'}
+              {GENDER_OPTIONS.find(g => g.value === currentFilters.gender)?.label || currentFilters.gender}
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => onFilterChange({ ...currentFilters, gender: undefined })}
               />
             </Badge>
           )}
+          {currentFilters.ageCategory && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              {AGE_CATEGORIES.find(a => a.value === currentFilters.ageCategory)?.label || currentFilters.ageCategory}
+              <X 
+                className="w-3 h-3 cursor-pointer" 
+                onClick={() => onFilterChange({ ...currentFilters, ageCategory: undefined })}
+              />
+            </Badge>
+          )}
           {currentFilters.healthStatus && (
             <Badge variant="secondary" className="text-xs gap-1">
-              {currentFilters.healthStatus === 'healthy' ? 'Sağlıklı' : currentFilters.healthStatus}
+              {HEALTH_STATUS_OPTIONS.find(h => h.value === currentFilters.healthStatus)?.label || currentFilters.healthStatus}
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => onFilterChange({ ...currentFilters, healthStatus: undefined })}
               />
             </Badge>
           )}
-          {currentFilters.vaccinated && (
+          {currentFilters.vaccinated === 'true' && (
             <Badge variant="secondary" className="text-xs gap-1">
-              {currentFilters.vaccinated === 'true' ? 'Aşılı' : 'Aşısız'}
+              Aşılı
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => onFilterChange({ ...currentFilters, vaccinated: undefined })}
+              />
+            </Badge>
+          )}
+          {currentFilters.neutered === 'true' && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              Kısırlaştırılmış
+              <X 
+                className="w-3 h-3 cursor-pointer" 
+                onClick={() => onFilterChange({ ...currentFilters, neutered: undefined })}
+              />
+            </Badge>
+          )}
+          {currentFilters.pedigree === 'true' && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              Pedigree
+              <X 
+                className="w-3 h-3 cursor-pointer" 
+                onClick={() => onFilterChange({ ...currentFilters, pedigree: undefined })}
               />
             </Badge>
           )}
@@ -459,6 +549,20 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
                 onClick={() => onFilterChange({ ...currentFilters, breed: undefined })}
               />
             </Badge>
+          )}
+          {currentFilters.characterTraits && currentFilters.characterTraits.length > 0 && (
+            currentFilters.characterTraits.map(trait => (
+              <Badge key={trait} variant="secondary" className="text-xs gap-1">
+                {CHARACTER_TRAITS.find(t => t.value === trait)?.label || trait}
+                <X 
+                  className="w-3 h-3 cursor-pointer" 
+                  onClick={() => {
+                    const newTraits = currentFilters.characterTraits!.filter(t => t !== trait);
+                    onFilterChange({ ...currentFilters, characterTraits: newTraits.length > 0 ? newTraits : undefined });
+                  }}
+                />
+              </Badge>
+            ))
           )}
           <Button 
             variant="ghost" 
