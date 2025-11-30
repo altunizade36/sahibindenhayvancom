@@ -19,8 +19,6 @@ import {
   setupRecaptcha, 
   cleanupRecaptcha,
   formatPhoneNumber,
-  isRateLimited,
-  getRateLimitRemaining,
   clearRateLimit
 } from "@/lib/firebase";
 
@@ -60,50 +58,14 @@ export default function Register() {
   const [step, setStep] = useState<Step>("form");
   const [formData, setFormData] = useState<RegisterForm | null>(null);
   const [otpCode, setOtpCode] = useState("");
-  const [rateLimitedUntil, setRateLimitedUntil] = useState<number>(0);
-  const [countdown, setCountdown] = useState<string>("");
   const [userId, setUserId] = useState<string | null>(null);
   const [smsProgress, setSmsProgress] = useState(0);
   const [smsStatus, setSmsStatus] = useState<"sending" | "waiting" | "ready">("sending");
   const [resendCountdown, setResendCountdown] = useState(0);
 
   useEffect(() => {
-    const checkRateLimit = () => {
-      if (isRateLimited()) {
-        const remaining = getRateLimitRemaining();
-        const maxLimit = 5 * 60 * 1000;
-        if (remaining > maxLimit) {
-          clearRateLimit();
-          return;
-        }
-        setRateLimitedUntil(Date.now() + remaining);
-      }
-    };
-    checkRateLimit();
+    clearRateLimit();
   }, []);
-
-  useEffect(() => {
-    if (rateLimitedUntil <= Date.now()) {
-      setCountdown("");
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const remaining = rateLimitedUntil - Date.now();
-      if (remaining <= 0) {
-        setCountdown("");
-        setRateLimitedUntil(0);
-        clearRateLimit();
-        clearInterval(interval);
-      } else {
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
-        setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [rateLimitedUntil]);
 
   useEffect(() => {
     if (step === "verify-phone" && smsProgress < 100) {
@@ -156,17 +118,6 @@ export default function Register() {
   });
 
   const onSubmit = async (data: RegisterForm) => {
-    if (isRateLimited()) {
-      const remaining = getRateLimitRemaining();
-      setRateLimitedUntil(Date.now() + remaining);
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: `Çok fazla deneme yaptınız. Lütfen ${Math.ceil(remaining / 60000)} dakika bekleyin.`,
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const res = await apiRequest("POST", "/api/auth/register", {
@@ -189,13 +140,6 @@ export default function Register() {
         description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
       });
     } catch (error: any) {
-      if (error.message?.includes("fazla deneme") || error.message?.includes("dakika")) {
-        const remaining = getRateLimitRemaining();
-        if (remaining > 0) {
-          setRateLimitedUntil(Date.now() + remaining);
-        }
-      }
-      
       toast({
         variant: "destructive",
         title: "Kayıt Başarısız",
@@ -245,17 +189,6 @@ export default function Register() {
   };
 
   const resendPhoneOtp = async () => {
-    if (isRateLimited()) {
-      const remaining = getRateLimitRemaining();
-      setRateLimitedUntil(Date.now() + remaining);
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: `Çok fazla deneme. ${Math.ceil(remaining / 60000)} dakika bekleyin.`,
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       setupRecaptcha('recaptcha-container');
@@ -341,14 +274,6 @@ export default function Register() {
                 <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <span>Hem telefon hem email ile giriş yapabileceksiniz</span>
               </div>
-
-              {countdown && (
-                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md text-center">
-                  <p className="text-sm text-destructive font-medium">
-                    SMS gönderimi için {countdown} bekleyin
-                  </p>
-                </div>
-              )}
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-register">
@@ -489,7 +414,7 @@ export default function Register() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isLoading || !!countdown}
+                    disabled={isLoading}
                     data-testid="button-register"
                   >
                     {isLoading ? (
@@ -590,7 +515,7 @@ export default function Register() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  disabled={isLoading || resendCountdown > 0 || !!countdown}
+                  disabled={isLoading || resendCountdown > 0}
                   onClick={() => {
                     resendPhoneOtp();
                     setResendCountdown(60);
@@ -599,9 +524,7 @@ export default function Register() {
                   }}
                   data-testid="button-resend-otp"
                 >
-                  {countdown ? `Bekleyin (${countdown})` : 
-                   resendCountdown > 0 ? `${resendCountdown} saniye bekleyin` : 
-                   "Tekrar SMS Gönder"}
+                  {resendCountdown > 0 ? `${resendCountdown} saniye bekleyin` : "Tekrar SMS Gönder"}
                 </Button>
               </div>
             </div>
