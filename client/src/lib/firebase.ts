@@ -26,9 +26,9 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-// Rate limit tracking - Firebase typically has ~15 minute cooldown for phone auth
+// Rate limit tracking - max 5 minute cooldown for better UX
 const RATE_LIMIT_KEY = 'firebase_phone_rate_limit';
-const RATE_LIMIT_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds (aligned with Firebase limits)
+const RATE_LIMIT_DURATION = 5 * 60 * 1000; // 5 minutes - user friendly limit
 
 export function isRateLimited(): boolean {
   const rateLimitUntil = localStorage.getItem(RATE_LIMIT_KEY);
@@ -183,8 +183,7 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
     // Handle rate limit error - set local rate limit and don't clear recaptcha
     if (error.code === 'auth/too-many-requests') {
       setRateLimited();
-      const remainingMin = Math.ceil(RATE_LIMIT_DURATION / 60000);
-      throw new Error(`Çok fazla deneme yaptınız. Lütfen ${remainingMin} dakika sonra tekrar deneyin.`);
+      throw new Error(`Çok fazla deneme yaptınız. Lütfen 5 dakika sonra tekrar deneyin.`);
     }
 
     // Only clear recaptcha for non-rate-limit errors

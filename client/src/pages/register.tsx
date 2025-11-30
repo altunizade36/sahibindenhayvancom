@@ -71,6 +71,11 @@ export default function Register() {
     const checkRateLimit = () => {
       if (isRateLimited()) {
         const remaining = getRateLimitRemaining();
+        const maxLimit = 5 * 60 * 1000;
+        if (remaining > maxLimit) {
+          clearRateLimit();
+          return;
+        }
         setRateLimitedUntil(Date.now() + remaining);
       }
     };
