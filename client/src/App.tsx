@@ -146,7 +146,7 @@ function Router() {
   
   return isNoSidebarRoute ? <NoSidebarLayout /> : (
     <SidebarProvider 
-      style={{ "--sidebar-width": "20rem" } as React.CSSProperties}
+      style={{ "--sidebar-width": "16rem" } as React.CSSProperties}
       defaultOpen={!isMobile}
     >
       <SidebarLayout />
