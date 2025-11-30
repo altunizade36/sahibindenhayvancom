@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -23,21 +22,11 @@ import {
   getRateLimitRemaining,
   clearRateLimit
 } from "@/lib/firebase";
-import type { ConfirmationResult } from "@/lib/firebase";
 
 const registerSchema = z.object({
+  firstName: z.string().min(2, "Ad en az 2 karakter olmalı"),
+  lastName: z.string().min(2, "Soyad en az 2 karakter olmalı"),
   email: z.string().email("Geçerli bir email adresi girin"),
-  username: z.string().min(3, "Kullanıcı adı en az 3 karakter olmalı").optional(),
-  password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
-  confirmPassword: z.string(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor",
-  path: ["confirmPassword"],
-});
-
-const phoneRegisterSchema = z.object({
   phone: z.string()
     .min(10, "Geçerli bir telefon numarası girin")
     .max(15)
@@ -45,25 +34,28 @@ const phoneRegisterSchema = z.object({
       const digits = val.replace(/\D/g, '');
       return digits.length >= 10 && digits.length <= 12;
     }, "Geçerli bir Türk telefon numarası girin (05XX XXX XX XX)"),
-  firstName: z.string().min(1, "Ad gereklidir"),
-  lastName: z.string().optional(),
+  password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Şifreler eşleşmiyor",
+  path: ["confirmPassword"],
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
-type PhoneRegisterForm = z.infer<typeof phoneRegisterSchema>;
+
+type Step = "form" | "verify-phone" | "verify-email" | "complete";
 
 export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [phoneStep, setPhoneStep] = useState<"info" | "otp">("info");
-  const [phoneData, setPhoneData] = useState<{ phone: string; firstName: string; lastName?: string }>({ phone: "", firstName: "" });
+  const [step, setStep] = useState<Step>("form");
+  const [formData, setFormData] = useState<RegisterForm | null>(null);
   const [otpCode, setOtpCode] = useState("");
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number>(0);
   const [countdown, setCountdown] = useState<string>("");
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Check rate limit on mount and setup countdown
   useEffect(() => {
     const checkRateLimit = () => {
       if (isRateLimited()) {
@@ -74,7 +66,6 @@ export default function Register() {
     checkRateLimit();
   }, []);
 
-  // Countdown timer for rate limit
   useEffect(() => {
     if (rateLimitedUntil <= Date.now()) {
       setCountdown("");
@@ -98,9 +89,7 @@ export default function Register() {
     return () => clearInterval(interval);
   }, [rateLimitedUntil]);
 
-  // Setup reCAPTCHA after component mount (with delay to ensure DOM is ready)
   useEffect(() => {
-    // Small delay to ensure DOM container is ready
     const timeoutId = setTimeout(() => {
       setupRecaptcha('recaptcha-container');
     }, 100);
@@ -114,56 +103,16 @@ export default function Register() {
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
-      username: "",
+      phone: "",
       password: "",
       confirmPassword: "",
-      firstName: "",
-      lastName: "",
-    },
-  });
-
-  const phoneForm = useForm<PhoneRegisterForm>({
-    resolver: zodResolver(phoneRegisterSchema),
-    defaultValues: {
-      phone: "",
-      firstName: "",
-      lastName: "",
     },
   });
 
   const onSubmit = async (data: RegisterForm) => {
-    setIsLoading(true);
-    try {
-      const res = await apiRequest("POST", "/api/auth/register", {
-        email: data.email,
-        username: data.username || undefined,
-        password: data.password,
-        firstName: data.firstName || undefined,
-        lastName: data.lastName || undefined,
-      });
-      const response: any = await res.json();
-
-      toast({
-        title: "Kayıt Başarılı!",
-        description: response?.message || "Hoş geldiniz!",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Kayıt Başarısız",
-        description: error.message || "Bir hata oluştu. Lütfen tekrar deneyin.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const onPhoneSubmit = async (data: PhoneRegisterForm) => {
-    // Check rate limit before attempting
     if (isRateLimited()) {
       const remaining = getRateLimitRemaining();
       setRateLimitedUntil(Date.now() + remaining);
@@ -177,18 +126,26 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      // Use Firebase Phone Auth
-      const result = await sendFirebaseOTP(data.phone);
-      setConfirmationResult(result);
-      setPhoneData({ phone: data.phone, firstName: data.firstName, lastName: data.lastName });
-      setPhoneStep("otp");
+      const res = await apiRequest("POST", "/api/auth/register", {
+        email: data.email,
+        phone: formatPhoneNumber(data.phone),
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+      const response: any = await res.json();
+      
+      setFormData(data);
+      setUserId(response.userId);
+      
+      await sendFirebaseOTP(data.phone);
+      setStep("verify-phone");
       
       toast({
         title: "Kod Gönderildi",
         description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
       });
     } catch (error: any) {
-      // Check if it's a rate limit error
       if (error.message?.includes("fazla deneme") || error.message?.includes("dakika")) {
         const remaining = getRateLimitRemaining();
         if (remaining > 0) {
@@ -198,15 +155,15 @@ export default function Register() {
       
       toast({
         variant: "destructive",
-        title: "Hata",
-        description: error.message || "Kod gönderilemedi.",
+        title: "Kayıt Başarısız",
+        description: error.message || "Bir hata oluştu. Lütfen tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onVerifyOtp = async () => {
+  const onVerifyPhone = async () => {
     if (otpCode.length !== 6) {
       toast({
         variant: "destructive",
@@ -218,26 +175,21 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      // Verify with Firebase and get ID token
       const firebaseIdToken = await verifyFirebaseOTP(otpCode);
       
-      // Send to backend for user creation/login
-      const res = await apiRequest("POST", "/api/auth/firebase/verify", {
+      await apiRequest("POST", "/api/auth/firebase/verify", {
         idToken: firebaseIdToken,
-        phone: formatPhoneNumber(phoneData.phone),
-        firstName: phoneData.firstName,
-        lastName: phoneData.lastName,
-        purpose: "register",
+        phone: formatPhoneNumber(formData!.phone),
+        purpose: "verify",
+        userId: userId,
       });
-      const response: any = await res.json();
 
       toast({
-        title: "Kayıt Başarılı!",
-        description: response.message || "Hoş geldiniz!",
+        title: "Telefon Doğrulandı",
+        description: "Email adresinize doğrulama linki gönderildi.",
       });
-
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
+      
+      setStep("verify-email");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -249,13 +201,22 @@ export default function Register() {
     }
   };
 
-  const resendOtp = async () => {
+  const resendPhoneOtp = async () => {
+    if (isRateLimited()) {
+      const remaining = getRateLimitRemaining();
+      setRateLimitedUntil(Date.now() + remaining);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: `Çok fazla deneme. ${Math.ceil(remaining / 60000)} dakika bekleyin.`,
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Re-setup recaptcha and send new OTP
       setupRecaptcha('recaptcha-container');
-      const result = await sendFirebaseOTP(phoneData.phone);
-      setConfirmationResult(result);
+      await sendFirebaseOTP(formData!.phone);
       setOtpCode("");
       
       toast({
@@ -273,9 +234,39 @@ export default function Register() {
     }
   };
 
+  const resendEmailVerification = async () => {
+    setIsLoading(true);
+    try {
+      await apiRequest("POST", "/api/auth/resend-verification", {
+        email: formData!.email,
+      });
+      
+      toast({
+        title: "Email Gönderildi",
+        description: "Doğrulama emaili yeniden gönderildi.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Email gönderilemedi.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const skipEmailVerification = () => {
+    toast({
+      title: "Kayıt Tamamlandı!",
+      description: "Email doğrulamasını daha sonra yapabilirsiniz.",
+    });
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    setLocation("/");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container"></div>
       
       <Card className="w-full max-w-md">
@@ -286,35 +277,109 @@ export default function Register() {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold" data-testid="text-title">
-            sahibinden<span className="text-primary">hayvan</span>
+            {step === "form" && "Hesap Oluştur"}
+            {step === "verify-phone" && "Telefon Doğrulama"}
+            {step === "verify-email" && "Email Doğrulama"}
+            {step === "complete" && "Kayıt Tamamlandı"}
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">
-            Hesap oluştur ve Türkiye'nin en büyük hayvan pazaryerine katıl
+            {step === "form" && (
+              <>sahibinden<span className="text-primary">hayvan</span>'a üye olun</>
+            )}
+            {step === "verify-phone" && "Telefonunuza gönderilen kodu girin"}
+            {step === "verify-email" && "Email adresinizi doğrulayın"}
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <Tabs defaultValue="email" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email" data-testid="tab-email">
-                <Mail className="w-4 h-4 mr-2" />
-                Email
-              </TabsTrigger>
-              <TabsTrigger value="phone" data-testid="tab-phone">
-                <Phone className="w-4 h-4 mr-2" />
-                Telefon
-              </TabsTrigger>
-            </TabsList>
+          {step === "form" && (
+            <>
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span>Hem telefon hem email ile giriş yapabileceksiniz</span>
+              </div>
 
-            <TabsContent value="email" className="mt-4">
+              {countdown && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md text-center">
+                  <p className="text-sm text-destructive font-medium">
+                    SMS gönderimi için {countdown} bekleyin
+                  </p>
+                </div>
+              )}
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-register">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ad</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                placeholder="Adınız"
+                                className="pl-10"
+                                data-testid="input-firstname"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Soyad</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Soyadınız"
+                              data-testid="input-lastname"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefon Numarası</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              {...field}
+                              type="tel"
+                              placeholder="05XX XXX XX XX"
+                              className="pl-10"
+                              data-testid="input-phone"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Email Adresi</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -331,66 +396,6 @@ export default function Register() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kullanıcı Adı (Opsiyonel)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              {...field}
-                              placeholder="kullanici123"
-                              className="pl-10"
-                              data-testid="input-username"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ad (Opsiyonel)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Ahmet"
-                              data-testid="input-firstname"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Soyad (Opsiyonel)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Yılmaz"
-                              data-testid="input-lastname"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
                   <FormField
                     control={form.control}
@@ -441,216 +446,135 @@ export default function Register() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isLoading}
+                    disabled={isLoading || !!countdown}
                     data-testid="button-register"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Kayıt Olunuyor...
+                        Kayıt Yapılıyor...
                       </>
-                    ) : "Kayıt Ol"}
+                    ) : (
+                      <>
+                        Kayıt Ol
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 </form>
               </Form>
-            </TabsContent>
+            </>
+          )}
 
-            <TabsContent value="phone" className="mt-4">
-              {phoneStep === "info" ? (
-                <Form {...phoneForm}>
-                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4" data-testid="form-phone-register">
-                    <FormField
-                      control={phoneForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefon Numarası</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                {...field}
-                                type="tel"
-                                placeholder="05XX XXX XX XX"
-                                className="pl-10"
-                                data-testid="input-phone"
-                                disabled={!!countdown}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+          {step === "verify-phone" && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  <span className="font-medium text-foreground">{formData?.phone}</span> numarasına gönderilen 6 haneli kodu girin
+                </p>
+              </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={phoneForm.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ad</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Ahmet"
-                                data-testid="input-phone-firstname"
-                                disabled={!!countdown}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(value) => setOtpCode(value)}
+                  data-testid="input-otp"
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
 
-                      <FormField
-                        control={phoneForm.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Soyad (Opsiyonel)</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Yılmaz"
-                                data-testid="input-phone-lastname"
-                                disabled={!!countdown}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              <Button
+                type="button"
+                className="w-full"
+                disabled={isLoading || otpCode.length !== 6}
+                onClick={onVerifyPhone}
+                data-testid="button-verify-phone"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Doğrulanıyor...
+                  </>
+                ) : "Telefonu Doğrula"}
+              </Button>
 
-                    {countdown && (
-                      <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md text-center space-y-3">
-                        <div>
-                          <p className="text-sm text-destructive font-medium">
-                            Çok fazla deneme yaptınız
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Tekrar deneyebilmek için <span className="font-mono font-bold text-foreground">{countdown}</span> bekleyin
-                          </p>
-                        </div>
-                        <div className="pt-2 border-t border-destructive/20">
-                          <p className="text-xs text-muted-foreground mb-2">
-                            Beklemek istemiyor musunuz?
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => {
-                              const emailTab = document.querySelector('[data-testid="tab-email"]') as HTMLButtonElement;
-                              if (emailTab) emailTab.click();
-                            }}
-                            data-testid="button-switch-to-email"
-                          >
-                            <Mail className="w-4 h-4 mr-2" />
-                            Email ile Kayıt Ol
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+              <div className="flex flex-col gap-2 items-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isLoading || !!countdown}
+                  onClick={resendPhoneOtp}
+                  data-testid="button-resend-otp"
+                >
+                  {countdown ? `Bekleyin (${countdown})` : "Kodu Tekrar Gönder"}
+                </Button>
+              </div>
+            </div>
+          )}
 
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isLoading || !!countdown}
-                      data-testid="button-send-otp"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Gönderiliyor...
-                        </>
-                      ) : countdown ? (
-                        <>Bekleyin ({countdown})</>
-                      ) : (
-                        <>
-                          Doğrulama Kodu Gönder
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              ) : (
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      <span className="font-medium text-foreground">{phoneData.phone}</span> numarasına gönderilen 6 haneli kodu girin
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      SMS ile gönderilen kodu 5 dakika içinde girin
-                    </p>
-                  </div>
-
-                  <div className="flex justify-center">
-                    <InputOTP
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(value) => setOtpCode(value)}
-                      data-testid="input-otp"
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-
-                  <Button
-                    type="button"
-                    className="w-full"
-                    disabled={isLoading || otpCode.length !== 6}
-                    onClick={onVerifyOtp}
-                    data-testid="button-verify-otp"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Kayıt Olunuyor...
-                      </>
-                    ) : "Kayıt Ol"}
-                  </Button>
-
-                  <div className="flex flex-col gap-2 items-center">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={isLoading}
-                      onClick={resendOtp}
-                      data-testid="button-resend-otp"
-                    >
-                      Kodu Tekrar Gönder
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-primary"
-                      onClick={() => {
-                        setPhoneStep("info");
-                        setOtpCode("");
-                        setConfirmationResult(null);
-                      }}
-                      data-testid="button-change-phone"
-                    >
-                      Bilgileri Değiştir
-                    </Button>
-                  </div>
+          {step === "verify-email" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
+              </div>
+              
+              <div className="text-center">
+                <p className="font-medium text-green-600 dark:text-green-400 mb-2">
+                  Telefon Doğrulandı!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">{formData?.email}</span> adresine doğrulama linki gönderdik.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Spam klasörünü de kontrol edin.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={isLoading}
+                  onClick={resendEmailVerification}
+                  data-testid="button-resend-email"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Mail className="w-4 h-4 mr-2" />
+                  )}
+                  Email'i Tekrar Gönder
+                </Button>
+                
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={skipEmailVerification}
+                  data-testid="button-continue"
+                >
+                  Devam Et
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground">
+                Email doğrulamasını daha sonra profilinizden yapabilirsiniz.
+              </p>
+            </div>
+          )}
 
           <p className="text-center text-sm text-muted-foreground mt-4" data-testid="text-login-link">
             Zaten hesabınız var mı?{" "}
