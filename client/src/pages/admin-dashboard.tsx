@@ -33,11 +33,7 @@ export default function AdminDashboard() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return apiRequest(`/api/admin/listings/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest("PATCH", `/api/admin/listings/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/listings"] });
