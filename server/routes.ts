@@ -85,6 +85,16 @@ interface AuthenticatedUser {
   dbUserId?: string;
 }
 
+// Helper function to get user ID from session (handles OIDC and email/phone auth)
+// Returns a non-null string for authenticated routes (throws if not found)
+function getUserId(user: any): string {
+  const id = user?.claims?.sub ?? user?.dbUserId ?? user?.id;
+  if (!id) {
+    throw new Error('User ID not found in session');
+  }
+  return id;
+}
+
 // Note: Express Request.user type is extended via replitAuth.ts
 
 // Legacy JWT middleware removed - now using Replit Auth sessions
@@ -1553,7 +1563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userFavorites = await db
           .select()
           .from(favorites)
-          .where(eq(favorites.userId, (req.user as any).id));
+          .where(eq(favorites.userId, getUserId(req.user)));
         
         const favoriteIds = new Set(userFavorites.map(f => f.listingId));
         
@@ -1687,7 +1697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(favorites)
           .where(
             and(
-              eq(favorites.userId, (req.user as any).id),
+              eq(favorites.userId, getUserId(req.user)),
               eq(favorites.listingId, listing.id)
             )
           )
@@ -1719,6 +1729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/listings", createLimiter, isAuthenticated, async (req: Request, res: Response) => {
     try {
       const user = req.user!;
+      const sellerId = getUserId(user);
 
       // SECURITY: Email verification required to create listings (skip in development)
       if (!(user as any).emailVerified && process.env.NODE_ENV === 'production') {
@@ -1755,7 +1766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(listings)
         .where(
           and(
-            eq(listings.sellerId, (user as any).id),
+            eq(listings.sellerId, sellerId),
             sql`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
             gte(listings.createdAt, oneHourAgo),
             // Ignore rejected/deleted listings
@@ -1777,7 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(listings)
         .where(
           and(
-            eq(listings.sellerId, (user as any).id),
+            eq(listings.sellerId, sellerId),
             gte(listings.createdAt, oneHourAgo),
             sql`${listings.status} NOT IN ('rejected', 'deleted')`
           )
@@ -1796,7 +1807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const parsedData = insertListingSchema.parse({
         ...req.body,
-        sellerId: (user as any).id,
+        sellerId: sellerId,
         status: listingStatus,
         // Auto-detect listing source: if storeId provided, it's a store listing
         listingSource: req.body.storeId ? 'store' : 'individual',
@@ -1832,7 +1843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Listing not found" });
       }
 
-      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
@@ -1905,7 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Listing not found" });
       }
 
-      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
@@ -1923,7 +1934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userListings = await db
         .select()
         .from(listings)
-        .where(eq(listings.sellerId, (req.user as any).id))
+        .where(eq(listings.sellerId, getUserId(req.user)))
         .orderBy(desc(listings.createdAt));
         
       res.json(userListings);
@@ -2016,7 +2027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(listings.id, data.listingId))
         .limit(1);
       
-      if (!listing || listing.sellerId !== (req.user as any).id) {
+      if (!listing || listing.sellerId !== getUserId(req.user)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
@@ -2078,7 +2089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(bids)
         .values({
           auctionId: req.params.id,
-          bidderId: (req.user as any).id,
+          bidderId: getUserId(req.user),
           amount: bidAmount.toString(),
         } as any)
         .returning();
@@ -2099,7 +2110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bid: {
               ...bid,
               bidder: {
-                id: (req.user as any).id,
+                id: getUserId(req.user),
                 fullName: `${(req.user as any).firstName || ''} ${(req.user as any).lastName || ''}`.trim() || (req.user as any).username,
               },
             },
@@ -2178,8 +2189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertLiveStreamSchema.parse({
         ...req.body,
-        streamerId: (req.user as any).id,
-        channelName: `stream_${Date.now()}_${(req.user as any).id.substring(0, 8)}`,
+        streamerId: getUserId(req.user),
+        channelName: `stream_${Date.now()}_${getUserId(req.user).substring(0, 8)}`,
       });
 
       // Create stream in PostgreSQL
@@ -2207,7 +2218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      if (stream.streamerId !== (req.user as any).id) {
+      if (stream.streamerId !== getUserId(req.user)) {
         return res.status(403).json({ message: "Not authorized" });
       }
 
@@ -2315,8 +2326,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate RTC token
       const { RtcTokenBuilder, RtcRole } = await import('agora-access-token');
       
-      const uid = parseInt((req.user as any).id.substring(0, 8), 16); // Convert user ID to number
-      const role = stream.streamerId === (req.user as any).id ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+      const uid = parseInt(getUserId(req.user).substring(0, 8), 16); // Convert user ID to number
+      const role = stream.streamerId === getUserId(req.user) ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
@@ -2347,7 +2358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user notifications
   app.get("/api/notifications", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       const limit = parseInt(req.query.limit as string) || 20;
       const unreadOnly = req.query.unreadOnly === 'true';
 
@@ -2373,7 +2384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread notification count
   app.get("/api/notifications/count", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
 
       const [result] = await db
         .select({ count: count() })
@@ -2390,7 +2401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark notification as read
   app.patch("/api/notifications/:id/read", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       const notificationId = req.params.id;
 
       const [notification] = await db
@@ -2413,7 +2424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark all notifications as read
   app.post("/api/notifications/read-all", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
 
       await db
         .update(notifications)
@@ -2430,7 +2441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete notification
   app.delete("/api/notifications/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       const notificationId = req.params.id;
 
       const [deleted] = await db
@@ -2452,7 +2463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Message Routes ============
   app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       
       // Get all messages with listing info where user is sender or receiver
       const allMessages = await db
@@ -2527,7 +2538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messages/:userId", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const currentUserId = (req.user as any).id;
+      const currentUserId = getUserId(req.user);
       const otherUserId = req.params.userId;
       
       // Get messages between two users with listing info
@@ -2573,7 +2584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertMessageSchema.parse({
         ...req.body,
-        senderId: (req.user as any).id,
+        senderId: getUserId(req.user),
       });
 
       // Create message in PostgreSQL
@@ -2696,7 +2707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = insertBlogPostSchema.parse({
         ...req.body,
-        authorId: (req.user as any).id,
+        authorId: getUserId(req.user),
       });
 
       // Create blog post in PostgreSQL
@@ -2788,7 +2799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = insertVetServiceSchema.parse({
         ...req.body,
-        vetId: (req.user as any).id,
+        vetId: getUserId(req.user),
       });
 
       // Create vet service in PostgreSQL
@@ -2877,7 +2888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = insertTransportServiceSchema.parse({
         ...req.body,
-        transporterId: (req.user as any).id,
+        transporterId: getUserId(req.user),
       });
 
       // Create transport service in PostgreSQL
@@ -2898,7 +2909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertReviewSchema.parse({
         ...req.body,
-        reviewerId: (req.user as any).id,
+        reviewerId: getUserId(req.user),
       });
 
       // Create review in PostgreSQL
@@ -2921,7 +2932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const favs = await db
         .select()
         .from(favorites)
-        .where(eq(favorites.userId, (req.user as any).id));
+        .where(eq(favorites.userId, getUserId(req.user)));
       
       res.json(favs);
     } catch (error) {
@@ -2934,7 +2945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertFavoriteSchema.parse({
         ...req.body,
-        userId: (req.user as any).id,
+        userId: getUserId(req.user),
       });
 
       // Create favorite in PostgreSQL
@@ -2951,7 +2962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(listings.id, data.listingId))
           .limit(1);
         
-        if (listing && listing.sellerId !== (req.user as any).id) {
+        if (listing && listing.sellerId !== getUserId(req.user)) {
           const favUser = req.user as any;
           const userName = favUser.firstName 
             ? `${favUser.firstName} ${favUser.lastName || ''}`.trim() 
@@ -2984,7 +2995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .delete(favorites)
         .where(
           and(
-            eq(favorites.userId, (req.user as any).id),
+            eq(favorites.userId, getUserId(req.user)),
             eq(favorites.listingId, req.params.listingId)
           )
         );
@@ -3519,7 +3530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "İlan bulunamadı." });
         }
         
-        if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+        if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
           return res.status(403).json({ message: "Bu ilana görsel yükleme yetkiniz yok." });
         }
       }
@@ -3621,7 +3632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(listings.id, image.listingId))
           .limit(1);
         
-        if (listing && listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+        if (listing && listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
           return res.status(403).json({ message: "Bu görseli silme yetkiniz yok." });
         }
       }
@@ -3666,7 +3677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "İlan bulunamadı." });
       }
       
-      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
 
@@ -3712,7 +3723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "İlan bulunamadı." });
       }
       
-      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
 
@@ -3742,7 +3753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertReportSchema.parse({
         ...req.body,
-        reporterId: (req.user as any).id,
+        reporterId: getUserId(req.user),
       });
 
       const [report] = await db
@@ -3760,7 +3771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's reports
   app.get("/api/reports/my", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
 
       const userReports = await db
         .select()
@@ -3815,7 +3826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (status === 'resolved' || status === 'dismissed') {
         updateData.resolvedAt = new Date();
-        updateData.resolvedBy = (req.user as any).id;
+        updateData.resolvedBy = getUserId(req.user);
       }
 
       const [updatedReport] = await db
@@ -3947,7 +3958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .update(listings)
         .set({
           status: status,
-          moderatedBy: (req.user as any).id,
+          moderatedBy: getUserId(req.user),
           moderatedAt: new Date(),
           moderationReason: status === 'rejected' ? reason : null,
         })
@@ -4035,7 +4046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(blogPosts)
         .values({
           ...validationResult.data,
-          authorId: (req.user as any).id,
+          authorId: getUserId(req.user),
         } as any)
         .returning();
       
@@ -4227,7 +4238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check if user already has a store
       const existingStore = await db.query.stores.findFirst({
-        where: eq(stores.ownerId, (req.user as any).id),
+        where: eq(stores.ownerId, getUserId(req.user)),
       });
       
       if (existingStore) {
@@ -4246,7 +4257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert(stores)
         .values({
           ...validationResult.data,
-          ownerId: (req.user as any).id,
+          ownerId: getUserId(req.user),
         } as any)
         .returning();
       
@@ -4271,7 +4282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Mağaza bulunamadı" });
       }
       
-      if (store.ownerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (store.ownerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Bu mağazayı düzenleyemezsiniz" });
       }
       
@@ -4306,7 +4317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/store/my/dashboard", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const myStore = await db.query.stores.findFirst({
-        where: eq(stores.ownerId, (req.user as any).id),
+        where: eq(stores.ownerId, getUserId(req.user)),
       });
       
       if (!myStore) {
@@ -4343,7 +4354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Can't review own store
-      if (store.ownerId === (req.user as any).id) {
+      if (store.ownerId === getUserId(req.user)) {
         return res.status(400).json({ message: "Kendi mağazanızı değerlendiremezsiniz" });
       }
       
@@ -4351,7 +4362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingReview = await db.query.storeReviews.findFirst({
         where: and(
           eq(storeReviews.storeId, req.params.id),
-          eq(storeReviews.reviewerId, (req.user as any).id)
+          eq(storeReviews.reviewerId, getUserId(req.user))
         ),
       });
       
@@ -4372,7 +4383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values({
           ...validationResult.data,
           storeId: req.params.id,
-          reviewerId: (req.user as any).id,
+          reviewerId: getUserId(req.user),
         } as any)
         .returning();
       
@@ -4445,7 +4456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Mağaza bulunamadı" });
       }
       
-      if (store.ownerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+      if (store.ownerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Bu mağazaya medya yükleyemezsiniz" });
       }
 
@@ -4489,7 +4500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/store/:id/follow", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const storeId = req.params.id;
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       
       const store = await db.query.stores.findFirst({
         where: eq(stores.id, storeId),
@@ -4539,7 +4550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/store/:id/follow", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const storeId = req.params.id;
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       
       const result = await db
         .delete(storeFollowers)
@@ -4569,7 +4580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's followed stores
   app.get("/api/my/followed-stores", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       
       const followedStores = await db
         .select({
@@ -4605,7 +4616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/store/:id/is-following", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const storeId = req.params.id;
-      const userId = (req.user as any).id;
+      const userId = getUserId(req.user);
       
       const follow = await db.query.storeFollowers.findFirst({
         where: and(
