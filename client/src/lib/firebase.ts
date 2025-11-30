@@ -26,6 +26,40 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
+// Rate limit tracking
+const RATE_LIMIT_KEY = 'firebase_phone_rate_limit';
+const RATE_LIMIT_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+
+export function isRateLimited(): boolean {
+  const rateLimitUntil = localStorage.getItem(RATE_LIMIT_KEY);
+  if (!rateLimitUntil) return false;
+  
+  const until = parseInt(rateLimitUntil, 10);
+  if (Date.now() >= until) {
+    localStorage.removeItem(RATE_LIMIT_KEY);
+    return false;
+  }
+  return true;
+}
+
+export function getRateLimitRemaining(): number {
+  const rateLimitUntil = localStorage.getItem(RATE_LIMIT_KEY);
+  if (!rateLimitUntil) return 0;
+  
+  const until = parseInt(rateLimitUntil, 10);
+  const remaining = until - Date.now();
+  return remaining > 0 ? remaining : 0;
+}
+
+function setRateLimited(): void {
+  const until = Date.now() + RATE_LIMIT_DURATION;
+  localStorage.setItem(RATE_LIMIT_KEY, until.toString());
+}
+
+export function clearRateLimit(): void {
+  localStorage.removeItem(RATE_LIMIT_KEY);
+}
+
 // Declare global type for recaptcha
 declare global {
   interface Window {
@@ -131,6 +165,13 @@ async function ensureRecaptchaReady(containerId: string = 'recaptcha-container')
 
 // Send OTP via Firebase
 export async function sendFirebaseOTP(phoneNumber: string): Promise<ConfirmationResult> {
+  // Check if rate limited before attempting
+  if (isRateLimited()) {
+    const remainingMs = getRateLimitRemaining();
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    throw new Error(`Çok fazla deneme yaptınız. Lütfen ${remainingMin} dakika sonra tekrar deneyin.`);
+  }
+
   const formattedPhone = formatPhoneNumber(phoneNumber);
   
   // Ensure recaptcha is ready (waits for DOM if needed)
@@ -146,7 +187,14 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
     window.confirmationResult = confirmationResult;
     return confirmationResult;
   } catch (error: any) {
-    // Clear recaptcha on error
+    // Handle rate limit error - set local rate limit and don't clear recaptcha
+    if (error.code === 'auth/too-many-requests') {
+      setRateLimited();
+      const remainingMin = Math.ceil(RATE_LIMIT_DURATION / 60000);
+      throw new Error(`Çok fazla deneme yaptınız. Lütfen ${remainingMin} dakika sonra tekrar deneyin.`);
+    }
+
+    // Only clear recaptcha for non-rate-limit errors
     if (window.recaptchaVerifier) {
       try {
         window.recaptchaVerifier.clear();
@@ -159,9 +207,8 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
     // Translate common Firebase errors to Turkish
     const errorMessages: Record<string, string> = {
       'auth/invalid-phone-number': 'Geçersiz telefon numarası formatı',
-      'auth/too-many-requests': 'Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.',
       'auth/quota-exceeded': 'SMS kotası aşıldı. Lütfen daha sonra tekrar deneyin.',
-      'auth/captcha-check-failed': 'reCAPTCHA doğrulaması başarısız oldu',
+      'auth/captcha-check-failed': 'reCAPTCHA doğrulaması başarısız oldu. Lütfen sayfayı yenileyin.',
       'auth/missing-phone-number': 'Telefon numarası gerekli',
       'auth/user-disabled': 'Bu hesap devre dışı bırakılmış',
       'auth/firebase-app-check-token-is-invalid': 'Güvenlik doğrulaması başarısız oldu. Lütfen sayfayı yenileyin ve tekrar deneyin.',

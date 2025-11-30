@@ -18,7 +18,10 @@ import {
   verifyFirebaseOTP, 
   setupRecaptcha, 
   cleanupRecaptcha,
-  formatPhoneNumber
+  formatPhoneNumber,
+  isRateLimited,
+  getRateLimitRemaining,
+  clearRateLimit
 } from "@/lib/firebase";
 import type { ConfirmationResult } from "@/lib/firebase";
 
@@ -57,6 +60,43 @@ export default function Register() {
   const [phoneData, setPhoneData] = useState<{ phone: string; firstName: string; lastName?: string }>({ phone: "", firstName: "" });
   const [otpCode, setOtpCode] = useState("");
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [rateLimitedUntil, setRateLimitedUntil] = useState<number>(0);
+  const [countdown, setCountdown] = useState<string>("");
+
+  // Check rate limit on mount and setup countdown
+  useEffect(() => {
+    const checkRateLimit = () => {
+      if (isRateLimited()) {
+        const remaining = getRateLimitRemaining();
+        setRateLimitedUntil(Date.now() + remaining);
+      }
+    };
+    checkRateLimit();
+  }, []);
+
+  // Countdown timer for rate limit
+  useEffect(() => {
+    if (rateLimitedUntil <= Date.now()) {
+      setCountdown("");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const remaining = rateLimitedUntil - Date.now();
+      if (remaining <= 0) {
+        setCountdown("");
+        setRateLimitedUntil(0);
+        clearRateLimit();
+        clearInterval(interval);
+      } else {
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [rateLimitedUntil]);
 
   // Setup reCAPTCHA after component mount (with delay to ensure DOM is ready)
   useEffect(() => {
@@ -123,6 +163,18 @@ export default function Register() {
   };
 
   const onPhoneSubmit = async (data: PhoneRegisterForm) => {
+    // Check rate limit before attempting
+    if (isRateLimited()) {
+      const remaining = getRateLimitRemaining();
+      setRateLimitedUntil(Date.now() + remaining);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: `Çok fazla deneme yaptınız. Lütfen ${Math.ceil(remaining / 60000)} dakika bekleyin.`,
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Use Firebase Phone Auth
@@ -136,13 +188,19 @@ export default function Register() {
         description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
       });
     } catch (error: any) {
+      // Check if it's a rate limit error
+      if (error.message?.includes("fazla deneme") || error.message?.includes("dakika")) {
+        const remaining = getRateLimitRemaining();
+        if (remaining > 0) {
+          setRateLimitedUntil(Date.now() + remaining);
+        }
+      }
+      
       toast({
         variant: "destructive",
         title: "Hata",
         description: error.message || "Kod gönderilemedi.",
       });
-      // Re-setup recaptcha after error
-      setupRecaptcha('recaptcha-container');
     } finally {
       setIsLoading(false);
     }
@@ -416,6 +474,7 @@ export default function Register() {
                                 placeholder="05XX XXX XX XX"
                                 className="pl-10"
                                 data-testid="input-phone"
+                                disabled={!!countdown}
                               />
                             </div>
                           </FormControl>
@@ -436,6 +495,7 @@ export default function Register() {
                                 {...field}
                                 placeholder="Ahmet"
                                 data-testid="input-phone-firstname"
+                                disabled={!!countdown}
                               />
                             </FormControl>
                             <FormMessage />
@@ -454,6 +514,7 @@ export default function Register() {
                                 {...field}
                                 placeholder="Yılmaz"
                                 data-testid="input-phone-lastname"
+                                disabled={!!countdown}
                               />
                             </FormControl>
                             <FormMessage />
@@ -462,10 +523,21 @@ export default function Register() {
                       />
                     </div>
 
+                    {countdown && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-center">
+                        <p className="text-sm text-destructive font-medium">
+                          Çok fazla deneme yaptınız
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Tekrar deneyebilmek için <span className="font-mono font-bold text-foreground">{countdown}</span> bekleyin
+                        </p>
+                      </div>
+                    )}
+
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={isLoading}
+                      disabled={isLoading || !!countdown}
                       data-testid="button-send-otp"
                     >
                       {isLoading ? (
@@ -473,6 +545,8 @@ export default function Register() {
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Gönderiliyor...
                         </>
+                      ) : countdown ? (
+                        <>Bekleyin ({countdown})</>
                       ) : (
                         <>
                           Doğrulama Kodu Gönder
