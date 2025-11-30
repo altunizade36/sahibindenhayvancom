@@ -7,6 +7,7 @@ import {
   PhoneAuthProvider,
   signInWithCredential
 } from "firebase/auth";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw",
@@ -20,6 +21,26 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize App Check with reCAPTCHA v3
+// This is required because App Check is enforced on this Firebase project
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+if (RECAPTCHA_SITE_KEY) {
+  try {
+    // Enable debug mode in development
+    if (import.meta.env.DEV) {
+      (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    }
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
+      isTokenAutoRefreshEnabled: true
+    });
+    console.log('Firebase App Check initialized');
+  } catch (error) {
+    console.warn('Firebase App Check initialization failed:', error);
+  }
+}
+
 export const auth = getAuth(app);
 
 // Declare global type for recaptcha
@@ -160,6 +181,8 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
       'auth/captcha-check-failed': 'reCAPTCHA doğrulaması başarısız oldu',
       'auth/missing-phone-number': 'Telefon numarası gerekli',
       'auth/user-disabled': 'Bu hesap devre dışı bırakılmış',
+      'auth/firebase-app-check-token-is-invalid': 'Güvenlik doğrulaması başarısız oldu. Lütfen sayfayı yenileyin ve tekrar deneyin.',
+      'auth/app-check-token-is-invalid': 'Güvenlik doğrulaması başarısız oldu. Lütfen sayfayı yenileyin.',
     };
     
     const message = errorMessages[error.code] || error.message || 'SMS gönderilemedi';
