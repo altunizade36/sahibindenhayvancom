@@ -14,8 +14,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatPhoneNumber } from "@/lib/firebase";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Email veya telefon numarası gereklidir"),
-  password: z.string().min(1, "Şifre gereklidir"),
+  identifier: z.string().min(1, "Email veya telefon numaranızı yazın"),
+  password: z.string().min(1, "Şifrenizi yazın"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -72,10 +72,20 @@ export default function Login() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
+      let errorMessage = "Email/telefon veya şifre hatalı.";
+      
+      if (error.message?.includes("kullanıcı bulunamadı") || error.message?.includes("not found")) {
+        errorMessage = "Bu email veya telefon ile kayıtlı hesap bulunamadı.";
+      } else if (error.message?.includes("şifre") || error.message?.includes("password")) {
+        errorMessage = "Şifre yanlış, tekrar deneyin.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         variant: "destructive",
-        title: "Giriş Başarısız",
-        description: error.message || "Email/telefon veya şifre hatalı.",
+        title: "Giriş Yapılamadı",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

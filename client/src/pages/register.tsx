@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
+import { Progress } from "@/components/ui/progress";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,20 +25,23 @@ import {
 } from "@/lib/firebase";
 
 const registerSchema = z.object({
-  firstName: z.string().min(2, "Ad en az 2 karakter olmalı"),
-  lastName: z.string().min(2, "Soyad en az 2 karakter olmalı"),
-  email: z.string().email("Geçerli bir email adresi girin"),
+  firstName: z.string().min(2, "Adınızı yazın (en az 2 harf)"),
+  lastName: z.string().min(2, "Soyadınızı yazın (en az 2 harf)"),
+  email: z.string().email("Geçerli bir email yazın (örnek: ad@gmail.com)"),
   phone: z.string()
-    .min(10, "Geçerli bir telefon numarası girin")
+    .min(10, "Telefon numaranızı yazın")
     .max(15)
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
       return digits.length >= 10 && digits.length <= 12;
-    }, "Geçerli bir Türk telefon numarası girin (05XX XXX XX XX)"),
-  password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
+    }, "Telefon numarası 05 ile başlamalı (örnek: 0532 123 45 67)"),
+  password: z.string()
+    .min(8, "Şifre en az 8 karakter olmalı")
+    .refine((val) => /[a-zA-Z]/.test(val), "Şifrede en az bir harf olmalı")
+    .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor",
+  message: "Şifreler aynı değil, tekrar kontrol edin",
   path: ["confirmPassword"],
 });
 
@@ -55,6 +59,9 @@ export default function Register() {
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number>(0);
   const [countdown, setCountdown] = useState<string>("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [smsProgress, setSmsProgress] = useState(0);
+  const [smsStatus, setSmsStatus] = useState<"sending" | "waiting" | "ready">("sending");
+  const [resendCountdown, setResendCountdown] = useState(0);
 
   useEffect(() => {
     const checkRateLimit = () => {
@@ -88,6 +95,33 @@ export default function Register() {
 
     return () => clearInterval(interval);
   }, [rateLimitedUntil]);
+
+  useEffect(() => {
+    if (step === "verify-phone" && smsProgress < 100) {
+      setSmsStatus("sending");
+      const progressInterval = setInterval(() => {
+        setSmsProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            setSmsStatus("ready");
+            return 100;
+          }
+          if (prev >= 60) {
+            setSmsStatus("waiting");
+          }
+          return prev + 4;
+        });
+      }, 200);
+      return () => clearInterval(progressInterval);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (step === "verify-phone" && resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, resendCountdown]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -467,10 +501,35 @@ export default function Register() {
           )}
 
           {step === "verify-phone" && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    smsStatus === "ready" ? "bg-green-100 dark:bg-green-900/30" : "bg-blue-100 dark:bg-blue-900/30"
+                  }`}>
+                    {smsStatus === "ready" ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    ) : (
+                      <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">
+                      {smsStatus === "sending" && "SMS gönderiliyor..."}
+                      {smsStatus === "waiting" && "Kod yolda..."}
+                      {smsStatus === "ready" && "Kod telefonunuza geldi!"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formData?.phone}
+                    </p>
+                  </div>
+                </div>
+                <Progress value={smsProgress} className="h-2" />
+              </div>
+
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  <span className="font-medium text-foreground">{formData?.phone}</span> numarasına gönderilen 6 haneli kodu girin
+                <p className="text-sm text-muted-foreground mb-4">
+                  SMS'teki <span className="font-bold text-foreground">6 haneli kodu</span> buraya yazın
                 </p>
               </div>
 
@@ -480,6 +539,7 @@ export default function Register() {
                   value={otpCode}
                   onChange={(value) => setOtpCode(value)}
                   data-testid="input-otp"
+                  autoFocus
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
@@ -495,6 +555,7 @@ export default function Register() {
               <Button
                 type="button"
                 className="w-full"
+                size="lg"
                 disabled={isLoading || otpCode.length !== 6}
                 onClick={onVerifyPhone}
                 data-testid="button-verify-phone"
@@ -502,21 +563,36 @@ export default function Register() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Doğrulanıyor...
+                    Kontrol ediliyor...
                   </>
-                ) : "Telefonu Doğrula"}
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Kodu Doğrula
+                  </>
+                )}
               </Button>
 
-              <div className="flex flex-col gap-2 items-center">
+              <div className="text-center pt-2">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Kod gelmedi mi?
+                </p>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  disabled={isLoading || !!countdown}
-                  onClick={resendPhoneOtp}
+                  disabled={isLoading || resendCountdown > 0 || !!countdown}
+                  onClick={() => {
+                    resendPhoneOtp();
+                    setResendCountdown(60);
+                    setSmsProgress(0);
+                    setSmsStatus("sending");
+                  }}
                   data-testid="button-resend-otp"
                 >
-                  {countdown ? `Bekleyin (${countdown})` : "Kodu Tekrar Gönder"}
+                  {countdown ? `Bekleyin (${countdown})` : 
+                   resendCountdown > 0 ? `${resendCountdown} saniye bekleyin` : 
+                   "Tekrar SMS Gönder"}
                 </Button>
               </div>
             </div>
