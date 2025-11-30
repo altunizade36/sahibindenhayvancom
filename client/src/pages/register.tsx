@@ -524,13 +524,34 @@ export default function Register() {
                     </div>
 
                     {countdown && (
-                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-center">
-                        <p className="text-sm text-destructive font-medium">
-                          Çok fazla deneme yaptınız
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Tekrar deneyebilmek için <span className="font-mono font-bold text-foreground">{countdown}</span> bekleyin
-                        </p>
+                      <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md text-center space-y-3">
+                        <div>
+                          <p className="text-sm text-destructive font-medium">
+                            Çok fazla deneme yaptınız
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Tekrar deneyebilmek için <span className="font-mono font-bold text-foreground">{countdown}</span> bekleyin
+                          </p>
+                        </div>
+                        <div className="pt-2 border-t border-destructive/20">
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Beklemek istemiyor musunuz?
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const emailTab = document.querySelector('[data-testid="tab-email"]') as HTMLButtonElement;
+                              if (emailTab) emailTab.click();
+                            }}
+                            data-testid="button-switch-to-email"
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            Email ile Kayıt Ol
+                          </Button>
+                        </div>
                       </div>
                     )}
 
