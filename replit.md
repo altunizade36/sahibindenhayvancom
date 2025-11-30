@@ -11,7 +11,8 @@ No specific user preferences were provided in the original document.
 - **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles with specific permissions.
 - **Free Platform Model**: All listing features are free to encourage user acquisition; payment infrastructure is removed.
 - **Full PostgreSQL Storage**: Complete migration to PostgreSQL (Neon serverless) with Drizzle ORM for all data (users, listings, messages, stores, blog).
-- **Security**: Replit Auth (OAuth via Google, Apple, GitHub, Email), session-based authentication with PostgreSQL session store, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
+- **Security**: Triple authentication system (Replit Auth OAuth, Email/Password, Firebase Phone Auth with SMS), session-based authentication with PostgreSQL session store, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
+- **Firebase Phone Authentication**: Production-ready SMS verification using Firebase Auth. Supports Turkish phone numbers (+90), invisible reCAPTCHA for bot protection, and automatic user creation/login. Firebase Admin SDK verifies tokens server-side.
 - **Professional Stores System**: Verified sellers can create branded storefronts with custom logos, banners, and color themes. Supports various store types like Petshop, Veterinary, etc., with a review system and admin approval workflow.
 - **Blog System**: Features 32 professional blog posts covering various animal types, including legal disclaimers and citations from Turkish veterinary organizations. Admin-only CRUD for blog management.
 
@@ -27,7 +28,7 @@ No specific user preferences were provided in the original document.
     - **User Profiles**: "My Listings" and "Favorites" tabs.
 
 **Key API Endpoints:**
-- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile)
+- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
 - **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
@@ -50,8 +51,9 @@ No specific user preferences were provided in the original document.
 - **Styling**: Tailwind CSS.
 - **Form Handling**: React Hook Form, Zod.
 - **State Management**: TanStack Query.
-- **Authentication**: Replit Auth (OIDC-based OAuth) with session management via express-session and Passport.js.
+- **Authentication**: Triple auth system - Replit Auth (OIDC-based OAuth), Email/Password with bcrypt, Firebase Phone Auth with SMS verification.
+- **Firebase**: Phone authentication with real SMS delivery (10,000 free SMS/month), Admin SDK for server-side token verification.
 - **Session Storage**: PostgreSQL (sessions table) with 7-day TTL.
 - **Image Storage**: Replit Object Storage.
-- **Bot Protection**: Google reCAPTCHA v3.
+- **Bot Protection**: Google reCAPTCHA v3 for forms, Firebase invisible reCAPTCHA for phone auth.
 - **Monitoring**: Health checks, Prometheus metrics.
