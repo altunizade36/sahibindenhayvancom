@@ -1787,6 +1787,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
+      // Check for price drop to notify favorites
+      const oldPrice = parseFloat(listing.price || '0');
+      const newPrice = req.body.price ? parseFloat(req.body.price) : oldPrice;
+      const isPriceDrop = newPrice < oldPrice && oldPrice > 0;
+
       // Auto-detect listing source when storeId changes
       const updateData: any = { ...req.body, updatedAt: new Date() };
       if ('storeId' in req.body) {
@@ -1798,6 +1803,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set(updateData)
         .where(eq(listings.id, req.params.id))
         .returning();
+
+      // Send price drop notifications to users who favorited this listing
+      if (isPriceDrop && listing.status === 'active') {
+        try {
+          const favoritedUsers = await db
+            .select({ userId: favorites.userId })
+            .from(favorites)
+            .where(eq(favorites.listingId, req.params.id));
+
+          const discountPercent = Math.round(((oldPrice - newPrice) / oldPrice) * 100);
+
+          // Create notifications for all users who favorited
+          if (favoritedUsers.length > 0) {
+            const notificationValues = favoritedUsers.map(fav => ({
+              userId: fav.userId,
+              type: 'price_drop' as const,
+              title: 'Fiyat Düştü!',
+              message: `"${listing.title}" ilanının fiyatı %${discountPercent} düştü! Yeni fiyat: ₺${newPrice.toLocaleString('tr-TR')}`,
+              data: {
+                listingId: req.params.id,
+                oldPrice: oldPrice,
+                newPrice: newPrice,
+                discountPercent: discountPercent,
+              },
+            }));
+
+            await db.insert(notifications).values(notificationValues);
+          }
+        } catch (notifError) {
+          // Don't fail the update if notification fails
+          console.error("Failed to send price drop notifications:", notifError);
+        }
+      }
         
       res.json(updated);
     } catch (error) {
