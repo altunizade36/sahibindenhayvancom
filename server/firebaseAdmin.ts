@@ -1,12 +1,7 @@
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK
-// Using environment variables for production or hardcoded for development
-const firebaseConfig = {
-  projectId: "sahibindenhayvan-55728",
-  // For production, you would use a service account key
-  // For development, we use the project ID only
-};
+// Firebase project configuration
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "sahibindenhayvan-55728";
 
 let firebaseApp: admin.app.App | null = null;
 
@@ -16,9 +11,30 @@ export function getFirebaseAdmin(): admin.app.App {
     if (admin.apps.length > 0) {
       firebaseApp = admin.apps[0]!;
     } else {
-      firebaseApp = admin.initializeApp({
-        projectId: firebaseConfig.projectId,
-      });
+      // Check if service account credentials are provided
+      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+      if (clientEmail && privateKey) {
+        // Production mode with service account
+        console.log('📱 Firebase Admin: Initializing with service account credentials');
+        firebaseApp = admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: FIREBASE_PROJECT_ID,
+            clientEmail: clientEmail,
+            privateKey: privateKey,
+          }),
+          projectId: FIREBASE_PROJECT_ID,
+        });
+      } else {
+        // Development mode - using project ID only
+        // Note: Token verification may fail without proper credentials
+        console.log('📱 Firebase Admin: Development mode (credentials not provided)');
+        console.log('   ⚠️  For production, set FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY');
+        firebaseApp = admin.initializeApp({
+          projectId: FIREBASE_PROJECT_ID,
+        });
+      }
     }
   }
   return firebaseApp;
