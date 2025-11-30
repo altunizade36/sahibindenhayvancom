@@ -48,4 +48,3 @@ integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", 
 [userenv]
 
 [userenv.shared]
-VITE_RECAPTCHA_SITE_KEY = "6LeGMxwsAAAAAlyrfyV-3WRWX1G6aXBZ0FckQVbY"
