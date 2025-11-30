@@ -40,7 +40,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-full flex flex-col">
       <SEOHead
         title="sahibindenhayvan.com - Türkiye'nin En Güvenilir Hayvan İlanları Platformu"
         description="Evcil hayvanlarınızı bulun, satın alın, sahiplenin. Köpek, kedi, kuş, balık ve daha fazlası için binlerce ilan. Ücretsiz ilan verin!"
@@ -58,8 +58,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-4 md:py-6 flex-1">
-        <div className="container mx-auto px-4">
+      <section className="py-4 md:py-6 flex-1 min-h-[400px]">
+        <div className="container mx-auto px-4 h-full">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg md:text-xl font-bold">İlanlar</h2>
@@ -138,7 +138,7 @@ export default function Home() {
         </section>
       )}
 
-      <section className="py-3 bg-muted/30 border-t">
+      <section className="py-3 bg-muted/30 border-t mt-auto">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
