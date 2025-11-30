@@ -1741,10 +1741,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Development: auto-approve listings for testing
+      // Production: require admin moderation
+      const listingStatus = process.env.NODE_ENV === 'production' ? 'pending' : 'active';
+      
       const parsedData = insertListingSchema.parse({
         ...req.body,
         sellerId: (user as any).id,
-        status: 'pending', // Always pending for moderation
+        status: listingStatus,
         // Auto-detect listing source: if storeId provided, it's a store listing
         listingSource: req.body.storeId ? 'store' : 'individual',
       });
@@ -1752,10 +1756,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create listing - completely free, but requires admin approval
       const [listing] = await db.insert(listings).values(parsedData as any).returning();
 
+      const responseMessage = listingStatus === 'active' 
+        ? "İlanınız başarıyla oluşturuldu ve yayında!"
+        : "İlanınız başarıyla oluşturuldu. Admin onayından sonra yayına girecektir.";
+      
       res.status(201).json({
         ...listing,
-        message: "İlanınız başarıyla oluşturuldu. Admin onayından sonra yayına girecektir.",
-        requiresApproval: true,
+        message: responseMessage,
+        requiresApproval: listingStatus === 'pending',
       });
     } catch (error) {
       console.error("Error creating listing:", error);
