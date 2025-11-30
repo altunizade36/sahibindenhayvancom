@@ -47,48 +47,44 @@ export default function Home() {
         structuredData={generateOrganizationStructuredData()}
       />
       
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-6 md:py-10">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-4xl mx-auto text-center mb-4 md:mb-6">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3" data-testid="text-hero-title">
-              Türkiye'nin En Güvenilir <br className="hidden sm:block" />
-              <span className="text-primary">Hayvan İlanları Platformu</span>
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 py-3 md:py-4">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-hero-title">
+              <span className="text-primary">Hayvan İlanları</span> - Türkiye'nin Güvenilir Platformu
             </h1>
-            <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6" data-testid="text-hero-subtitle">
-              Evcil dostlarınızı bulun, satın alın, sahiplenin. Binlerce ilan arasından aradığınızı bulun.
-            </p>
             <SearchBar categories={categories} />
           </div>
         </div>
       </section>
 
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold">Tüm İlanlar</h2>
+      <section className="py-4 md:py-6 flex-1">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg md:text-xl font-bold">İlanlar</h2>
               {listingsResponse && (
-                <p className="text-sm md:text-base text-muted-foreground mt-2">
-                  {listingsResponse.total} ilan bulundu
-                  {listingsResponse.totalPages > 1 && (
-                    <span className="ml-2">
-                      (Sayfa {currentPage} / {listingsResponse.totalPages})
-                    </span>
-                  )}
-                </p>
+                <span className="text-xs md:text-sm text-muted-foreground">
+                  ({listingsResponse.total} ilan)
+                </span>
               )}
             </div>
+            {listingsResponse && listingsResponse.totalPages > 1 && (
+              <span className="text-xs text-muted-foreground">
+                Sayfa {currentPage}/{listingsResponse.totalPages}
+              </span>
+            )}
           </div>
           
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {[...Array(20)].map((_, i) => (
-                <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+                <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
               ))}
             </div>
           ) : listings.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {listings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
@@ -101,10 +97,10 @@ export default function Home() {
               />
             </>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-base md:text-lg">Henüz ilan yok</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Henüz ilan yok</p>
               <Link href="/ilan-ver">
-                <Button className="mt-4 h-11">İlk İlanı Siz Verin</Button>
+                <Button className="mt-3">İlk İlanı Siz Verin</Button>
               </Link>
             </div>
           )}
@@ -112,28 +108,28 @@ export default function Home() {
       </section>
 
       {activeAuctions.length > 0 && (
-        <section className="py-12 md:py-16 bg-background">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
-              <div className="flex items-center gap-3">
-                <Gavel className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                <h2 className="text-2xl md:text-3xl font-bold">Aktif Müzayedeler</h2>
+        <section className="py-4 border-t">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Gavel className="w-4 h-4 text-primary" />
+                <h2 className="text-base font-semibold">Aktif Müzayedeler</h2>
               </div>
               <Link href="/muzayedeler">
-                <Button variant="ghost" size="sm" className="md:h-10" data-testid="link-all-auctions">
+                <Button variant="ghost" size="sm" data-testid="link-all-auctions">
                   Tümünü Gör
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {activeAuctions.slice(0, 3).map((auction: any) => (
                 <Link key={auction.id} href={`/muzayede/${auction.id}`}>
-                  <div className="p-6 rounded-lg border border-primary/20 bg-primary/5 hover-elevate cursor-pointer">
-                    <h3 className="font-semibold mb-2">{auction.listing?.title}</h3>
-                    <div className="text-2xl font-bold text-primary mb-2">
+                  <div className="p-3 rounded-md border border-primary/20 bg-primary/5 hover-elevate cursor-pointer">
+                    <h3 className="font-medium text-sm truncate">{auction.listing?.title}</h3>
+                    <div className="text-lg font-bold text-primary">
                       ₺{parseFloat(auction.currentPrice).toLocaleString("tr-TR")}
                     </div>
-                    <p className="text-sm text-muted-foreground">{auction.totalBids || 0} teklif</p>
+                    <p className="text-xs text-muted-foreground">{auction.totalBids || 0} teklif</p>
                   </div>
                 </Link>
               ))}
@@ -142,42 +138,24 @@ export default function Home() {
         </section>
       )}
 
-      <section className="py-16 bg-background">
+      <section className="py-3 bg-muted/30 border-t">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Neden sahibindenhayvan.com?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-              <div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold mb-2">Kolay Arama</h3>
-                <p className="text-sm text-muted-foreground">
-                  Gelişmiş filtreleme ile aradığınız hayvanı hızla bulun
-                </p>
-              </div>
-              <div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Gavel className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Güvenli Müzayedeler</h3>
-                <p className="text-sm text-muted-foreground">
-                  Şeffaf ve adil müzayede sisteminde fırsatları kaçırmayın
-                </p>
-              </div>
-              <div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold mb-2">Güvenilir Platform</h3>
-                <p className="text-sm text-muted-foreground">
-                  Doğrulanmış satıcılar, güvenli ödeme, veteriner danışmanlık
-                </p>
-              </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>Kolay Arama</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Gavel className="w-4 h-4 text-primary" />
+              <span>Güvenli Müzayede</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>Güvenilir Platform</span>
             </div>
           </div>
         </div>
