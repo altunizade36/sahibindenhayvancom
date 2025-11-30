@@ -5,6 +5,7 @@ import { useLocation, Link } from "wouter";
 import {
   Sidebar,
   SidebarContent,
+  SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -274,30 +275,27 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas" data-testid="app-sidebar">
-      <SidebarContent>
-        {/* Main Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Menü</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.split('?')[0] === item.url}
-                    data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      {/* Main Navigation - Always visible at top */}
+      <SidebarHeader className="border-b">
+        <SidebarMenu>
+          {navItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                isActive={location.split('?')[0] === item.url}
+                data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
+              >
+                <Link href={item.url}>
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarHeader>
 
+      <SidebarContent>
         {/* Search */}
         <SidebarGroup>
           <SidebarGroupLabel>Arama</SidebarGroupLabel>
