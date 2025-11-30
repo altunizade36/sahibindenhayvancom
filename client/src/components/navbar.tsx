@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield } from "lucide-react";
+import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2 } from "lucide-react";
 import { GiUnicorn } from "react-icons/gi";
 import { NotificationDropdown } from "@/components/notification-dropdown";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -159,6 +159,12 @@ export function Navbar() {
                           <Button variant="ghost" className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-messages">
                             <MessageSquare className="w-4 h-4 mr-3" />
                             Mesajlar
+                          </Button>
+                        </Link>
+                        <Link href="/my-store">
+                          <Button variant="ghost" className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-my-store">
+                            <Building2 className="w-4 h-4 mr-3" />
+                            Mağazam
                           </Button>
                         </Link>
                         <Link href="/bildirimler">
@@ -352,6 +358,12 @@ export function Navbar() {
                         <DropdownMenuItem className="cursor-pointer" data-testid="link-messages">
                           <MessageSquare className="w-4 h-4 mr-2" />
                           Mesajlar
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link href="/my-store">
+                        <DropdownMenuItem className="cursor-pointer" data-testid="link-my-store">
+                          <Building2 className="w-4 h-4 mr-2" />
+                          Mağazam
                         </DropdownMenuItem>
                       </Link>
                       <Link href="/ayarlar">
