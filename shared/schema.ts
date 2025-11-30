@@ -319,6 +319,39 @@ export const insertListingSchema = createInsertSchema(listings, {
 export type InsertListing = z.infer<typeof insertListingSchema>;
 export type Listing = typeof listings.$inferSelect;
 
+// Listing Images table - for storing image variants and metadata
+export const listingImages = pgTable("listing_images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").references(() => listings.id, { onDelete: "cascade" }),
+  originalKey: text("original_key").notNull(),
+  thumbnailKey: text("thumbnail_key"),
+  mediumKey: text("medium_key"),
+  largeKey: text("large_key"),
+  originalUrl: text("original_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  mediumUrl: text("medium_url"),
+  largeUrl: text("large_url"),
+  width: integer("width"),
+  height: integer("height"),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  displayOrder: integer("display_order").default(0),
+  isCover: boolean("is_cover").default(false),
+  status: text("status").default("processing"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdx: index("listing_images_listing_idx").on(table.listingId),
+  listingOrderIdx: index("listing_images_listing_order_idx").on(table.listingId, table.displayOrder),
+}));
+
+export const insertListingImageSchema = createInsertSchema(listingImages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertListingImage = z.infer<typeof insertListingImageSchema>;
+export type ListingImage = typeof listingImages.$inferSelect;
+
 // Auctions table
 export const auctions = pgTable("auctions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
