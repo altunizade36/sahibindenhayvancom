@@ -818,11 +818,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Firebase token gereklidir" });
       }
 
-      // Verify Firebase ID token
-      const decodedToken = await verifyFirebaseToken(idToken);
+      // Development mode bypass - accept dev-mode tokens
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const isDevToken = idToken.startsWith('dev-mode-token-');
       
-      if (!decodedToken) {
-        return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
+      let decodedToken: any = null;
+      
+      if (isDevelopment && isDevToken) {
+        console.log('📱 Development Mode: Token bypass aktif');
+        // Create a mock decoded token for development
+        decodedToken = {
+          uid: 'dev-user-' + Date.now(),
+          phone_number: phone,
+        };
+      } else {
+        // Verify Firebase ID token in production
+        decodedToken = await verifyFirebaseToken(idToken);
+        
+        if (!decodedToken) {
+          return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
+        }
       }
 
       // Get phone from Firebase token or request

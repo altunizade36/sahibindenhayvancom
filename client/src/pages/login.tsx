@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
-import { GiUnicorn } from "react-icons/gi";
 import { Link, useLocation } from "wouter";
+import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -108,15 +108,13 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 shadow-sm">
-              <GiUnicorn className="w-16 h-16 text-blue-600 dark:text-blue-400" data-testid="icon-logo" />
-            </div>
+            <LogoFull />
           </div>
-          <CardTitle className="text-3xl font-bold" data-testid="text-title">
-            Hoş Geldiniz
+          <CardTitle className="text-2xl font-bold" data-testid="text-title">
+            Giriş Yap
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">
-            sahibinden<span className="text-primary">hayvan</span> hesabınıza giriş yapın
+            Hesabınıza giriş yapın
           </CardDescription>
         </CardHeader>
         

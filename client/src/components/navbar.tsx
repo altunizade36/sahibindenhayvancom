@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2 } from "lucide-react";
-import { GiUnicorn } from "react-icons/gi";
 import { NotificationDropdown } from "@/components/notification-dropdown";
+import { Logo } from "@/components/logo";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -68,8 +68,7 @@ export function Navbar() {
               <SheetContent side="left" className="w-[85vw] max-w-sm overflow-y-auto p-0">
                 <SheetHeader className="p-4 border-b">
                   <SheetTitle className="flex items-center gap-2 text-left">
-                    <GiUnicorn className="w-6 h-6 text-primary" />
-                    <span className="text-base">sahibinden<span className="text-primary">hayvan</span></span>
+                    <Logo size="sm" />
                   </SheetTitle>
                   <SheetDescription className="sr-only">
                     Navigasyon menüsü
@@ -225,16 +224,9 @@ export function Navbar() {
             </Sheet>
 
             {/* Logo */}
-            <Link href="/">
-              <div className="flex items-center gap-1.5 cursor-pointer" data-testid="link-home">
-                <GiUnicorn className="w-6 h-6 md:w-8 md:h-8 text-primary shrink-0" />
-                <span className="text-sm md:text-lg font-bold hidden sm:inline">
-                  sahibinden<span className="text-primary">hayvan</span>
-                </span>
-                <span className="text-sm font-bold sm:hidden">
-                  s<span className="text-primary">h</span>
-                </span>
-              </div>
+            <Link href="/" data-testid="link-home">
+              <Logo size="md" className="hidden sm:flex" />
+              <Logo size="sm" showText={false} iconOnly className="sm:hidden" />
             </Link>
           </div>
 

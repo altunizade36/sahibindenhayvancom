@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle } from "lucide-react";
-import { GiUnicorn } from "react-icons/gi";
 import { Progress } from "@/components/ui/progress";
+import { LogoFull } from "@/components/logo";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -248,9 +248,7 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 shadow-sm">
-              <GiUnicorn className="w-16 h-16 text-blue-600 dark:text-blue-400" data-testid="icon-logo" />
-            </div>
+            <LogoFull />
           </div>
           <CardTitle className="text-3xl font-bold" data-testid="text-title">
             {step === "form" && "Hesap Oluştur"}
@@ -465,6 +463,11 @@ export default function Register() {
                 <p className="text-sm text-muted-foreground mb-4">
                   SMS'teki <span className="font-bold text-foreground">6 haneli kodu</span> buraya yazın
                 </p>
+                {import.meta.env.DEV && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mb-2 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
+                    Test modu: <span className="font-mono font-bold">123456</span> kodunu kullanın
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-center">
