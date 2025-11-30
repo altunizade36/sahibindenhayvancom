@@ -2451,13 +2451,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Message Routes ============
   app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      // Get unique conversations from PostgreSQL
       const userId = (req.user as any).id;
       
-      // Get all messages where user is sender or receiver
+      // Get all messages with listing info where user is sender or receiver
       const allMessages = await db
-        .select()
+        .select({
+          message: messages,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            price: listings.price,
+            images: listings.images,
+            city: listings.city,
+            district: listings.district,
+          },
+        })
         .from(messages)
+        .leftJoin(listings, eq(messages.listingId, listings.id))
         .where(
           sql`${messages.senderId} = ${userId} OR ${messages.receiverId} = ${userId}`
         )
@@ -2465,19 +2475,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Group by conversation partner
       const conversationsMap = new Map();
-      for (const msg of allMessages) {
+      for (const row of allMessages) {
+        const msg = row.message;
         const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
         if (!conversationsMap.has(partnerId)) {
           conversationsMap.set(partnerId, {
-            userId: partnerId,
-            lastMessage: msg.content,
-            lastMessageTime: msg.createdAt,
+            partnerId: partnerId,
+            lastMessage: msg,
+            listing: row.listing,
             unreadCount: 0,
           });
         }
       }
       
-      res.json(Array.from(conversationsMap.values()));
+      // Get all unique partner IDs
+      const partnerIds = Array.from(conversationsMap.keys());
+      
+      if (partnerIds.length === 0) {
+        return res.json([]);
+      }
+      
+      // Fetch partner user details
+      const partners = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        })
+        .from(users)
+        .where(sql`${users.id} = ANY(${partnerIds})`);
+      
+      // Create a map for quick lookup
+      const partnersMap = new Map(partners.map(p => [p.id, p]));
+      
+      // Build final conversations array with user info
+      const conversations = Array.from(conversationsMap.values()).map(conv => ({
+        ...conv,
+        user: partnersMap.get(conv.partnerId) || null,
+      }));
+      
+      res.json(conversations);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
       res.status(500).json({ message: "Failed to fetch conversations" });
@@ -2489,16 +2529,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUserId = (req.user as any).id;
       const otherUserId = req.params.userId;
       
-      // Get messages between two users from PostgreSQL
+      // Get messages between two users with listing info
       const msgs = await db
-        .select()
+        .select({
+          message: messages,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            price: listings.price,
+            images: listings.images,
+            city: listings.city,
+            district: listings.district,
+          },
+        })
         .from(messages)
+        .leftJoin(listings, eq(messages.listingId, listings.id))
         .where(
           sql`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
         )
         .orderBy(messages.createdAt);
       
-      res.json(msgs);
+      // Flatten and return messages with listing info attached
+      const result = msgs.map(row => ({
+        ...row.message,
+        listing: row.listing,
+      }));
+      
+      // Also get the conversation listing (most recent one with a listing)
+      const conversationListing = msgs.find(m => m.listing)?.listing || null;
+      
+      res.json({
+        messages: result,
+        listing: conversationListing,
+      });
     } catch (error) {
       console.error("Failed to fetch messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });

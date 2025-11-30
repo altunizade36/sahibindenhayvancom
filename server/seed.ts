@@ -1,10 +1,11 @@
 import { db } from "./db";
-import { categories, locations, blogPosts, storeCategories } from "@shared/schema";
+import { categories, locations, blogPosts, storeCategories, users } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
 import { storeCategories as storeCategoriesData } from "./data/store-categories";
+import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
   console.log("🌱 Seeding database...");
@@ -159,6 +160,11 @@ export async function seedDatabase() {
     let addedCount = 0;
     let updatedCount = 0;
     const existingSlugs = new Set(allExistingBlogs.map(b => b.slug));
+    
+    if (!veterinarianAuthor) {
+      console.log("⚠️ Blog author not found, skipping blog posts seeding");
+      return;
+    }
     
     for (let i = 0; i < blogPostsData.length; i++) {
       const post = blogPostsData[i];
