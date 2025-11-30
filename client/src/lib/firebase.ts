@@ -45,11 +45,12 @@ export function getRateLimitRemaining(): number {
   return 0;
 }
 
-// Declare global type for recaptcha
+// Declare global type for recaptcha and dev mode
 declare global {
   interface Window {
     recaptchaVerifier: RecaptchaVerifier | undefined;
     confirmationResult: ConfirmationResult | undefined;
+    devModeOTP?: boolean;
   }
 }
 
@@ -139,13 +140,6 @@ async function ensureRecaptchaReady(containerId: string = 'recaptcha-container')
   }
   
   return window.recaptchaVerifier;
-}
-
-// Development mode bypass flag - stored in window for OTP verification
-declare global {
-  interface Window {
-    devModeOTP?: boolean;
-  }
 }
 
 // Send OTP via Firebase (with development bypass)
