@@ -54,6 +54,13 @@ No specific user preferences were provided in the original document.
 - **Authentication**: Triple auth system - Replit Auth (OIDC-based OAuth), Email/Password with bcrypt, Firebase Phone Auth with SMS verification.
 - **Firebase**: Phone authentication with real SMS delivery (10,000 free SMS/month), Admin SDK for server-side token verification.
 - **Session Storage**: PostgreSQL (sessions table) with 7-day TTL.
-- **Image Storage**: Replit Object Storage.
+- **Image Storage**: Replit Object Storage with Sharp-based processing.
+  - **Image Processing System**: Server-side image processing with Sharp library
+    - Automatic WebP conversion for optimized file sizes
+    - Multiple size variants: thumbnail (320px), medium (800px), large (1600px)
+    - EXIF rotation handling
+    - Stored in `listing_images` table with variant URLs
+    - API endpoints: `/api/listing-images/upload`, `/api/listing-images/:listingId`, reorder and cover selection
+  - **Frontend Upload**: Drag-drop interface with progress indicators, image reordering, cover photo selection
 - **Bot Protection**: Google reCAPTCHA v3 for forms, Firebase invisible reCAPTCHA for phone auth.
 - **Monitoring**: Health checks, Prometheus metrics.

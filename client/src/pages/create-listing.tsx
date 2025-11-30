@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2, Check, GripVertical, Star } from "lucide-react";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import type { Location } from "@shared/schema";
@@ -77,6 +77,9 @@ export default function CreateListing() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [coverIndex, setCoverIndex] = useState(0);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const form = useForm<ListingFormData>({
     resolver: zodResolver(listingFormSchema),
@@ -123,9 +126,16 @@ export default function CreateListing() {
     mutationFn: async (data: ListingFormData) => {
       const recaptchaToken = await getRecaptchaToken('create_listing');
       
+      const orderedImages = uploadedImages.length > 0 
+        ? [
+            uploadedImages[coverIndex],
+            ...uploadedImages.filter((_, i) => i !== coverIndex)
+          ]
+        : [];
+      
       return await apiRequest("POST", "/api/listings", {
         ...data,
-        images: uploadedImages,
+        images: orderedImages,
         characterTraits: selectedTraits,
         recaptchaToken,
       });
@@ -147,63 +157,6 @@ export default function CreateListing() {
     },
   });
 
-  // Otomatik fotoğraf optimize etme fonksiyonu
-  const optimizeImage = useCallback((file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      img.onload = () => {
-        // Maksimum boyutlar (orantılı küçültme)
-        const MAX_WIDTH = 1920;
-        const MAX_HEIGHT = 1080;
-        
-        let { width, height } = img;
-        
-        // Orantılı küçültme
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        if (!ctx) {
-          reject(new Error('Canvas context error'));
-          return;
-        }
-        
-        // Beyaz arka plan (şeffaf PNG'ler için)
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, width, height);
-        
-        // Yüksek kaliteli yeniden boyutlandırma
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // JPEG olarak sıkıştır (kalite: 0.85)
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('Blob oluşturulamadı'));
-            }
-          },
-          'image/jpeg',
-          0.85
-        );
-      };
-      
-      img.onerror = () => reject(new Error('Fotoğraf yüklenemedi'));
-      img.src = URL.createObjectURL(file);
-    });
-  }, []);
-
   const handleImageUpload = useCallback(async (files: FileList) => {
     if (uploadedImages.length + files.length > 10) {
       toast({
@@ -214,53 +167,56 @@ export default function CreateListing() {
       return;
     }
 
+    const validFiles: File[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Hata",
+          description: `${file.name} bir resim dosyası değil`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Hata",
+          description: `${file.name} 10MB'dan büyük olamaz`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
     setUploadingImages(true);
     
     try {
-      for (const file of Array.from(files)) {
-        // Sadece resim dosyalarını kabul et
-        if (!file.type.startsWith('image/')) {
-          toast({
-            title: "Hata",
-            description: `${file.name} bir resim dosyası değil`,
-            variant: "destructive",
-          });
-          continue;
-        }
+      const formData = new FormData();
+      validFiles.forEach(file => formData.append('images', file));
+      
+      const uploadResponse = await fetch('/api/listing-images/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
 
-        // Fotoğrafı otomatik optimize et (boyut ve kalite)
-        let optimizedFile: Blob;
-        try {
-          optimizedFile = await optimizeImage(file);
-        } catch {
-          toast({
-            title: "Hata",
-            description: `${file.name} optimize edilemedi`,
-            variant: "destructive",
-          });
-          continue;
-        }
-
-        // Upload file through backend (no CORS issues)
-        const formData = new FormData();
-        formData.append('file', optimizedFile, file.name.replace(/\.[^/.]+$/, '.jpg'));
-        
-        const uploadResponse = await fetch('/api/objects/upload-file', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include',
+      if (uploadResponse.ok) {
+        const result = await uploadResponse.json();
+        const newUrls = result.images.map((img: any) => img.thumbnailUrl || img.originalUrl);
+        setUploadedImages(prev => [...prev, ...newUrls]);
+        toast({
+          title: "Başarılı",
+          description: result.message,
         });
-
-        if (uploadResponse.ok) {
-          const { normalizedPath } = await uploadResponse.json();
-          setUploadedImages(prev => [...prev, normalizedPath]);
-        } else {
-          toast({
-            title: "Yükleme Hatası",
-            description: `${file.name} yüklenemedi`,
-            variant: "destructive",
-          });
-        }
+      } else {
+        const error = await uploadResponse.json();
+        toast({
+          title: "Yükleme Hatası",
+          description: error.message || "Fotoğraflar yüklenemedi",
+          variant: "destructive",
+        });
       }
     } catch {
       toast({
@@ -271,11 +227,42 @@ export default function CreateListing() {
     } finally {
       setUploadingImages(false);
     }
-  }, [uploadedImages, toast, optimizeImage]);
+  }, [uploadedImages, toast]);
 
   const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages(prev => {
+      const newImages = prev.filter((_, i) => i !== index);
+      if (newImages.length === 0) {
+        setCoverIndex(0);
+      } else if (index === coverIndex) {
+        setCoverIndex(0);
+      } else if (index < coverIndex) {
+        setCoverIndex(coverIndex - 1);
+      }
+      return newImages;
+    });
   };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files?.length) {
+      handleImageUpload(e.dataTransfer.files);
+    }
+  }, [handleImageUpload]);
 
   const onSubmit = (data: ListingFormData) => {
     createListingMutation.mutate({
@@ -712,45 +699,62 @@ export default function CreateListing() {
                   <div className="space-y-3 md:space-y-4">
                     <h3 className="text-base md:text-lg font-semibold">Fotoğraflar</h3>
                     <p className="text-xs md:text-sm text-muted-foreground">
-                      Hayvanınızın fotoğraflarını ekleyin. Sistem otomatik olarak optimize eder.
+                      Hayvanınızın fotoğraflarını ekleyin. Sistem otomatik olarak optimize eder ve WebP formatına dönüştürür.
                     </p>
                     
                     {/* Ana Yükleme Alanı */}
                     {uploadedImages.length === 0 && (
-                      <label className="block w-full p-6 md:p-8 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all active:scale-[0.99]">
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`relative block w-full p-6 md:p-8 rounded-xl border-2 border-dashed cursor-pointer transition-all active:scale-[0.99] ${
+                          isDragging 
+                            ? "border-primary bg-primary/10 scale-[1.01]" 
+                            : "border-primary/30 hover:border-primary/60 bg-primary/5"
+                        }`}
+                        data-testid="dropzone-images"
+                      >
                         <input
                           type="file"
                           accept="image/*"
                           multiple
-                          className="hidden"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
                           disabled={uploadingImages}
                           data-testid="input-image-upload-main"
                         />
-                        <div className="flex flex-col items-center justify-center text-center">
+                        <div className="flex flex-col items-center justify-center text-center pointer-events-none">
                           {uploadingImages ? (
                             <>
                               <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-primary animate-spin mb-2 md:mb-3" />
                               <span className="text-base md:text-lg font-medium text-primary">Yükleniyor...</span>
-                              <span className="text-xs md:text-sm text-muted-foreground mt-1">Lütfen bekleyin</span>
+                              <span className="text-xs md:text-sm text-muted-foreground mt-1">Görseller işleniyor</span>
                             </>
                           ) : (
                             <>
-                              <ImagePlus className="w-10 h-10 md:w-12 md:h-12 text-primary mb-2 md:mb-3" />
-                              <span className="text-base md:text-lg font-medium">Fotoğraf Seç</span>
-                              <span className="text-xs md:text-sm text-muted-foreground mt-1">Tıklayın veya sürükleyin</span>
-                              <span className="text-[10px] md:text-xs text-muted-foreground mt-2 md:mt-3">JPG, PNG - En fazla 10 fotoğraf</span>
+                              <Upload className={`w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3 transition-colors ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+                              <span className="text-base md:text-lg font-medium">Fotoğraf Yükle</span>
+                              <span className="text-xs md:text-sm text-muted-foreground mt-1">
+                                {isDragging ? "Bırakarak yükleyin" : "Sürükleyin veya tıklayın"}
+                              </span>
+                              <span className="text-[10px] md:text-xs text-muted-foreground mt-2 md:mt-3">JPG, PNG, WebP - En fazla 10 fotoğraf, her biri max 10MB</span>
                             </>
                           )}
                         </div>
-                      </label>
+                      </div>
                     )}
 
                     {/* Yüklenen Fotoğraflar */}
                     {uploadedImages.length > 0 && (
-                      <div className="space-y-2 md:space-y-3">
+                      <div 
+                        className={`space-y-2 md:space-y-3 ${isDragging ? "ring-2 ring-primary ring-offset-2 rounded-lg p-2" : ""}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs md:text-sm font-medium">{uploadedImages.length} fotoğraf</span>
+                          <span className="text-xs md:text-sm font-medium">{uploadedImages.length}/10 fotoğraf</span>
                           {uploadedImages.length < 10 && (
                             <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs md:text-sm font-medium cursor-pointer hover:bg-primary/90 active:scale-[0.98]">
                               <input
@@ -767,7 +771,7 @@ export default function CreateListing() {
                               ) : (
                                 <ImagePlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                               )}
-                              <span className="hidden xs:inline">Daha Fazla</span>
+                              <span className="hidden xs:inline">Daha Fazla Ekle</span>
                               <span className="xs:hidden">Ekle</span>
                             </label>
                           )}
@@ -775,24 +779,110 @@ export default function CreateListing() {
                         
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
                           {uploadedImages.map((url, index) => (
-                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border">
-                              <img src={url} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" />
+                            <div 
+                              key={index} 
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = "move";
+                                setDraggedIndex(index);
+                              }}
+                              onDragEnd={() => setDraggedIndex(null)}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = "move";
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                if (draggedIndex !== null && draggedIndex !== index) {
+                                  const newImages = [...uploadedImages];
+                                  const [draggedImage] = newImages.splice(draggedIndex, 1);
+                                  newImages.splice(index, 0, draggedImage);
+                                  setUploadedImages(newImages);
+                                  if (coverIndex === draggedIndex) {
+                                    setCoverIndex(index);
+                                  } else if (coverIndex === index) {
+                                    setCoverIndex(draggedIndex);
+                                  } else if (draggedIndex < coverIndex && index >= coverIndex) {
+                                    setCoverIndex(coverIndex - 1);
+                                  } else if (draggedIndex > coverIndex && index <= coverIndex) {
+                                    setCoverIndex(coverIndex + 1);
+                                  }
+                                }
+                                setDraggedIndex(null);
+                              }}
+                              className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing ${
+                                draggedIndex === index 
+                                  ? "opacity-50 scale-95 border-primary" 
+                                  : index === coverIndex 
+                                    ? "border-primary ring-2 ring-primary/30" 
+                                    : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <img src={url} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <div className="absolute top-1 left-1 p-1 bg-black/50 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                <GripVertical className="w-4 h-4" />
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 shadow-lg"
+                                className="absolute top-1 right-1 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                                 data-testid={`button-remove-image-${index}`}
                               >
                                 <X className="w-4 h-4" />
                               </button>
-                              {index === 0 && (
-                                <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs text-center py-1 font-medium">
-                                  Kapak Fotoğrafı
+                              {index === coverIndex ? (
+                                <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs text-center py-1 font-medium flex items-center justify-center gap-1">
+                                  <Star className="w-3 h-3 fill-current" />
+                                  Kapak
                                 </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setCoverIndex(index)}
+                                  className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1"
+                                  data-testid={`button-set-cover-${index}`}
+                                >
+                                  <Star className="w-3 h-3" />
+                                  Kapak Yap
+                                </button>
                               )}
                             </div>
                           ))}
+                          
+                          {/* Daha fazla ekle butonu (grid içinde) */}
+                          {uploadedImages.length < 10 && uploadedImages.length > 0 && (
+                            <label 
+                              className={`relative aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+                                isDragging ? "border-primary bg-primary/10" : "border-muted-foreground/30 hover:border-primary/50 bg-muted/30"
+                              }`}
+                              data-testid="button-add-image-grid"
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                                disabled={uploadingImages}
+                              />
+                              {uploadingImages ? (
+                                <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+                              ) : (
+                                <>
+                                  <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
+                                  <span className="text-xs text-muted-foreground">Ekle</span>
+                                </>
+                              )}
+                            </label>
+                          )}
                         </div>
+
+                        {uploadedImages.length > 1 && (
+                          <p className="text-xs text-muted-foreground text-center mt-2">
+                            Fotoğrafları sürükleyerek sıralayın, istediğiniz fotoğrafa tıklayarak kapak yapın
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>

@@ -7,7 +7,8 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema } from "@shared/schema";
+import { processAndUploadImage, deleteImageVariants, validateImageFile } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -3491,6 +3492,246 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching for public object:", error);
       return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ============ Listing Image Routes ============
+
+  // Upload multiple images for a listing (up to 10 at once)
+  app.post("/api/listing-images/upload", createLimiter, isAuthenticated, upload.array('images', 10), async (req: Request, res: Response) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "En az bir görsel yüklemeniz gerekmektedir." });
+      }
+
+      const listingId = req.body.listingId;
+      
+      // If listingId provided, verify ownership
+      if (listingId) {
+        const [listing] = await db
+          .select()
+          .from(listings)
+          .where(eq(listings.id, listingId))
+          .limit(1);
+        
+        if (!listing) {
+          return res.status(404).json({ message: "İlan bulunamadı." });
+        }
+        
+        if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+          return res.status(403).json({ message: "Bu ilana görsel yükleme yetkiniz yok." });
+        }
+      }
+
+      // Validate all files first
+      for (const file of files) {
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+          return res.status(400).json({ message: validation.error });
+        }
+      }
+
+      // Get current max display order
+      let currentMaxOrder = 0;
+      if (listingId) {
+        const maxOrderResult = await db
+          .select({ maxOrder: sql<number>`COALESCE(MAX(${listingImages.displayOrder}), 0)` })
+          .from(listingImages)
+          .where(eq(listingImages.listingId, listingId));
+        currentMaxOrder = maxOrderResult[0]?.maxOrder || 0;
+      }
+
+      // Process and upload all images
+      const uploadedImages = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
+          const processed = await processAndUploadImage(file.buffer, file.originalname, listingId);
+          
+          const [imageRecord] = await db.insert(listingImages).values({
+            listingId: listingId || null,
+            originalKey: processed.originalKey,
+            thumbnailKey: processed.thumbnailKey,
+            mediumKey: processed.mediumKey,
+            largeKey: processed.largeKey,
+            originalUrl: processed.originalUrl,
+            thumbnailUrl: processed.thumbnailUrl,
+            mediumUrl: processed.mediumUrl,
+            largeUrl: processed.largeUrl,
+            width: processed.width,
+            height: processed.height,
+            fileSize: processed.fileSize,
+            mimeType: processed.mimeType,
+            displayOrder: currentMaxOrder + i + 1,
+            isCover: i === 0 && currentMaxOrder === 0,
+            status: 'ready',
+          }).returning();
+          
+          uploadedImages.push(imageRecord);
+        } catch (err) {
+          console.error(`Error processing image ${file.originalname}:`, err);
+        }
+      }
+
+      res.json({
+        message: `${uploadedImages.length} görsel başarıyla yüklendi.`,
+        images: uploadedImages,
+      });
+    } catch (error) {
+      console.error("Error uploading listing images:", error);
+      res.status(500).json({ message: "Görsel yüklenirken bir hata oluştu." });
+    }
+  });
+
+  // Get images for a listing
+  app.get("/api/listing-images/:listingId", async (req: Request, res: Response) => {
+    try {
+      const images = await db
+        .select()
+        .from(listingImages)
+        .where(eq(listingImages.listingId, req.params.listingId))
+        .orderBy(listingImages.displayOrder);
+      
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching listing images:", error);
+      res.status(500).json({ message: "Görseller getirilemedi." });
+    }
+  });
+
+  // Delete a listing image
+  app.delete("/api/listing-images/:imageId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const [image] = await db
+        .select()
+        .from(listingImages)
+        .where(eq(listingImages.id, req.params.imageId))
+        .limit(1);
+      
+      if (!image) {
+        return res.status(404).json({ message: "Görsel bulunamadı." });
+      }
+
+      // Check ownership through listing
+      if (image.listingId) {
+        const [listing] = await db
+          .select()
+          .from(listings)
+          .where(eq(listings.id, image.listingId))
+          .limit(1);
+        
+        if (listing && listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+          return res.status(403).json({ message: "Bu görseli silme yetkiniz yok." });
+        }
+      }
+
+      // Delete from object storage
+      const keysToDelete = [
+        image.originalKey,
+        image.thumbnailKey,
+        image.mediumKey,
+        image.largeKey,
+      ].filter(Boolean) as string[];
+      
+      await deleteImageVariants(keysToDelete);
+
+      // Delete from database
+      await db.delete(listingImages).where(eq(listingImages.id, req.params.imageId));
+
+      res.json({ message: "Görsel başarıyla silindi." });
+    } catch (error) {
+      console.error("Error deleting listing image:", error);
+      res.status(500).json({ message: "Görsel silinirken bir hata oluştu." });
+    }
+  });
+
+  // Reorder listing images
+  app.patch("/api/listing-images/reorder", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { listingId, imageIds } = req.body;
+      
+      if (!listingId || !Array.isArray(imageIds)) {
+        return res.status(400).json({ message: "Geçersiz istek." });
+      }
+
+      // Verify ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı." });
+      }
+      
+      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Yetkiniz yok." });
+      }
+
+      // Update display orders
+      for (let i = 0; i < imageIds.length; i++) {
+        await db
+          .update(listingImages)
+          .set({ displayOrder: i })
+          .where(and(
+            eq(listingImages.id, imageIds[i]),
+            eq(listingImages.listingId, listingId)
+          ));
+      }
+
+      res.json({ message: "Görsel sıralaması güncellendi." });
+    } catch (error) {
+      console.error("Error reordering images:", error);
+      res.status(500).json({ message: "Sıralama güncellenirken bir hata oluştu." });
+    }
+  });
+
+  // Set cover image
+  app.patch("/api/listing-images/:imageId/cover", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const [image] = await db
+        .select()
+        .from(listingImages)
+        .where(eq(listingImages.id, req.params.imageId))
+        .limit(1);
+      
+      if (!image || !image.listingId) {
+        return res.status(404).json({ message: "Görsel bulunamadı." });
+      }
+
+      // Verify ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, image.listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı." });
+      }
+      
+      if (listing.sellerId !== (req.user as any).id && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Yetkiniz yok." });
+      }
+
+      // Clear existing cover
+      await db
+        .update(listingImages)
+        .set({ isCover: false })
+        .where(eq(listingImages.listingId, image.listingId));
+
+      // Set new cover
+      await db
+        .update(listingImages)
+        .set({ isCover: true })
+        .where(eq(listingImages.id, req.params.imageId));
+
+      res.json({ message: "Kapak görseli güncellendi." });
+    } catch (error) {
+      console.error("Error setting cover image:", error);
+      res.status(500).json({ message: "Kapak görseli güncellenirken bir hata oluştu." });
     }
   });
 
