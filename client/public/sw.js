@@ -20,22 +20,17 @@ const SKIP_CACHE_PATTERNS = [
   /extensions/,
 ];
 
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker');
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating Service Worker');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => !name.includes('-v2'))
-          .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
-            return caches.delete(name);
-          })
+          .map((name) => caches.delete(name))
       );
     })
   );
@@ -129,8 +124,6 @@ async function cacheFirstSafe(request) {
 }
 
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push received');
-  
   let data = { title: 'Sahibinden Hayvan', body: 'Yeni bildirim' };
   
   if (event.data) {
@@ -158,7 +151,6 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked');
   event.notification.close();
   
   const urlToOpen = event.notification.data?.url || '/';
