@@ -34,6 +34,10 @@ const registerSchema = z.object({
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
       return digits.length >= 10 && digits.length <= 12;
+    }, "Telefon numarası 10-12 rakam olmalı")
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '');
+      return digits.startsWith("05") || digits.startsWith("5");
     }, "Telefon numarası 05 ile başlamalı (örnek: 0532 123 45 67)"),
   password: z.string()
     .min(8, "Şifre en az 8 karakter olmalı")
