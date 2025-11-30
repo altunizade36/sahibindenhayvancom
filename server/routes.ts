@@ -328,81 +328,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============ Auth Routes (Hybrid: Replit Auth + Email/Password) ============
   
-  // Email/Password Registration
+  // Unified Registration (Email + Phone)
   app.post('/api/auth/register', createLimiter, async (req: Request, res: Response) => {
     try {
-      const { email, password, username, firstName, lastName } = req.body;
+      const { email, phone, password, firstName, lastName } = req.body;
 
-      // Validation
-      if (!email || !password) {
-        return res.status(400).json({ message: "Email ve şifre gereklidir" });
+      // Validation - require both email and phone
+      if (!email || !phone || !password) {
+        return res.status(400).json({ message: "Email, telefon ve şifre gereklidir" });
       }
 
       if (password.length < 8) {
         return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
       }
 
-      // Check if user already exists
-      const existingUser = await db.query.users.findFirst({
-        where: or(eq(users.email, email), username ? eq(users.username, username) : undefined),
+      // Normalize phone number
+      const normalizedPhone = phone.startsWith('+90') ? phone : phone.replace(/^0/, '+90');
+
+      // Check if user already exists with email
+      const existingEmailUser = await db.query.users.findFirst({
+        where: eq(users.email, email),
       });
 
-      if (existingUser) {
-        return res.status(400).json({ message: "Bu email veya kullanıcı adı zaten kayıtlı" });
+      if (existingEmailUser) {
+        return res.status(400).json({ message: "Bu email adresi zaten kayıtlı" });
+      }
+
+      // Check if user already exists with phone
+      const existingPhoneUser = await db.query.users.findFirst({
+        where: eq(users.phone, normalizedPhone),
+      });
+
+      if (existingPhoneUser) {
+        return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
       }
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Generate verification token
+      // Generate verification token for email
       const verificationToken = generateVerificationToken();
       const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      // Create user
+      // Create user with both email and phone (both unverified initially)
       const [newUser] = await db
         .insert(users)
         .values({
           email,
-          username: username || null,
+          phone: normalizedPhone,
           password: hashedPassword,
           firstName: firstName || null,
           lastName: lastName || null,
-          emailVerified: shouldAutoVerifyEmail(), // Auto-verify in dev mode
-          verificationToken: shouldAutoVerifyEmail() ? null : verificationToken,
-          verificationTokenExpiry: shouldAutoVerifyEmail() ? null : verificationTokenExpiry,
+          emailVerified: false,
+          phoneVerified: false,
+          verificationToken,
+          verificationTokenExpiry,
         })
         .returning();
 
-      // Send verification email (unless auto-verified)
-      if (!shouldAutoVerifyEmail()) {
-        await emailService.sendVerificationEmail(
-          email,
-          verificationToken,
-          username || firstName || email.split('@')[0]
-        );
-      }
-
-      // Log user in by creating session
-      (req as any).login({ claims: { sub: newUser.id } }, (err: any) => {
-        if (err) {
-          console.error("Session creation error:", err);
-          return res.status(500).json({ message: "Kayıt başarılı ama oturum açılamadı" });
-        }
-
-        res.status(201).json({
-          message: shouldAutoVerifyEmail() 
-            ? "Kayıt başarılı! Hoş geldiniz." 
-            : "Kayıt başarılı! Email adresinize doğrulama linki gönderdik.",
-          user: {
-            id: newUser.id,
-            email: newUser.email,
-            username: newUser.username,
-            firstName: newUser.firstName,
-            lastName: newUser.lastName,
-            role: newUser.role,
-            emailVerified: newUser.emailVerified,
-          },
-        });
+      // Don't auto-login yet - wait for phone verification
+      res.status(201).json({
+        message: "Kayıt başarılı! Telefon doğrulaması bekleniyor.",
+        userId: newUser.id,
+        requiresPhoneVerification: true,
+        requiresEmailVerification: true,
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -410,20 +399,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Email/Password Login
+  // Unified Login (Email or Phone + Password)
   app.post('/api/auth/login', createLimiter, async (req: Request, res: Response) => {
     try {
-      const { emailOrUsername, password } = req.body;
+      const { identifier, emailOrUsername, password } = req.body;
+      
+      // Support both old and new field names
+      const loginIdentifier = identifier || emailOrUsername;
 
-      if (!emailOrUsername || !password) {
-        return res.status(400).json({ message: "Email/kullanıcı adı ve şifre gereklidir" });
+      if (!loginIdentifier || !password) {
+        return res.status(400).json({ message: "Email/telefon ve şifre gereklidir" });
       }
 
-      // Find user by email or username
+      // Normalize identifier - check if it looks like a phone number
+      let normalizedIdentifier = loginIdentifier;
+      const isPhone = /^[\d\s\+\-\(\)]+$/.test(loginIdentifier.replace(/\s/g, '')) && 
+                     loginIdentifier.replace(/\D/g, '').length >= 10;
+      
+      if (isPhone) {
+        // Normalize phone number
+        const digits = loginIdentifier.replace(/\D/g, '');
+        normalizedIdentifier = digits.startsWith('90') ? `+${digits}` : `+90${digits.replace(/^0/, '')}`;
+      }
+
+      // Find user by email, phone, or username
       const user = await db.query.users.findFirst({
         where: or(
-          eq(users.email, emailOrUsername),
-          eq(users.username, emailOrUsername)
+          eq(users.email, loginIdentifier),
+          eq(users.phone, normalizedIdentifier),
+          eq(users.username, loginIdentifier)
         ),
       });
 
@@ -808,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Firebase Phone Authentication - Verify Firebase ID Token and create/login user
   app.post('/api/auth/firebase/verify', createLimiter, async (req: Request, res: Response) => {
     try {
-      const { idToken, phone, firstName, lastName, purpose = 'login' } = req.body;
+      const { idToken, phone, firstName, lastName, purpose = 'login', userId } = req.body;
 
       if (!idToken) {
         return res.status(400).json({ message: "Firebase token gereklidir" });
@@ -836,6 +840,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         where: eq(users.phone, normalizedPhone),
       });
 
+      if (purpose === 'verify' && userId) {
+        // Verify phone for existing user (unified registration flow)
+        const userToVerify = await db.query.users.findFirst({
+          where: eq(users.id, userId),
+        });
+
+        if (!userToVerify) {
+          return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+        }
+
+        // Update phone verification status and Firebase UID
+        await db
+          .update(users)
+          .set({ 
+            phoneVerified: true,
+            firebaseUid: decodedToken.uid 
+          })
+          .where(eq(users.id, userId));
+
+        // Send email verification
+        if (userToVerify.email && userToVerify.verificationToken) {
+          try {
+            await emailService.sendVerificationEmail(
+              userToVerify.email,
+              userToVerify.verificationToken,
+              userToVerify.firstName || userToVerify.email.split('@')[0]
+            );
+          } catch (emailError) {
+            console.error("Email sending error:", emailError);
+          }
+        }
+
+        // Create session
+        (req as any).login({ claims: { sub: userId } }, (err: any) => {
+          if (err) {
+            console.error("Session creation error:", err);
+            return res.status(500).json({ message: "Oturum oluşturulamadı" });
+          }
+
+          res.json({
+            message: "Telefon doğrulandı! Email doğrulama linki gönderildi.",
+            user: {
+              id: userToVerify.id,
+              email: userToVerify.email,
+              phone: userToVerify.phone,
+              firstName: userToVerify.firstName,
+              lastName: userToVerify.lastName,
+              role: userToVerify.role,
+              phoneVerified: true,
+              emailVerified: userToVerify.emailVerified,
+            },
+          });
+        });
+        return;
+      }
+
       if (purpose === 'register') {
         if (existingUser) {
           return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin." });
@@ -855,7 +915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning();
         user = newUser;
       } else {
-        // Login - find existing user or create new one
+        // Login - find existing user or error
         if (existingUser) {
           user = existingUser;
           
@@ -870,19 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .where(eq(users.id, existingUser.id));
           }
         } else {
-          // Auto-register if phone login doesn't find user
-          const [newUser] = await db
-            .insert(users)
-            .values({
-              phone: normalizedPhone,
-              phoneVerified: true,
-              firstName: firstName || null,
-              lastName: lastName || null,
-              emailVerified: false,
-              firebaseUid: decodedToken.uid,
-            })
-            .returning();
-          user = newUser;
+          return res.status(404).json({ message: "Bu telefon numarasıyla kayıtlı kullanıcı bulunamadı. Lütfen önce kayıt olun." });
         }
       }
 
