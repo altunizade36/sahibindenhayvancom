@@ -18,8 +18,6 @@ const firebaseConfig = {
   measurementId: "G-L6M9FYENF1"
 };
 
-const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
@@ -142,19 +140,12 @@ async function ensureRecaptchaReady(containerId: string = 'recaptcha-container')
   return window.recaptchaVerifier;
 }
 
-// Send OTP via Firebase (with development bypass)
-export async function sendFirebaseOTP(phoneNumber: string): Promise<ConfirmationResult | null> {
+// Send OTP via Firebase - Real SMS verification
+export async function sendFirebaseOTP(phoneNumber: string): Promise<ConfirmationResult> {
   // Clear any legacy rate limits
   clearRateLimit();
   
   const formattedPhone = formatPhoneNumber(phoneNumber);
-  
-  // Development mode: Skip Firebase SMS, use mock verification
-  if (isDevelopment) {
-    console.log('📱 Development Mode: SMS bypass aktif - Kod: 123456');
-    window.devModeOTP = true;
-    return null; // Return null in dev mode, verification will use dev bypass
-  }
   
   // Ensure recaptcha is ready (waits for DOM if needed)
   const verifier = await ensureRecaptchaReady();
@@ -200,19 +191,8 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
   }
 }
 
-// Verify OTP code (with development bypass)
+// Verify OTP code - Real Firebase verification
 export async function verifyFirebaseOTP(code: string): Promise<string> {
-  // Development mode: Accept "123456" as valid code
-  if (isDevelopment && window.devModeOTP) {
-    if (code === '123456') {
-      console.log('✅ Development Mode: OTP doğrulandı');
-      window.devModeOTP = false;
-      return 'dev-mode-token-' + Date.now(); // Return mock token for dev
-    } else {
-      throw new Error('Geçersiz kod. Development modunda 123456 kullanın.');
-    }
-  }
-  
   if (!window.confirmationResult) {
     throw new Error('Önce telefon numarasına kod göndermeniz gerekiyor');
   }

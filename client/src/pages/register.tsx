@@ -463,11 +463,6 @@ export default function Register() {
                 <p className="text-sm text-muted-foreground mb-4">
                   SMS'teki <span className="font-bold text-foreground">6 haneli kodu</span> buraya yazın
                 </p>
-                {import.meta.env.DEV && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mb-2 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-                    Test modu: <span className="font-mono font-bold">123456</span> kodunu kullanın
-                  </p>
-                )}
               </div>
 
               <div className="flex justify-center">
