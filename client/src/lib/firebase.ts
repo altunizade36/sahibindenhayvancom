@@ -7,7 +7,7 @@ import {
   PhoneAuthProvider,
   signInWithCredential
 } from "firebase/auth";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw",
@@ -19,26 +19,25 @@ const firebaseConfig = {
   measurementId: "G-L6M9FYENF1"
 };
 
+// reCAPTCHA Enterprise key for App Check
+const RECAPTCHA_ENTERPRISE_KEY = "6Ldu6RwsAAAAAF4dK0ZmC7gMJ0hWRBGt20BRb9mg";
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize App Check with reCAPTCHA v3
-// This is required because App Check is enforced on this Firebase project
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
-if (RECAPTCHA_SITE_KEY) {
-  try {
-    // Enable debug mode in development
-    if (import.meta.env.DEV) {
-      (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    }
-    initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
-      isTokenAutoRefreshEnabled: true
-    });
-    console.log('Firebase App Check initialized');
-  } catch (error) {
-    console.warn('Firebase App Check initialization failed:', error);
+// Initialize App Check with reCAPTCHA Enterprise
+try {
+  // Enable debug mode in development
+  if (import.meta.env.DEV) {
+    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_KEY),
+    isTokenAutoRefreshEnabled: true
+  });
+  console.log('Firebase App Check initialized with reCAPTCHA Enterprise');
+} catch (error) {
+  console.warn('Firebase App Check initialization failed:', error);
 }
 
 export const auth = getAuth(app);
