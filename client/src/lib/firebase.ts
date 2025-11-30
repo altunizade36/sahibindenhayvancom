@@ -26,9 +26,9 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-// Rate limit tracking
+// Rate limit tracking - Firebase typically has ~15 minute cooldown for phone auth
 const RATE_LIMIT_KEY = 'firebase_phone_rate_limit';
-const RATE_LIMIT_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const RATE_LIMIT_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds (aligned with Firebase limits)
 
 export function isRateLimited(): boolean {
   const rateLimitUntil = localStorage.getItem(RATE_LIMIT_KEY);
