@@ -76,27 +76,20 @@ export function formatPhoneNumber(phone: string): string {
   return '+90' + digits;
 }
 
-// Setup invisible reCAPTCHA with retry mechanism
+// Setup invisible reCAPTCHA - persistent widget
 export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier | null {
   try {
     const container = document.getElementById(containerId);
     if (!container) {
-      console.log('reCAPTCHA container not found:', containerId);
+      console.error('reCAPTCHA container not found:', containerId);
       return null;
     }
 
-    // Clean up any existing verifier
+    // Reuse existing verifier if available
     if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch {
-        // Silent cleanup
-      }
-      window.recaptchaVerifier = undefined;
+      console.log('Reusing existing reCAPTCHA verifier');
+      return window.recaptchaVerifier;
     }
-
-    // Clear container content
-    container.innerHTML = '';
 
     const verifier = new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
@@ -104,20 +97,13 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
         console.log('reCAPTCHA verified successfully');
       },
       'expired-callback': () => {
-        console.log('reCAPTCHA expired, clearing...');
-        if (window.recaptchaVerifier) {
-          try {
-            window.recaptchaVerifier.clear();
-          } catch {
-            // Silent cleanup
-          }
-          window.recaptchaVerifier = undefined;
-        }
+        console.log('reCAPTCHA expired');
+        window.recaptchaVerifier = undefined;
       }
     });
 
     window.recaptchaVerifier = verifier;
-    console.log('reCAPTCHA verifier created successfully');
+    console.log('reCAPTCHA verifier created');
     return verifier;
   } catch (error) {
     console.error('reCAPTCHA setup error:', error);
@@ -138,28 +124,29 @@ async function ensureRecaptchaReady(containerId: string = 'recaptcha-container')
     throw new Error('reCAPTCHA container not found');
   }
 
-  // Always create a fresh verifier for each SMS send
-  if (window.recaptchaVerifier) {
-    try {
-      window.recaptchaVerifier.clear();
-    } catch {
-      // Silent cleanup
-    }
-    window.recaptchaVerifier = undefined;
-  }
-
+  // Setup verifier (will reuse existing if available)
   const verifier = setupRecaptcha(containerId);
   if (!verifier) {
     throw new Error('reCAPTCHA doğrulaması başlatılamadı. Lütfen sayfayı yenileyin.');
   }
 
-  // Render the reCAPTCHA widget and wait for it to be ready
+  // Render the reCAPTCHA widget (only renders once, subsequent calls are no-op)
   try {
     await verifier.render();
-    console.log('reCAPTCHA rendered successfully');
-  } catch (error) {
-    console.error('reCAPTCHA render error:', error);
-    throw new Error('reCAPTCHA doğrulaması yüklenemedi. Lütfen sayfayı yenileyin.');
+    console.log('reCAPTCHA ready');
+  } catch (error: any) {
+    // If already rendered, this is fine
+    if (!error.message?.includes('already')) {
+      console.error('reCAPTCHA render error:', error);
+      // Clear and retry once
+      window.recaptchaVerifier = undefined;
+      const retryVerifier = setupRecaptcha(containerId);
+      if (retryVerifier) {
+        await retryVerifier.render();
+        return retryVerifier;
+      }
+      throw new Error('reCAPTCHA doğrulaması yüklenemedi. Lütfen sayfayı yenileyin.');
+    }
   }
   
   return verifier;
