@@ -51,7 +51,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-hero-title">
-              <span className="text-primary">Hayvan İlanları</span> - Türkiye'nin Güvenilir Platformu
+              <span className="text-primary">Hayvan İlanları</span> - Türkiye'nin Hayvan Pazarı
             </h1>
             <SearchBar categories={categories} />
           </div>
