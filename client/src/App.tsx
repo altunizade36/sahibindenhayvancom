@@ -8,6 +8,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { Navbar } from "@/components/navbar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { SplashScreen, useSplashScreen } from "@/components/splash-screen";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -154,11 +155,14 @@ function Router() {
 }
 
 function App() {
+  const { showSplash, hideSplash } = useSplashScreen();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <I18nProvider>
           <TooltipProvider>
+            {showSplash && <SplashScreen onComplete={hideSplash} />}
             <Toaster />
             <Router />
           </TooltipProvider>
