@@ -95,35 +95,29 @@ export function formatPhoneNumber(phone: string): string {
 // Setup invisible reCAPTCHA with retry mechanism
 export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier | null {
   try {
-    // Check if container exists in DOM
     const container = document.getElementById(containerId);
     if (!container) {
-      console.warn(`reCAPTCHA container '${containerId}' not found in DOM yet, will retry on OTP send`);
       return null;
     }
 
-    // Clear existing verifier if any
     if (window.recaptchaVerifier) {
       try {
         window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn('Error clearing existing reCAPTCHA:', e);
+      } catch {
+        // Silent cleanup
       }
       window.recaptchaVerifier = undefined;
     }
 
     const verifier = new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
-      callback: () => {
-        console.log('reCAPTCHA solved');
-      },
+      callback: () => {},
       'expired-callback': () => {
-        console.log('reCAPTCHA expired');
         if (window.recaptchaVerifier) {
           try {
             window.recaptchaVerifier.clear();
-          } catch (e) {
-            console.warn('Error clearing expired reCAPTCHA:', e);
+          } catch {
+            // Silent cleanup
           }
           window.recaptchaVerifier = undefined;
         }
@@ -132,8 +126,7 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
 
     window.recaptchaVerifier = verifier;
     return verifier;
-  } catch (error) {
-    console.error('Error setting up reCAPTCHA:', error);
+  } catch {
     return null;
   }
 }
@@ -198,8 +191,8 @@ export async function sendFirebaseOTP(phoneNumber: string): Promise<Confirmation
     if (window.recaptchaVerifier) {
       try {
         window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn('Error clearing reCAPTCHA after error:', e);
+      } catch {
+        // Silent cleanup
       }
       window.recaptchaVerifier = undefined;
     }
