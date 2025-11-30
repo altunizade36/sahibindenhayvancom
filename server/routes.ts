@@ -1728,9 +1728,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // SECURITY: Validate reCAPTCHA for listing creation (optional in dev)
+      // SECURITY: Validate reCAPTCHA for listing creation (skip in development)
       const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY) {
+      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === 'production') {
         if (!recaptchaToken) {
           return res.status(400).json({
             message: "Bot koruması doğrulaması gereklidir",
