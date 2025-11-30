@@ -74,14 +74,14 @@ export default function Profile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
       toast({
-        title: "Basarili",
-        description: "Ilan silindi",
+        title: "Başarılı",
+        description: "İlan silindi",
       });
     },
     onError: () => {
       toast({
         title: "Hata",
-        description: "Ilan silinirken bir hata olustu",
+        description: "İlan silinirken bir hata oluştu",
         variant: "destructive",
       });
     },
@@ -94,14 +94,14 @@ export default function Profile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
       toast({
-        title: "Basarili",
-        description: "Favorilerden kaldirildi",
+        title: "Başarılı",
+        description: "Favorilerden kaldırıldı",
       });
     },
     onError: () => {
       toast({
         title: "Hata",
-        description: "Islem sirasinda bir hata olustu",
+        description: "İşlem sırasında bir hata oluştu",
         variant: "destructive",
       });
     },
@@ -113,12 +113,12 @@ export default function Profile() {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 sm:p-12 text-center">
             <UserIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">Giris Gerekli</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Giriş Gerekli</h2>
             <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-              Profilinizi goruntulemek icin giris yapmalisiniz
+              Profilinizi görüntülemek için giriş yapmalısınız
             </p>
             <Link href="/giris">
-              <Button data-testid="button-login" className="w-full sm:w-auto">Giris Yap</Button>
+              <Button data-testid="button-login" className="w-full sm:w-auto">Giriş Yap</Button>
             </Link>
           </CardContent>
         </Card>
@@ -237,7 +237,7 @@ export default function Profile() {
                 <Link href="/ilan-ver">
                   <Button size="sm" data-testid="button-new-listing" className="w-full">
                     <Plus className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Ilan Ver</span>
+                    <span className="hidden sm:inline">İlan Ver</span>
                   </Button>
                 </Link>
               </div>
@@ -259,20 +259,20 @@ export default function Profile() {
                   )}
                   <div className="min-w-0">
                     <p className="font-semibold truncate">{myStore.displayName}</p>
-                    <p className="text-xs text-muted-foreground">Profesyonel Magazaniz</p>
+                    <p className="text-xs text-muted-foreground">Profesyonel Mağazanız</p>
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <Link href={`/magaza/${myStore.slug}`}>
                     <Button variant="outline" size="sm">
                       <Eye className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Gor</span>
+                      <span className="hidden sm:inline">Gör</span>
                     </Button>
                   </Link>
                   <Link href="/magazam">
                     <Button size="sm">
                       <Settings className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Yonet</span>
+                      <span className="hidden sm:inline">Yönet</span>
                     </Button>
                   </Link>
                 </div>
@@ -285,14 +285,14 @@ export default function Profile() {
           <Card className="mb-4 sm:mb-6 border-dashed">
             <CardContent className="p-4 sm:p-6 text-center">
               <Store className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-              <h3 className="font-semibold mb-2">Profesyonel Magaza Acin</h3>
+              <h3 className="font-semibold mb-2">Profesyonel Mağaza Açın</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Markali bir magaza sayfasi olusturun, takipci kazanin
+                Markalı bir mağaza sayfası oluşturun, takipçi kazanın
               </p>
               <Link href="/magazam">
                 <Button data-testid="button-create-store">
                   <Store className="w-4 h-4 mr-2" />
-                  Magaza Olustur
+                  Mağaza Oluştur
                 </Button>
               </Link>
             </CardContent>
@@ -303,7 +303,7 @@ export default function Profile() {
           <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:gap-2">
             <TabsTrigger value="listings" data-testid="tab-my-listings" className="text-xs sm:text-sm">
               <Package className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="truncate">Ilanlarim ({myListings?.length || 0})</span>
+              <span className="truncate">İlanlarım ({myListings?.length || 0})</span>
             </TabsTrigger>
             <TabsTrigger value="favorites" data-testid="tab-favorites" className="text-xs sm:text-sm">
               <Heart className="w-4 h-4 mr-1 sm:mr-2" />
@@ -322,14 +322,14 @@ export default function Profile() {
               <Card>
                 <CardContent className="p-8 sm:p-12 text-center">
                   <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Henuz Ilan Yok</h3>
+                  <h3 className="text-lg font-semibold mb-2">Henüz İlan Yok</h3>
                   <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-                    Ilk ilaninizi olusturun ve satisa baslayin
+                    İlk ilanınızı oluşturun ve satışa başlayın
                   </p>
                   <Link href="/ilan-ver">
                     <Button data-testid="button-create-listing">
                       <Plus className="w-4 h-4 mr-2" />
-                      Ilan Ver
+                      İlan Ver
                     </Button>
                   </Link>
                 </CardContent>
@@ -355,7 +355,7 @@ export default function Profile() {
                           variant={listing.status === "active" ? "default" : "secondary"}
                           className="absolute top-2 right-2"
                         >
-                          {listing.status === "active" ? "Aktif" : listing.status === "sold" ? "Satildi" : "Askida"}
+                          {listing.status === "active" ? "Aktif" : listing.status === "sold" ? "Satıldı" : "Askıda"}
                         </Badge>
                       </div>
                     </Link>
@@ -382,7 +382,7 @@ export default function Profile() {
                             data-testid={`button-edit-${listing.id}`}
                           >
                             <Pencil className="w-3.5 h-3.5 sm:mr-2" />
-                            <span className="hidden sm:inline">Duzenle</span>
+                            <span className="hidden sm:inline">Düzenle</span>
                           </Button>
                         </Link>
                         <Button
@@ -413,13 +413,13 @@ export default function Profile() {
               <Card>
                 <CardContent className="p-8 sm:p-12 text-center">
                   <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Henuz Favori Yok</h3>
+                  <h3 className="text-lg font-semibold mb-2">Henüz Favori Yok</h3>
                   <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-                    Begendiginiz ilanlari favorilerinize ekleyin
+                    Beğendiğiniz ilanları favorilerinize ekleyin
                   </p>
                   <Link href="/ilanlar">
                     <Button variant="outline" data-testid="button-browse-listings">
-                      Ilanlari Incele
+                      İlanları İncele
                     </Button>
                   </Link>
                 </CardContent>
@@ -446,7 +446,7 @@ export default function Profile() {
                     <CardContent className="p-3 sm:p-4">
                       <Link href={`/ilan/${favorite.listingId}`}>
                         <h3 className="font-semibold mb-2 line-clamp-1 cursor-pointer hover:text-primary text-sm sm:text-base">
-                          {favorite.listing?.title || "Ilan Yukleniyor..."}
+                          {favorite.listing?.title || "İlan Yükleniyor..."}
                         </h3>
                       </Link>
                       {favorite.listing && (

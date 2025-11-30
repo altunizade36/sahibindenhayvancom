@@ -40,7 +40,7 @@ export function ListingStats({
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{views} goruntulenme</p>
+            <p>{views} görüntülenme</p>
           </TooltipContent>
         </Tooltip>
         
@@ -52,7 +52,7 @@ export function ListingStats({
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{favoriteCount} kisi favoriledi</p>
+            <p>{favoriteCount} kişi favoriledi</p>
           </TooltipContent>
         </Tooltip>
         
@@ -70,7 +70,7 @@ export function ListingStats({
     <div className="flex flex-wrap items-center gap-4">
       <div className="flex items-center gap-2 text-muted-foreground" data-testid="stat-views">
         <Eye className="h-4 w-4" />
-        <span className="text-sm">{formatNumber(views)} goruntulenme</span>
+        <span className="text-sm">{formatNumber(views)} görüntülenme</span>
       </div>
       
       <div className="flex items-center gap-2 text-muted-foreground" data-testid="stat-favorites">
@@ -81,14 +81,14 @@ export function ListingStats({
       {shareCount > 0 && (
         <div className="flex items-center gap-2 text-muted-foreground" data-testid="stat-shares">
           <Share2 className="h-4 w-4" />
-          <span className="text-sm">{formatNumber(shareCount)} paylasim</span>
+          <span className="text-sm">{formatNumber(shareCount)} paylaşım</span>
         </div>
       )}
       
       {showTrending && isTrending && (
         <Badge variant="default" className="bg-orange-500">
           <TrendingUp className="h-3 w-3 mr-1" />
-          Trend Ilan
+          Trend İlan
         </Badge>
       )}
     </div>

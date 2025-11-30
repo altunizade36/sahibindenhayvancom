@@ -57,14 +57,14 @@ export function SocialShare({ listingId, title, url, compact = false }: SocialSh
       setCopied(true);
       trackShare();
       toast({
-        title: "Link kopyalandi",
-        description: "Ilan linki panoya kopyalandi",
+        title: "Link kopyalandı",
+        description: "İlan linki panoya kopyalandı",
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast({
         title: "Hata",
-        description: "Link kopyalanamadi",
+        description: "Link kopyalanamadı",
         variant: "destructive",
       });
     }

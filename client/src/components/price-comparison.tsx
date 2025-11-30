@@ -114,14 +114,14 @@ export function PriceComparison({ listingId, currentPrice }: PriceComparisonProp
             <>
               <TrendingDown className="h-4 w-4 text-green-500" />
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                Ortalamanin %{Math.abs(parseFloat(priceDiffPercent))} altinda
+                Ortalamanın %{Math.abs(parseFloat(priceDiffPercent))} altında
               </Badge>
             </>
           ) : position === 'above_avg' ? (
             <>
               <TrendingUp className="h-4 w-4 text-red-500" />
               <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                Ortalamanin %{priceDiffPercent} ustunde
+                Ortalamanın %{priceDiffPercent} üstünde
               </Badge>
             </>
           ) : (
@@ -135,7 +135,7 @@ export function PriceComparison({ listingId, currentPrice }: PriceComparisonProp
         {data.similarListings.length > 0 && (
           <div className="space-y-2 pt-2 border-t">
             <div className="text-sm font-medium text-muted-foreground">
-              Benzer Ilanlar ({data.priceStats.count} ilan)
+              Benzer İlanlar ({data.priceStats.count} ilan)
             </div>
             <div className="grid gap-2">
               {data.similarListings.slice(0, 3).map((listing) => (

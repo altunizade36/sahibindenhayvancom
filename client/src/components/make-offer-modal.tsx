@@ -20,7 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loader2, Send, TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 const offerSchema = z.object({
-  amount: z.string().min(1, "Teklif tutari gerekli"),
+  amount: z.string().min(1, "Teklif tutarı gerekli"),
   message: z.string().optional(),
 });
 
@@ -65,8 +65,8 @@ export function MakeOfferModal({
     },
     onSuccess: () => {
       toast({
-        title: "Teklif gonderildi",
-        description: "Teklifiniz saticiya iletildi",
+        title: "Teklif gönderildi",
+        description: "Teklifiniz satıcıya iletildi",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/offers/sent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/listings", listingId, "offers"] });
@@ -76,7 +76,7 @@ export function MakeOfferModal({
     onError: (error: any) => {
       toast({
         title: "Hata",
-        description: error.message || "Teklif gonderilemedi",
+        description: error.message || "Teklif gönderilemedi",
         variant: "destructive",
       });
     },
@@ -92,9 +92,9 @@ export function MakeOfferModal({
   const percentDiff = price > 0 ? ((difference / price) * 100).toFixed(1) : 0;
   
   const suggestedOffers = [
-    { label: "%10 dusuk", value: (price * 0.9).toFixed(0) },
-    { label: "%5 dusuk", value: (price * 0.95).toFixed(0) },
-    { label: "Liste fiyati", value: price.toFixed(0) },
+    { label: "%10 düşük", value: (price * 0.9).toFixed(0) },
+    { label: "%5 düşük", value: (price * 0.95).toFixed(0) },
+    { label: "Liste fiyatı", value: price.toFixed(0) },
   ];
   
   return (
@@ -103,20 +103,20 @@ export function MakeOfferModal({
         <DialogHeader>
           <DialogTitle>Teklif Ver</DialogTitle>
           <DialogDescription>
-            {listingTitle} icin teklifinizi girin
+            {listingTitle} için teklifinizi girin
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>Liste Fiyati</Label>
+            <Label>Liste Fiyatı</Label>
             <div className="text-2xl font-bold text-primary">
               {parseFloat(listingPrice).toLocaleString("tr-TR")} TL
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="amount">Teklif Tutari (TL)</Label>
+            <Label htmlFor="amount">Teklif Tutarı (TL)</Label>
             <Input
               id="amount"
               type="number"
@@ -170,7 +170,7 @@ export function MakeOfferModal({
             <Label htmlFor="message">Mesaj (Opsiyonel)</Label>
             <Textarea
               id="message"
-              placeholder="Saticiya bir mesaj ekleyin..."
+              placeholder="Satıcıya bir mesaj ekleyin..."
               {...form.register("message")}
               data-testid="input-offer-message"
             />
@@ -183,7 +183,7 @@ export function MakeOfferModal({
               onClick={() => onOpenChange(false)}
               data-testid="button-cancel-offer"
             >
-              Iptal
+              İptal
             </Button>
             <Button
               type="submit"
@@ -195,7 +195,7 @@ export function MakeOfferModal({
               ) : (
                 <Send className="mr-2 h-4 w-4" />
               )}
-              Teklif Gonder
+              Teklif Gönder
             </Button>
           </DialogFooter>
         </form>
