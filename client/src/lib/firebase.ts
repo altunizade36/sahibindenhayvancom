@@ -81,9 +81,11 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
   try {
     const container = document.getElementById(containerId);
     if (!container) {
+      console.log('reCAPTCHA container not found:', containerId);
       return null;
     }
 
+    // Clean up any existing verifier
     if (window.recaptchaVerifier) {
       try {
         window.recaptchaVerifier.clear();
@@ -93,10 +95,16 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       window.recaptchaVerifier = undefined;
     }
 
+    // Clear container content
+    container.innerHTML = '';
+
     const verifier = new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
-      callback: () => {},
+      callback: () => {
+        console.log('reCAPTCHA verified successfully');
+      },
       'expired-callback': () => {
+        console.log('reCAPTCHA expired, clearing...');
         if (window.recaptchaVerifier) {
           try {
             window.recaptchaVerifier.clear();
@@ -109,8 +117,10 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
     });
 
     window.recaptchaVerifier = verifier;
+    console.log('reCAPTCHA verifier created successfully');
     return verifier;
-  } catch {
+  } catch (error) {
+    console.error('reCAPTCHA setup error:', error);
     return null;
   }
 }
@@ -119,25 +129,40 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
 async function ensureRecaptchaReady(containerId: string = 'recaptcha-container'): Promise<RecaptchaVerifier> {
   // Wait for container to be in DOM
   let attempts = 0;
-  while (!document.getElementById(containerId) && attempts < 10) {
+  while (!document.getElementById(containerId) && attempts < 20) {
     await new Promise(resolve => setTimeout(resolve, 100));
     attempts++;
   }
   
   if (!document.getElementById(containerId)) {
-    throw new Error('reCAPTCHA container not found after waiting');
+    throw new Error('reCAPTCHA container not found');
   }
 
-  // Setup or reuse existing verifier
-  if (!window.recaptchaVerifier) {
-    const verifier = setupRecaptcha(containerId);
-    if (!verifier) {
-      throw new Error('reCAPTCHA doğrulaması başlatılamadı');
+  // Always create a fresh verifier for each SMS send
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch {
+      // Silent cleanup
     }
-    return verifier;
+    window.recaptchaVerifier = undefined;
+  }
+
+  const verifier = setupRecaptcha(containerId);
+  if (!verifier) {
+    throw new Error('reCAPTCHA doğrulaması başlatılamadı. Lütfen sayfayı yenileyin.');
+  }
+
+  // Render the reCAPTCHA widget and wait for it to be ready
+  try {
+    await verifier.render();
+    console.log('reCAPTCHA rendered successfully');
+  } catch (error) {
+    console.error('reCAPTCHA render error:', error);
+    throw new Error('reCAPTCHA doğrulaması yüklenemedi. Lütfen sayfayı yenileyin.');
   }
   
-  return window.recaptchaVerifier;
+  return verifier;
 }
 
 // Send OTP via Firebase - Real SMS verification
