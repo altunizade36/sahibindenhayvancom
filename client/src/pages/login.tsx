@@ -113,7 +113,7 @@ export default function Login() {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold" data-testid="text-title">
-            Tekrar Hoş Geldiniz
+            Hoş Geldiniz
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">
             sahibinden<span className="text-primary">hayvan</span> hesabınıza giriş yapın
