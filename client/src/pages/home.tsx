@@ -47,14 +47,14 @@ export default function Home() {
         structuredData={generateOrganizationStructuredData()}
       />
       
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-12 md:py-20">
+      <section className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10 py-6 md:py-10">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-4xl mx-auto text-center mb-8 md:mb-12">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4" data-testid="text-hero-title">
+          <div className="max-w-4xl mx-auto text-center mb-4 md:mb-6">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3" data-testid="text-hero-title">
               Türkiye'nin En Güvenilir <br className="hidden sm:block" />
               <span className="text-primary">Hayvan İlanları Platformu</span>
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8" data-testid="text-hero-subtitle">
+            <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6" data-testid="text-hero-subtitle">
               Evcil dostlarınızı bulun, satın alın, sahiplenin. Binlerce ilan arasından aradığınızı bulun.
             </p>
             <SearchBar categories={categories} />
