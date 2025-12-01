@@ -309,9 +309,12 @@ export function AppSidebar() {
   const activeCategoryId = searchParams.get('categoryId') || undefined;
 
   // Fetch category tree
-  const { data: categoryTree = [] } = useQuery<Category[]>({
+  const { data: categoryTree = [], isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ['/api/categories/tree'],
   });
+  
+  // Debug log
+  console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading);
 
   // Auto-expand ancestors of active category
   useEffect(() => {
@@ -393,10 +396,10 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Category Tree */}
-        <SidebarGroup className="flex-1 min-h-0">
-          <SidebarGroupLabel>Kategoriler</SidebarGroupLabel>
-          <SidebarGroupContent className="flex-1 min-h-0 overflow-hidden">
-            <ScrollArea className="h-[calc(100vh-380px)]">
+        <SidebarGroup className="flex-1">
+          <SidebarGroupLabel>Kategoriler {categoriesLoading ? '(Yükleniyor...)' : `(${categoryTree.length})`}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="max-h-[50vh] overflow-y-auto">
               <SidebarMenu>
                 {categoryTree.map((rootCategory) => (
                   <CategoryTreeItem
@@ -408,7 +411,7 @@ export function AppSidebar() {
                   />
                 ))}
               </SidebarMenu>
-            </ScrollArea>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
