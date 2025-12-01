@@ -6938,6 +6938,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // ============ Google Search Console Verification ============
+  app.get("/google558dc83366fda0c8.html", (_req: Request, res: Response) => {
+    res.type('text/html').send('google-site-verification: google558dc83366fda0c8.html');
+  });
+
   // ============ SEO: robots.txt ============
   app.get("/robots.txt", (_req: Request, res: Response) => {
     const robotsTxt = `User-agent: *
