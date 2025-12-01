@@ -172,9 +172,12 @@ export const cache = {
 export const cacheKeys = {
   categories: () => 'categories:all',
   categoryTree: () => 'categories:tree',
+  categoryStats: () => 'categories:stats',
   listing: (id: string) => `listing:${id}`,
   listings: (params: string) => `listings:${params}`,
+  listingsHome: () => 'listings:home',
   hotListings: () => 'listings:hot',
+  recentListings: () => 'listings:recent',
   blogPosts: () => 'blog:all',
   blogPost: (slug: string) => `blog:${slug}`,
   vetServices: (city?: string, district?: string) => 
@@ -183,14 +186,21 @@ export const cacheKeys = {
     `transport-services:${fromCity || 'all'}:${toCity || 'all'}`,
   userListings: (userId: string) => `user:${userId}:listings`,
   userFavorites: (userId: string) => `user:${userId}:favorites`,
+  adminStats: () => 'admin:stats',
+  locations: () => 'locations:all',
 };
 
 // Cache TTL constants (in seconds)
 export const cacheTTL = {
   categories: 3600 * 24, // 24 hours (rarely changes)
+  categoryStats: 3600, // 1 hour
   listings: 300, // 5 minutes (frequently updated)
+  listingsHome: 120, // 2 minutes (homepage listings)
   hotListings: 180, // 3 minutes (very dynamic)
+  recentListings: 60, // 1 minute
   blogPosts: 3600, // 1 hour
   services: 600, // 10 minutes
   userContent: 60, // 1 minute (dynamic)
+  adminStats: 60, // 1 minute (admin needs fresh data)
+  locations: 3600 * 24, // 24 hours (rarely changes)
 };

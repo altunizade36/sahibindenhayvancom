@@ -5655,19 +5655,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin dashboard stats
   app.get("/api/admin/stats", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
     try {
-      const [usersCount] = await db.select({ count: count() }).from(users);
-      const [listingsCount] = await db.select({ count: count() }).from(listings);
-      const [activeListings] = await db.select({ count: count() }).from(listings).where(eq(listings.status, "active"));
-      const [pendingListings] = await db.select({ count: count() }).from(listings).where(eq(listings.status, "pending"));
-      const [verifiedUsers] = await db.select({ count: count() }).from(users).where(eq(users.emailVerified, true));
+      // Check cache first for performance
+      const cacheKey = cacheKeys.adminStats();
+      const cached = await cache.get<any>(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
 
-      res.json({
-        totalUsers: Number(usersCount.count),
-        verifiedUsers: Number(verifiedUsers.count),
-        totalListings: Number(listingsCount.count),
-        activeListings: Number(activeListings.count),
-        pendingListings: Number(pendingListings.count),
-      });
+      // Parallel queries for better performance
+      const [usersCount, listingsCount, activeListings, pendingListings, verifiedUsers] = await Promise.all([
+        db.select({ count: count() }).from(users),
+        db.select({ count: count() }).from(listings),
+        db.select({ count: count() }).from(listings).where(eq(listings.status, "active")),
+        db.select({ count: count() }).from(listings).where(eq(listings.status, "pending")),
+        db.select({ count: count() }).from(users).where(eq(users.emailVerified, true))
+      ]);
+
+      const stats = {
+        totalUsers: Number(usersCount[0].count),
+        verifiedUsers: Number(verifiedUsers[0].count),
+        totalListings: Number(listingsCount[0].count),
+        activeListings: Number(activeListings[0].count),
+        pendingListings: Number(pendingListings[0].count),
+      };
+
+      // Cache stats for 1 minute
+      await cache.set(cacheKey, stats, cacheTTL.adminStats);
+
+      res.json(stats);
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "İstatistikler getirilemedi" });
