@@ -1676,12 +1676,18 @@ export default function PanelAyarlar() {
                               <div>
                                 <label className="text-sm font-medium mb-2 block">İl</label>
                                 <Select
-                                  value={selectedDefaultProvince || ""}
+                                  value={selectedDefaultProvince || "none"}
                                   onValueChange={(value) => {
-                                    const province = provinces.find((p) => p.id === value);
-                                    setSelectedDefaultProvince(value);
-                                    handleSettingChange("defaultCity", province?.name || null);
-                                    handleSettingChange("defaultDistrict", null);
+                                    if (value === "none") {
+                                      setSelectedDefaultProvince("");
+                                      handleSettingChange("defaultCity", null);
+                                      handleSettingChange("defaultDistrict", null);
+                                    } else {
+                                      const province = provinces.find((p) => p.id === value);
+                                      setSelectedDefaultProvince(value);
+                                      handleSettingChange("defaultCity", province?.name || null);
+                                      handleSettingChange("defaultDistrict", null);
+                                    }
                                   }}
                                   disabled={provincesLoading}
                                 >
@@ -1689,7 +1695,7 @@ export default function PanelAyarlar() {
                                     <SelectValue placeholder={provincesLoading ? "Yükleniyor..." : "İl seçiniz"} />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="">Seçilmedi</SelectItem>
+                                    <SelectItem value="none">Seçilmedi</SelectItem>
                                     {provinces.map((province) => (
                                       <SelectItem key={province.id} value={province.id}>
                                         {province.name}
@@ -1702,10 +1708,14 @@ export default function PanelAyarlar() {
                               <div>
                                 <label className="text-sm font-medium mb-2 block">İlçe</label>
                                 <Select
-                                  value={defaultDistricts.find((d) => d.name === settings?.defaultDistrict)?.id || ""}
+                                  value={defaultDistricts.find((d) => d.name === settings?.defaultDistrict)?.id || "none"}
                                   onValueChange={(value) => {
-                                    const district = defaultDistricts.find((d) => d.id === value);
-                                    handleSettingChange("defaultDistrict", district?.name || null);
+                                    if (value === "none") {
+                                      handleSettingChange("defaultDistrict", null);
+                                    } else {
+                                      const district = defaultDistricts.find((d) => d.id === value);
+                                      handleSettingChange("defaultDistrict", district?.name || null);
+                                    }
                                   }}
                                   disabled={!selectedDefaultProvince}
                                 >
@@ -1713,7 +1723,7 @@ export default function PanelAyarlar() {
                                     <SelectValue placeholder="İlçe seçiniz" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="">Seçilmedi</SelectItem>
+                                    <SelectItem value="none">Seçilmedi</SelectItem>
                                     {defaultDistricts.map((district) => (
                                       <SelectItem key={district.id} value={district.id}>
                                         {district.name}

@@ -164,7 +164,7 @@ export default function LiveStreamCreatePage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">İlan bağlama</SelectItem>
+                        <SelectItem value="none">İlan bağlama</SelectItem>
                         {listings && listings.length > 0 ? (
                           listings.map((listing) => (
                             <SelectItem key={listing.id} value={listing.id} data-testid={`option-listing-${listing.id}`}>
