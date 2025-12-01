@@ -319,6 +319,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // ============ Health & Monitoring Routes ============
+  // Root route - MUST respond immediately for Replit deployment health checks
+  // Health checks hit "/" by default, so this must be ultra-fast
+  app.get("/", (req, res, next) => {
+    // If this is a health check (no Accept: text/html), respond immediately
+    const acceptHeader = req.headers.accept || '';
+    if (!acceptHeader.includes('text/html')) {
+      return res.status(200).json({ status: 'ok', uptime: process.uptime() });
+    }
+    // Otherwise, let Vite serve the frontend
+    next();
+  });
   // /health - Lightweight endpoint for deployment health checks (instant response)
   app.get("/health", healthCheck);
   // /readiness - Comprehensive check with database/cache status (for detailed monitoring)
