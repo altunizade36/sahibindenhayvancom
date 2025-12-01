@@ -58,6 +58,7 @@ import {
   List,
   Pause,
   Play,
+  Loader2,
 } from "lucide-react";
 import type { Listing, Category } from "@shared/schema";
 
@@ -393,6 +394,7 @@ export default function PanelIlanlarim() {
                   <SelectContent>
                     <SelectItem value="all">Tümü ({statusCounts.all})</SelectItem>
                     <SelectItem value="active">Aktif ({statusCounts.active})</SelectItem>
+                    <SelectItem value="draft">Pasif ({statusCounts.draft})</SelectItem>
                     <SelectItem value="pending">Bekliyor ({statusCounts.pending})</SelectItem>
                     <SelectItem value="sold">Satıldı ({statusCounts.sold})</SelectItem>
                     <SelectItem value="rejected">Reddedildi ({statusCounts.rejected})</SelectItem>
@@ -594,17 +596,46 @@ export default function PanelIlanlarim() {
                         </span>
                       </div>
                       <div className="flex gap-2 mt-3">
-                        <Link href={`/ilan-duzenle/${listing.id}`} className="flex-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            data-testid={`button-edit-${listing.id}`}
-                          >
-                            <Pencil className="w-3.5 h-3.5 mr-1" />
-                            Düzenle
-                          </Button>
-                        </Link>
+                        {listing.status === "draft" ? (
+                          <>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => activateListingMutation.mutate(listing.id)}
+                              disabled={activateListingMutation.isPending}
+                              data-testid={`button-activate-${listing.id}`}
+                            >
+                              {activateListingMutation.isPending ? (
+                                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                              ) : (
+                                <Play className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              Yayınla
+                            </Button>
+                            <Link href={`/ilan-duzenle/${listing.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                data-testid={`button-edit-${listing.id}`}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                            </Link>
+                          </>
+                        ) : (
+                          <Link href={`/ilan-duzenle/${listing.id}`} className="flex-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              data-testid={`button-edit-${listing.id}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5 mr-1" />
+                              Düzenle
+                            </Button>
+                          </Link>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -660,6 +691,20 @@ export default function PanelIlanlarim() {
                         </div>
                       </div>
                       <div className="hidden sm:flex gap-2">
+                        {listing.status === "draft" && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => activateListingMutation.mutate(listing.id)}
+                            disabled={activateListingMutation.isPending}
+                          >
+                            {activateListingMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
                         <Link href={`/ilan-duzenle/${listing.id}`}>
                           <Button variant="outline" size="sm">
                             <Pencil className="w-4 h-4" />
