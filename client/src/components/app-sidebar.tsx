@@ -393,10 +393,10 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Category Tree */}
-        <SidebarGroup className="flex-1">
+        <SidebarGroup className="flex-1 min-h-0">
           <SidebarGroupLabel>Kategoriler</SidebarGroupLabel>
-          <SidebarGroupContent className="flex-1">
-            <ScrollArea className="h-full">
+          <SidebarGroupContent className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-[calc(100vh-380px)]">
               <SidebarMenu>
                 {categoryTree.map((rootCategory) => (
                   <CategoryTreeItem
