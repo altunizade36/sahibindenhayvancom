@@ -25,9 +25,9 @@ interface ImageVariant {
 }
 
 const IMAGE_VARIANTS: ImageVariant[] = [
-  { suffix: 'thumb', width: 320, height: 320, quality: 80 },
-  { suffix: 'medium', width: 800, height: 800, quality: 85 },
-  { suffix: 'large', width: 1600, height: 1600, quality: 90 },
+  { suffix: 'thumb', width: 400, height: 400, quality: 90 },
+  { suffix: 'medium', width: 1200, height: 1200, quality: 92 },
+  { suffix: 'large', width: 2000, height: 2000, quality: 95 },
 ];
 
 function parseObjectPath(path: string): { bucketName: string; objectName: string } {
@@ -86,8 +86,10 @@ export async function processAndUploadImage(
       .resize(variant.width, variant.height, {
         fit: 'inside',
         withoutEnlargement: true,
+        kernel: sharp.kernel.lanczos3,
       })
-      .webp({ quality: variant.quality })
+      .sharpen({ sigma: 0.5 })
+      .webp({ quality: variant.quality, effort: 6 })
       .toBuffer();
     
     const variantObjectName = `${prefix}/${uuid}_${baseName}_${variant.suffix}.webp`;
@@ -179,14 +181,14 @@ interface StoreImageConfig {
 
 const STORE_IMAGE_VARIANTS = {
   logo: [
-    { suffix: 'thumb', width: 64, height: 64, quality: 85 },
-    { suffix: 'medium', width: 200, height: 200, quality: 90 },
-    { suffix: 'original', width: 400, height: 400, quality: 95 },
+    { suffix: 'thumb', width: 100, height: 100, quality: 92 },
+    { suffix: 'medium', width: 300, height: 300, quality: 94 },
+    { suffix: 'original', width: 500, height: 500, quality: 96 },
   ],
   banner: [
-    { suffix: 'thumb', width: 400, height: 133, quality: 80 },
-    { suffix: 'medium', width: 800, height: 267, quality: 85 },
-    { suffix: 'original', width: 1600, height: 533, quality: 90 },
+    { suffix: 'thumb', width: 600, height: 200, quality: 90 },
+    { suffix: 'medium', width: 1200, height: 400, quality: 92 },
+    { suffix: 'original', width: 1920, height: 640, quality: 95 },
   ],
 };
 
@@ -218,8 +220,10 @@ export async function processStoreImage(
       .resize(resizeOptions.width, resizeOptions.height, {
         fit: resizeOptions.fit,
         position: 'center',
+        kernel: sharp.kernel.lanczos3,
       })
-      .webp({ quality: variant.quality })
+      .sharpen({ sigma: 0.5 })
+      .webp({ quality: variant.quality, effort: 6 })
       .toBuffer();
     
     if (variant.suffix === 'original') {

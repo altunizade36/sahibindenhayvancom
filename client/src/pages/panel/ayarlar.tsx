@@ -548,7 +548,7 @@ export default function PanelAyarlar() {
       const ctx = canvas.getContext("2d");
 
       img.onload = () => {
-        const MAX_SIZE = 400;
+        const MAX_SIZE = 600;
         let { width, height } = img;
 
         if (width > MAX_SIZE || height > MAX_SIZE) {
@@ -579,8 +579,8 @@ export default function PanelAyarlar() {
               reject(new Error("Blob oluşturulamadı"));
             }
           },
-          "image/jpeg",
-          0.85
+          "image/png",
+          1.0
         );
       };
 
@@ -609,7 +609,7 @@ export default function PanelAyarlar() {
         const optimizedFile = await optimizeImage(file);
 
         const formData = new FormData();
-        formData.append("file", optimizedFile, file.name.replace(/\.[^/.]+$/, ".jpg"));
+        formData.append("file", optimizedFile, file.name.replace(/\.[^/.]+$/, ".png"));
 
         const uploadResponse = await fetch("/api/objects/upload-file", {
           method: "POST",

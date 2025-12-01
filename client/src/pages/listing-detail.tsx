@@ -76,11 +76,29 @@ export default function ListingDetail() {
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
+      if (!isAuthenticated) {
+        throw new Error("Giriş yapmanız gerekiyor");
+      }
       if (isFavorited) {
         return apiRequest("DELETE", `/api/favorites/${id}`);
       } else {
         return apiRequest("POST", "/api/favorites", { listingId: id });
       }
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["/api/favorites"] });
+      const previousFavorites = queryClient.getQueryData<any[]>(["/api/favorites"]);
+      
+      queryClient.setQueryData(["/api/favorites"], (old: any[] | undefined) => {
+        const current = old || [];
+        if (isFavorited) {
+          return current.filter(fav => fav.listingId !== id);
+        } else {
+          return [...current, { listingId: id, id: 'temp-' + Date.now() }];
+        }
+      });
+      
+      return { previousFavorites: previousFavorites || [] };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
@@ -91,14 +109,30 @@ export default function ListingDetail() {
           : "İlan favorilerinize eklendi",
       });
     },
-    onError: () => {
+    onError: (error: any, _, context) => {
+      if (context?.previousFavorites) {
+        queryClient.setQueryData(["/api/favorites"], context.previousFavorites);
+      }
       toast({
         title: "Hata",
-        description: "İşlem sırasında bir hata oluştu",
+        description: error.message || "İşlem sırasında bir hata oluştu",
         variant: "destructive",
       });
     },
   });
+
+  const handleFavoriteClick = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Giriş Gerekli",
+        description: "Favorilere eklemek için giriş yapmalısınız",
+        variant: "destructive",
+      });
+      navigate("/giris");
+      return;
+    }
+    toggleFavoriteMutation.mutate();
+  };
 
   const handleMessageSeller = () => {
     if (!isAuthenticated) {
@@ -393,8 +427,8 @@ export default function ListingDetail() {
                 <Button
                   variant="outline"
                   className="h-11"
-                  onClick={() => toggleFavoriteMutation.mutate()}
-                  disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
+                  onClick={handleFavoriteClick}
+                  disabled={toggleFavoriteMutation.isPending}
                   data-testid="button-toggle-favorite-mobile"
                 >
                   <Heart
@@ -708,8 +742,8 @@ export default function ListingDetail() {
                 <Button
                   variant="outline"
                   className="w-full h-10 hidden lg:flex"
-                  onClick={() => toggleFavoriteMutation.mutate()}
-                  disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
+                  onClick={handleFavoriteClick}
+                  disabled={toggleFavoriteMutation.isPending}
                   data-testid="button-toggle-favorite"
                 >
                   <Heart
