@@ -87,6 +87,14 @@ export const messageStatusEnum = pgEnum("message_status", [
   "read"
 ]);
 
+export const messageTypeEnum = pgEnum("message_type", [
+  "text",           // Normal metin mesajı
+  "image",          // Resim mesajı
+  "file",           // Dosya eki
+  "system",         // Sistem mesajı (ilan paylaşımı vs)
+  "offer"           // Teklif mesajı
+]);
+
 export const sellerLevelEnum = pgEnum("seller_level", [
   "bronze",
   "silver", 
@@ -573,28 +581,125 @@ export const insertLiveStreamSchema = createInsertSchema(liveStreams).omit({
 export type InsertLiveStream = z.infer<typeof insertLiveStreamSchema>;
 export type LiveStream = typeof liveStreams.$inferSelect;
 
-// Chat Messages table
+// Chat Messages table - Gelişmiş mesajlaşma sistemi
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   senderId: varchar("sender_id").notNull().references(() => users.id),
   receiverId: varchar("receiver_id").notNull().references(() => users.id),
   listingId: varchar("listing_id").references(() => listings.id),
+  conversationId: varchar("conversation_id").notNull(),
   content: text("content").notNull(),
+  messageType: messageTypeEnum("message_type").default("text"),
   status: messageStatusEnum("status").default("sent"),
+  replyToId: varchar("reply_to_id"),
+  attachments: jsonb("attachments").$type<{
+    url: string;
+    type: "image" | "file";
+    name: string;
+    size: number;
+    thumbnailUrl?: string;
+  }[]>().default([]),
+  isEdited: boolean("is_edited").default(false),
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  editedAt: timestamp("edited_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   senderReceiverCreatedIdx: index("messages_sender_receiver_created_idx").on(table.senderId, table.receiverId, table.createdAt),
   receiverCreatedIdx: index("messages_receiver_created_idx").on(table.receiverId, table.createdAt),
+  conversationIdx: index("messages_conversation_idx").on(table.conversationId, table.createdAt),
+  replyToIdx: index("messages_reply_to_idx").on(table.replyToId),
 }));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
   status: true,
+  isEdited: true,
+  isDeleted: true,
+  deletedAt: true,
+  editedAt: true,
+  deliveredAt: true,
+  readAt: true,
 });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+// Conversations table - Konuşma yönetimi
+export const conversations = pgTable("conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  participant1Id: varchar("participant1_id").notNull().references(() => users.id),
+  participant2Id: varchar("participant2_id").notNull().references(() => users.id),
+  listingId: varchar("listing_id").references(() => listings.id),
+  lastMessageId: varchar("last_message_id"),
+  lastMessageAt: timestamp("last_message_at"),
+  participant1Archived: boolean("participant1_archived").default(false),
+  participant2Archived: boolean("participant2_archived").default(false),
+  participant1Pinned: boolean("participant1_pinned").default(false),
+  participant2Pinned: boolean("participant2_pinned").default(false),
+  participant1Muted: boolean("participant1_muted").default(false),
+  participant2Muted: boolean("participant2_muted").default(false),
+  participant1DeletedAt: timestamp("participant1_deleted_at"),
+  participant2DeletedAt: timestamp("participant2_deleted_at"),
+  participant1UnreadCount: integer("participant1_unread_count").default(0),
+  participant2UnreadCount: integer("participant2_unread_count").default(0),
+  participant1LastReadAt: timestamp("participant1_last_read_at"),
+  participant2LastReadAt: timestamp("participant2_last_read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  participant1Idx: index("conversations_participant1_idx").on(table.participant1Id),
+  participant2Idx: index("conversations_participant2_idx").on(table.participant2Id),
+  lastMessageIdx: index("conversations_last_message_idx").on(table.lastMessageAt),
+  participantsUnique: index("conversations_participants_unique").on(table.participant1Id, table.participant2Id),
+}));
+
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastMessageId: true,
+  lastMessageAt: true,
+  participant1UnreadCount: true,
+  participant2UnreadCount: true,
+  participant1LastReadAt: true,
+  participant2LastReadAt: true,
+});
+
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+
+// User presence table - Online durumu ve son görülme
+export const userPresence = pgTable("user_presence", {
+  userId: varchar("user_id").primaryKey().references(() => users.id),
+  isOnline: boolean("is_online").default(false),
+  lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
+  currentConversationId: varchar("current_conversation_id"),
+  typingInConversationId: varchar("typing_in_conversation_id"),
+  typingStartedAt: timestamp("typing_started_at"),
+  deviceInfo: text("device_info"),
+  socketId: varchar("socket_id"),
+});
+
+export type UserPresence = typeof userPresence.$inferSelect;
+
+// Message reactions table - Mesaj tepkileri
+export const messageReactions = pgTable("message_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  reaction: varchar("reaction", { length: 10 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  messageUserUnique: index("message_reactions_unique").on(table.messageId, table.userId, table.reaction),
+  messageIdx: index("message_reactions_message_idx").on(table.messageId),
+}));
+
+export type MessageReaction = typeof messageReactions.$inferSelect;
 
 // Blog Posts table
 export const blogPosts = pgTable("blog_posts", {
