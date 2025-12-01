@@ -25,64 +25,54 @@ export function initializeRedis() {
   }
 
   // Initialize ioredis TCP client for Pub/Sub
-  // Try to build TCP connection from REST API credentials if direct URL not available
+  // Note: Upstash Free tier uses REST API only. TCP Pub/Sub requires paid plan.
+  // The REST token can be used for TCP on paid plans.
   const restUrl = process.env.UPSTASH_REDIS_REST_URL;
   const restToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  let redisUrl = process.env.UPSTASH_REDIS_URL;
+  const tcpPassword = process.env.UPSTASH_REDIS_PASSWORD || restToken; // Try dedicated password or REST token
   
-  // Auto-construct TCP URL from REST credentials if not explicitly set
-  if (!redisUrl && restUrl && restToken) {
+  // Extract host from REST URL
+  let host: string | undefined;
+  if (restUrl) {
     try {
       const urlObj = new URL(restUrl);
-      const host = urlObj.hostname; // e.g., thorough-terrier-14339.upstash.io
-      redisUrl = `rediss://default:${restToken}@${host}:6379`;
-      console.log('🔧 Auto-constructed Redis TCP URL from REST credentials');
-    } catch (e) {
-      console.warn('⚠️  Could not construct TCP URL from REST credentials');
-    }
+      host = urlObj.hostname;
+    } catch (e) {}
   }
   
-  if (redisUrl) {
-    // Upstash always requires TLS - convert redis:// to rediss:// if needed
-    if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
-      redisUrl = redisUrl.replace('redis://', 'rediss://');
-      console.log('🔒 Converted Upstash URL to use TLS (rediss://)');
-    }
-    
-    // Extract connection details for explicit configuration
-    let host: string | undefined;
-    let port: number | undefined;
-    let password: string | undefined;
-    
-    try {
-      const urlObj = new URL(redisUrl);
-      host = urlObj.hostname;
-      port = parseInt(urlObj.port) || 6379;
-      password = urlObj.password || undefined;
-      console.log(`📡 Redis TCP connecting to: ${host}:${port}`);
-    } catch (e) {
-      console.warn('⚠️  Could not parse Redis URL, using as-is');
-    }
-    
-    const useTls = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
+  // Use TCP password if available
+  if (host && tcpPassword) {
+    console.log(`📡 Redis TCP attempting connection to: ${host}:6379`);
     
     const redisOptions = {
       host,
-      port,
-      password,
-      maxRetriesPerRequest: 3,
+      port: 6379,
+      password: tcpPassword,
+      maxRetriesPerRequest: 1, // Fail fast
       enableReadyCheck: true,
       lazyConnect: true,
-      tls: useTls ? { rejectUnauthorized: false } : undefined,
+      connectTimeout: 5000,
+      tls: { rejectUnauthorized: false },
       retryStrategy: (times: number) => {
-        if (times > 3) return null;
-        return Math.min(times * 200, 2000);
+        if (times > 1) {
+          console.log('⚠️  Redis TCP connection failed - using REST polling fallback');
+          return null; // Stop retrying
+        }
+        return 1000;
       },
+    };
+    
+    // Suppress ioredis unhandled error events
+    const handleRedisError = (err: Error) => {
+      // Silently handle connection errors - fallback is already in place
     };
     
     try {
       pubClient = new IORedis(redisOptions);
       subClient = new IORedis(redisOptions);
+      
+      pubClient.on('error', handleRedisError);
+      subClient.on('error', handleRedisError);
 
       // Connect and setup Pub/Sub
       Promise.all([pubClient.connect(), subClient.connect()])
