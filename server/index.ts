@@ -124,11 +124,19 @@ async function runServer() {
     log(`serving on port ${port}`);
     isServerReady = true;
     
-    // Seed database in background AFTER server is listening
-    // This allows health checks to pass immediately
-    seedDatabase()
-      .then(() => console.log('✅ Background database seeding complete'))
-      .catch(err => console.error('❌ Background seeding error:', err));
+    // Only seed database in development or when explicitly enabled
+    // Production deployments should NOT seed on every startup
+    const shouldSeed = process.env.NODE_ENV === 'development' || process.env.ENABLE_AUTO_SEED === 'true';
+    
+    if (shouldSeed) {
+      // Seed database in background AFTER server is listening
+      // This allows health checks to pass immediately
+      seedDatabase()
+        .then(() => console.log('✅ Background database seeding complete'))
+        .catch(err => console.error('❌ Background seeding error:', err));
+    } else {
+      console.log('ℹ️  Database seeding skipped (production mode)');
+    }
   });
 
   // Setup graceful shutdown

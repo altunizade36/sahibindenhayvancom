@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
-import { healthCheck, metricsEndpoint } from "./monitoring";
+import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
@@ -319,7 +319,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // ============ Health & Monitoring Routes ============
+  // /health - Lightweight endpoint for deployment health checks (instant response)
   app.get("/health", healthCheck);
+  // /readiness - Comprehensive check with database/cache status (for detailed monitoring)
+  app.get("/readiness", readinessCheck);
   app.get("/metrics", metricsEndpoint);
 
   // ============ Global Rate Limiting (Production Only) ============

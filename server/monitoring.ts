@@ -69,9 +69,23 @@ export function getSystemMetrics(): SystemMetrics {
 }
 
 /**
- * Health check endpoint handler
+ * Lightweight health check endpoint handler - MUST respond immediately
+ * This is used by deployment health checks and must return within milliseconds
  */
-export async function healthCheck(_req: Request, res: Response) {
+export function healthCheck(_req: Request, res: Response) {
+  // Immediate response - no async operations, no database checks
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+}
+
+/**
+ * Comprehensive readiness check endpoint handler
+ * Use this for detailed system status (not for deployment health checks)
+ */
+export async function readinessCheck(_req: Request, res: Response) {
   const startTime = Date.now();
   
   try {
@@ -85,7 +99,7 @@ export async function healthCheck(_req: Request, res: Response) {
       dbLatency = Date.now() - dbStart;
       dbConnected = true;
     } catch (error) {
-      console.error('Database health check failed:', error);
+      console.error('Database readiness check failed:', error);
     }
 
     // Check cache status
@@ -121,7 +135,7 @@ export async function healthCheck(_req: Request, res: Response) {
     
     res.status(statusCode).json(health);
   } catch (error) {
-    console.error('Health check error:', error);
+    console.error('Readiness check error:', error);
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
