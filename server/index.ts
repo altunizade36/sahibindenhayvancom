@@ -36,6 +36,9 @@ if (isClusterPrimary) {
   runServer();
 }
 
+// Track server readiness for health checks
+let isServerReady = false;
+
 async function runServer() {
   const app = express();
 
@@ -86,11 +89,8 @@ async function runServer() {
     next();
   });
 
-  // Initialize Redis cache
+  // Initialize Redis cache (fast, doesn't block)
   initializeRedis();
-  
-  // Seed database on startup
-  await seedDatabase();
   
   const server = await registerRoutes(app);
 
@@ -122,8 +122,18 @@ async function runServer() {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    isServerReady = true;
+    
+    // Seed database in background AFTER server is listening
+    // This allows health checks to pass immediately
+    seedDatabase()
+      .then(() => console.log('✅ Background database seeding complete'))
+      .catch(err => console.error('❌ Background seeding error:', err));
   });
 
   // Setup graceful shutdown
   setupGracefulShutdown(server);
 }
+
+// Export for health checks
+export { isServerReady };
