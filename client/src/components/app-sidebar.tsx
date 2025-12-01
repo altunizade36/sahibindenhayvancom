@@ -1,4 +1,4 @@
-import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronRight, MapPin, X } from "lucide-react";
+import { Home, List, Search, ChevronRight, MapPin, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, Link } from "wouter";
