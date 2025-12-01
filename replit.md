@@ -39,7 +39,7 @@ No specific user preferences were provided in the original document.
 **Key API Endpoints:**
 - **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
-- **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`
+- **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`, `/api/listings/:id/deactivate` (PATCH - pause listing), `/api/listings/:id/activate` (PATCH - reactivate listing)
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`, `/api/messages/unread-count`, `/api/messages/search`, `/api/messages/upload`
 - **Conversations**: `/api/conversations/:id/archive` (PATCH), `/api/conversations/:id/pin` (PATCH), `/api/conversations/:id/mute` (PATCH), `/api/conversations/:id/read` (POST)
 - **Notifications**: `/api/notifications` (GET list, POST create), `/api/notifications/count` (unread count), `/api/notifications/:id/read` (PATCH mark read), `/api/notifications/read-all` (POST mark all read), `/api/notifications/:id` (DELETE)

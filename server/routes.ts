@@ -1970,7 +1970,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Delete user and related data (cascades)
+      // Initialize object storage for file deletion
+      const objectStorage = new ObjectStorageService();
+      
+      // 1. Get all user's listings and delete their images from Object Storage
+      const userListings = await db.select()
+        .from(listings)
+        .where(eq(listings.sellerId, userId));
+      
+      for (const listing of userListings) {
+        // Delete listing images from Object Storage
+        const listingImgs = await db.select()
+          .from(listingImages)
+          .where(eq(listingImages.listingId, listing.id));
+        
+        for (const img of listingImgs) {
+          const pathsToDelete = [
+            img.originalKey,
+            img.thumbnailKey,
+            img.mediumKey,
+            img.largeKey
+          ].filter(Boolean) as string[];
+          await objectStorage.deleteMultipleFiles(pathsToDelete);
+        }
+        
+        // Delete images from listing.images array if any
+        if (listing.images && Array.isArray(listing.images)) {
+          await objectStorage.deleteMultipleFiles(listing.images as string[]);
+        }
+      }
+      
+      // 2. Delete user profile image from Object Storage if exists
+      if (existingUser?.profileImageUrl) {
+        await objectStorage.deleteFile(existingUser.profileImageUrl);
+      }
+      
+      // 3. Delete store images if user has a store
+      const [userStore] = await db.select()
+        .from(stores)
+        .where(eq(stores.ownerId, userId))
+        .limit(1);
+      
+      if (userStore) {
+        // Delete store logo and banner
+        if (userStore.logo) {
+          await objectStorage.deleteFile(userStore.logo);
+        }
+        if (userStore.banner) {
+          await objectStorage.deleteFile(userStore.banner);
+        }
+        
+        // Delete store media
+        const storeMediaItems = await db.select()
+          .from(storeMedia)
+          .where(eq(storeMedia.storeId, userStore.id));
+        
+        for (const media of storeMediaItems) {
+          if (media.url) {
+            await objectStorage.deleteFile(media.url);
+          }
+        }
+      }
+      
+      // 4. Delete message attachments sent by this user
+      const userMessages = await db.select()
+        .from(messages)
+        .where(eq(messages.senderId, userId));
+      
+      for (const msg of userMessages) {
+        if (msg.attachmentUrl) {
+          await objectStorage.deleteFile(msg.attachmentUrl);
+        }
+      }
+      
+      // 5. Now delete user and related data (cascades will handle DB records)
       await db.delete(users).where(eq(users.id, userId));
       
       // Logout
@@ -1980,7 +2053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      res.json({ message: "Hesabınız silindi" });
+      res.json({ message: "Hesabınız ve tüm verileriniz silindi" });
     } catch (error) {
       console.error("Delete account error:", error);
       res.status(500).json({ message: "Hesap silinirken bir hata oluştu" });
@@ -2800,12 +2873,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
+      // Initialize object storage for file deletion
+      const objectStorage = new ObjectStorageService();
+
       // Delete all related records before deleting the listing
       // 1. Delete favorites
       await db.delete(favorites).where(eq(favorites.listingId, listingId));
       
-      // 2. Delete listing images
+      // 2. Get listing images and delete from Object Storage, then from DB
+      const imagesToDelete = await db.select()
+        .from(listingImages)
+        .where(eq(listingImages.listingId, listingId));
+      
+      // Delete images from Object Storage
+      for (const img of imagesToDelete) {
+        const pathsToDelete = [
+          img.originalKey,
+          img.thumbnailKey,
+          img.mediumKey,
+          img.largeKey
+        ].filter(Boolean) as string[];
+        
+        await objectStorage.deleteMultipleFiles(pathsToDelete);
+      }
+      
+      // Delete from DB
       await db.delete(listingImages).where(eq(listingImages.listingId, listingId));
+      
+      // Also delete images from listing.images array if any
+      if (listing.images && Array.isArray(listing.images)) {
+        await objectStorage.deleteMultipleFiles(listing.images as string[]);
+      }
       
       // 3. Delete reports related to this listing
       await db.delete(reports).where(
@@ -2840,6 +2938,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deactivate listing (set to draft/inactive)
+  app.patch("/api/listings/:id/deactivate", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const listingId = req.params.id;
+      
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+        
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
+      }
+
+      const [updated] = await db
+        .update(listings)
+        .set({ status: "draft", updatedAt: new Date() })
+        .where(eq(listings.id, listingId))
+        .returning();
+      
+      res.json({ message: "İlan pasife alındı", listing: updated });
+    } catch (error) {
+      console.error("Error deactivating listing:", error);
+      res.status(400).json({ message: "İlan pasife alınamadı" });
+    }
+  });
+
+  // Activate listing (set to active)
+  app.patch("/api/listings/:id/activate", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const listingId = req.params.id;
+      
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+        
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
+      }
+
+      const [updated] = await db
+        .update(listings)
+        .set({ status: "active", updatedAt: new Date() })
+        .where(eq(listings.id, listingId))
+        .returning();
+      
+      res.json({ message: "İlan aktifleştirildi", listing: updated });
+    } catch (error) {
+      console.error("Error activating listing:", error);
+      res.status(400).json({ message: "İlan aktifleştirilemedi" });
+    }
+  });
 
   app.get("/api/listings/mine", isAuthenticated, async (req: Request, res: Response) => {
     try {

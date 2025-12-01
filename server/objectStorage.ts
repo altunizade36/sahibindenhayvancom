@@ -192,6 +192,55 @@ export class ObjectStorageService {
 
     return `/objects/uploads/${objectId}`;
   }
+
+  async deleteFile(objectPath: string): Promise<boolean> {
+    try {
+      if (!objectPath) return false;
+      
+      let fullPath: string;
+      
+      // Handle different path formats
+      if (objectPath.startsWith('/objects/')) {
+        // Convert /objects/uploads/xxx to full path
+        const entityId = objectPath.slice('/objects/'.length);
+        let entityDir = this.getPrivateObjectDir();
+        if (!entityDir.endsWith('/')) {
+          entityDir = `${entityDir}/`;
+        }
+        fullPath = `${entityDir}${entityId}`;
+      } else if (objectPath.startsWith('https://storage.googleapis.com/')) {
+        // Handle full GCS URLs
+        const url = new URL(objectPath);
+        fullPath = url.pathname;
+      } else {
+        // Already a raw path
+        fullPath = objectPath;
+      }
+
+      const { bucketName, objectName } = parseObjectPath(fullPath);
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      const [exists] = await file.exists();
+      if (exists) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error deleting file from object storage:', error);
+      return false;
+    }
+  }
+
+  async deleteMultipleFiles(objectPaths: string[]): Promise<number> {
+    let deletedCount = 0;
+    for (const path of objectPaths) {
+      const deleted = await this.deleteFile(path);
+      if (deleted) deletedCount++;
+    }
+    return deletedCount;
+  }
 }
 
 function parseObjectPath(path: string): {

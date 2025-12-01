@@ -56,6 +56,8 @@ import {
   Filter,
   Grid3X3,
   List,
+  Pause,
+  Play,
 } from "lucide-react";
 import type { Listing, Category } from "@shared/schema";
 
@@ -70,6 +72,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   rejected: { label: "Reddedildi", color: "destructive" },
   sold: { label: "Satıldı", color: "outline" },
   inactive: { label: "Pasif", color: "outline" },
+  draft: { label: "Pasif", color: "outline" },
 };
 
 const roleLabels: Record<string, string> = {
@@ -175,6 +178,46 @@ export default function PanelIlanlarim() {
     },
   });
 
+  const deactivateListingMutation = useMutation({
+    mutationFn: async (listingId: string) => {
+      return apiRequest("PATCH", `/api/listings/${listingId}/deactivate`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      toast({
+        title: "Başarılı",
+        description: "İlan pasife alındı",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Hata",
+        description: "İlan pasife alınamadı",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const activateListingMutation = useMutation({
+    mutationFn: async (listingId: string) => {
+      return apiRequest("PATCH", `/api/listings/${listingId}/activate`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      toast({
+        title: "Başarılı",
+        description: "İlan aktifleştirildi",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Hata",
+        description: "İlan aktifleştirilemedi",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredListings = myListings
     .filter((listing) => {
       if (statusFilter !== "all" && listing.status !== statusFilter) {
@@ -193,6 +236,7 @@ export default function PanelIlanlarim() {
     pending: myListings.filter((l) => l.status === "pending").length,
     sold: myListings.filter((l) => l.status === "sold").length,
     rejected: myListings.filter((l) => l.status === "rejected").length,
+    draft: myListings.filter((l) => l.status === "draft").length,
   };
 
   if (!user) {
@@ -507,6 +551,23 @@ export default function PanelIlanlarim() {
                               </DropdownMenuItem>
                             </Link>
                             <DropdownMenuSeparator />
+                            {listing.status === "active" ? (
+                              <DropdownMenuItem
+                                onClick={() => deactivateListingMutation.mutate(listing.id)}
+                                disabled={deactivateListingMutation.isPending}
+                              >
+                                <Pause className="w-4 h-4 mr-2" />
+                                Pasife Al
+                              </DropdownMenuItem>
+                            ) : listing.status === "draft" ? (
+                              <DropdownMenuItem
+                                onClick={() => activateListingMutation.mutate(listing.id)}
+                                disabled={activateListingMutation.isPending}
+                              >
+                                <Play className="w-4 h-4 mr-2" />
+                                Aktifleştir
+                              </DropdownMenuItem>
+                            ) : null}
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => {
@@ -635,6 +696,23 @@ export default function PanelIlanlarim() {
                             </DropdownMenuItem>
                           </Link>
                           <DropdownMenuSeparator />
+                          {listing.status === "active" ? (
+                            <DropdownMenuItem
+                              onClick={() => deactivateListingMutation.mutate(listing.id)}
+                              disabled={deactivateListingMutation.isPending}
+                            >
+                              <Pause className="w-4 h-4 mr-2" />
+                              Pasife Al
+                            </DropdownMenuItem>
+                          ) : listing.status === "draft" ? (
+                            <DropdownMenuItem
+                              onClick={() => activateListingMutation.mutate(listing.id)}
+                              disabled={activateListingMutation.isPending}
+                            >
+                              <Play className="w-4 h-4 mr-2" />
+                              Aktifleştir
+                            </DropdownMenuItem>
+                          ) : null}
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => {

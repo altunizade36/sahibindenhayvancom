@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, X, ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, X, ImagePlus, Loader2, Trash2, Pause, Play } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -219,6 +219,50 @@ export default function EditListing() {
       toast({
         title: "Hata",
         description: error.message || "İlan silinemedi",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deactivateListingMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("PATCH", `/api/listings/${listingId}/deactivate`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pasife Alındı",
+        description: "İlanınız pasife alındı. İstediğiniz zaman tekrar aktifleştirebilirsiniz.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/listings/${listingId}`] });
+      navigate("/panel/ilanlarim");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Hata",
+        description: error.message || "İlan pasife alınamadı",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const activateListingMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("PATCH", `/api/listings/${listingId}/activate`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Aktifleştirildi",
+        description: "İlanınız tekrar yayında!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/listings/${listingId}`] });
+      navigate(`/ilan/${listingId}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Hata",
+        description: error.message || "İlan aktifleştirilemedi",
         variant: "destructive",
       });
     },
@@ -420,35 +464,82 @@ export default function EditListing() {
           İlana Geri Dön
         </Button>
         
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" data-testid="button-delete-listing">
-              <Trash2 className="w-4 h-4 mr-2" />
-              İlanı Sil
+        <div className="flex items-center gap-2">
+          {listing.status === "active" ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" data-testid="button-deactivate-listing">
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pasife Al
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>İlanı pasife almak istiyor musunuz?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    İlanınız geçici olarak yayından kaldırılacaktır. İstediğiniz zaman tekrar aktifleştirebilirsiniz.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel data-testid="button-cancel-deactivate">İptal</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deactivateListingMutation.mutate()}
+                    data-testid="button-confirm-deactivate"
+                  >
+                    {deactivateListingMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    Evet, Pasife Al
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : listing.status === "draft" ? (
+            <Button 
+              variant="default" 
+              onClick={() => activateListingMutation.mutate()}
+              disabled={activateListingMutation.isPending}
+              data-testid="button-activate-listing"
+            >
+              {activateListingMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Play className="w-4 h-4 mr-2" />
+              )}
+              Aktifleştir
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>İlanı silmek istediğinize emin misiniz?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Bu işlem geri alınamaz. İlan kalıcı olarak silinecektir.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-delete">İptal</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deleteListingMutation.mutate()}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                data-testid="button-confirm-delete"
-              >
-                {deleteListingMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                Evet, Sil
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          ) : null}
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" data-testid="button-delete-listing">
+                <Trash2 className="w-4 h-4 mr-2" />
+                İlanı Sil
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>İlanı silmek istediğinize emin misiniz?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Bu işlem geri alınamaz. İlan kalıcı olarak silinecektir.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel data-testid="button-cancel-delete">İptal</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteListingMutation.mutate()}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteListingMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Evet, Sil
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       <Card>
