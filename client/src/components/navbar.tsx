@@ -159,7 +159,7 @@ export function Navbar() {
                             Mesajlar
                           </Button>
                         </Link>
-                        <Link href="/my-store">
+                        <Link href="/magazam">
                           <Button variant="ghost" className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-my-store">
                             <Building2 className="w-4 h-4 mr-3" />
                             Mağazam
@@ -349,7 +349,7 @@ export function Navbar() {
                           Mesajlar
                         </DropdownMenuItem>
                       </Link>
-                      <Link href="/my-store">
+                      <Link href="/magazam">
                         <DropdownMenuItem className="cursor-pointer" data-testid="link-my-store">
                           <Building2 className="w-4 h-4 mr-2" />
                           Mağazam

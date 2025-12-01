@@ -41,6 +41,10 @@ import MyStore from "@/pages/my-store";
 import EditListing from "@/pages/edit-listing";
 import EditProfile from "@/pages/edit-profile";
 import NotificationsPage from "@/pages/notifications";
+import PanelDashboard from "@/pages/panel/index";
+import PanelIlanlarim from "@/pages/panel/ilanlarim";
+import PanelFavorilerim from "@/pages/panel/favorilerim";
+import PanelAyarlar from "@/pages/panel/ayarlar";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -84,9 +88,12 @@ function NoSidebarLayout() {
           <Route path="/ilan/:id" component={ListingDetail} />
           <Route path="/profil" component={Profile} />
           <Route path="/profil-duzenle" component={EditProfile} />
-          <Route path="/panel" component={Profile} />
-          <Route path="/ayarlar" component={EditProfile} />
-          <Route path="/favoriler" component={Profile} />
+          <Route path="/panel" component={PanelDashboard} />
+          <Route path="/panel/ilanlarim" component={PanelIlanlarim} />
+          <Route path="/panel/favorilerim" component={PanelFavorilerim} />
+          <Route path="/panel/ayarlar" component={PanelAyarlar} />
+          <Route path="/ayarlar" component={PanelAyarlar} />
+          <Route path="/favoriler" component={PanelFavorilerim} />
           <Route path="/bildirimler" component={NotificationsPage} />
           <Route path="/mesajlar" component={Messages} />
           <Route path="/veterinerler" component={VetServices} />
@@ -96,6 +103,7 @@ function NoSidebarLayout() {
           <Route path="/magazalar" component={StoresList} />
           <Route path="/magaza/:slug" component={StoreDetail} />
           <Route path="/panel/magazam" component={MyStore} />
+          <Route path="/magazam" component={MyStore} />
           <Route path="/acik-artirmalar" component={AuctionList} />
           <Route path="/acik-artirma/:id" component={AuctionDetail} />
           <Route path="/acik-artirma-olustur" component={AuctionCreate} />
@@ -131,6 +139,7 @@ function Router() {
                            location.startsWith('/panel') ||
                            location.startsWith('/ayarlar') ||
                            location.startsWith('/favoriler') ||
+                           location.startsWith('/magazam') ||
                            location.startsWith('/bildirimler') ||
                            location.startsWith('/mesajlar') ||
                            location.startsWith('/veterinerler') ||

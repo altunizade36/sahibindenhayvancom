@@ -25,7 +25,7 @@ No specific user preferences were provided in the original document.
     - **Hierarchical Categories**: 459 categories across 14 main domains (e.g., Pets, Farm Animals, Fish, Horses, Beekeeping).
     - **Messaging**: Real-time chat between buyers and sellers.
     - **Services**: Listings for veterinary and transportation services with profiles, reviews, and ratings.
-    - **User Profiles**: "My Listings" and "Favorites" tabs.
+    - **User Panel System**: Modern dashboard at `/panel/` with dedicated pages for listings (`/panel/ilanlarim`), favorites (`/panel/favorilerim`), and account settings (`/panel/ayarlar`). Features include quick stats, status filters, profile management, password change, and security status overview.
 
 **Key API Endpoints:**
 - **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
