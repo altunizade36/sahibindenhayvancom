@@ -5852,6 +5852,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete store (owner only)
+  app.delete("/api/store/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      if (store.ownerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu mağazayı silemezsiniz" });
+      }
+      
+      // Delete store images from Object Storage
+      if (store.logo) {
+        try {
+          await objectStorage.deleteFile(store.logo);
+        } catch (e) {
+          console.warn("Failed to delete store logo:", e);
+        }
+      }
+      
+      if (store.banner) {
+        try {
+          await objectStorage.deleteFile(store.banner);
+        } catch (e) {
+          console.warn("Failed to delete store banner:", e);
+        }
+      }
+      
+      // Delete store media
+      const storeMediaList = await db.query.storeMedia.findMany({
+        where: eq(storeMedia.storeId, store.id),
+      });
+      
+      for (const media of storeMediaList) {
+        try {
+          await objectStorage.deleteFile(media.url);
+        } catch (e) {
+          console.warn("Failed to delete store media:", e);
+        }
+      }
+      
+      // Delete store media records
+      await db.delete(storeMedia).where(eq(storeMedia.storeId, store.id));
+      
+      // Delete store followers
+      await db.delete(storeFollowers).where(eq(storeFollowers.storeId, store.id));
+      
+      // Delete store reviews
+      await db.delete(storeReviews).where(eq(storeReviews.storeId, store.id));
+      
+      // Unlink listings from store (don't delete them)
+      await db
+        .update(listings)
+        .set({ storeId: null })
+        .where(eq(listings.storeId, store.id));
+      
+      // Finally delete the store
+      await db.delete(stores).where(eq(stores.id, store.id));
+      
+      res.json({ message: "Mağaza başarıyla silindi" });
+    } catch (error) {
+      console.error("Error deleting store:", error);
+      res.status(500).json({ message: "Mağaza silinemedi" });
+    }
+  });
+
   // Get my store (owner dashboard)
   app.get("/api/store/my/dashboard", isAuthenticated, async (req: Request, res: Response) => {
     try {

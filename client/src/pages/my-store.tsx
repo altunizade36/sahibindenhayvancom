@@ -3,8 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "wouter";
-import { Building2, Edit, Eye, Upload, X, Users, Eye as EyeIcon, Star, Calendar, Image, Palette, Loader2 } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Building2, Edit, Eye, Upload, X, Users, Eye as EyeIcon, Star, Calendar, Image, Palette, Loader2, Trash2, MapPin, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,17 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface StoreCategory {
   id: string;
@@ -366,6 +377,45 @@ export default function MyStore() {
       });
     },
   });
+
+  const [, navigate] = useLocation();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!myStore?.id) throw new Error("Mağaza bulunamadı");
+      return apiRequest("DELETE", `/api/store/${myStore.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
+      toast({ title: "Mağaza silindi", description: "Mağazanız başarıyla silindi" });
+      navigate("/panel");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Hata",
+        description: error.message || "Mağaza silinemedi",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getBannerStyle = () => {
+    if (myStore?.banner) {
+      return {
+        backgroundImage: `url(${myStore.banner})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+    }
+    if (myStore?.bannerTemplate) {
+      const template = bannerTemplates.find(t => t.id === myStore.bannerTemplate);
+      if (template) {
+        return { background: template.preview };
+      }
+    }
+    return { backgroundColor: myStore?.primaryColor || '#0066CC' };
+  };
 
   const onSubmit = (data: StoreFormValues) => {
     if (hasStore) {
@@ -861,107 +911,186 @@ export default function MyStore() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card>
-            <CardHeader className="px-4 py-4 sm:px-6">
-              <CardTitle className="text-base sm:text-lg">İstatistikler</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-primary" />
+        <div className="space-y-6">
+          {/* Banner and Profile Header - Trendyol/Instagram Style */}
+          <Card className="overflow-hidden">
+            {/* Banner */}
+            <div 
+              className="h-32 sm:h-48 relative"
+              style={getBannerStyle()}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            </div>
+            
+            {/* Profile Section */}
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6 -mt-12 sm:-mt-16 relative">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                {/* Logo */}
+                <div className="flex-shrink-0">
+                  {myStore.logo ? (
+                    <img 
+                      src={myStore.logo} 
+                      alt={myStore.displayName} 
+                      className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-4 border-background shadow-lg"
+                      data-testid="img-store-logo"
+                    />
+                  ) : (
+                    <div 
+                      className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl flex items-center justify-center border-4 border-background shadow-lg"
+                      style={{ backgroundColor: myStore.primaryColor }}
+                    >
+                      <Building2 className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Toplam İlan</p>
-                  <p className="text-xl font-bold">{myStore.stats?.totalListings || 0}</p>
+                
+                {/* Store Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="min-w-0">
+                      <h2 className="text-xl sm:text-2xl font-bold truncate" data-testid="text-my-store-name">
+                        {myStore.displayName}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">@{myStore.slug}</p>
+                    </div>
+                    <Badge variant={myStore.status === "active" ? "default" : "secondary"} className="w-fit">
+                      {myStore.status === "active" ? "Aktif" : myStore.status === "pending" ? "Beklemede" : myStore.status}
+                    </Badge>
+                  </div>
+                  
+                  {myStore.city && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{myStore.city}{myStore.district ? `, ${myStore.district}` : ""}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-yellow-500" />
+              
+              {/* Stats Row */}
+              <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 pt-4 border-t">
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold">{myStore.stats?.totalListings || 0}</p>
+                  <p className="text-xs text-muted-foreground">İlan</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Ortalama Puan</p>
-                  <p className="text-xl font-bold">{parseFloat(myStore.rating || "0").toFixed(1)}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold">{myStore.followerCount || 0}</p>
                   <p className="text-xs text-muted-foreground">Takipçi</p>
-                  <p className="text-xl font-bold">{myStore.followerCount || 0}</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <EyeIcon className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold">{myStore.viewCount || 0}</p>
                   <p className="text-xs text-muted-foreground">Görüntülenme</p>
-                  <p className="text-xl font-bold">{myStore.viewCount || 0}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2">
-            <CardHeader className="px-4 py-4 sm:px-6">
-              <CardTitle className="text-base sm:text-lg">Mağaza Bilgileri</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
-              <div className="flex items-center gap-4 mb-4">
-                {myStore.logo ? (
-                  <img src={myStore.logo} alt={myStore.displayName} className="w-16 h-16 rounded-lg object-cover" />
-                ) : (
-                  <div 
-                    className="w-16 h-16 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: myStore.primaryColor + '20' }}
-                  >
-                    <Building2 className="w-8 h-8" style={{ color: myStore.primaryColor }} />
+                {parseFloat(myStore.rating || "0") > 0 && (
+                  <div className="text-center">
+                    <p className="text-xl sm:text-2xl font-bold flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      {parseFloat(myStore.rating || "0").toFixed(1)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{myStore.reviewCount || 0} Değerlendirme</p>
                   </div>
                 )}
-                <div>
-                  <h3 className="font-semibold text-lg">{myStore.displayName}</h3>
-                  <p className="text-sm text-muted-foreground">/{myStore.slug}</p>
-                </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Durum</p>
-                  <Badge variant={myStore.status === "active" ? "default" : "secondary"} className="mt-1">
-                    {myStore.status === "active" ? "Aktif" : myStore.status === "pending" ? "Beklemede" : myStore.status}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Mağaza Tipi</p>
-                  <p className="text-sm mt-1">{storeTypeOptions.find(t => t.value === myStore.storeType)?.label || myStore.storeType}</p>
-                </div>
-              </div>
-
-              {myStore.summary && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Kısa Açıklama</p>
-                  <p className="text-sm mt-1">{myStore.summary}</p>
-                </div>
-              )}
-
-              {myStore.city && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Konum</p>
-                  <p className="text-sm mt-1">{myStore.city}{myStore.district ? `, ${myStore.district}` : ""}</p>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 pt-2">
-                <div className="w-6 h-6 rounded-full" style={{ backgroundColor: myStore.primaryColor }} />
-                <div className="w-6 h-6 rounded-full" style={{ backgroundColor: myStore.secondaryColor }} />
-                <span className="text-xs text-muted-foreground">Marka Renkleri</span>
-              </div>
-            </CardContent>
+            </div>
           </Card>
+
+          {/* Store Details Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Store Info Card */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="px-4 py-4 sm:px-6">
+                <CardTitle className="text-base sm:text-lg">Mağaza Bilgileri</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Mağaza Tipi</p>
+                    <p className="text-sm mt-1">{storeTypeOptions.find(t => t.value === myStore.storeType)?.label || myStore.storeType}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Marka Renkleri</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: myStore.primaryColor }} />
+                      <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: myStore.secondaryColor }} />
+                    </div>
+                  </div>
+                </div>
+
+                {myStore.summary && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Kısa Açıklama</p>
+                    <p className="text-sm mt-1">{myStore.summary}</p>
+                  </div>
+                )}
+
+                {myStore.description && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Detaylı Açıklama</p>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">{myStore.description}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Actions Card */}
+            <Card>
+              <CardHeader className="px-4 py-4 sm:px-6">
+                <CardTitle className="text-base sm:text-lg">İşlemler</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-3">
+                <Link href={`/magaza/${myStore.slug}`}>
+                  <Button variant="outline" className="w-full" data-testid="button-view-public-store">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Mağazayı Görüntüle
+                  </Button>
+                </Link>
+                
+                <Button 
+                  onClick={() => setIsEditing(true)} 
+                  className="w-full"
+                  data-testid="button-edit-store"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Düzenle
+                </Button>
+
+                <Separator />
+
+                <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="w-full"
+                      data-testid="button-delete-store"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Mağazayı Sil
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Mağazayı Silmek İstediğinize Emin Misiniz?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Bu işlem geri alınamaz. Mağazanız, tüm medya dosyaları ve takipçileriniz silinecek. 
+                        İlanlarınız silinmeyecek ancak mağazanızla bağlantıları kaldırılacak.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel data-testid="button-cancel-delete">İptal</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteMutation.mutate()}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={deleteMutation.isPending}
+                        data-testid="button-confirm-delete"
+                      >
+                        {deleteMutation.isPending ? "Siliniyor..." : "Evet, Sil"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </div>
