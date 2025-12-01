@@ -57,7 +57,7 @@ export function ListingImageUploader({
   const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
 
-  const { data: images = [], isLoading } = useQuery<ListingImage[]>({
+  const { data: images = [] } = useQuery<ListingImage[]>({
     queryKey: ['/api/listing-images', listingId],
     enabled: !!listingId,
   });
