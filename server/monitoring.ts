@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db, getPoolStats } from './db';
-import { cache } from './cache';
+import { cache, messageBroker, isPubSubEnabled } from './cache';
 
 interface SystemMetrics {
   uptime: number;
@@ -35,6 +35,11 @@ interface HealthStatus {
   cache: {
     type: string;
     available: boolean;
+  };
+  pubsub: {
+    enabled: boolean;
+    type: 'redis-tcp' | 'polling' | 'local';
+    subscribedChannels: number;
   };
 }
 
@@ -89,6 +94,7 @@ export async function healthCheck(_req: Request, res: Response) {
     const totalLatency = Date.now() - startTime;
 
     const poolStats = getPoolStats();
+    const pubSubEnabled = isPubSubEnabled();
     
     const health: HealthStatus = {
       status: dbConnected ? 'healthy' : 'degraded',
@@ -102,6 +108,11 @@ export async function healthCheck(_req: Request, res: Response) {
       cache: {
         type: cacheStats.type,
         available: cacheStats.available,
+      },
+      pubsub: {
+        enabled: pubSubEnabled,
+        type: pubSubEnabled ? 'redis-tcp' : (cacheStats.available ? 'polling' : 'local'),
+        subscribedChannels: messageBroker.getSubscribedChannelsCount(),
       },
     };
 

@@ -84,6 +84,7 @@ No specific user preferences were provided in the original document.
 ### Performance & Scalability
 
 **Current Capacity**: ~200-500 concurrent users (Replit free tier limits)
+**With Upstash Pro**: ~3,000-5,000 concurrent users
 
 **Known Limitations**:
 - Upstash Redis free tier: 10,000 commands/day limit
@@ -103,15 +104,31 @@ No specific user preferences were provided in the original document.
 - Admin stats: 1min TTL
 - Blog posts: 1h TTL
 
+**WebSocket Scalability**:
+- Redis-based message broker for multi-instance deployments
+- Local EventEmitter fallback for single-instance
+- Channels: chat, auction, stream, presence, notifications
+
+**CDN-Ready Headers**:
+- Cache-Control: public, max-age=300, s-maxage=600
+- CDN-Cache-Control for edge caching
+- Vary: Accept-Encoding for compression
+
 **Rate Limiting**:
 - Global API: 100 requests/min per IP
 - Strict limiter: 3 attempts/5min for login/register
 
-**For 5,000+ Users Would Need**:
-- Redis paid plan (unlimited commands)
-- PostgreSQL connection pooler (PgBouncer)
-- Horizontal scaling with load balancer
-- Dedicated hosting (not Replit free tier)
+**For 5,000+ Users - Upstash Pro Setup**:
+1. Go to console.upstash.com → Select your Redis database
+2. Upgrade to Pro plan (~$10/month)
+3. Copy the "Redis URL" (starts with `rediss://`)
+4. Add to Replit Secrets: `UPSTASH_REDIS_URL` = your Redis URL
+5. Restart the application - Real Pub/Sub will activate
+
+**Health Endpoint**: `/health` shows:
+- database.pool (total, idle, waiting)
+- pubsub.enabled (true when UPSTASH_REDIS_URL is set)
+- pubsub.type (redis-tcp, polling, or local)
 
 **Frontend Optimizations**:
 - React.lazy + Suspense for 30+ pages

@@ -1,29 +1,91 @@
 import { Redis } from '@upstash/redis';
+import IORedis from 'ioredis';
 
-// Redis client for distributed caching
-// Free tier: 10,000 commands/day (https://upstash.com)
+// Redis clients for distributed caching and Pub/Sub
+// REST API for caching, ioredis TCP for real-time Pub/Sub
 let redisClient: Redis | null = null;
+let pubClient: IORedis | null = null;
+let subClient: IORedis | null = null;
+let redisPubSubEnabled = false;
 
 export function initializeRedis() {
+  // Initialize REST API client for caching
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token) {
-    console.warn('⚠️  Redis not configured (UPSTASH_REDIS_REST_URL/TOKEN missing) - caching disabled');
-    return null;
+  if (url && token) {
+    try {
+      redisClient = new Redis({ url, token });
+      console.log('✅ Redis REST cache initialized');
+    } catch (error) {
+      console.error('❌ Redis REST initialization failed:', error);
+    }
+  } else {
+    console.warn('⚠️  Redis REST not configured - using in-memory cache');
   }
 
-  try {
-    redisClient = new Redis({
-      url,
-      token,
-    });
-    console.log('✅ Redis cache initialized');
-    return redisClient;
-  } catch (error) {
-    console.error('❌ Redis initialization failed:', error);
-    return null;
+  // Initialize ioredis TCP client for Pub/Sub (requires Upstash Pro)
+  const redisUrl = process.env.UPSTASH_REDIS_URL; // TCP URL: rediss://...
+  
+  if (redisUrl) {
+    try {
+      pubClient = new IORedis(redisUrl, {
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        lazyConnect: true,
+        tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+      });
+      
+      subClient = new IORedis(redisUrl, {
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        lazyConnect: true,
+        tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+      });
+
+      // Connect and setup Pub/Sub
+      Promise.all([pubClient.connect(), subClient.connect()])
+        .then(() => {
+          redisPubSubEnabled = true;
+          console.log('✅ Redis Pub/Sub initialized (ioredis TCP)');
+          
+          // Setup message handler for subscribed channels
+          subClient!.on('message', (channel, message) => {
+            try {
+              const parsed = JSON.parse(message);
+              const subscribers = localSubscribers.get(channel);
+              if (subscribers) {
+                Array.from(subscribers).forEach(callback => {
+                  try {
+                    callback(channel, parsed);
+                  } catch (error) {
+                    console.error(`Subscriber callback error (${channel}):`, error);
+                  }
+                });
+              }
+            } catch (error) {
+              console.error(`Message parse error (${channel}):`, error);
+            }
+          });
+        })
+        .catch((error) => {
+          console.warn('⚠️  Redis Pub/Sub not available (using polling fallback):', error.message);
+          pubClient = null;
+          subClient = null;
+        });
+    } catch (error) {
+      console.warn('⚠️  Redis TCP initialization failed - Pub/Sub disabled');
+    }
+  } else {
+    console.warn('⚠️  UPSTASH_REDIS_URL not set - Pub/Sub using polling fallback');
   }
+
+  return redisClient;
+}
+
+// Check if real Pub/Sub is available
+export function isPubSubEnabled(): boolean {
+  return redisPubSubEnabled && pubClient !== null && subClient !== null;
 }
 
 // Cache abstraction with fallback to in-memory
@@ -282,33 +344,43 @@ export const cacheTTL = {
 };
 
 // ============ WebSocket Message Broadcasting ============
-// For multi-instance deployments, uses Redis as message broker
-// Falls back to in-memory for single-instance deployments
+// Uses real Redis Pub/Sub when available (ioredis TCP)
+// Falls back to list-based polling when only REST API available
 
 type BroadcastCallback = (channel: string, message: any) => void;
 const localSubscribers = new Map<string, Set<BroadcastCallback>>();
+const subscribedChannels = new Set<string>();
 
 export const messageBroker = {
   /**
    * Publish message to all subscribers (local + remote instances)
+   * Uses real Redis Pub/Sub when available, falls back to list-based
    */
   async publish(channel: string, message: any): Promise<void> {
     try {
-      // Store in Redis for other instances to read (list-based pub/sub simulation)
+      const messageWithMeta = {
+        ...message,
+        _timestamp: Date.now(),
+        _instanceId: process.env.REPL_ID || 'local',
+      };
+
+      // Use real Redis Pub/Sub if available (ioredis TCP)
+      if (redisPubSubEnabled && pubClient) {
+        // Redis Pub/Sub will deliver to all subscribers including this instance
+        // via the 'message' event handler - no need to notify locally
+        await pubClient.publish(channel, JSON.stringify(messageWithMeta));
+        return; // Don't notify locally - Redis will handle it
+      } 
+      
+      // Fallback to list-based polling (REST API)
       if (redisClient) {
-        const messageWithTimestamp = {
-          ...message,
-          _timestamp: Date.now(),
-          _instanceId: process.env.REPL_ID || 'local',
-        };
-        
-        // Push to channel list with auto-expire (5 second TTL)
-        await redisClient.lpush(`ws:${channel}`, JSON.stringify(messageWithTimestamp));
-        await redisClient.ltrim(`ws:${channel}`, 0, 99); // Keep last 100 messages
-        await redisClient.expire(`ws:${channel}`, 5); // Expire after 5 seconds
+        await redisClient.lpush(`ws:${channel}`, JSON.stringify(messageWithMeta));
+        await redisClient.ltrim(`ws:${channel}`, 0, 99);
+        await redisClient.expire(`ws:${channel}`, 5);
       }
       
-      // Notify local subscribers immediately
+      // Only notify local subscribers when NOT using real Pub/Sub
+      // (Real Pub/Sub delivers via the 'message' event handler)
       const subscribers = localSubscribers.get(channel);
       if (subscribers) {
         Array.from(subscribers).forEach(callback => {
@@ -326,12 +398,24 @@ export const messageBroker = {
 
   /**
    * Subscribe to channel messages
+   * Uses real Redis Pub/Sub when available
    */
   subscribe(channel: string, callback: BroadcastCallback): () => void {
+    // Add to local subscribers
     if (!localSubscribers.has(channel)) {
       localSubscribers.set(channel, new Set());
     }
     localSubscribers.get(channel)!.add(callback);
+
+    // Subscribe to Redis channel if real Pub/Sub available and not already subscribed
+    if (redisPubSubEnabled && subClient && !subscribedChannels.has(channel)) {
+      subClient.subscribe(channel).then(() => {
+        subscribedChannels.add(channel);
+        console.log(`📡 Subscribed to Redis channel: ${channel}`);
+      }).catch(err => {
+        console.error(`Failed to subscribe to ${channel}:`, err);
+      });
+    }
 
     // Return unsubscribe function
     return () => {
@@ -340,16 +424,25 @@ export const messageBroker = {
         subscribers.delete(callback);
         if (subscribers.size === 0) {
           localSubscribers.delete(channel);
+          
+          // Unsubscribe from Redis if no more local subscribers
+          if (redisPubSubEnabled && subClient && subscribedChannels.has(channel)) {
+            subClient.unsubscribe(channel).then(() => {
+              subscribedChannels.delete(channel);
+              console.log(`📡 Unsubscribed from Redis channel: ${channel}`);
+            }).catch(() => {});
+          }
         }
       }
     };
   },
 
   /**
-   * Poll Redis for messages from other instances (for multi-instance sync)
-   * Call this periodically in multi-instance deployments
+   * Poll Redis for messages (fallback for REST API only mode)
    */
   async pollMessages(channel: string, lastTimestamp: number): Promise<any[]> {
+    // Skip polling if real Pub/Sub is active
+    if (redisPubSubEnabled) return [];
     if (!redisClient) return [];
     
     try {
@@ -364,10 +457,24 @@ export const messageBroker = {
   },
 
   /**
+   * Check if real Pub/Sub is enabled
+   */
+  isRealPubSubEnabled(): boolean {
+    return redisPubSubEnabled;
+  },
+
+  /**
    * Get subscriber count
    */
   getSubscriberCount(channel: string): number {
     return localSubscribers.get(channel)?.size || 0;
+  },
+
+  /**
+   * Get subscribed channels count
+   */
+  getSubscribedChannelsCount(): number {
+    return subscribedChannels.size;
   },
 };
 
