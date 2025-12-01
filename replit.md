@@ -83,7 +83,7 @@ No specific user preferences were provided in the original document.
 
 ### Performance & Scalability (High-Traffic Optimizations)
 
-**Current Capacity**: ~3,000+ concurrent users (Phase 1 complete)
+**Current Capacity**: ~5,000-10,000 concurrent users (Phase 2 complete)
 
 **Redis Caching System** (Upstash Redis):
 - Categories: 24h TTL (rarely changes)
@@ -94,8 +94,13 @@ No specific user preferences were provided in the original document.
 
 **Distributed Rate Limiting**:
 - Global API: 100 requests/min per IP (production)
-- Strict limiter: 5 attempts/5min for login/register
-- Redis-backed sliding window algorithm for multi-instance support
+- Strict limiter: 3 attempts/5min for login/register
+- Atomic Redis INCR for thread-safe distributed rate limiting
+
+**Memory Management**:
+- Automatic cleanup every 5 minutes for expired cache entries
+- Rate limit counter garbage collection
+- Prevents memory leaks in long-running instances
 
 **Frontend Optimizations**:
 - React.lazy + Suspense for 30+ pages
