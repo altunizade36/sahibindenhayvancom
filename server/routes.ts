@@ -2539,6 +2539,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.id, listing.sellerId))
         .limit(1);
 
+      // Get category info
+      let categoryInfo = null;
+      if (listing.categoryId) {
+        const [category] = await db
+          .select()
+          .from(categories)
+          .where(eq(categories.id, listing.categoryId))
+          .limit(1);
+        categoryInfo = category || null;
+      }
+
       // Get store info if listing is from a store
       let storeInfo = null;
       if (listing.storeId) {
@@ -2583,6 +2594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...listing,
         views: (listing.views || 0) + 1, // Return incremented view count
         seller: sanitizedSeller,
+        category: categoryInfo,
         store: storeInfo,
         isFavorite,
       });
