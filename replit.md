@@ -23,7 +23,16 @@ No specific user preferences were provided in the original document.
 - **Core Functionality**:
     - **Animal Listings**: Advanced search with 6 filters (price, location, breed, age, health), image galleries, document uploads, and moderation.
     - **Hierarchical Categories**: 459 categories across 14 main domains (e.g., Pets, Farm Animals, Fish, Horses, Beekeeping).
-    - **Messaging**: Real-time chat between buyers and sellers.
+    - **Advanced Messaging System**: Modern WhatsApp/Telegram-like real-time chat with:
+      - Message types: text, image, file, system, offer
+      - Read receipts with checkmark icons (✓ sent, ✓✓ delivered, blue ✓✓ read)
+      - Typing indicators with animated dots
+      - Online/offline status with last seen timestamps
+      - File/image sharing (images, PDFs, Word/Excel documents up to 10MB)
+      - Message search functionality
+      - Conversation actions: archive, pin, mute
+      - Date separators in message history
+      - Responsive design for mobile/desktop
     - **Services**: Listings for veterinary and transportation services with profiles, reviews, and ratings.
     - **User Panel System**: Modern dashboard at `/panel/` with dedicated pages for listings (`/panel/ilanlarim`), favorites (`/panel/favorilerim`), and account settings (`/panel/ayarlar`). Features include quick stats, status filters, profile management, password change, and security status overview.
 
@@ -31,7 +40,8 @@ No specific user preferences were provided in the original document.
 - **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
 - **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
 - **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`
-- **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`
+- **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`, `/api/messages/unread-count`, `/api/messages/search`, `/api/messages/upload`
+- **Conversations**: `/api/conversations/:id/archive` (PATCH), `/api/conversations/:id/pin` (PATCH), `/api/conversations/:id/mute` (PATCH), `/api/conversations/:id/read` (POST)
 - **Notifications**: `/api/notifications` (GET list, POST create), `/api/notifications/count` (unread count), `/api/notifications/:id/read` (PATCH mark read), `/api/notifications/read-all` (POST mark all read), `/api/notifications/:id` (DELETE)
 - **Reports**: `/api/reports` (POST create report), `/api/reports/my` (GET user's reports), `/api/admin/reports` (GET all, PATCH update status)
 - **Services**: `/api/vet-services`, `/api/transport-services`
@@ -40,8 +50,8 @@ No specific user preferences were provided in the original document.
 - **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management)
 
 **WebSocket Events:**
-- **Client → Server**: `chat`
-- **Server → Client**: `chat`, `chat_sent`
+- **Client → Server**: `chat`, `typing`, `read`, `presence`
+- **Server → Client**: `chat`, `chat_sent`, `typing`, `read`, `presence`, `status_update`
 
 ### External Dependencies
 - **Database**: PostgreSQL (Neon serverless) with connection pooling.
