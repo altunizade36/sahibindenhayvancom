@@ -2216,6 +2216,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
+      // Disable browser caching to ensure fresh data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       // Check cache first (24h TTL - categories rarely change)
       const cacheKey = cacheKeys.categories();
       const cached = await cache.get<any[]>(cacheKey);
@@ -2242,6 +2247,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   
   app.get("/api/categories/tree", async (_req: Request, res: Response) => {
     try {
+      // Disable browser caching to ensure fresh data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       // Check cache first (24h TTL - tree structure rarely changes)
       const cacheKey = cacheKeys.categoryTree();
       const cached = await cache.get<any[]>(cacheKey);
