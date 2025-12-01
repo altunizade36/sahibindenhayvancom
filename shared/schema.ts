@@ -203,7 +203,11 @@ export const users = pgTable("users", {
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index("users_role_idx").on(table.role),
+  cityIdx: index("users_city_idx").on(table.city),
+  createdAtIdx: index("users_created_at_idx").on(table.createdAt),
+}));
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -343,7 +347,10 @@ export const categories = pgTable("categories", {
   order: integer("order").default(0),
   depth: integer("depth").default(0).notNull(), // 0 for root categories
   path: jsonb("path").$type<string[]>().notNull().default(sql`'[]'::jsonb`), // Array of ancestor IDs
-});
+}, (table) => ({
+  parentIdIdx: index("categories_parent_id_idx").on(table.parentId),
+  depthOrderIdx: index("categories_depth_order_idx").on(table.depth, table.order),
+}));
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
@@ -819,7 +826,10 @@ export const blogPosts = pgTable("blog_posts", {
   readTime: integer("read_time"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  publishedCreatedIdx: index("blog_posts_published_created_idx").on(table.published, table.createdAt),
+  authorIdx: index("blog_posts_author_idx").on(table.authorId),
+}));
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   id: true,

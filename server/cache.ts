@@ -32,6 +32,43 @@ const memoryCache = new Map<string, { value: any; expires: number }>();
 // In-memory rate limit counters (fallback when Redis unavailable)
 const rateLimitCounters = new Map<string, { count: number; expires: number }>();
 
+// Memory cleanup interval (every 5 minutes)
+const CLEANUP_INTERVAL = 5 * 60 * 1000;
+let cleanupTimer: NodeJS.Timeout | null = null;
+
+function startMemoryCleanup() {
+  if (cleanupTimer) return;
+  
+  cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    let cleanedCache = 0;
+    let cleanedRateLimit = 0;
+    
+    // Clean expired cache entries
+    Array.from(memoryCache.entries()).forEach(([key, entry]) => {
+      if (entry.expires < now) {
+        memoryCache.delete(key);
+        cleanedCache++;
+      }
+    });
+    
+    // Clean expired rate limit counters
+    Array.from(rateLimitCounters.entries()).forEach(([key, entry]) => {
+      if (entry.expires < now) {
+        rateLimitCounters.delete(key);
+        cleanedRateLimit++;
+      }
+    });
+    
+    if (cleanedCache > 0 || cleanedRateLimit > 0) {
+      console.log(`🧹 Memory cleanup: removed ${cleanedCache} cache, ${cleanedRateLimit} rate limit entries`);
+    }
+  }, CLEANUP_INTERVAL);
+}
+
+// Start cleanup on module load
+startMemoryCleanup();
+
 export const cache = {
   /**
    * Atomic increment with TTL - critical for rate limiting
@@ -274,13 +311,13 @@ export const messageBroker = {
       // Notify local subscribers immediately
       const subscribers = localSubscribers.get(channel);
       if (subscribers) {
-        for (const callback of subscribers) {
+        Array.from(subscribers).forEach(callback => {
           try {
             callback(channel, message);
           } catch (error) {
             console.error(`Subscriber callback error (${channel}):`, error);
           }
-        }
+        });
       }
     } catch (error) {
       console.error(`Message publish error (${channel}):`, error);
