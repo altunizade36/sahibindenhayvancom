@@ -196,6 +196,101 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 
+// User Settings table - stores all user preferences
+export const userSettings = pgTable("user_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  
+  // Notification preferences
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  smsNotifications: boolean("sms_notifications").default(true).notNull(),
+  pushNotifications: boolean("push_notifications").default(true).notNull(),
+  notifyMessages: boolean("notify_messages").default(true).notNull(),
+  notifyFavorites: boolean("notify_favorites").default(true).notNull(),
+  notifyPriceDrops: boolean("notify_price_drops").default(true).notNull(),
+  notifyListingUpdates: boolean("notify_listing_updates").default(true).notNull(),
+  notifyPromotions: boolean("notify_promotions").default(false).notNull(),
+  notifyNewsletter: boolean("notify_newsletter").default(false).notNull(),
+  
+  // Privacy settings
+  showEmail: boolean("show_email").default(false).notNull(),
+  showPhone: boolean("show_phone").default(true).notNull(),
+  showLocation: boolean("show_location").default(true).notNull(),
+  showOnlineStatus: boolean("show_online_status").default(true).notNull(),
+  allowMessages: boolean("allow_messages").default(true).notNull(),
+  profileVisibility: varchar("profile_visibility", { length: 20 }).default("public").notNull(), // public, private, contacts
+  
+  // Listing defaults
+  defaultCity: text("default_city"),
+  defaultDistrict: text("default_district"),
+  defaultCategoryId: varchar("default_category_id"),
+  autoRenewListings: boolean("auto_renew_listings").default(false).notNull(),
+  
+  // Display preferences
+  theme: varchar("theme", { length: 10 }).default("system").notNull(), // light, dark, system
+  language: varchar("language", { length: 5 }).default("tr").notNull(),
+  currency: varchar("currency", { length: 3 }).default("TRY").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+export type UserSettings = typeof userSettings.$inferSelect;
+
+// User Devices table - for device management and security
+export const userDevices = pgTable("user_devices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  deviceName: varchar("device_name", { length: 100 }),
+  deviceType: varchar("device_type", { length: 50 }), // mobile, desktop, tablet
+  browser: varchar("browser", { length: 100 }),
+  os: varchar("os", { length: 100 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  location: varchar("location", { length: 200 }),
+  lastActive: timestamp("last_active").defaultNow().notNull(),
+  isTrusted: boolean("is_trusted").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserDeviceSchema = createInsertSchema(userDevices).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserDevice = z.infer<typeof insertUserDeviceSchema>;
+export type UserDevice = typeof userDevices.$inferSelect;
+
+// Login History table - for security audit
+export const loginHistory = pgTable("login_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  loginMethod: varchar("login_method", { length: 30 }).notNull(), // email, phone, google, replit
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  location: varchar("location", { length: 200 }),
+  success: boolean("success").default(true).notNull(),
+  failureReason: text("failure_reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("login_history_user_id_idx").on(table.userId),
+  createdAtIdx: index("login_history_created_at_idx").on(table.createdAt),
+}));
+
+export const insertLoginHistorySchema = createInsertSchema(loginHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertLoginHistory = z.infer<typeof insertLoginHistorySchema>;
+export type LoginHistory = typeof loginHistory.$inferSelect;
+
 // Categories table (hierarchical with depth and path support)
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -1158,6 +1158,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Change password error:", error);
       res.status(500).json({ message: "Şifre değiştirilirken bir hata oluştu" });
+    }
+  });
+
+  // ============ User Settings Routes ============
+  
+  // Get user settings
+  app.get('/api/settings', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      
+      // Get existing settings or return defaults
+      const [existingSettings] = await db
+        .select()
+        .from(userSettings)
+        .where(eq(userSettings.userId, userId))
+        .limit(1);
+      
+      if (existingSettings) {
+        return res.json(existingSettings);
+      }
+      
+      // Return default settings if none exist
+      res.json({
+        userId,
+        emailNotifications: true,
+        smsNotifications: true,
+        pushNotifications: true,
+        notifyMessages: true,
+        notifyFavorites: true,
+        notifyPriceDrops: true,
+        notifyListingUpdates: true,
+        notifyPromotions: false,
+        notifyNewsletter: false,
+        showEmail: false,
+        showPhone: true,
+        showLocation: true,
+        showOnlineStatus: true,
+        allowMessages: true,
+        profileVisibility: 'public',
+        defaultCity: null,
+        defaultDistrict: null,
+        defaultCategoryId: null,
+        autoRenewListings: false,
+        theme: 'system',
+        language: 'tr',
+        currency: 'TRY',
+      });
+    } catch (error) {
+      console.error("Get settings error:", error);
+      res.status(500).json({ message: "Ayarlar yüklenirken bir hata oluştu" });
+    }
+  });
+  
+  // Update user settings (partial update)
+  app.patch('/api/settings', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      
+      const settingsData = req.body;
+      
+      // Check if settings exist
+      const [existingSettings] = await db
+        .select()
+        .from(userSettings)
+        .where(eq(userSettings.userId, userId))
+        .limit(1);
+      
+      let updatedSettings;
+      
+      if (existingSettings) {
+        // Update existing settings
+        [updatedSettings] = await db
+          .update(userSettings)
+          .set({
+            ...settingsData,
+            updatedAt: new Date(),
+          })
+          .where(eq(userSettings.userId, userId))
+          .returning();
+      } else {
+        // Create new settings
+        [updatedSettings] = await db
+          .insert(userSettings)
+          .values({
+            userId,
+            ...settingsData,
+          })
+          .returning();
+      }
+      
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error("Update settings error:", error);
+      res.status(500).json({ message: "Ayarlar güncellenirken bir hata oluştu" });
+    }
+  });
+  
+  // Get user devices
+  app.get('/api/settings/devices', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      
+      const devices = await db
+        .select()
+        .from(userDevices)
+        .where(eq(userDevices.userId, userId))
+        .orderBy(desc(userDevices.lastActive));
+      
+      res.json(devices);
+    } catch (error) {
+      console.error("Get devices error:", error);
+      res.status(500).json({ message: "Cihazlar yüklenirken bir hata oluştu" });
+    }
+  });
+  
+  // Remove a device
+  app.delete('/api/settings/devices/:deviceId', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      const { deviceId } = req.params;
+      
+      await db
+        .delete(userDevices)
+        .where(and(
+          eq(userDevices.id, deviceId),
+          eq(userDevices.userId, userId)
+        ));
+      
+      res.json({ message: "Cihaz kaldırıldı" });
+    } catch (error) {
+      console.error("Remove device error:", error);
+      res.status(500).json({ message: "Cihaz kaldırılırken bir hata oluştu" });
+    }
+  });
+  
+  // Get login history
+  app.get('/api/settings/login-history', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      
+      const history = await db
+        .select()
+        .from(loginHistory)
+        .where(eq(loginHistory.userId, userId))
+        .orderBy(desc(loginHistory.createdAt))
+        .limit(50);
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Get login history error:", error);
+      res.status(500).json({ message: "Giriş geçmişi yüklenirken bir hata oluştu" });
+    }
+  });
+  
+  // Delete account (soft delete - requires confirmation)
+  app.post('/api/settings/delete-account', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      const { confirmation, password } = req.body;
+      
+      if (confirmation !== 'DELETE') {
+        return res.status(400).json({ message: "Hesap silme onayı gereklidir" });
+      }
+      
+      // If user has password-based auth, verify password
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      
+      if (existingUser?.password && password) {
+        const isValidPassword = await bcrypt.compare(password, existingUser.password);
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Şifre hatalı" });
+        }
+      }
+      
+      // Delete user and related data (cascades)
+      await db.delete(users).where(eq(users.id, userId));
+      
+      // Logout
+      req.logout((err) => {
+        if (err) {
+          console.error("Logout error:", err);
+        }
+      });
+      
+      res.json({ message: "Hesabınız silindi" });
+    } catch (error) {
+      console.error("Delete account error:", error);
+      res.status(500).json({ message: "Hesap silinirken bir hata oluştu" });
+    }
+  });
+  
+  // Export user data
+  app.get('/api/settings/export-data', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      
+      // Get all user data
+      const [userData] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const userListings = await db.select().from(listings).where(eq(listings.sellerId, userId));
+      const userFavorites = await db.select().from(favorites).where(eq(favorites.userId, userId));
+      const userMessages = await db.select().from(messages).where(
+        or(eq(messages.senderId, userId), eq(messages.receiverId, userId))
+      );
+      const userSettings_ = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+      
+      // Remove sensitive data
+      if (userData) {
+        delete (userData as any).password;
+        delete (userData as any).verificationToken;
+        delete (userData as any).resetToken;
+      }
+      
+      const exportData = {
+        user: userData,
+        listings: userListings,
+        favorites: userFavorites,
+        messages: userMessages,
+        settings: userSettings_,
+        exportedAt: new Date().toISOString(),
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="user-data-${userId}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Export data error:", error);
+      res.status(500).json({ message: "Veri dışa aktarılırken bir hata oluştu" });
     }
   });
 
