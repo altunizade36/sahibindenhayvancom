@@ -5631,11 +5631,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Admin Routes ============
-  // Admin middleware
+  // Admin middleware - checks role from database for real-time admin access
   async function adminMiddleware(req: Request, res: Response, next: Function) {
-    if (!req.user || (req.user as any).role !== "admin") {
+    if (!req.user) {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
+    
+    // Check role from database (not session) for real-time admin access
+    const userId = getUserId(req.user);
+    const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+    
+    if (!dbUser || dbUser.role !== "admin") {
+      return res.status(403).json({ message: "Admin yetkisi gereklidir" });
+    }
+    
+    // Update session with current role
+    (req.user as any).role = dbUser.role;
     next();
   }
 
