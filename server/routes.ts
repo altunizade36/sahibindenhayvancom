@@ -315,12 +315,12 @@ async function registerDevice(userId: string, req: Request): Promise<void> {
 // Use isAuthenticated from replitAuth.ts for protected routes
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // ============ Replit Auth Setup ============
-  await setupAuth(app);
-
-  // ============ Health & Monitoring Routes ============
+  // ============ Health & Monitoring Routes (MUST BE FIRST!) ============
+  // These routes are registered BEFORE any middleware to ensure instant response
+  // for Replit deployment health checks which timeout quickly
+  
   // Root route - MUST respond immediately for Replit deployment health checks
-  // Health checks hit "/" by default, so this must be ultra-fast
+  // Health checks hit "/" by default, so this must be ultra-fast (no middleware)
   app.get("/", (req, res, next) => {
     // If this is a health check (no Accept: text/html), respond immediately
     const acceptHeader = req.headers.accept || '';
@@ -335,6 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // /readiness - Comprehensive check with database/cache status (for detailed monitoring)
   app.get("/readiness", readinessCheck);
   app.get("/metrics", metricsEndpoint);
+
+  // ============ Replit Auth Setup (After health checks) ============
+  await setupAuth(app);
 
   // ============ Global Rate Limiting (Production Only) ============
   // Apply Redis-based distributed rate limiting to all API routes
