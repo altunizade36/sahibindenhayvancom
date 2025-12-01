@@ -38,7 +38,6 @@ const aricilik = createCategory("Arıcılık", "aricilik", "Honeycomb", 4);
 const kuslar = createCategory("Kümes ve Süs Kuşları", "kuslar", "Bird", 5);
 const surungenler = createCategory("Sürüngenler ve Amfibiler", "surungenler-amfibiler", "Turtle", 6);
 const kemirgenler = createCategory("Kemirgenler ve Küçük Hayvanlar", "kemirgenler-kucuk-hayvanlar", "Squirrel", 7);
-const egzotikHayvanlar = createCategory("Egzotik Hayvanlar", "egzotik-hayvanlar", "Sparkles", 8);
 const yemMama = createCategory("Yem, Mama ve Tarım Ürünleri", "yem-mama-tarim", "Wheat", 9);
 const ekipmanlar = createCategory("Ekipmanlar ve Aksesuarlar", "ekipmanlar-aksesuarlar", "ShoppingBag", 10);
 const veterinerlik = createCategory("Veterinerlik & Hizmetler", "veterinerlik-hizmetler", "Stethoscope", 11);
@@ -54,7 +53,6 @@ categoriesHierarchy.push(
   kuslar,
   surungenler,
   kemirgenler,
-  egzotikHayvanlar,
   yemMama,
   ekipmanlar,
   veterinerlik,
@@ -181,7 +179,7 @@ const birdTypes = [
   // Ek Kuş Türleri
   "Forpus", "Kakadu", "Macaw", "Ara Papağan", "Florya",
   "Bülbül", "Saka Kuşu", "Makaronez", "Finch", "Zebra Finch",
-  "Serçe", "Ötücü Kuş", "Keklik", "Bıldırcın"
+  "Serçe", "Ötücü Kuş", "Bıldırcın"
 ];
 birdTypes.forEach((type, i) => {
   categoriesHierarchy.push(
@@ -226,7 +224,7 @@ const fishTypes = [
   // Ek Akvaryum Balıkları
   "Neon Tetra", "Guppy", "Molly", "Platy", "Oscar",
   "Vatoz", "Palyaço Balığı", "Tang", "Denizel Balık",
-  "Arowona", "Piranha", "Yayın Balığı", "Çöpçü Balık"
+  "Arowona", "Yayın Balığı", "Çöpçü Balık"
 ];
 fishTypes.forEach((type, i) => {
   categoriesHierarchy.push(
@@ -267,7 +265,7 @@ categoriesHierarchy.push(evcilKemirgenler);
 const rodentTypes = [
   "Hamster", "Ginepig", "Tavşan", "Sincap", "Fare", "Gerbil", "Çinçilla",
   // Ek Kemirgenler
-  "Huron", "Degu", "Prairie Dog", "Sugar Glider", "Tarla Faresi"
+  "Huron", "Degu", "Tarla Faresi"
 ];
 rodentTypes.forEach((type, i) => {
   categoriesHierarchy.push(
@@ -321,30 +319,6 @@ categoriesHierarchy.push(amfibiler);
       amfibiler.id,
       2,
       [evcilHayvanlar.id, amfibiler.id]
-    )
-  );
-});
-
-// Egzotik Hayvanlar (Exotic Animals) - Evcil kategorisi altında
-const evcilEgzotikHayvanlar = createCategory("Egzotik Hayvanlar", "evcil-egzotik-hayvanlar", "Sparkles", 7, evcilHayvanlar.id, 1, [evcilHayvanlar.id]);
-categoriesHierarchy.push(evcilEgzotikHayvanlar);
-
-const exoticTypes = [
-  "Kirpi", "Rakun", "Tilki", "Lemur", "Maymun", "Marmoset", "Koati",
-  // Ek Egzotik Hayvanlar
-  "Kinkajou", "Kapibara", "Şinşilla", "Panda Faresi", "Meerkat",
-  "Fennec", "Serval", "Ocelot"
-];
-exoticTypes.forEach((type, i) => {
-  categoriesHierarchy.push(
-    createCategory(
-      type,
-      `evcil-${type.toLowerCase()}`,
-      "Sparkles",
-      i,
-      evcilEgzotikHayvanlar.id,
-      2,
-      [evcilHayvanlar.id, evcilEgzotikHayvanlar.id]
     )
   );
 });
@@ -426,7 +400,7 @@ const kumes = createCategory("Kümes Hayvanları", "kumes-hayvanlari", "Egg", 3,
 categoriesHierarchy.push(kumes);
 
 const poultryTypes = [
-  "Tavuk", "Horoz", "Ördek", "Kaz", "Hindi", "Bıldırcın", "Sülün", "Keklik", "Güvercin",
+  "Tavuk", "Horoz", "Ördek", "Kaz", "Hindi", "Bıldırcın", "Güvercin",
   // Tavuk Irkları
   "Brahma", "Süs Tavuğu", "Yumurta Tavuğu", "Et Tavuğu", "Denizli Horozu",
   "Leghorn", "Rhode Island", "Sussex", "Australorp", "Wyandotte"
@@ -817,7 +791,7 @@ categoriesHierarchy.push(balUrunleri);
 const kumesHayvanlari = createCategory("Kümes Hayvanları", "ana-kumes-hayvanlari", "Egg", 0, kuslar.id, 1, [kuslar.id]);
 categoriesHierarchy.push(kumesHayvanlari);
 
-["Tavuk", "Horoz", "Hindi", "Ördek", "Kaz", "Bıldırcın", "Sülün", "Keklik", "Emu", "Devekuşu"].forEach((type, i) => {
+["Tavuk", "Horoz", "Hindi", "Ördek", "Kaz", "Bıldırcın", "Emu", "Devekuşu"].forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase()}`, "Egg", i, kumesHayvanlari.id, 2, [kuslar.id, kumesHayvanlari.id])
   );
@@ -891,37 +865,9 @@ categoriesHierarchy.push(tavsan);
 const diger = createCategory("Diğer Kemirgenler", "ana-diger-kemirgenler", "Rabbit", 2, kemirgenler.id, 1, [kemirgenler.id]);
 categoriesHierarchy.push(diger);
 
-["Ginepig", "Çinçilla", "Gerbil", "Fare", "Sincap", "Huron", "Degu", "Prairie Dog"].forEach((type, i) => {
+["Ginepig", "Çinçilla", "Gerbil", "Fare", "Sincap", "Huron", "Degu"].forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Rabbit", i, diger.id, 2, [kemirgenler.id, diger.id])
-  );
-});
-
-// ========== 9. Egzotik Hayvanlar (Ana Kategori) ==========
-const egzotikMemeli = createCategory("Egzotik Memeliler", "ana-egzotik-memeliler", "Sparkles", 0, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
-categoriesHierarchy.push(egzotikMemeli);
-
-["Kirpi", "Rakun", "Tilki", "Lemur", "Marmoset", "Koati", "Kinkajou", "Kapibara", "Şinşilla"].forEach((type, i) => {
-  categoriesHierarchy.push(
-    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Sparkles", i, egzotikMemeli.id, 2, [egzotikHayvanlar.id, egzotikMemeli.id])
-  );
-});
-
-const egzotikKus = createCategory("Egzotik Kuşlar", "ana-egzotik-kuslar", "Bird", 1, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
-categoriesHierarchy.push(egzotikKus);
-
-["Tavuskuşu", "Flamingo", "Tukan", "Kakapo", "Kiwi Kuşu"].forEach((type, i) => {
-  categoriesHierarchy.push(
-    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bird", i, egzotikKus.id, 2, [egzotikHayvanlar.id, egzotikKus.id])
-  );
-});
-
-const egzotikBocek = createCategory("Egzotik Böcekler ve Akrepler", "ana-egzotik-bocekler", "Bug", 2, egzotikHayvanlar.id, 1, [egzotikHayvanlar.id]);
-categoriesHierarchy.push(egzotikBocek);
-
-["Tarantula", "Akrep", "Solucan", "Mantis", "At Böceği", "Dev Afrika Sümüklüböceği"].forEach((type, i) => {
-  categoriesHierarchy.push(
-    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, egzotikBocek.id, 2, [egzotikHayvanlar.id, egzotikBocek.id])
   );
 });
 

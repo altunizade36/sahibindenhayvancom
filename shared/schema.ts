@@ -119,6 +119,38 @@ export const locationTypeEnum = pgEnum("location_type", [
   "koy"        // Village
 ]);
 
+// Document verification status
+export const documentStatusEnum = pgEnum("document_status", [
+  "pending",     // Beklemede - yeni yüklendi
+  "verified",    // Onaylandı - admin tarafından doğrulandı
+  "rejected",    // Reddedildi - geçersiz belge
+  "expired"      // Süresi dolmuş
+]);
+
+// Document types for animals
+export const documentTypeEnum = pgEnum("document_type", [
+  "microchip",           // Mikroçip belgesi
+  "passport",            // Evcil hayvan pasaportu
+  "vaccination",         // Aşı kartı/belgesi
+  "health_certificate",  // Veteriner sağlık raporu
+  "pedigree",            // Soy belgesi
+  "cites",               // CITES belgesi (egzotik/korumalı türler)
+  "turkvet",             // TÜRKVET kayıt belgesi
+  "transport",           // Nakil belgesi
+  "ear_tag",             // Kulak küpesi belgesi
+  "breeding_permit",     // Üretim izni belgesi
+  "dkmp_permit",         // DKMP izin belgesi (yabani hayvanlar)
+  "import_permit",       // İthalat izni
+  "other"                // Diğer belgeler
+]);
+
+// Category document requirements - which documents are needed for which category types
+export const categoryDocumentRequirementEnum = pgEnum("category_document_requirement", [
+  "required",     // Zorunlu - bu belge olmadan ilan verilemez
+  "recommended",  // Önerilen - ilanın onaylanma şansını artırır
+  "optional"      // İsteğe bağlı
+]);
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",
@@ -454,6 +486,77 @@ export const insertListingImageSchema = createInsertSchema(listingImages).omit({
 
 export type InsertListingImage = z.infer<typeof insertListingImageSchema>;
 export type ListingImage = typeof listingImages.$inferSelect;
+
+// Listing Documents table - for legal document verification
+export const listingDocuments = pgTable("listing_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").references(() => listings.id, { onDelete: "cascade" }),
+  documentType: documentTypeEnum("document_type").notNull(),
+  documentUrl: text("document_url").notNull(), // Storage URL
+  documentKey: text("document_key").notNull(), // Storage key
+  documentNumber: text("document_number"), // Belge numarası (mikroçip no, pasaport no vb.)
+  issueDate: timestamp("issue_date"), // Belge düzenlenme tarihi
+  expiryDate: timestamp("expiry_date"), // Belge geçerlilik tarihi
+  issuingAuthority: text("issuing_authority"), // Düzenleyen kurum
+  status: documentStatusEnum("status").default("pending"),
+  verifiedBy: varchar("verified_by").references(() => users.id),
+  verifiedAt: timestamp("verified_at"),
+  rejectionReason: text("rejection_reason"),
+  notes: text("notes"), // Admin notları
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdx: index("listing_documents_listing_idx").on(table.listingId),
+  statusIdx: index("listing_documents_status_idx").on(table.status),
+  typeIdx: index("listing_documents_type_idx").on(table.documentType),
+}));
+
+export const insertListingDocumentSchema = createInsertSchema(listingDocuments).omit({
+  id: true,
+  createdAt: true,
+  verifiedBy: true,
+  verifiedAt: true,
+});
+
+export type InsertListingDocument = z.infer<typeof insertListingDocumentSchema>;
+export type ListingDocument = typeof listingDocuments.$inferSelect;
+
+// Category Document Requirements - defines which documents are required for each category
+export const categoryDocumentRequirements = pgTable("category_document_requirements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categorySlug: text("category_slug").notNull(), // Category slug (e.g., "kopekler", "kediler")
+  documentType: documentTypeEnum("document_type").notNull(),
+  requirement: categoryDocumentRequirementEnum("requirement").notNull().default("optional"),
+  description: text("description"), // Açıklama (neden gerekli, nasıl alınır)
+  legalReference: text("legal_reference"), // Yasal dayanak
+  penaltyInfo: text("penalty_info"), // Ceza bilgisi
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  categoryIdx: index("category_doc_req_category_idx").on(table.categorySlug),
+  uniqueReq: index("category_doc_req_unique_idx").on(table.categorySlug, table.documentType),
+}));
+
+export const insertCategoryDocumentRequirementSchema = createInsertSchema(categoryDocumentRequirements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCategoryDocumentRequirement = z.infer<typeof insertCategoryDocumentRequirementSchema>;
+export type CategoryDocumentRequirement = typeof categoryDocumentRequirements.$inferSelect;
+
+// Banned/Restricted Categories - categories that are completely banned or restricted
+export const restrictedCategories = pgTable("restricted_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categorySlug: text("category_slug").notNull().unique(),
+  restrictionType: text("restriction_type").notNull(), // "banned", "store_only", "individual_only", "cites_required"
+  reason: text("reason").notNull(), // Yasaklama/kısıtlama nedeni
+  legalReference: text("legal_reference"), // Yasal dayanak
+  penaltyAmount: text("penalty_amount"), // Ceza miktarı
+  effectiveDate: timestamp("effective_date"), // Yürürlük tarihi
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type RestrictedCategory = typeof restrictedCategories.$inferSelect;
 
 // Auctions table
 export const auctions = pgTable("auctions", {

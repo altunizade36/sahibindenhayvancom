@@ -12,6 +12,12 @@ No specific user preferences were provided in the original document.
 - **Free Platform Model**: All listing features are free to encourage user acquisition; payment infrastructure is removed.
 - **Full PostgreSQL Storage**: Complete migration to PostgreSQL (Neon serverless) with Drizzle ORM for all data (users, listings, messages, stores, blog).
 - **Security**: Triple authentication system (Replit Auth OAuth, Email/Password, Firebase Phone Auth with SMS), session-based authentication with PostgreSQL session store, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
+- **Turkish Legal Compliance (KVKK 2024)**:
+  - **5199 sayılı Hayvanları Koruma Kanunu**: Pet shop/mağaza kedi-köpek satış yasağı (14 Temmuz 2022, hayvan başına 5.043 TL ceza), mikroçip ve pasaport zorunluluğu
+  - **5996 sayılı Veteriner Hizmetleri Kanunu**: Büyükbaş/küçükbaş hayvanlar için TÜRKVET kaydı, kulak küpesi, nakil belgesi zorunluluğu
+  - **CITES Sözleşmesi (2709 sayılı Kanun)**: Korumalı türler için belge zorunluluğu (jako, kakadu, macaw vb.), 50.000-500.000 TL ceza + hapis
+  - **4915 sayılı Kara Avcılığı Kanunu**: DKMP (Doğa Koruma ve Milli Parklar) izin belgesi zorunluluğu
+  - **Yasak Hayvan Kategorileri Kaldırıldı**: Egzotik hayvanlar (tilki, fennec, lemur, maymun, serval, ocelot, rakun, sugar glider, prairie dog, piranha, keklik)
 - **Firebase Phone Authentication**: Production-ready SMS verification using Firebase Auth. Supports Turkish phone numbers (+90), invisible reCAPTCHA for bot protection, and automatic user creation/login. Firebase Admin SDK verifies tokens server-side.
 - **Professional Stores System**: Verified sellers can create branded storefronts with custom logos, banners, and color themes. Supports various store types like Petshop, Veterinary, etc., with a review system and admin approval workflow.
 - **Blog System**: Features 32 professional blog posts covering various animal types, including legal disclaimers and citations from Turkish veterinary organizations. Admin-only CRUD for blog management.
@@ -38,7 +44,7 @@ No specific user preferences were provided in the original document.
 
 **Key API Endpoints:**
 - **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
-- **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`
+- **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`, `/api/categories/:slug/document-requirements` (belge gereksinimleri)
 - **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`, `/api/listings/:id/deactivate` (PATCH - pause listing), `/api/listings/:id/activate` (PATCH - reactivate listing)
 - **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`, `/api/messages/unread-count`, `/api/messages/search`, `/api/messages/upload`
 - **Conversations**: `/api/conversations/:id/archive` (PATCH), `/api/conversations/:id/pin` (PATCH), `/api/conversations/:id/mute` (PATCH), `/api/conversations/:id/read` (POST)
@@ -47,7 +53,7 @@ No specific user preferences were provided in the original document.
 - **Services**: `/api/vet-services`, `/api/transport-services`
 - **Blog**: `/api/blog` (public read-only), `/api/admin/blog` (admin-only CRUD)
 - **Favorites**: `/api/favorites`
-- **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management)
+- **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management), `/api/admin/document-requirements` (belge gereksinimleri yönetimi), `/api/admin/listing-documents` (belge doğrulama)
 
 **WebSocket Events:**
 - **Client → Server**: `chat`, `typing`, `read`, `presence`

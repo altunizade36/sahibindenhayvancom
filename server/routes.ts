@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -2239,6 +2239,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch category" });
     }
   });
+
+  // ============ Legal Compliance: Document Requirements ============
+  // Get document requirements for a category
+  app.get("/api/categories/:slug/document-requirements", async (req: Request, res: Response) => {
+    try {
+      const { slug } = req.params;
+      
+      // Get direct document requirements for this category
+      const requirements = await db
+        .select()
+        .from(categoryDocumentRequirements)
+        .where(eq(categoryDocumentRequirements.categorySlug, slug));
+      
+      // Get category restrictions
+      const restrictions = await db
+        .select()
+        .from(restrictedCategories)
+        .where(and(
+          eq(restrictedCategories.categorySlug, slug),
+          eq(restrictedCategories.isActive, true)
+        ));
+      
+      // Get category info to check parent categories
+      const categoryInfo = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.slug, slug))
+        .limit(1);
+      
+      let parentRequirements: typeof requirements = [];
+      let parentRestrictions: typeof restrictions = [];
+      
+      // Check parent categories for inherited requirements
+      if (categoryInfo.length > 0 && categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
+        for (const parentId of categoryInfo[0].path) {
+          const parentCat = await db.select().from(categories).where(eq(categories.id, parentId)).limit(1);
+          if (parentCat.length > 0) {
+            const parentReqs = await db
+              .select()
+              .from(categoryDocumentRequirements)
+              .where(eq(categoryDocumentRequirements.categorySlug, parentCat[0].slug));
+            parentRequirements.push(...parentReqs);
+            
+            const parentRestr = await db
+              .select()
+              .from(restrictedCategories)
+              .where(and(
+                eq(restrictedCategories.categorySlug, parentCat[0].slug),
+                eq(restrictedCategories.isActive, true)
+              ));
+            parentRestrictions.push(...parentRestr);
+          }
+        }
+      }
+      
+      res.json({
+        requirements: [...requirements, ...parentRequirements],
+        restrictions: [...restrictions, ...parentRestrictions],
+        categorySlug: slug,
+      });
+    } catch (error) {
+      console.error("Failed to fetch document requirements:", error);
+      res.status(500).json({ message: "Belge gereksinimleri alınamadı" });
+    }
+  });
+
+  // Get all document requirements (for admin)
+  app.get("/api/admin/document-requirements", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Sadece adminler erişebilir" });
+      }
+      
+      const allRequirements = await db.select().from(categoryDocumentRequirements);
+      const allRestrictions = await db.select().from(restrictedCategories);
+      
+      res.json({
+        requirements: allRequirements,
+        restrictions: allRestrictions,
+      });
+    } catch (error) {
+      console.error("Failed to fetch all document requirements:", error);
+      res.status(500).json({ message: "Belge gereksinimleri alınamadı" });
+    }
+  });
+
+  // Get pending documents for admin verification
+  app.get("/api/admin/listing-documents", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Sadece adminler erişebilir" });
+      }
+      
+      const { status = 'pending' } = req.query;
+      
+      const documents = await db
+        .select({
+          document: listingDocuments,
+          listing: listings,
+          seller: users,
+        })
+        .from(listingDocuments)
+        .leftJoin(listings, eq(listingDocuments.listingId, listings.id))
+        .leftJoin(users, eq(listings.sellerId, users.id))
+        .where(eq(listingDocuments.status, status as string))
+        .orderBy(desc(listingDocuments.createdAt));
+      
+      res.json(documents);
+    } catch (error) {
+      console.error("Failed to fetch listing documents:", error);
+      res.status(500).json({ message: "Belgeler alınamadı" });
+    }
+  });
+
+  // Verify or reject a document (admin only)
+  app.patch("/api/admin/listing-documents/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Sadece adminler erişebilir" });
+      }
+      
+      const { id } = req.params;
+      const { status, rejectionReason } = req.body;
+      
+      if (!['verified', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+      
+      const updateData: any = {
+        status,
+        verifiedBy: user.id,
+        verifiedAt: new Date(),
+      };
+      
+      if (status === 'rejected' && rejectionReason) {
+        updateData.rejectionReason = rejectionReason;
+      }
+      
+      const [updated] = await db
+        .update(listingDocuments)
+        .set(updateData)
+        .where(eq(listingDocuments.id, id))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Belge bulunamadı" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update document status:", error);
+      res.status(500).json({ message: "Belge durumu güncellenemedi" });
+    }
+  });
   
   // ============ Location Routes ============
   app.get("/api/locations", async (req: Request, res: Response) => {
@@ -2755,6 +2912,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Saatte en fazla 5 ilan oluşturabilirsiniz. Lütfen daha sonra tekrar deneyin.",
           errorCode: "RATE_LIMIT_EXCEEDED",
         });
+      }
+
+      // LEGAL COMPLIANCE: Check category restrictions
+      const categoryId = req.body.categoryId;
+      if (categoryId) {
+        // Get category info to check slug
+        const categoryInfo = await db.select().from(categories).where(eq(categories.id, categoryId)).limit(1);
+        
+        if (categoryInfo.length > 0) {
+          const categorySlug = categoryInfo[0].slug;
+          
+          // Check if category is restricted
+          const restrictions = await db.select().from(restrictedCategories)
+            .where(and(
+              eq(restrictedCategories.categorySlug, categorySlug),
+              eq(restrictedCategories.isActive, true)
+            ));
+          
+          if (restrictions.length > 0) {
+            const restriction = restrictions[0];
+            
+            // Check restriction type
+            if (restriction.restrictionType === 'banned') {
+              return res.status(403).json({
+                message: `Bu kategoride ilan vermek yasaktır. ${restriction.reason}`,
+                errorCode: "CATEGORY_BANNED",
+                legalReference: restriction.legalReference,
+                penaltyInfo: restriction.penaltyAmount,
+              });
+            }
+            
+            // Pet shop/store cannot sell cats and dogs
+            if (restriction.restrictionType === 'individual_only') {
+              const storeId = req.body.storeId;
+              const listingSource = req.body.storeId ? 'store' : 'individual';
+              
+              if (listingSource === 'store' || storeId) {
+                return res.status(403).json({
+                  message: `Mağazalar bu kategoride ilan veremez. ${restriction.reason}`,
+                  errorCode: "STORE_NOT_ALLOWED",
+                  legalReference: restriction.legalReference,
+                  penaltyInfo: restriction.penaltyAmount,
+                });
+              }
+            }
+            
+            // CITES required categories - check if user declared CITES document
+            if (restriction.restrictionType === 'cites_required') {
+              const citesAccepted = req.body.citesDocumentDeclared;
+              if (!citesAccepted) {
+                return res.status(400).json({
+                  message: `Bu tür CITES kapsamında korunan bir hayvandır. İlan verebilmek için yasal belge sahibi olduğunuzu beyan etmeniz gerekmektedir.`,
+                  errorCode: "CITES_REQUIRED",
+                  legalReference: restriction.legalReference,
+                  penaltyInfo: restriction.penaltyAmount,
+                  requiresCitesDeclaration: true,
+                });
+              }
+            }
+          }
+          
+          // Also check parent categories for restrictions
+          if (categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
+            for (const parentId of categoryInfo[0].path) {
+              const parentCat = await db.select().from(categories).where(eq(categories.id, parentId)).limit(1);
+              if (parentCat.length > 0) {
+                const parentRestrictions = await db.select().from(restrictedCategories)
+                  .where(and(
+                    eq(restrictedCategories.categorySlug, parentCat[0].slug),
+                    eq(restrictedCategories.isActive, true)
+                  ));
+                
+                if (parentRestrictions.length > 0) {
+                  const restriction = parentRestrictions[0];
+                  
+                  if (restriction.restrictionType === 'individual_only' && req.body.storeId) {
+                    return res.status(403).json({
+                      message: `Mağazalar bu kategoride ilan veremez. ${restriction.reason}`,
+                      errorCode: "STORE_NOT_ALLOWED",
+                      legalReference: restriction.legalReference,
+                      penaltyInfo: restriction.penaltyAmount,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       // Development: auto-approve listings for testing

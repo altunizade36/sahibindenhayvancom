@@ -142,6 +142,108 @@ export default function CreateListing() {
   // Get subcategories based on selected main category
   const subCategories = categoryTree.find(cat => cat.id === selectedMainCategory)?.children || [];
 
+  // Get selected category slug for document requirements
+  const getSelectedCategorySlug = (): string | null => {
+    if (!selectedMainCategory) return null;
+    
+    const mainCat = categoryTree.find(cat => cat.id === selectedMainCategory);
+    if (!mainCat) return null;
+    
+    if (selectedSubCategory) {
+      // Look for subcategory in main category's children
+      const findSubCat = (children: CategoryNode[]): CategoryNode | null => {
+        for (const child of children) {
+          if (child.id === selectedSubCategory) return child;
+          if (child.children?.length > 0) {
+            const found = findSubCat(child.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const subCat = findSubCat(mainCat.children || []);
+      return subCat?.slug || mainCat.slug;
+    }
+    
+    return mainCat.slug;
+  };
+
+  const selectedCategorySlug = getSelectedCategorySlug();
+
+  // Fetch document requirements for selected category
+  interface DocumentRequirement {
+    id: string;
+    categorySlug: string;
+    documentType: string;
+    requirement: 'required' | 'recommended' | 'optional';
+    description: string | null;
+    legalReference: string | null;
+    penaltyInfo: string | null;
+  }
+
+  interface CategoryRestriction {
+    id: string;
+    categorySlug: string;
+    restrictionType: string;
+    reason: string;
+    legalReference: string | null;
+    penaltyAmount: string | null;
+    effectiveDate: string | null;
+    isActive: boolean;
+  }
+
+  interface DocumentRequirementsResponse {
+    requirements: DocumentRequirement[];
+    restrictions: CategoryRestriction[];
+    categorySlug: string;
+  }
+
+  const { data: documentRequirements } = useQuery<DocumentRequirementsResponse>({
+    queryKey: ['/api/categories', selectedCategorySlug, 'document-requirements'],
+    queryFn: async () => {
+      if (!selectedCategorySlug) return null;
+      const response = await fetch(`/api/categories/${selectedCategorySlug}/document-requirements`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!selectedCategorySlug && selectedCategorySlug.length > 0,
+  });
+
+  // Check if there are any restrictions that would block listing creation
+  const hasBlockingRestriction = documentRequirements?.restrictions.some(
+    r => r.restrictionType === 'banned' || r.restrictionType === 'individual_only'
+  );
+
+  const hasCitesRequirement = documentRequirements?.restrictions.some(
+    r => r.restrictionType === 'cites_required'
+  );
+
+  const requiredDocuments = documentRequirements?.requirements.filter(
+    r => r.requirement === 'required'
+  ) || [];
+
+  const recommendedDocuments = documentRequirements?.requirements.filter(
+    r => r.requirement === 'recommended'
+  ) || [];
+
+  // Helper function to translate document types to Turkish
+  const getDocumentTypeName = (type: string): string => {
+    const documentTypeNames: Record<string, string> = {
+      'microchip': 'Mikroçip Belgesi',
+      'passport': 'Hayvan Pasaportu',
+      'vaccination': 'Aşı Kartı',
+      'health_certificate': 'Veteriner Sağlık Raporu',
+      'pedigree': 'Soy Belgesi (Pedigree)',
+      'cites': 'CITES Belgesi',
+      'dkmp_permit': 'DKMP İzin Belgesi',
+      'turkvet': 'TÜRKVET Kayıt Belgesi',
+      'ear_tag': 'Kulak Küpesi Numarası',
+      'transport': 'Nakil Belgesi',
+      'breeding_permit': 'Yetiştiricilik Belgesi',
+    };
+    return documentTypeNames[type] || type;
+  };
+
   const createListingMutation = useMutation({
     mutationFn: async (data: ListingFormData) => {
       const recaptchaToken = await getRecaptchaToken('create_listing');
@@ -407,6 +509,90 @@ export default function CreateListing() {
                       />
                     </div>
                   </div>
+
+                  {/* Legal Document Requirements Alert */}
+                  {selectedCategorySlug && documentRequirements && (documentRequirements.requirements.length > 0 || documentRequirements.restrictions.length > 0) && (
+                    <div className="space-y-3" data-testid="document-requirements-section">
+                      {/* Restrictions Warning */}
+                      {documentRequirements.restrictions.length > 0 && (
+                        <Alert variant="destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <div className="space-y-2">
+                              <p className="font-semibold">Yasal Uyarı</p>
+                              {documentRequirements.restrictions.map((restriction, idx) => (
+                                <div key={idx} className="text-sm">
+                                  <p>{restriction.reason}</p>
+                                  {restriction.legalReference && (
+                                    <p className="text-xs opacity-80 mt-1">
+                                      Dayanak: {restriction.legalReference}
+                                    </p>
+                                  )}
+                                  {restriction.penaltyAmount && (
+                                    <p className="text-xs font-medium mt-1">
+                                      Ceza: {restriction.penaltyAmount}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
+                      {/* Required Documents */}
+                      {requiredDocuments.length > 0 && (
+                        <Alert className="border-primary/50 bg-primary/5">
+                          <AlertDescription>
+                            <div className="space-y-2">
+                              <p className="font-semibold text-primary">Zorunlu Belgeler</p>
+                              <ul className="list-disc pl-4 space-y-1 text-sm">
+                                {requiredDocuments.map((doc, idx) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">{getDocumentTypeName(doc.documentType)}</span>
+                                    {doc.description && (
+                                      <span className="text-muted-foreground"> - {doc.description}</span>
+                                    )}
+                                    {doc.penaltyInfo && (
+                                      <Badge variant="destructive" className="ml-2 text-xs">
+                                        {doc.penaltyInfo}
+                                      </Badge>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                              {requiredDocuments.some(d => d.legalReference) && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Yasal dayanak: {requiredDocuments.find(d => d.legalReference)?.legalReference}
+                                </p>
+                              )}
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
+                      {/* Recommended Documents */}
+                      {recommendedDocuments.length > 0 && (
+                        <Alert className="border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20">
+                          <AlertDescription>
+                            <div className="space-y-2">
+                              <p className="font-semibold text-yellow-700 dark:text-yellow-400">Önerilen Belgeler</p>
+                              <ul className="list-disc pl-4 space-y-1 text-sm">
+                                {recommendedDocuments.map((doc, idx) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">{getDocumentTypeName(doc.documentType)}</span>
+                                    {doc.description && (
+                                      <span className="text-muted-foreground"> - {doc.description}</span>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-3 md:space-y-4">
                     <h3 className="text-base md:text-lg font-semibold">Konum Bilgisi</h3>
