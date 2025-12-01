@@ -95,10 +95,12 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes - allow refetch for fresh data
-      retry: 1,
+      retry: 3, // Retry failed requests 3 times
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
+      networkMode: 'offlineFirst', // Allow cached data while offline
     },
     mutations: {
-      retry: false,
+      retry: 1, // Retry mutations once
     },
   },
 });

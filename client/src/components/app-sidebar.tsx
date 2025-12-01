@@ -332,11 +332,12 @@ export function AppSidebar() {
   const activeCategoryId = searchParams.get('categoryId') || undefined;
 
   // Fetch category tree with retry and proper error handling
-  const { data: categoryTree = [], isLoading: categoriesLoading, isError, refetch } = useQuery<Category[]>({
+  const { data: categoryTree = [], isLoading: categoriesLoading, isError, isFetching, refetch } = useQuery<Category[]>({
     queryKey: ['/api/categories/tree'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 3,
-    retryDelay: 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - categories rarely change
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    retry: 5, // More retries for important data
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000), // Up to 15 seconds
   });
 
   // Fetch category stats for listing counts
@@ -354,8 +355,10 @@ export function AppSidebar() {
     return map;
   }, [categoryStatsData]);
   
-  // Debug log
-  console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading, 'Error:', isError);
+  // Debug log only in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading, 'Fetching:', isFetching, 'Error:', isError);
+  }
 
   // Auto-expand ancestors of active category
   useEffect(() => {
@@ -438,8 +441,17 @@ export function AppSidebar() {
 
         {/* Category Tree */}
         <SidebarGroup className="flex-1">
-          <SidebarGroupLabel>
-            Kategoriler {categoriesLoading ? '(Yükleniyor...)' : isError ? '(Hata!)' : `(${categoryTree.length})`}
+          <SidebarGroupLabel className="flex items-center gap-2">
+            Kategoriler 
+            {categoriesLoading ? (
+              <span className="text-xs text-muted-foreground animate-pulse">(Yükleniyor...)</span>
+            ) : isError ? (
+              <span className="text-xs text-destructive">(Hata!)</span>
+            ) : isFetching ? (
+              <span className="text-xs text-muted-foreground">(Güncelleniyor...)</span>
+            ) : categoryTree.length > 0 ? (
+              <span className="text-xs text-muted-foreground">({categoryTree.length})</span>
+            ) : null}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="max-h-[50vh] overflow-y-auto">
