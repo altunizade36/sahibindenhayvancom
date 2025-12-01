@@ -25,22 +25,38 @@ export function initializeRedis() {
   }
 
   // Initialize ioredis TCP client for Pub/Sub (requires Upstash Pro)
-  const redisUrl = process.env.UPSTASH_REDIS_URL; // TCP URL: rediss://...
+  let redisUrl = process.env.UPSTASH_REDIS_URL; // TCP URL: rediss://...
   
   if (redisUrl) {
+    // Upstash always requires TLS - convert redis:// to rediss:// if needed
+    if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
+      redisUrl = redisUrl.replace('redis://', 'rediss://');
+      console.log('🔒 Converted Upstash URL to use TLS (rediss://)');
+    }
+    
+    const useTls = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
+    
     try {
       pubClient = new IORedis(redisUrl, {
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
         lazyConnect: true,
-        tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+        tls: useTls ? { rejectUnauthorized: false } : undefined,
+        retryStrategy: (times) => {
+          if (times > 3) return null; // Stop retrying after 3 attempts
+          return Math.min(times * 200, 2000);
+        },
       });
       
       subClient = new IORedis(redisUrl, {
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
         lazyConnect: true,
-        tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+        tls: useTls ? { rejectUnauthorized: false } : undefined,
+        retryStrategy: (times) => {
+          if (times > 3) return null;
+          return Math.min(times * 200, 2000);
+        },
       });
 
       // Connect and setup Pub/Sub
