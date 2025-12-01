@@ -97,16 +97,17 @@ function CategoryTreeItem({
             <SidebarMenuButton
               isActive={isActive}
               data-testid={`category-${category.slug}`}
+              className="!overflow-visible"
             >
               <span 
-                className="truncate flex-1" 
+                className="truncate min-w-0 flex-1" 
                 title={category.name}
                 onClick={handleNavigate}
               >
                 {category.name}
               </span>
               <ChevronRight 
-                className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                className={`ml-auto h-4 w-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
                 data-testid={`toggle-${category.slug}`}
               />
             </SidebarMenuButton>
@@ -137,16 +138,17 @@ function CategoryTreeItem({
           <SidebarMenuSubButton
             isActive={isActive}
             data-testid={`category-${category.slug}`}
+            className="!overflow-visible"
           >
             <span 
-              className="truncate flex-1" 
+              className="truncate min-w-0 flex-1" 
               title={category.name}
               onClick={handleNavigate}
             >
               {category.name}
             </span>
             <ChevronRight 
-              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+              className={`ml-auto h-4 w-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
               data-testid={`toggle-${category.slug}`}
             />
           </SidebarMenuSubButton>
