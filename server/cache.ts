@@ -24,91 +24,92 @@ export function initializeRedis() {
     console.warn('⚠️  Redis REST not configured - using in-memory cache');
   }
 
-  // Initialize ioredis TCP client for Pub/Sub
-  // Note: Upstash Free tier uses REST API only. TCP Pub/Sub requires paid plan.
-  // The REST token can be used for TCP on paid plans.
-  const restUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const restToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  const tcpPassword = process.env.UPSTASH_REDIS_PASSWORD || restToken; // Try dedicated password or REST token
+  // Skip TCP Pub/Sub in production - REST polling is sufficient for single instance
+  // TCP Pub/Sub requires Upstash Pro plan with dedicated TCP credentials
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  // Extract host from REST URL
-  let host: string | undefined;
-  if (restUrl) {
-    try {
-      const urlObj = new URL(restUrl);
-      host = urlObj.hostname;
-    } catch (e) {}
-  }
-  
-  // Use TCP password if available
-  if (host && tcpPassword) {
-    console.log(`📡 Redis TCP attempting connection to: ${host}:6379`);
-    
-    const redisOptions = {
-      host,
-      port: 6379,
-      password: tcpPassword,
-      maxRetriesPerRequest: 1, // Fail fast
-      enableReadyCheck: true,
-      lazyConnect: true,
-      connectTimeout: 5000,
-      tls: { rejectUnauthorized: false },
-      retryStrategy: (times: number) => {
-        if (times > 1) {
-          console.log('⚠️  Redis TCP connection failed - using REST polling fallback');
-          return null; // Stop retrying
-        }
-        return 1000;
-      },
-    };
-    
-    // Suppress ioredis unhandled error events
-    const handleRedisError = (err: Error) => {
-      // Silently handle connection errors - fallback is already in place
-    };
-    
-    try {
-      pubClient = new IORedis(redisOptions);
-      subClient = new IORedis(redisOptions);
-      
-      pubClient.on('error', handleRedisError);
-      subClient.on('error', handleRedisError);
-
-      // Connect and setup Pub/Sub
-      Promise.all([pubClient.connect(), subClient.connect()])
-        .then(() => {
-          redisPubSubEnabled = true;
-          console.log('✅ Redis Pub/Sub initialized (ioredis TCP)');
-          
-          // Setup message handler for subscribed channels
-          subClient!.on('message', (channel, message) => {
-            try {
-              const parsed = JSON.parse(message);
-              const subscribers = localSubscribers.get(channel);
-              if (subscribers) {
-                Array.from(subscribers).forEach(callback => {
-                  try {
-                    callback(channel, parsed);
-                  } catch (error) {
-                    console.error(`Subscriber callback error (${channel}):`, error);
-                  }
-                });
-              }
-            } catch (error) {
-              console.error(`Message parse error (${channel}):`, error);
-            }
-          });
-        })
-        .catch((error) => {
-          console.warn('⚠️  Redis Pub/Sub not available (using polling fallback):', error.message);
-          pubClient = null;
-          subClient = null;
-        });
-    } catch (error) {
-      console.warn('⚠️  Redis TCP initialization failed - Pub/Sub disabled');
-    }
+  if (isProduction) {
+    console.log('📡 Production mode: Using REST polling for Pub/Sub (no TCP)');
   } else {
-    console.warn('⚠️  UPSTASH_REDIS_URL not set - Pub/Sub using polling fallback');
+    // Development: Try TCP but don't crash if it fails
+    const restUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const restToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const tcpPassword = process.env.UPSTASH_REDIS_PASSWORD || restToken;
+    
+    let host: string | undefined;
+    if (restUrl) {
+      try {
+        const urlObj = new URL(restUrl);
+        host = urlObj.hostname;
+      } catch (e) {}
+    }
+    
+    if (host && tcpPassword) {
+      console.log(`📡 Redis TCP attempting connection to: ${host}:6379`);
+      
+      const redisOptions = {
+        host,
+        port: 6379,
+        password: tcpPassword,
+        maxRetriesPerRequest: 1,
+        enableReadyCheck: true,
+        lazyConnect: true,
+        connectTimeout: 5000,
+        tls: { rejectUnauthorized: false },
+        retryStrategy: (times: number) => {
+          if (times > 1) {
+            console.log('⚠️  Redis TCP connection failed - using REST polling fallback');
+            return null;
+          }
+          return 1000;
+        },
+      };
+      
+      const handleRedisError = () => {
+        // Silently handle connection errors - fallback is already in place
+      };
+      
+      try {
+        pubClient = new IORedis(redisOptions);
+        subClient = new IORedis(redisOptions);
+        
+        pubClient.on('error', handleRedisError);
+        subClient.on('error', handleRedisError);
+
+        Promise.all([pubClient.connect(), subClient.connect()])
+          .then(() => {
+            redisPubSubEnabled = true;
+            console.log('✅ Redis Pub/Sub initialized (ioredis TCP)');
+            
+            subClient!.on('message', (channel, message) => {
+              try {
+                const parsed = JSON.parse(message);
+                const subscribers = localSubscribers.get(channel);
+                if (subscribers) {
+                  Array.from(subscribers).forEach(callback => {
+                    try {
+                      callback(channel, parsed);
+                    } catch (error) {
+                      console.error(`Subscriber callback error (${channel}):`, error);
+                    }
+                  });
+                }
+              } catch (error) {
+                console.error(`Message parse error (${channel}):`, error);
+              }
+            });
+          })
+          .catch((error) => {
+            console.warn('⚠️  Redis Pub/Sub not available (using polling fallback):', error.message);
+            try { pubClient?.disconnect(); } catch {}
+            try { subClient?.disconnect(); } catch {}
+            pubClient = null;
+            subClient = null;
+          });
+      } catch (error) {
+        console.warn('⚠️  Redis TCP initialization failed - Pub/Sub disabled');
+      }
+    }
   }
 
   return redisClient;
