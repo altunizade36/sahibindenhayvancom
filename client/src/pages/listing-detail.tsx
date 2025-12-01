@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ListingCard } from "@/components/listing-card";
 import { ReportDialog } from "@/components/report-dialog";
 import { SocialShare } from "@/components/social-share";
@@ -32,7 +33,11 @@ import {
   Phone,
   ShieldCheck,
   HandCoins,
+  PhoneCall,
+  ZoomIn,
+  X,
 } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import type { Listing, User, Category, Location } from "@shared/schema";
 import { CHARACTER_TRAITS, HEALTH_STATUS_OPTIONS, AGE_CATEGORIES, GENDER_OPTIONS } from "@shared/listing-options";
 
@@ -50,6 +55,7 @@ export default function ListingDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [makeOfferOpen, setMakeOfferOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery<ListingWithDetails>({
     queryKey: [`/api/listings/${id}`],
@@ -224,20 +230,27 @@ export default function ListingDetail() {
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 {images ? (
-                  <div className="relative aspect-[4/3] md:aspect-video bg-muted">
+                  <div 
+                    className="relative aspect-[4/3] md:aspect-video bg-muted cursor-zoom-in group"
+                    onClick={() => setLightboxOpen(true)}
+                  >
                     <img
                       src={images[currentImageIndex]}
                       alt={listing.title}
                       className="w-full h-full object-cover"
                       data-testid="img-listing-main"
                     />
+                    {/* Zoom hint */}
+                    <div className="absolute top-3 right-3 bg-black/60 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ZoomIn className="w-4 h-4 text-white" />
+                    </div>
                     {images.length > 1 && (
                       <>
                         <Button
                           variant="secondary"
                           size="icon"
                           className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
-                          onClick={prevImage}
+                          onClick={(e) => { e.stopPropagation(); prevImage(); }}
                           data-testid="button-prev-image"
                         >
                           <ChevronLeft className="w-4 h-4" />
@@ -246,7 +259,7 @@ export default function ListingDetail() {
                           variant="secondary"
                           size="icon"
                           className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
-                          onClick={nextImage}
+                          onClick={(e) => { e.stopPropagation(); nextImage(); }}
                           data-testid="button-next-image"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -283,31 +296,145 @@ export default function ListingDetail() {
               </CardContent>
             </Card>
 
+            {/* Lightbox Dialog */}
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+              <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-6xl p-0 bg-black/95 border-none">
+                <DialogTitle className="sr-only">{listing.title} - Resim Galerisi</DialogTitle>
+                <div className="relative">
+                  {/* Close button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 z-50 text-white hover:bg-white/20"
+                    onClick={() => setLightboxOpen(false)}
+                    data-testid="button-close-lightbox"
+                  >
+                    <X className="w-6 h-6" />
+                  </Button>
+                  
+                  {/* Main image */}
+                  {images && (
+                    <div className="relative flex items-center justify-center min-h-[50vh] md:min-h-[70vh]">
+                      <img
+                        src={images[currentImageIndex]}
+                        alt={listing.title}
+                        className="max-w-full max-h-[85vh] object-contain"
+                        data-testid="img-lightbox-main"
+                      />
+                      
+                      {/* Navigation arrows */}
+                      {images.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 text-white hover:bg-white/20"
+                            onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                            data-testid="button-lightbox-prev"
+                          >
+                            <ChevronLeft className="w-8 h-8" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 text-white hover:bg-white/20"
+                            onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                            data-testid="button-lightbox-next"
+                          >
+                            <ChevronRight className="w-8 h-8" />
+                          </Button>
+                        </>
+                      )}
+                      
+                      {/* Image counter */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 px-4 py-2 rounded-full text-white text-sm">
+                        {currentImageIndex + 1} / {images.length}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Thumbnails */}
+                  {images && images.length > 1 && (
+                    <div className="bg-black/80 p-3 overflow-x-auto">
+                      <div className="flex gap-2 justify-center min-w-min">
+                        {images.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`w-16 h-16 flex-shrink-0 overflow-hidden rounded border-2 transition-all ${
+                              idx === currentImageIndex 
+                                ? "border-white opacity-100" 
+                                : "border-transparent opacity-60 hover:opacity-100"
+                            }`}
+                            data-testid={`button-lightbox-thumbnail-${idx}`}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             {/* Mobile Quick Actions */}
-            <div className="lg:hidden grid grid-cols-2 gap-2">
-              <Button
-                className="h-11"
-                onClick={handleMessageSeller}
-                disabled={listing.sellerId === user?.id}
-                data-testid="button-message-seller-mobile"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj Gönder"}
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11"
-                onClick={() => toggleFavoriteMutation.mutate()}
-                disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
-                data-testid="button-toggle-favorite-mobile"
-              >
-                <Heart
-                  className={`w-4 h-4 mr-2 ${
-                    isFavorited ? "fill-red-500 text-red-500" : ""
-                  }`}
-                />
-                {isFavorited ? "Favoride" : "Favorile"}
-              </Button>
+            <div className="lg:hidden space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  className="h-11"
+                  onClick={handleMessageSeller}
+                  disabled={listing.sellerId === user?.id}
+                  data-testid="button-message-seller-mobile"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-11"
+                  onClick={() => toggleFavoriteMutation.mutate()}
+                  disabled={!isAuthenticated || toggleFavoriteMutation.isPending}
+                  data-testid="button-toggle-favorite-mobile"
+                >
+                  <Heart
+                    className={`w-4 h-4 mr-2 ${
+                      isFavorited ? "fill-red-500 text-red-500" : ""
+                    }`}
+                  />
+                  {isFavorited ? "Favoride" : "Favorile"}
+                </Button>
+              </div>
+              
+              {/* Mobile Phone and WhatsApp buttons */}
+              {listing.seller?.phone && listing.sellerId !== user?.id && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="w-full h-11" asChild>
+                    <a 
+                      href={`tel:${listing.seller.phone}`}
+                      data-testid="link-call-seller-mobile"
+                    >
+                      <PhoneCall className="w-4 h-4 mr-2" />
+                      Ara
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 text-green-600 border-green-600"
+                    asChild
+                  >
+                    <a 
+                      href={`https://wa.me/${listing.seller.phone.replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="link-whatsapp-seller-mobile"
+                    >
+                      <SiWhatsapp className="w-4 h-4 mr-2" />
+                      WhatsApp
+                    </a>
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Details */}
@@ -503,15 +630,53 @@ export default function ListingDetail() {
                     />
                   </div>
                 )}
-                <Button
-                  className="w-full h-10 md:h-11 hidden lg:flex"
-                  onClick={handleMessageSeller}
-                  disabled={listing.sellerId === user?.id}
-                  data-testid="button-message-seller"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj Gönder"}
-                </Button>
+                
+                {/* Contact Buttons */}
+                <div className="space-y-2">
+                  <Button
+                    className="w-full h-10 md:h-11 hidden lg:flex"
+                    onClick={handleMessageSeller}
+                    disabled={listing.sellerId === user?.id}
+                    data-testid="button-message-seller"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj Gönder"}
+                  </Button>
+                  
+                  {/* Phone and WhatsApp buttons - only show if seller has phone */}
+                  {listing.seller?.phone && listing.sellerId !== user?.id && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="w-full h-10"
+                        asChild
+                      >
+                        <a 
+                          href={`tel:${listing.seller.phone}`}
+                          data-testid="link-call-seller"
+                        >
+                          <PhoneCall className="w-4 h-4 mr-2" />
+                          Ara
+                        </a>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full h-10 text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700"
+                        asChild
+                      >
+                        <a 
+                          href={`https://wa.me/${listing.seller.phone.replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="link-whatsapp-seller"
+                        >
+                          <SiWhatsapp className="w-4 h-4 mr-2" />
+                          WhatsApp
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
