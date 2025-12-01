@@ -69,7 +69,6 @@ import {
   Monitor,
   Tablet,
   Trash2,
-  Download,
   Clock,
   Globe,
   ListChecks,
@@ -478,37 +477,6 @@ export default function PanelAyarlar() {
       toast({
         title: "Hata",
         description: error.message || "Hesap silinemedi",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const exportDataMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/settings/export-data", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Veri dışa aktarılamadı");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `kullanici-verileri-${new Date().toISOString().split("T")[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Verileriniz indirildi",
-        description: "Tüm verileriniz JSON dosyası olarak indirildi.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Hata",
-        description: error.message || "Veriler indirilemedi",
         variant: "destructive",
       });
     },
@@ -1816,38 +1784,6 @@ export default function PanelAyarlar() {
                       </CardContent>
                     </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Verilerinizi İndirin</CardTitle>
-                        <CardDescription>
-                          Tüm kişisel verilerinizin bir kopyasını indirin
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button
-                          variant="outline"
-                          onClick={() => exportDataMutation.mutate()}
-                          disabled={exportDataMutation.isPending}
-                          data-testid="button-export-data"
-                        >
-                          {exportDataMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Hazırlanıyor...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="w-4 h-4 mr-2" />
-                              Verilerimi İndir
-                            </>
-                          )}
-                        </Button>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Profil bilgileriniz, ilanlarınız, mesajlarınız ve favori listeleriniz JSON formatında indirilecektir.
-                        </p>
-                      </CardContent>
-                    </Card>
-
                     <Card className="border-destructive/50">
                       <CardHeader>
                         <CardTitle className="text-destructive">Hesabı Sil</CardTitle>
@@ -1919,9 +1855,6 @@ export default function PanelAyarlar() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                        <p className="text-sm text-muted-foreground mt-3">
-                          Hesabınızı silmeden önce verilerinizi indirmenizi öneririz.
-                        </p>
                       </CardContent>
                     </Card>
                   </div>
