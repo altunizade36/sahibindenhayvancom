@@ -1,6 +1,6 @@
 import { Home, List, Search, ChevronRight, MapPin, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -28,24 +28,44 @@ const navItems = [
   { title: "İlanlar", url: "/ilanlar", icon: List },
 ];
 
+interface CategoryStats {
+  categoryId: string;
+  count: number;
+}
+
 function CategoryTreeItem({ 
   category, 
   level = 0, 
   activeCategoryId,
   expandedIds,
-  onToggle
+  onToggle,
+  categoryStats
 }: { 
   category: Category & { children?: Category[] }; 
   level?: number; 
   activeCategoryId?: string;
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
+  categoryStats: Map<string, number>;
 }) {
   const [location, setLocation] = useLocation();
   
   const hasChildren = category.children && category.children.length > 0;
   const isActive = category.id === activeCategoryId;
   const isOpen = expandedIds.has(category.id);
+
+  // Calculate total count for this category (including children)
+  const getTotalCount = (cat: Category & { children?: Category[] }): number => {
+    let total = categoryStats.get(cat.id) || 0;
+    if (cat.children) {
+      cat.children.forEach(child => {
+        total += getTotalCount(child as Category & { children?: Category[] });
+      });
+    }
+    return total;
+  };
+  
+  const count = getTotalCount(category);
 
   const handleNavigate = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,8 +83,10 @@ function CategoryTreeItem({
             onClick={handleNavigate}
             isActive={isActive}
             data-testid={`category-${category.slug}`}
+            className="justify-between"
           >
             <span className="truncate" title={category.name}>{category.name}</span>
+            <span className="text-xs text-muted-foreground ml-1">({count})</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       );
@@ -76,8 +98,10 @@ function CategoryTreeItem({
           onClick={handleNavigate}
           isActive={isActive}
           data-testid={`category-${category.slug}`}
+          className="justify-between"
         >
           <span className="truncate" title={category.name}>{category.name}</span>
+          <span className="text-xs text-muted-foreground ml-1">({count})</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
     );
@@ -90,10 +114,12 @@ function CategoryTreeItem({
           isActive={isActive}
           data-testid={`category-${category.slug}`}
           onClick={handleNavigate}
+          className="justify-between pr-8"
         >
           <span className="truncate" title={category.name}>
             {category.name}
           </span>
+          <span className="text-xs text-muted-foreground">({count})</span>
         </SidebarMenuButton>
         <SidebarMenuAction
           data-testid={`toggle-${category.slug}`}
@@ -117,6 +143,7 @@ function CategoryTreeItem({
                 activeCategoryId={activeCategoryId}
                 expandedIds={expandedIds}
                 onToggle={onToggle}
+                categoryStats={categoryStats}
               />
             ))}
           </SidebarMenuSub>
@@ -131,10 +158,12 @@ function CategoryTreeItem({
         isActive={isActive}
         data-testid={`category-${category.slug}`}
         onClick={handleNavigate}
+        className="justify-between pr-6"
       >
         <span className="truncate" title={category.name}>
           {category.name}
         </span>
+        <span className="text-xs text-muted-foreground">({count})</span>
       </SidebarMenuSubButton>
       <button
         data-testid={`toggle-${category.slug}`}
@@ -158,6 +187,7 @@ function CategoryTreeItem({
               activeCategoryId={activeCategoryId}
               expandedIds={expandedIds}
               onToggle={onToggle}
+              categoryStats={categoryStats}
             />
           ))}
         </SidebarMenuSub>
@@ -308,6 +338,21 @@ export function AppSidebar() {
     retry: 3,
     retryDelay: 1000,
   });
+
+  // Fetch category stats for listing counts
+  const { data: categoryStatsData = [] } = useQuery<CategoryStats[]>({
+    queryKey: ['/api/categories/stats'],
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  // Convert stats array to Map for O(1) lookup
+  const categoryStats = useMemo(() => {
+    const map = new Map<string, number>();
+    categoryStatsData.forEach(stat => {
+      map.set(stat.categoryId, stat.count);
+    });
+    return map;
+  }, [categoryStatsData]);
   
   // Debug log
   console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading, 'Error:', isError);
@@ -420,6 +465,7 @@ export function AppSidebar() {
                       activeCategoryId={activeCategoryId}
                       expandedIds={expandedIds}
                       onToggle={handleToggle}
+                      categoryStats={categoryStats}
                     />
                   ))}
                 </SidebarMenu>
