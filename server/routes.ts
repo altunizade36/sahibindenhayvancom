@@ -2784,10 +2784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/listings/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const listingId = req.params.id;
+      
       const [listing] = await db
         .select()
         .from(listings)
-        .where(eq(listings.id, req.params.id))
+        .where(eq(listings.id, listingId))
         .limit(1);
         
       if (!listing) {
@@ -2798,8 +2800,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      await db.delete(listings).where(eq(listings.id, req.params.id));
-      res.json({ message: "Listing deleted" });
+      // Delete all related records before deleting the listing
+      // 1. Delete favorites
+      await db.delete(favorites).where(eq(favorites.listingId, listingId));
+      
+      // 2. Delete listing images
+      await db.delete(listingImages).where(eq(listingImages.listingId, listingId));
+      
+      // 3. Delete reports related to this listing
+      await db.delete(reports).where(
+        and(eq(reports.reportedType, 'listing'), eq(reports.reportedId, listingId))
+      );
+      
+      // 4. Delete offers related to this listing
+      await db.delete(offers).where(eq(offers.listingId, listingId));
+      
+      // 5. Clear listing reference from conversations (don't delete conversations)
+      await db.update(conversations)
+        .set({ listingId: null })
+        .where(eq(conversations.listingId, listingId));
+      
+      // 6. Delete auctions and their bids
+      const relatedAuctions = await db.select({ id: auctions.id })
+        .from(auctions)
+        .where(eq(auctions.listingId, listingId));
+      
+      for (const auction of relatedAuctions) {
+        await db.delete(bids).where(eq(bids.auctionId, auction.id));
+      }
+      await db.delete(auctions).where(eq(auctions.listingId, listingId));
+
+      // 7. Finally delete the listing
+      await db.delete(listings).where(eq(listings.id, listingId));
+      
+      res.json({ message: "Listing deleted successfully" });
     } catch (error) {
       console.error("Error deleting listing:", error);
       res.status(400).json({ message: "Delete failed", error });
