@@ -104,7 +104,7 @@ export default function EditListing() {
   });
 
   const { data: listing, isLoading: listingLoading } = useQuery<Listing & { seller?: any }>({
-    queryKey: ["/api/listings", listingId],
+    queryKey: [`/api/listings/${listingId}`],
     enabled: !!listingId,
   });
 
@@ -191,7 +191,7 @@ export default function EditListing() {
         description: "İlanınız güncellendi.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/listings", listingId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/listings/${listingId}`] });
       navigate(`/ilan/${listingId}`);
     },
     onError: (error: any) => {
