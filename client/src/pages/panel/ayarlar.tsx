@@ -514,6 +514,33 @@ export default function PanelAyarlar() {
     },
   });
 
+  const resendVerificationMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/auth/resend-verification");
+    },
+    onSuccess: (data: any) => {
+      if (data.autoVerified) {
+        toast({
+          title: "E-posta Doğrulandı",
+          description: "E-posta adresiniz otomatik olarak doğrulandı.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      } else {
+        toast({
+          title: "E-posta Gönderildi",
+          description: "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Hata",
+        description: error.message || "E-posta gönderilemedi",
+        variant: "destructive",
+      });
+    },
+  });
+
   const optimizeImage = useCallback((file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1121,14 +1148,29 @@ export default function PanelAyarlar() {
                               Doğrulandı
                             </Badge>
                           ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-orange-600 border-orange-600"
-                              data-testid="badge-email-pending"
-                            >
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                              Bekliyor
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="text-orange-600 border-orange-600"
+                                data-testid="badge-email-pending"
+                              >
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Bekliyor
+                              </Badge>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => resendVerificationMutation.mutate()}
+                                disabled={resendVerificationMutation.isPending}
+                                data-testid="button-resend-verification"
+                              >
+                                {resendVerificationMutation.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  "Yeniden Gönder"
+                                )}
+                              </Button>
+                            </div>
                           )}
                         </div>
 
@@ -1138,21 +1180,32 @@ export default function PanelAyarlar() {
                               <Phone className="w-5 h-5" />
                             </div>
                             <div>
-                              <p className="font-medium">Telefon</p>
+                              <p className="font-medium">Telefon Doğrulama</p>
                               <p className="text-sm text-muted-foreground" data-testid="text-user-phone">
                                 {user.phone || "Henüz eklenmedi"}
                               </p>
                             </div>
                           </div>
                           {user.phone ? (
-                            <Badge
-                              variant="outline"
-                              className="text-green-600 border-green-600"
-                              data-testid="badge-phone-registered"
-                            >
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Kayıtlı
-                            </Badge>
+                            user.phoneVerified ? (
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 border-green-600"
+                                data-testid="badge-phone-verified"
+                              >
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Doğrulandı
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-orange-600 border-orange-600"
+                                data-testid="badge-phone-pending"
+                              >
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Bekliyor
+                              </Badge>
+                            )
                           ) : (
                             <Button
                               variant="outline"

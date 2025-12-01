@@ -120,6 +120,113 @@ function getUserId(user: any): string {
   return id;
 }
 
+// Helper function to parse user-agent and extract device info
+function parseUserAgent(userAgent: string | undefined): { deviceType: string; browser: string; os: string } {
+  if (!userAgent) {
+    return { deviceType: 'unknown', browser: 'unknown', os: 'unknown' };
+  }
+
+  // Detect device type
+  let deviceType = 'desktop';
+  if (/mobile|android|iphone|ipad|phone/i.test(userAgent)) {
+    deviceType = /ipad|tablet/i.test(userAgent) ? 'tablet' : 'mobile';
+  }
+
+  // Detect browser
+  let browser = 'unknown';
+  if (/firefox/i.test(userAgent)) browser = 'Firefox';
+  else if (/edg/i.test(userAgent)) browser = 'Edge';
+  else if (/chrome/i.test(userAgent)) browser = 'Chrome';
+  else if (/safari/i.test(userAgent)) browser = 'Safari';
+  else if (/opera|opr/i.test(userAgent)) browser = 'Opera';
+
+  // Detect OS
+  let os = 'unknown';
+  if (/windows/i.test(userAgent)) os = 'Windows';
+  else if (/mac os|macos/i.test(userAgent)) os = 'macOS';
+  else if (/linux/i.test(userAgent)) os = 'Linux';
+  else if (/android/i.test(userAgent)) os = 'Android';
+  else if (/iphone|ipad|ios/i.test(userAgent)) os = 'iOS';
+
+  return { deviceType, browser, os };
+}
+
+// Helper function to record login history
+async function recordLoginHistory(
+  userId: string,
+  req: Request,
+  success: boolean,
+  loginMethod: string,
+  failureReason?: string
+): Promise<void> {
+  try {
+    const userAgentStr = req.headers['user-agent'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 
+                      req.socket.remoteAddress || 
+                      'unknown';
+
+    await db.insert(loginHistory).values({
+      id: crypto.randomUUID(),
+      userId,
+      loginMethod,
+      ipAddress,
+      userAgent: userAgentStr,
+      location: null,
+      success,
+      failureReason: failureReason || null,
+    });
+  } catch (error) {
+    console.error('Error recording login history:', error);
+  }
+}
+
+// Helper function to register/update device
+async function registerDevice(userId: string, req: Request): Promise<void> {
+  try {
+    const userAgentStr = req.headers['user-agent'] || '';
+    const { deviceType, browser, os } = parseUserAgent(userAgentStr);
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 
+                      req.socket.remoteAddress || 
+                      'unknown';
+
+    const deviceName = `${browser} - ${os}`;
+    const deviceId = crypto.randomUUID();
+
+    // Check if a similar device already exists
+    const existingDevice = await db.query.userDevices.findFirst({
+      where: and(
+        eq(userDevices.userId, userId),
+        eq(userDevices.browser, browser),
+        eq(userDevices.os, os)
+      ),
+    });
+
+    if (existingDevice) {
+      // Update last active
+      await db
+        .update(userDevices)
+        .set({ lastActive: new Date(), ipAddress })
+        .where(eq(userDevices.id, existingDevice.id));
+    } else {
+      // Create new device record
+      await db.insert(userDevices).values({
+        id: deviceId,
+        userId,
+        deviceName,
+        deviceType,
+        browser,
+        os,
+        ipAddress,
+        location: null,
+        lastActive: new Date(),
+        isTrusted: false,
+      });
+    }
+  } catch (error) {
+    console.error('Error registering device:', error);
+  }
+}
+
 // Note: Express Request.user type is extended via replitAuth.ts
 
 // Legacy JWT middleware removed - now using Replit Auth sessions
@@ -867,21 +974,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!user || !user.password) {
+        // Record failed login attempt (user not found - but we still track by identifier)
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        // Record failed login attempt
+        await recordLoginHistory(user.id, req, false, isPhone ? 'phone' : 'email', 'Hatalı şifre');
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
 
       // Log user in by creating session
-      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
+      (req as any).login({ claims: { sub: user.id } }, async (err: any) => {
         if (err) {
           console.error("Session creation error:", err);
+          await recordLoginHistory(user.id, req, false, isPhone ? 'phone' : 'email', 'Oturum oluşturulamadı');
           return res.status(500).json({ message: "Giriş sırasında bir hata oluştu" });
         }
+
+        // Record successful login and register device
+        await recordLoginHistory(user.id, req, true, isPhone ? 'phone' : 'email');
+        await registerDevice(user.id, req);
 
         res.json({
           message: "Giriş başarılı!",
@@ -893,6 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: user.lastName,
             role: user.role,
             emailVerified: user.emailVerified,
+            phoneVerified: user.phoneVerified,
           },
         });
       });
@@ -1024,6 +1140,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Email verification error:", error);
       res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Resend Email Verification
+  app.post('/api/auth/resend-verification', isAuthenticated, createLimiter, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+
+      // Get current user
+      const currentUser = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+      });
+
+      if (!currentUser) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      if (currentUser.emailVerified) {
+        return res.status(400).json({ message: "E-posta adresiniz zaten doğrulanmış" });
+      }
+
+      if (!currentUser.email) {
+        return res.status(400).json({ message: "Hesabınızda e-posta adresi bulunamadı" });
+      }
+
+      // Check if we recently sent a verification email (rate limit)
+      if (currentUser.verificationTokenExpiry) {
+        const expiryTime = new Date(currentUser.verificationTokenExpiry);
+        const createdTime = new Date(expiryTime.getTime() - 24 * 60 * 60 * 1000); // Token was created 24 hours before expiry
+        const timeSinceCreation = Date.now() - createdTime.getTime();
+        const oneMinute = 60 * 1000;
+        
+        if (timeSinceCreation < oneMinute) {
+          return res.status(429).json({ 
+            message: "Lütfen 1 dakika bekleyip tekrar deneyin",
+            retryAfter: Math.ceil((oneMinute - timeSinceCreation) / 1000)
+          });
+        }
+      }
+
+      // Generate new verification token
+      const verificationToken = generateVerificationToken();
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Update user with new token
+      await db
+        .update(users)
+        .set({
+          verificationToken,
+          verificationTokenExpiry,
+        })
+        .where(eq(users.id, userId));
+
+      // Check if auto-verify is enabled (development mode)
+      if (shouldAutoVerifyEmail()) {
+        // In development, auto-verify the email
+        await db
+          .update(users)
+          .set({
+            emailVerified: true,
+            verificationToken: null,
+            verificationTokenExpiry: null,
+          })
+          .where(eq(users.id, userId));
+
+        return res.json({ 
+          message: "Geliştirme modunda: E-posta otomatik doğrulandı",
+          autoVerified: true
+        });
+      }
+
+      // Send verification email
+      const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify-email?token=${verificationToken}`;
+      
+      await emailService.sendVerificationEmail(
+        currentUser.email,
+        currentUser.firstName || 'Kullanıcı',
+        verificationUrl
+      );
+
+      res.json({ 
+        message: "Doğrulama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.",
+        emailSent: true
+      });
+    } catch (error) {
+      console.error("Resend verification error:", error);
+      res.status(500).json({ message: "E-posta gönderilirken bir hata oluştu" });
     }
   });
 
