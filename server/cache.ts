@@ -24,20 +24,30 @@ export function initializeRedis() {
     console.warn('⚠️  Redis REST not configured - using in-memory cache');
   }
 
-  // Initialize ioredis TCP client for Pub/Sub (requires Upstash Pro)
-  let redisUrl = process.env.UPSTASH_REDIS_URL; // TCP URL: rediss://...
+  // Initialize ioredis TCP client for Pub/Sub
+  // Try to build TCP connection from REST API credentials if direct URL not available
+  const restUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const restToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  let redisUrl = process.env.UPSTASH_REDIS_URL;
+  
+  // Auto-construct TCP URL from REST credentials if not explicitly set
+  if (!redisUrl && restUrl && restToken) {
+    try {
+      const urlObj = new URL(restUrl);
+      const host = urlObj.hostname; // e.g., thorough-terrier-14339.upstash.io
+      redisUrl = `rediss://default:${restToken}@${host}:6379`;
+      console.log('🔧 Auto-constructed Redis TCP URL from REST credentials');
+    } catch (e) {
+      console.warn('⚠️  Could not construct TCP URL from REST credentials');
+    }
+  }
   
   if (redisUrl) {
-    // Parse and normalize Upstash URL
     // Upstash always requires TLS - convert redis:// to rediss:// if needed
     if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
       redisUrl = redisUrl.replace('redis://', 'rediss://');
       console.log('🔒 Converted Upstash URL to use TLS (rediss://)');
     }
-    
-    // Some Upstash URLs use 'default' username, some don't - try to parse
-    // Format: rediss://[username]:password@host:port
-    const useTls = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
     
     // Extract connection details for explicit configuration
     let host: string | undefined;
@@ -53,6 +63,8 @@ export function initializeRedis() {
     } catch (e) {
       console.warn('⚠️  Could not parse Redis URL, using as-is');
     }
+    
+    const useTls = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
     
     const redisOptions = {
       host,
