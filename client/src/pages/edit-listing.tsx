@@ -54,7 +54,13 @@ const listingFormSchema = z.object({
   categoryId: z.string().min(1, "Kategori seçiniz"),
   title: z.string().min(5, "Başlık en az 5 karakter olmalıdır").max(100, "Başlık en fazla 100 karakter olabilir"),
   description: z.string().min(20, "Açıklama en az 20 karakter olmalıdır").max(2000, "Açıklama en fazla 2000 karakter olabilir"),
-  price: z.string().min(1, "Fiyat giriniz"),
+  price: z.string().min(1, "Fiyat giriniz").refine(
+    (val) => {
+      const numVal = parseFloat(val.replace(/\./g, '').replace(/,/g, '.'));
+      return !isNaN(numVal) && numVal > 0 && numVal <= 99999999.99;
+    },
+    { message: "Fiyat 0-99.999.999,99 TL arasında olmalıdır" }
+  ),
   breed: z.string().optional(),
   age: z.string().optional(),
   gender: z.string().optional(),

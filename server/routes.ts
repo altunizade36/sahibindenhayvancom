@@ -2756,8 +2756,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Production: require admin moderation
       const listingStatus = process.env.NODE_ENV === 'production' ? 'pending' : 'active';
       
+      // Validate and sanitize price
+      let priceValue = req.body.price;
+      if (typeof priceValue === 'string') {
+        // Remove thousand separators (dots in Turkish format, commas in English)
+        priceValue = priceValue.replace(/\./g, '').replace(/,/g, '.');
+      }
+      const numericPrice = parseFloat(priceValue);
+      if (isNaN(numericPrice) || numericPrice < 0) {
+        return res.status(400).json({ message: "Geçerli bir fiyat giriniz" });
+      }
+      if (numericPrice > 99999999.99) {
+        return res.status(400).json({ message: "Fiyat en fazla 99.999.999,99 TL olabilir" });
+      }
+
       const parsedData = insertListingSchema.parse({
         ...req.body,
+        price: numericPrice.toString(),
         sellerId: sellerId,
         status: listingStatus,
         // Auto-detect listing source: if storeId provided, it's a store listing
@@ -2798,13 +2813,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
+      // Validate and sanitize price if provided
+      let sanitizedPrice: string | undefined;
+      if (req.body.price) {
+        let priceValue = req.body.price;
+        if (typeof priceValue === 'string') {
+          // Remove thousand separators (dots in Turkish format, commas in English)
+          priceValue = priceValue.replace(/\./g, '').replace(/,/g, '.');
+        }
+        const numericPrice = parseFloat(priceValue);
+        if (isNaN(numericPrice) || numericPrice < 0) {
+          return res.status(400).json({ message: "Geçerli bir fiyat giriniz" });
+        }
+        if (numericPrice > 99999999.99) {
+          return res.status(400).json({ message: "Fiyat en fazla 99.999.999,99 TL olabilir" });
+        }
+        sanitizedPrice = numericPrice.toString();
+      }
+
       // Check for price drop to notify favorites
       const oldPrice = parseFloat(listing.price || '0');
-      const newPrice = req.body.price ? parseFloat(req.body.price) : oldPrice;
+      const newPrice = sanitizedPrice ? parseFloat(sanitizedPrice) : oldPrice;
       const isPriceDrop = newPrice < oldPrice && oldPrice > 0;
 
       // Auto-detect listing source when storeId changes
       const updateData: any = { ...req.body, updatedAt: new Date() };
+      if (sanitizedPrice) {
+        updateData.price = sanitizedPrice;
+      }
       if ('storeId' in req.body) {
         updateData.listingSource = req.body.storeId ? 'store' : 'individual';
       }
