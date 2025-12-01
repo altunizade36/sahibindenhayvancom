@@ -162,3 +162,90 @@ export function validateImageFile(
   
   return { valid: true };
 }
+
+export interface StoreImageResult {
+  originalUrl: string;
+  thumbnailUrl: string;
+  mediumUrl: string;
+  width: number;
+  height: number;
+  fileSize: number;
+}
+
+interface StoreImageConfig {
+  type: 'logo' | 'banner';
+  storeId: string;
+}
+
+const STORE_IMAGE_VARIANTS = {
+  logo: [
+    { suffix: 'thumb', width: 64, height: 64, quality: 85 },
+    { suffix: 'medium', width: 200, height: 200, quality: 90 },
+    { suffix: 'original', width: 400, height: 400, quality: 95 },
+  ],
+  banner: [
+    { suffix: 'thumb', width: 400, height: 133, quality: 80 },
+    { suffix: 'medium', width: 800, height: 267, quality: 85 },
+    { suffix: 'original', width: 1600, height: 533, quality: 90 },
+  ],
+};
+
+export async function processStoreImage(
+  buffer: Buffer,
+  config: StoreImageConfig
+): Promise<StoreImageResult> {
+  const objectStorage = new ObjectStorageService();
+  const privateDir = objectStorage.getPrivateObjectDir();
+  
+  const uuid = randomUUID();
+  const prefix = `stores/${config.storeId}`;
+  const variants = STORE_IMAGE_VARIANTS[config.type];
+  
+  const metadata = await sharp(buffer).metadata();
+  const originalWidth = metadata.width || 0;
+  const originalHeight = metadata.height || 0;
+  
+  const results: Record<string, string> = {};
+  let finalFileSize = 0;
+  
+  for (const variant of variants) {
+    const resizeOptions = config.type === 'logo' 
+      ? { width: variant.width, height: variant.height, fit: 'cover' as const }
+      : { width: variant.width, height: variant.height, fit: 'cover' as const };
+    
+    const variantBuffer = await sharp(buffer)
+      .rotate()
+      .resize(resizeOptions.width, resizeOptions.height, {
+        fit: resizeOptions.fit,
+        position: 'center',
+      })
+      .webp({ quality: variant.quality })
+      .toBuffer();
+    
+    if (variant.suffix === 'original') {
+      finalFileSize = variantBuffer.length;
+    }
+    
+    const objectName = `${prefix}/${config.type}_${uuid}_${variant.suffix}.webp`;
+    const fullPath = `${privateDir}/${objectName}`;
+    const { bucketName, objectName: objName } = parseObjectPath(fullPath);
+    
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objName);
+    await file.save(variantBuffer, {
+      contentType: 'image/webp',
+      metadata: { contentType: 'image/webp' },
+    });
+    
+    results[variant.suffix] = `/objects/${objectName}`;
+  }
+  
+  return {
+    originalUrl: results.original,
+    thumbnailUrl: results.thumb,
+    mediumUrl: results.medium,
+    width: originalWidth,
+    height: originalHeight,
+    fileSize: finalFileSize,
+  };
+}

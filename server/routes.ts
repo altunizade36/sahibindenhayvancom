@@ -8,7 +8,7 @@ import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
 import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory } from "@shared/schema";
-import { processAndUploadImage, deleteImageVariants, validateImageFile } from "./imageProcessor";
+import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -4731,6 +4731,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading store media:", error);
       res.status(500).json({ message: "Medya yüklenemedi" });
+    }
+  });
+
+  // Professional store image upload with Sharp processing
+  app.post("/api/store/:id/upload-image", isAuthenticated, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+      
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      if (store.ownerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu mağazaya medya yükleyemezsiniz" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Dosya gerekli" });
+      }
+
+      const imageType = req.body.type as 'logo' | 'banner';
+      if (!imageType || !['logo', 'banner'].includes(imageType)) {
+        return res.status(400).json({ message: "Geçerli bir tür (logo/banner) gerekli" });
+      }
+
+      const validation = validateImageFile(req.file);
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error });
+      }
+
+      console.log(`Processing store ${imageType}:`, { 
+        storeId: store.id, 
+        originalName: req.file.originalname,
+        size: req.file.size 
+      });
+
+      const result = await processStoreImage(req.file.buffer, {
+        type: imageType,
+        storeId: store.id,
+      });
+
+      // Store media in database
+      const [media] = await db
+        .insert(storeMedia)
+        .values({
+          storeId: store.id,
+          type: imageType,
+          url: result.originalUrl,
+        })
+        .returning();
+
+      // Update store logo/banner reference
+      if (imageType === "logo") {
+        await db
+          .update(stores)
+          .set({ logo: result.originalUrl })
+          .where(eq(stores.id, store.id));
+      } else if (imageType === "banner") {
+        await db
+          .update(stores)
+          .set({ banner: result.originalUrl })
+          .where(eq(stores.id, store.id));
+      }
+
+      console.log(`Store ${imageType} uploaded successfully:`, result.originalUrl);
+
+      res.status(201).json({
+        media,
+        variants: {
+          original: result.originalUrl,
+          medium: result.mediumUrl,
+          thumbnail: result.thumbnailUrl,
+        },
+        width: result.width,
+        height: result.height,
+        fileSize: result.fileSize,
+      });
+    } catch (error) {
+      console.error("Error uploading store image:", error);
+      res.status(500).json({ message: "Görsel yüklenemedi" });
     }
   });
 

@@ -68,13 +68,16 @@ const bannerTemplates = [
   { id: "gradient-ocean", name: "Okyanus", preview: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)" },
 ];
 
-function ImageUploader({ 
+function StoreImageUploader({ 
   label, 
   currentImage, 
   onUpload, 
   aspectRatio = "1/1",
   className = "",
   placeholder,
+  storeId,
+  imageType,
+  onRemove,
 }: {
   label: string;
   currentImage?: string | null;
@@ -82,9 +85,13 @@ function ImageUploader({
   aspectRatio?: string;
   className?: string;
   placeholder?: string;
+  storeId?: string | null;
+  imageType: 'logo' | 'banner';
+  onRemove?: () => void;
 }) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -92,10 +99,11 @@ function ImageUploader({
     setPreview(currentImage || null);
   }, [currentImage]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const recommendations = imageType === 'logo' 
+    ? { size: '400x400px', format: 'PNG/JPG', tip: 'Kare format önerilir' }
+    : { size: '1600x533px', format: 'PNG/JPG', tip: 'Geniş format önerilir' };
 
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({ title: "Hata", description: "Sadece resim dosyaları yüklenebilir", variant: "destructive" });
       return;
@@ -113,17 +121,36 @@ function ImageUploader({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      let resultUrl: string;
+      
+      if (storeId) {
+        formData.append('type', imageType);
+        const response = await fetch(`/api/store/${storeId}/upload-image`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        if (!response.ok) throw new Error('Yükleme başarısız');
 
-      if (!response.ok) throw new Error('Yükleme başarısız');
+        const data = await response.json();
+        resultUrl = data.variants?.original || data.media?.url;
+      } else {
+        const response = await fetch('/api/objects/upload-file', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
 
-      const data = await response.json();
-      onUpload(data.url);
-      toast({ title: "Başarılı", description: "Resim yüklendi" });
+        if (!response.ok) throw new Error('Yükleme başarısız');
+
+        const data = await response.json();
+        resultUrl = data.normalizedPath;
+      }
+      
+      onUpload(resultUrl);
+      toast({ title: "Başarılı", description: `${imageType === 'logo' ? 'Logo' : 'Kapak görseli'} yüklendi` });
     } catch (error) {
       setPreview(currentImage || null);
       toast({ title: "Hata", description: "Resim yüklenemedi", variant: "destructive" });
@@ -132,34 +159,91 @@ function ImageUploader({
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreview(null);
+    onRemove?.();
+  };
+
   return (
     <div className={className}>
-      <Label className="text-sm font-medium mb-2 block">{label}</Label>
+      <Label className="text-sm font-medium mb-1.5 block">{label}</Label>
       <div 
-        className="relative border-2 border-dashed rounded-lg overflow-hidden cursor-pointer hover-elevate transition-all"
+        className={`relative border-2 border-dashed rounded-lg overflow-hidden cursor-pointer transition-all ${
+          dragActive ? 'border-primary bg-primary/10' : 'hover-elevate'
+        }`}
         style={{ aspectRatio }}
         onClick={() => fileInputRef.current?.click()}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        data-testid={`uploader-store-${imageType}`}
       >
         {preview ? (
-          <img src={preview} alt={label} className="w-full h-full object-cover" />
+          <>
+            <img src={preview} alt={label} className="w-full h-full object-cover" />
+            {onRemove && !uploading && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+                data-testid={`button-remove-${imageType}`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
-            <Image className="w-8 h-8 mb-2" />
-            <span className="text-xs text-center px-2">{placeholder || "Resim yükle"}</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30 p-3">
+            <Upload className="w-8 h-8 mb-2" />
+            <span className="text-sm font-medium text-center">{placeholder || "Resim yükle"}</span>
+            <span className="text-xs text-center mt-1 opacity-70">
+              veya sürükleyip bırakın
+            </span>
           </div>
         )}
         {uploading && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-white" />
+          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-white mb-2" />
+            <span className="text-white text-sm">Yükleniyor...</span>
           </div>
         )}
       </div>
+      <p className="text-xs text-muted-foreground mt-1.5">
+        Önerilen: {recommendations.size} · {recommendations.format}
+      </p>
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={handleFileSelect}
+        data-testid={`input-file-${imageType}`}
       />
     </div>
   );
@@ -318,19 +402,25 @@ export default function MyStore() {
           <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ImageUploader
+                <StoreImageUploader
                   label="Mağaza Logosu"
                   currentImage={logoUrl}
                   onUpload={setLogoUrl}
+                  onRemove={() => setLogoUrl(null)}
                   aspectRatio="1/1"
-                  placeholder="Logo yükle (1:1)"
+                  placeholder="Logo yükle"
+                  storeId={null}
+                  imageType="logo"
                 />
-                <ImageUploader
+                <StoreImageUploader
                   label="Kapak Görseli"
                   currentImage={bannerUrl}
                   onUpload={setBannerUrl}
+                  onRemove={() => setBannerUrl(null)}
                   aspectRatio="3/1"
-                  placeholder="Banner yükle (3:1)"
+                  placeholder="Banner yükle"
+                  storeId={null}
+                  imageType="banner"
                 />
               </div>
 
@@ -558,25 +648,31 @@ export default function MyStore() {
           <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ImageUploader
+                <StoreImageUploader
                   label="Mağaza Logosu"
                   currentImage={logoUrl}
-                  onUpload={(url) => {
-                    setLogoUrl(url);
-                  }}
+                  onUpload={(url) => setLogoUrl(url)}
+                  onRemove={() => setLogoUrl(null)}
                   aspectRatio="1/1"
-                  placeholder="Logo yükle (1:1)"
+                  placeholder="Logo yükle"
+                  storeId={myStore?.id}
+                  imageType="logo"
                 />
                 <div>
-                  <ImageUploader
+                  <StoreImageUploader
                     label="Kapak Görseli"
                     currentImage={bannerUrl}
                     onUpload={(url) => {
                       setBannerUrl(url);
                       setSelectedTemplate(null);
                     }}
+                    onRemove={() => {
+                      setBannerUrl(null);
+                    }}
                     aspectRatio="3/1"
-                    placeholder="Banner yükle (3:1)"
+                    placeholder="Banner yükle"
+                    storeId={myStore?.id}
+                    imageType="banner"
                   />
                   <div className="mt-3">
                     <Label className="text-xs text-muted-foreground mb-2 block">veya hazır şablon seçin:</Label>

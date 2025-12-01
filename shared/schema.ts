@@ -978,6 +978,7 @@ export const stores = pgTable("stores", {
 
 export const insertStoreSchema = createInsertSchema(stores).omit({
   id: true,
+  ownerId: true,
   createdAt: true,
   updatedAt: true,
   totalListings: true,
