@@ -53,16 +53,16 @@ export function Logo({ className, size = "md", showText = true, iconOnly = false
 
 export function LogoFull({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-3", className)} data-testid="logo-full">
-      <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
-        <GiUnicorn className="w-9 h-9 text-primary" />
+    <div className={cn("flex items-center gap-2 sm:gap-3", className)} data-testid="logo-full">
+      <div className="relative flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-primary/10 shrink-0">
+        <GiUnicorn className="w-6 h-6 sm:w-9 sm:h-9 text-primary" />
       </div>
-      <div className="flex flex-col">
-        <span className="text-2xl font-bold tracking-tight leading-none">
+      <div className="flex flex-col min-w-0">
+        <span className="text-base sm:text-2xl font-bold tracking-tight leading-none">
           <span className="text-foreground">sahibinden</span>
           <span className="text-primary">hayvan</span>
         </span>
-        <span className="text-xs text-muted-foreground">Türkiye'nin Hayvan Pazarı</span>
+        <span className="text-[10px] sm:text-xs text-muted-foreground">Türkiye'nin Hayvan Pazarı</span>
       </div>
     </div>
   );

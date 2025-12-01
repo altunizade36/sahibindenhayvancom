@@ -5,13 +5,13 @@ import { CookieSettingsButton } from "@/components/cookie-consent";
 export function Footer() {
   return (
     <footer className="bg-muted/30 border-t mt-auto">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/">
-              <LogoFull className="h-8 w-auto mb-3" />
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          <div className="sm:col-span-2 md:col-span-1">
+            <Link href="/" className="inline-block">
+              <LogoFull className="h-auto w-auto max-w-[200px] sm:max-w-none mb-3" />
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Türkiye'nin en güvenilir hayvan ilanları platformu. Evcil hayvanlarınızı güvenle alın, satın, sahiplenin.
             </p>
           </div>
