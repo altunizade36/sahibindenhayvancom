@@ -28,36 +28,49 @@ export function initializeRedis() {
   let redisUrl = process.env.UPSTASH_REDIS_URL; // TCP URL: rediss://...
   
   if (redisUrl) {
+    // Parse and normalize Upstash URL
     // Upstash always requires TLS - convert redis:// to rediss:// if needed
     if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
       redisUrl = redisUrl.replace('redis://', 'rediss://');
       console.log('🔒 Converted Upstash URL to use TLS (rediss://)');
     }
     
+    // Some Upstash URLs use 'default' username, some don't - try to parse
+    // Format: rediss://[username]:password@host:port
     const useTls = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
     
+    // Extract connection details for explicit configuration
+    let host: string | undefined;
+    let port: number | undefined;
+    let password: string | undefined;
+    
     try {
-      pubClient = new IORedis(redisUrl, {
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: true,
-        lazyConnect: true,
-        tls: useTls ? { rejectUnauthorized: false } : undefined,
-        retryStrategy: (times) => {
-          if (times > 3) return null; // Stop retrying after 3 attempts
-          return Math.min(times * 200, 2000);
-        },
-      });
-      
-      subClient = new IORedis(redisUrl, {
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: true,
-        lazyConnect: true,
-        tls: useTls ? { rejectUnauthorized: false } : undefined,
-        retryStrategy: (times) => {
-          if (times > 3) return null;
-          return Math.min(times * 200, 2000);
-        },
-      });
+      const urlObj = new URL(redisUrl);
+      host = urlObj.hostname;
+      port = parseInt(urlObj.port) || 6379;
+      password = urlObj.password || undefined;
+      console.log(`📡 Redis TCP connecting to: ${host}:${port}`);
+    } catch (e) {
+      console.warn('⚠️  Could not parse Redis URL, using as-is');
+    }
+    
+    const redisOptions = {
+      host,
+      port,
+      password,
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
+      lazyConnect: true,
+      tls: useTls ? { rejectUnauthorized: false } : undefined,
+      retryStrategy: (times: number) => {
+        if (times > 3) return null;
+        return Math.min(times * 200, 2000);
+      },
+    };
+    
+    try {
+      pubClient = new IORedis(redisOptions);
+      subClient = new IORedis(redisOptions);
 
       // Connect and setup Pub/Sub
       Promise.all([pubClient.connect(), subClient.connect()])
