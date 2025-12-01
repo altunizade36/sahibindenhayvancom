@@ -17,7 +17,6 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -102,22 +101,18 @@ function CategoryTreeItem({
             {category.name}
           </span>
         </SidebarMenuButton>
-        <CollapsibleTrigger
+        <SidebarMenuAction
+          data-testid={`toggle-${category.slug}`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onToggle(category.id);
           }}
-          asChild
+          className="transition-transform duration-200"
+          style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
         >
-          <SidebarMenuAction
-            data-testid={`toggle-${category.slug}`}
-            className="transition-transform duration-200"
-            style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </SidebarMenuAction>
-        </CollapsibleTrigger>
+          <ChevronRight className="h-4 w-4" />
+        </SidebarMenuAction>
         {isOpen && (
           <SidebarMenuSub>
             {category.children?.map((child) => (
