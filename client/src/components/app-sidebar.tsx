@@ -28,12 +28,6 @@ const navItems = [
   { title: "İlanlar", url: "/ilanlar", icon: List },
 ];
 
-function hasActiveDescendant(category: Category & { children?: Category[] }, activeCategoryId?: string): boolean {
-  if (category.id === activeCategoryId) return true;
-  if (!category.children) return false;
-  return category.children.some(child => hasActiveDescendant(child, activeCategoryId));
-}
-
 function CategoryTreeItem({ 
   category, 
   level = 0, 
