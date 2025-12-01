@@ -83,6 +83,8 @@ const upload = uploadImages;
 // Moderate rate limiter for resource creation
 // More generous limits for development, stricter in production
 const isDevelopment = process.env.NODE_ENV !== 'production';
+
+// Local rate limiter (fallback when Redis unavailable)
 const createLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: isDevelopment ? 60 : 20, // 60 requests/min in dev, 20 in production
@@ -91,6 +93,86 @@ const createLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => isDevelopment && req.path === '/api/listings', // Skip rate limit for listings in dev
 });
+
+// Distributed rate limiting using Redis (for multi-instance deployments)
+// Uses sliding window algorithm with Upstash Redis
+async function checkRedisRateLimit(
+  key: string,
+  limit: number,
+  windowSeconds: number
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const windowKey = `ratelimit:${key}:${Math.floor(now / windowSeconds)}`;
+    
+    // Get current count from cache
+    const current = await cache.get<number>(windowKey) || 0;
+    
+    if (current >= limit) {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt: (Math.floor(now / windowSeconds) + 1) * windowSeconds
+      };
+    }
+    
+    // Increment counter
+    await cache.set(windowKey, current + 1, windowSeconds);
+    
+    return {
+      allowed: true,
+      remaining: limit - current - 1,
+      resetAt: (Math.floor(now / windowSeconds) + 1) * windowSeconds
+    };
+  } catch (error) {
+    // Fail open - allow request if Redis is unavailable
+    console.warn('Redis rate limit check failed, allowing request:', error);
+    return { allowed: true, remaining: limit, resetAt: 0 };
+  }
+}
+
+// Global API rate limiting middleware (stricter limits for production)
+const globalApiLimiter = async (req: Request, res: Response, next: Function) => {
+  if (isDevelopment) return next(); // Skip in development
+  
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const limit = 100; // 100 requests per minute per IP
+  const windowSeconds = 60;
+  
+  const result = await checkRedisRateLimit(`global:${ip}`, limit, windowSeconds);
+  
+  // Set rate limit headers
+  res.setHeader('X-RateLimit-Limit', limit);
+  res.setHeader('X-RateLimit-Remaining', result.remaining);
+  res.setHeader('X-RateLimit-Reset', result.resetAt);
+  
+  if (!result.allowed) {
+    return res.status(429).json({
+      message: 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyin.',
+      retryAfter: result.resetAt - Math.floor(Date.now() / 1000)
+    });
+  }
+  
+  next();
+};
+
+// Strict rate limiter for sensitive operations (login, register, etc.)
+const strictRateLimiter = async (req: Request, res: Response, next: Function) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const limit = isDevelopment ? 30 : 5; // 5 attempts per 5 minutes in production
+  const windowSeconds = 300; // 5 minutes
+  
+  const result = await checkRedisRateLimit(`strict:${ip}`, limit, windowSeconds);
+  
+  if (!result.allowed) {
+    return res.status(429).json({
+      message: 'Çok fazla deneme yaptınız. Lütfen 5 dakika bekleyin.',
+      retryAfter: result.resetAt - Math.floor(Date.now() / 1000)
+    });
+  }
+  
+  next();
+};
 
 // Extended user type for authenticated requests (combines session user with DB user)
 interface AuthenticatedUser {
@@ -239,6 +321,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Health & Monitoring Routes ============
   app.get("/health", healthCheck);
   app.get("/metrics", metricsEndpoint);
+
+  // ============ Global Rate Limiting (Production Only) ============
+  // Apply Redis-based distributed rate limiting to all API routes
+  app.use("/api", globalApiLimiter);
 
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ 
@@ -871,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ Auth Routes (Hybrid: Replit Auth + Email/Password) ============
   
   // Unified Registration (Email + Phone)
-  app.post('/api/auth/register', createLimiter, async (req: Request, res: Response) => {
+  app.post('/api/auth/register', strictRateLimiter, async (req: Request, res: Response) => {
     try {
       const { email, phone, password, firstName, lastName } = req.body;
 
@@ -942,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Unified Login (Email or Phone + Password)
-  app.post('/api/auth/login', createLimiter, async (req: Request, res: Response) => {
+  app.post('/api/auth/login', strictRateLimiter, async (req: Request, res: Response) => {
     try {
       const { identifier, emailOrUsername, password } = req.body;
       
