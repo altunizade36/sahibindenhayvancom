@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, metricsEndpoint } from "./monitoring";
-import { locations, listings, blogPosts, users, messages, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -122,15 +122,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     userId: string;
     auctionId?: string;
     streamId?: string;
+    currentConversationId?: string;
   };
   
   const clients = new Map<string, ClientInfo>();
   const MAX_CONNECTIONS = 50000; // Limit concurrent connections
   const HEARTBEAT_INTERVAL = 30000; // 30 seconds
-  const CONNECTION_TIMEOUT = 60000; // 60 seconds idle timeout
+  const CONNECTION_TIMEOUT = 300000; // 5 minutes idle timeout for chat
+  const TYPING_TIMEOUT = 3000; // 3 seconds typing indicator timeout
   
   // Heartbeat tracking
   const heartbeats = new Map<string, NodeJS.Timeout>();
+  
+  // Typing indicator tracking
+  const typingUsers = new Map<string, NodeJS.Timeout>();
+  
+  // Helper: Generate conversation ID (sorted user IDs)
+  const generateConversationId = (userId1: string, userId2: string) => {
+    return [userId1, userId2].sort().join('_');
+  };
+  
+  // Helper: Update user presence
+  const updateUserPresence = async (userId: string, isOnline: boolean, socketId?: string) => {
+    try {
+      await db
+        .insert(userPresence)
+        .values({
+          userId,
+          isOnline,
+          lastSeenAt: new Date(),
+          lastActiveAt: new Date(),
+          socketId: socketId || null,
+        })
+        .onConflictDoUpdate({
+          target: userPresence.userId,
+          set: {
+            isOnline,
+            lastSeenAt: new Date(),
+            lastActiveAt: new Date(),
+            socketId: socketId || null,
+          },
+        });
+    } catch (error) {
+      console.error("Failed to update user presence:", error);
+    }
+  };
+  
+  // Helper: Broadcast to specific user
+  const broadcastToUser = (userId: string, data: any) => {
+    const client = clients.get(userId);
+    if (client && client.ws.readyState === WebSocket.OPEN) {
+      client.ws.send(JSON.stringify(data));
+      return true;
+    }
+    return false;
+  };
+  
+  // Helper: Get or create conversation
+  const getOrCreateConversation = async (participant1Id: string, participant2Id: string, listingId?: string) => {
+    const conversationId = generateConversationId(participant1Id, participant2Id);
+    
+    // Check if conversation exists
+    const [existing] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
+    
+    if (existing) {
+      return existing;
+    }
+    
+    // Create new conversation - ensure participant1 is always the smaller ID
+    const [p1, p2] = [participant1Id, participant2Id].sort();
+    const [newConversation] = await db
+      .insert(conversations)
+      .values({
+        id: conversationId,
+        participant1Id: p1,
+        participant2Id: p2,
+        listingId: listingId || null,
+        participant1Archived: false,
+        participant2Archived: false,
+        participant1Pinned: false,
+        participant2Pinned: false,
+        participant1Muted: false,
+        participant2Muted: false,
+      })
+      .returning();
+    
+    return newConversation;
+  };
   
   wss.on("connection", async (ws: WebSocket, req) => {
     // Check connection limit
@@ -187,6 +269,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       clients.set(userId, clientInfo);
       
+      // Update user presence to online
+      await updateUserPresence(userId, true, `ws_${Date.now()}`);
+      
+      // Notify contacts that user is online
+      const userConversations = await db
+        .select()
+        .from(conversations)
+        .where(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          )
+        );
+      
+      for (const conv of userConversations) {
+        const partnerId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+        broadcastToUser(partnerId, {
+          type: "presence",
+          userId,
+          isOnline: true,
+          lastSeenAt: new Date().toISOString(),
+        });
+      }
+      
       // Setup heartbeat for this connection
       const heartbeat = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -232,25 +338,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else if (message.streamId) {
               clientInfo.streamId = message.streamId;
               ws.send(JSON.stringify({ type: "subscribed", streamId: message.streamId }));
+            } else if (message.conversationId) {
+              clientInfo.currentConversationId = message.conversationId;
+              ws.send(JSON.stringify({ type: "subscribed", conversationId: message.conversationId }));
             }
+          } else if (message.type === "typing_start") {
+            // Handle typing indicator start
+            const receiverId = message.receiverId;
+            const conversationId = generateConversationId(userId, receiverId);
+            
+            // Clear existing typing timeout
+            const existingTimeout = typingUsers.get(`${userId}_${conversationId}`);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+            }
+            
+            // Notify receiver that user is typing
+            broadcastToUser(receiverId, {
+              type: "typing",
+              userId,
+              conversationId,
+              isTyping: true,
+            });
+            
+            // Auto-stop typing after timeout
+            const timeout = setTimeout(() => {
+              broadcastToUser(receiverId, {
+                type: "typing",
+                userId,
+                conversationId,
+                isTyping: false,
+              });
+              typingUsers.delete(`${userId}_${conversationId}`);
+            }, TYPING_TIMEOUT);
+            
+            typingUsers.set(`${userId}_${conversationId}`, timeout);
+          } else if (message.type === "typing_stop") {
+            // Handle typing indicator stop
+            const receiverId = message.receiverId;
+            const conversationId = generateConversationId(userId, receiverId);
+            
+            // Clear existing typing timeout
+            const existingTimeout = typingUsers.get(`${userId}_${conversationId}`);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+              typingUsers.delete(`${userId}_${conversationId}`);
+            }
+            
+            // Notify receiver that user stopped typing
+            broadcastToUser(receiverId, {
+              type: "typing",
+              userId,
+              conversationId,
+              isTyping: false,
+            });
+          } else if (message.type === "mark_read") {
+            // Mark messages as read
+            const conversationId = message.conversationId;
+            const messageIds = message.messageIds;
+            
+            if (messageIds && messageIds.length > 0) {
+              // Update specific messages
+              await db
+                .update(messages)
+                .set({
+                  status: "read",
+                  readAt: new Date(),
+                })
+                .where(
+                  and(
+                    inArray(messages.id, messageIds),
+                    eq(messages.receiverId, userId)
+                  )
+                );
+              
+              // Notify sender about read receipt
+              for (const msgId of messageIds) {
+                const [msg] = await db
+                  .select()
+                  .from(messages)
+                  .where(eq(messages.id, msgId))
+                  .limit(1);
+                
+                if (msg) {
+                  broadcastToUser(msg.senderId, {
+                    type: "message_read",
+                    messageId: msgId,
+                    conversationId,
+                    readAt: new Date().toISOString(),
+                  });
+                }
+              }
+            }
+            
+            // Update conversation unread count
+            const [conv] = await db
+              .select()
+              .from(conversations)
+              .where(eq(conversations.id, conversationId))
+              .limit(1);
+            
+            if (conv) {
+              const updateData = conv.participant1Id === userId
+                ? { participant1UnreadCount: 0, participant1LastReadAt: new Date() }
+                : { participant2UnreadCount: 0, participant2LastReadAt: new Date() };
+              
+              await db
+                .update(conversations)
+                .set(updateData)
+                .where(eq(conversations.id, conversationId));
+            }
+            
+            ws.send(JSON.stringify({ type: "marked_read", conversationId }));
           } else if (message.type === "chat") {
+            // Get or create conversation
+            const conversation = await getOrCreateConversation(
+              userId,
+              message.receiverId,
+              message.listingId
+            );
+            
             // Create message in PostgreSQL
             const [newMessage] = await db
               .insert(messages)
               .values({
                 senderId: userId,
                 receiverId: message.receiverId,
+                conversationId: conversation.id,
                 listingId: message.listingId || null,
                 content: message.content,
+                messageType: message.messageType || "text",
+                replyToId: message.replyToId || null,
+                attachments: message.attachments || [],
               })
               .returning();
+            
+            // Update conversation
+            const isParticipant1Receiver = conversation.participant1Id === message.receiverId;
+            await db
+              .update(conversations)
+              .set({
+                lastMessageId: newMessage.id,
+                lastMessageAt: new Date(),
+                updatedAt: new Date(),
+                ...(isParticipant1Receiver
+                  ? { participant1UnreadCount: sql`${conversations.participant1UnreadCount} + 1` }
+                  : { participant2UnreadCount: sql`${conversations.participant2UnreadCount} + 1` }),
+              })
+              .where(eq(conversations.id, conversation.id));
 
             // Send to receiver if online
-            const receiverClient = clients.get(message.receiverId);
-            if (receiverClient && receiverClient.ws.readyState === WebSocket.OPEN) {
-              receiverClient.ws.send(JSON.stringify({
-                type: "chat",
-                message: newMessage,
+            const receiverOnline = broadcastToUser(message.receiverId, {
+              type: "chat",
+              message: {
+                ...newMessage,
+                sender: {
+                  id: userId,
+                  firstName: (user as any).firstName,
+                  lastName: (user as any).lastName,
+                  profileImageUrl: (user as any).profileImageUrl,
+                },
+              },
+              conversationId: conversation.id,
+            });
+            
+            // If receiver is online, mark as delivered
+            if (receiverOnline) {
+              await db
+                .update(messages)
+                .set({
+                  status: "delivered",
+                  deliveredAt: new Date(),
+                })
+                .where(eq(messages.id, newMessage.id));
+              
+              // Notify sender about delivery
+              ws.send(JSON.stringify({
+                type: "message_delivered",
+                messageId: newMessage.id,
+                conversationId: conversation.id,
+                deliveredAt: new Date().toISOString(),
               }));
             }
 
@@ -258,6 +525,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ws.send(JSON.stringify({
               type: "chat_sent",
               message: newMessage,
+              conversationId: conversation.id,
+            }));
+            
+            // Clear typing indicator
+            const existingTimeout = typingUsers.get(`${userId}_${conversation.id}`);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+              typingUsers.delete(`${userId}_${conversation.id}`);
+            }
+            broadcastToUser(message.receiverId, {
+              type: "typing",
+              userId,
+              conversationId: conversation.id,
+              isTyping: false,
+            });
+          } else if (message.type === "delete_message") {
+            // Soft delete a message
+            const messageId = message.messageId;
+            
+            const [msg] = await db
+              .select()
+              .from(messages)
+              .where(and(eq(messages.id, messageId), eq(messages.senderId, userId)))
+              .limit(1);
+            
+            if (msg) {
+              await db
+                .update(messages)
+                .set({
+                  isDeleted: true,
+                  deletedAt: new Date(),
+                  content: "Bu mesaj silindi",
+                })
+                .where(eq(messages.id, messageId));
+              
+              // Notify receiver
+              broadcastToUser(msg.receiverId, {
+                type: "message_deleted",
+                messageId,
+                conversationId: msg.conversationId,
+              });
+              
+              ws.send(JSON.stringify({
+                type: "message_deleted",
+                messageId,
+                conversationId: msg.conversationId,
+              }));
+            }
+          } else if (message.type === "edit_message") {
+            // Edit a message
+            const messageId = message.messageId;
+            const newContent = message.content;
+            
+            const [msg] = await db
+              .select()
+              .from(messages)
+              .where(and(eq(messages.id, messageId), eq(messages.senderId, userId)))
+              .limit(1);
+            
+            if (msg && !msg.isDeleted) {
+              await db
+                .update(messages)
+                .set({
+                  content: newContent,
+                  isEdited: true,
+                  editedAt: new Date(),
+                })
+                .where(eq(messages.id, messageId));
+              
+              // Notify receiver
+              broadcastToUser(msg.receiverId, {
+                type: "message_edited",
+                messageId,
+                conversationId: msg.conversationId,
+                newContent,
+                editedAt: new Date().toISOString(),
+              });
+              
+              ws.send(JSON.stringify({
+                type: "message_edited",
+                messageId,
+                conversationId: msg.conversationId,
+                newContent,
+                editedAt: new Date().toISOString(),
+              }));
+            }
+          } else if (message.type === "get_presence") {
+            // Get presence status for a user
+            const targetUserId = message.userId;
+            const [presence] = await db
+              .select()
+              .from(userPresence)
+              .where(eq(userPresence.userId, targetUserId))
+              .limit(1);
+            
+            ws.send(JSON.stringify({
+              type: "presence",
+              userId: targetUserId,
+              isOnline: presence?.isOnline || false,
+              lastSeenAt: presence?.lastSeenAt?.toISOString() || null,
             }));
           } else if (message.type === "bid") {
             // Handle auction bid - Get auction from PostgreSQL
@@ -320,11 +687,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         resetTimeout(); // Reset timeout on pong
       });
       
-      ws.on("close", () => {
+      ws.on("close", async () => {
         clients.delete(userId);
         clearInterval(heartbeat);
         heartbeats.delete(userId);
         clearTimeout(idleTimeout);
+        
+        // Update user presence to offline
+        await updateUserPresence(userId, false);
+        
+        // Notify contacts that user is offline
+        const userConvs = await db
+          .select()
+          .from(conversations)
+          .where(
+            or(
+              eq(conversations.participant1Id, userId),
+              eq(conversations.participant2Id, userId)
+            )
+          );
+        
+        for (const conv of userConvs) {
+          const partnerId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+          broadcastToUser(partnerId, {
+            type: "presence",
+            userId,
+            isOnline: false,
+            lastSeenAt: new Date().toISOString(),
+          });
+        }
+        
+        // Clear any typing indicators for this user
+        for (const [key, timeout] of Array.from(typingUsers.entries())) {
+          if (key.startsWith(`${userId}_`)) {
+            clearTimeout(timeout);
+            typingUsers.delete(key);
+          }
+        }
       });
       
       ws.on("error", (error) => {
@@ -2699,12 +3098,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============ Message Routes ============
-  app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
+  
+  // Get total unread message count
+  app.get("/api/messages/unread-count", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req.user);
       
-      // Get all messages with listing info where user is sender or receiver
-      const allMessages = await db
+      // Get unread count from conversations table
+      const userConvs = await db
+        .select()
+        .from(conversations)
+        .where(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          )
+        );
+      
+      let totalUnread = 0;
+      for (const conv of userConvs) {
+        if (conv.participant1Id === userId) {
+          totalUnread += conv.participant1UnreadCount || 0;
+        } else {
+          totalUnread += conv.participant2UnreadCount || 0;
+        }
+      }
+      
+      res.json({ count: totalUnread });
+    } catch (error) {
+      console.error("Failed to get unread count:", error);
+      res.status(500).json({ message: "Failed to get unread count" });
+    }
+  });
+  
+  // Search messages
+  app.get("/api/messages/search", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const query = req.query.q as string;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+      
+      const results = await db
+        .select({
+          message: messages,
+          sender: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+          },
+        })
+        .from(messages)
+        .leftJoin(users, eq(messages.senderId, users.id))
+        .where(
+          and(
+            or(
+              eq(messages.senderId, userId),
+              eq(messages.receiverId, userId)
+            ),
+            ilike(messages.content, `%${query}%`),
+            eq(messages.isDeleted, false)
+          )
+        )
+        .orderBy(desc(messages.createdAt))
+        .limit(limit);
+      
+      res.json(results.map(r => ({
+        ...r.message,
+        sender: r.sender,
+      })));
+    } catch (error) {
+      console.error("Failed to search messages:", error);
+      res.status(500).json({ message: "Failed to search messages" });
+    }
+  });
+  
+  // Get conversations with advanced features
+  app.get("/api/messages/conversations", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const showArchived = req.query.archived === "true";
+      
+      // Get conversations from the new conversations table
+      const userConvs = await db
+        .select()
+        .from(conversations)
+        .where(
+          and(
+            or(
+              eq(conversations.participant1Id, userId),
+              eq(conversations.participant2Id, userId)
+            ),
+            // Filter archived based on query param
+            showArchived 
+              ? or(
+                  and(eq(conversations.participant1Id, userId), eq(conversations.participant1Archived, true)),
+                  and(eq(conversations.participant2Id, userId), eq(conversations.participant2Archived, true))
+                )
+              : and(
+                  or(
+                    and(eq(conversations.participant1Id, userId), eq(conversations.participant1Archived, false)),
+                    and(eq(conversations.participant2Id, userId), eq(conversations.participant2Archived, false))
+                  )
+                )
+          )
+        )
+        .orderBy(desc(conversations.lastMessageAt));
+      
+      if (userConvs.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get partner IDs and last messages
+      const partnerIds = userConvs.map(c => 
+        c.participant1Id === userId ? c.participant2Id : c.participant1Id
+      );
+      const messageIds = userConvs.map(c => c.lastMessageId).filter(Boolean) as string[];
+      
+      // Batch fetch partners
+      const partners = partnerIds.length > 0 ? await db
+        .select({
+          id: users.id,
+          email: users.email,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        })
+        .from(users)
+        .where(sql`${users.id} = ANY(${partnerIds})`) : [];
+      
+      // Batch fetch last messages with listing info
+      const lastMsgs = messageIds.length > 0 ? await db
         .select({
           message: messages,
           listing: {
@@ -2718,59 +3247,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .from(messages)
         .leftJoin(listings, eq(messages.listingId, listings.id))
-        .where(
-          sql`${messages.senderId} = ${userId} OR ${messages.receiverId} = ${userId}`
-        )
-        .orderBy(desc(messages.createdAt));
+        .where(sql`${messages.id} = ANY(${messageIds})`) : [];
       
-      // Group by conversation partner
-      const conversationsMap = new Map();
-      for (const row of allMessages) {
-        const msg = row.message;
-        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
-        if (!conversationsMap.has(partnerId)) {
-          conversationsMap.set(partnerId, {
-            partnerId: partnerId,
-            lastMessage: msg,
-            listing: row.listing,
-            unreadCount: 0,
-          });
-        }
-      }
+      // Batch fetch presence
+      const presences = partnerIds.length > 0 ? await db
+        .select()
+        .from(userPresence)
+        .where(sql`${userPresence.userId} = ANY(${partnerIds})`) : [];
       
-      // Get all unique partner IDs
-      const partnerIds = Array.from(conversationsMap.keys());
-      
-      if (partnerIds.length === 0) {
-        return res.json([]);
-      }
-      
-      // Fetch partner user details
-      const partners = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          phone: users.phone,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          profileImageUrl: users.profileImageUrl,
-        })
-        .from(users)
-        .where(sql`${users.id} = ANY(${partnerIds})`);
-      
-      // Create a map for quick lookup
+      // Create maps
       const partnersMap = new Map(partners.map(p => [p.id, p]));
+      const messagesMap = new Map(lastMsgs.map(m => [m.message.id, { ...m.message, listing: m.listing }]));
+      const presenceMap = new Map(presences.map(p => [p.userId, p]));
       
-      // Build final conversations array with user info
-      const conversations = Array.from(conversationsMap.values()).map(conv => ({
-        ...conv,
-        user: partnersMap.get(conv.partnerId) || null,
-      }));
+      // Build response
+      const result = userConvs.map(conv => {
+        const partnerId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+        const isParticipant1 = conv.participant1Id === userId;
+        const partner = partnersMap.get(partnerId);
+        const lastMessage = conv.lastMessageId ? messagesMap.get(conv.lastMessageId) : null;
+        const presence = presenceMap.get(partnerId);
+        
+        return {
+          id: conv.id,
+          partnerId,
+          user: partner ? {
+            ...partner,
+            isOnline: presence?.isOnline || false,
+            lastSeenAt: presence?.lastSeenAt?.toISOString() || null,
+          } : null,
+          lastMessage,
+          unreadCount: isParticipant1 ? conv.participant1UnreadCount : conv.participant2UnreadCount,
+          isPinned: isParticipant1 ? conv.participant1Pinned : conv.participant2Pinned,
+          isArchived: isParticipant1 ? conv.participant1Archived : conv.participant2Archived,
+          isMuted: isParticipant1 ? conv.participant1Muted : conv.participant2Muted,
+          lastReadAt: isParticipant1 ? conv.participant1LastReadAt : conv.participant2LastReadAt,
+          createdAt: conv.createdAt,
+          updatedAt: conv.updatedAt,
+        };
+      });
       
-      res.json(conversations);
+      // Sort: pinned first, then by lastMessageAt
+      result.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        const aTime = a.lastMessage?.createdAt?.getTime() || 0;
+        const bTime = b.lastMessage?.createdAt?.getTime() || 0;
+        return bTime - aTime;
+      });
+      
+      res.json(result);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
       res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+  
+  // Archive/unarchive conversation
+  app.patch("/api/conversations/:id/archive", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const conversationId = req.params.id;
+      const { archived } = req.body;
+      
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (!conv) {
+        return res.status(404).json({ message: "Konuşma bulunamadı" });
+      }
+      
+      // Check if user is participant
+      if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+        return res.status(403).json({ message: "Bu konuşmaya erişim yetkiniz yok" });
+      }
+      
+      const updateData = conv.participant1Id === userId
+        ? { participant1Archived: archived }
+        : { participant2Archived: archived };
+      
+      await db
+        .update(conversations)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(conversations.id, conversationId));
+      
+      res.json({ message: archived ? "Konuşma arşivlendi" : "Konuşma arşivden çıkarıldı" });
+    } catch (error) {
+      console.error("Failed to archive conversation:", error);
+      res.status(500).json({ message: "Failed to archive conversation" });
+    }
+  });
+  
+  // Pin/unpin conversation
+  app.patch("/api/conversations/:id/pin", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const conversationId = req.params.id;
+      const { pinned } = req.body;
+      
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (!conv) {
+        return res.status(404).json({ message: "Konuşma bulunamadı" });
+      }
+      
+      if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+        return res.status(403).json({ message: "Bu konuşmaya erişim yetkiniz yok" });
+      }
+      
+      const updateData = conv.participant1Id === userId
+        ? { participant1Pinned: pinned }
+        : { participant2Pinned: pinned };
+      
+      await db
+        .update(conversations)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(conversations.id, conversationId));
+      
+      res.json({ message: pinned ? "Konuşma sabitlendi" : "Konuşma sabitten çıkarıldı" });
+    } catch (error) {
+      console.error("Failed to pin conversation:", error);
+      res.status(500).json({ message: "Failed to pin conversation" });
+    }
+  });
+  
+  // Mute/unmute conversation
+  app.patch("/api/conversations/:id/mute", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const conversationId = req.params.id;
+      const { muted } = req.body;
+      
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (!conv) {
+        return res.status(404).json({ message: "Konuşma bulunamadı" });
+      }
+      
+      if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+        return res.status(403).json({ message: "Bu konuşmaya erişim yetkiniz yok" });
+      }
+      
+      const updateData = conv.participant1Id === userId
+        ? { participant1Muted: muted }
+        : { participant2Muted: muted };
+      
+      await db
+        .update(conversations)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(conversations.id, conversationId));
+      
+      res.json({ message: muted ? "Konuşma sessize alındı" : "Konuşma sesi açıldı" });
+    } catch (error) {
+      console.error("Failed to mute conversation:", error);
+      res.status(500).json({ message: "Failed to mute conversation" });
+    }
+  });
+  
+  // Mark conversation as read
+  app.post("/api/conversations/:id/read", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const conversationId = req.params.id;
+      
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (!conv) {
+        return res.status(404).json({ message: "Konuşma bulunamadı" });
+      }
+      
+      if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+        return res.status(403).json({ message: "Bu konuşmaya erişim yetkiniz yok" });
+      }
+      
+      // Update unread count and last read time
+      const updateData = conv.participant1Id === userId
+        ? { participant1UnreadCount: 0, participant1LastReadAt: new Date() }
+        : { participant2UnreadCount: 0, participant2LastReadAt: new Date() };
+      
+      await db
+        .update(conversations)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(conversations.id, conversationId));
+      
+      // Mark all messages as read
+      await db
+        .update(messages)
+        .set({
+          status: "read",
+          readAt: new Date(),
+        })
+        .where(
+          and(
+            eq(messages.conversationId, conversationId),
+            eq(messages.receiverId, userId),
+            sql`${messages.status} != 'read'`
+          )
+        );
+      
+      res.json({ message: "Konuşma okundu olarak işaretlendi" });
+    } catch (error) {
+      console.error("Failed to mark conversation as read:", error);
+      res.status(500).json({ message: "Failed to mark conversation as read" });
     }
   });
 
@@ -2820,16 +3513,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const data = insertMessageSchema.parse({
-        ...req.body,
-        senderId: getUserId(req.user),
-      });
+      const senderId = getUserId(req.user);
+      const { receiverId, content, listingId, messageType, replyToId, attachments } = req.body;
+      
+      if (!receiverId || !content) {
+        return res.status(400).json({ message: "Alıcı ve mesaj içeriği gereklidir" });
+      }
+      
+      // Get or create conversation
+      const conversationId = [senderId, receiverId].sort().join('_');
+      
+      // Check if conversation exists
+      const [existingConv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (!existingConv) {
+        // Create new conversation
+        const [p1, p2] = [senderId, receiverId].sort();
+        await db.insert(conversations).values({
+          id: conversationId,
+          participant1Id: p1,
+          participant2Id: p2,
+          listingId: listingId || null,
+          participant1Archived: false,
+          participant2Archived: false,
+          participant1Pinned: false,
+          participant2Pinned: false,
+          participant1Muted: false,
+          participant2Muted: false,
+        });
+      }
 
       // Create message in PostgreSQL
       const [message] = await db
         .insert(messages)
-        .values(data)
+        .values({
+          senderId,
+          receiverId,
+          conversationId,
+          content,
+          listingId: listingId || null,
+          messageType: messageType || "text",
+          replyToId: replyToId || null,
+          attachments: attachments || [],
+        })
         .returning();
+      
+      // Update conversation
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
+      
+      if (conv) {
+        const isParticipant1Receiver = conv.participant1Id === receiverId;
+        await db
+          .update(conversations)
+          .set({
+            lastMessageId: message.id,
+            lastMessageAt: new Date(),
+            updatedAt: new Date(),
+            ...(isParticipant1Receiver
+              ? { participant1UnreadCount: sql`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` }
+              : { participant2UnreadCount: sql`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }),
+          })
+          .where(eq(conversations.id, conversationId));
+      }
 
       // Send notification to receiver
       try {
@@ -2839,18 +3592,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : sender.username || 'Birisi';
         
         await db.insert(notifications).values({
-          userId: data.receiverId,
+          userId: receiverId,
           type: 'new_message',
           title: 'Yeni Mesaj',
           message: `${senderName} size bir mesaj gönderdi`,
-          link: `/mesajlar?userId=${sender.id}`,
+          link: `/mesajlar?conversationId=${conversationId}`,
           relatedId: message.id,
         });
       } catch (notifError) {
         console.error("Failed to create message notification:", notifError);
       }
       
-      res.status(201).json(message);
+      res.status(201).json({ ...message, conversationId });
     } catch (error) {
       console.error("Failed to send message:", error);
       res.status(400).json({ message: "Failed to send message", error });
