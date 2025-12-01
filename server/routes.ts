@@ -39,7 +39,8 @@ import { verifyFirebaseToken, formatPhoneFromFirebase } from "./firebaseAdmin";
 // SESSION_SECRET is now used for session management (not JWT)
 
 // ============ Multer Configuration for File Uploads ============
-const upload = multer({
+// Upload config for images only (listings, stores, etc.)
+const uploadImages = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB max file size
@@ -52,6 +53,30 @@ const upload = multer({
     }
   },
 });
+
+// Upload config for messages (images + documents)
+const uploadMessageFiles = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Desteklenmeyen dosya türü'));
+    }
+  },
+});
+
+// Legacy alias for backward compatibility
+const upload = uploadImages;
 
 // ============ Rate Limiting Configuration ============
 
@@ -3464,6 +3489,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to mark conversation as read:", error);
       res.status(500).json({ message: "Failed to mark conversation as read" });
+    }
+  });
+  
+  // Upload file/image for messages
+  app.post("/api/messages/upload", isAuthenticated, uploadMessageFiles.single('file'), async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "Dosya gerekli" });
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "Dosya boyutu 10MB'ı aşamaz" });
+      }
+      
+      // Validate file type
+      const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+      
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Desteklenmeyen dosya türü" });
+      }
+      
+      const isImage = file.mimetype.startsWith('image/');
+      const timestamp = Date.now();
+      const ext = file.originalname.split('.').pop() || 'bin';
+      const filename = `message_${userId}_${timestamp}.${ext}`;
+      
+      let fileBuffer = file.buffer;
+      let finalFilename = filename;
+      
+      // Process images with Sharp
+      if (isImage && file.mimetype !== 'image/gif') {
+        const sharp = (await import('sharp')).default;
+        
+        // Resize large images and convert to WebP
+        fileBuffer = await sharp(file.buffer)
+          .rotate() // Auto-rotate based on EXIF
+          .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 85 })
+          .toBuffer();
+        
+        finalFilename = `message_${userId}_${timestamp}.webp`;
+      }
+      
+      // Upload to object storage
+      const objectPath = await objectStorageService.uploadFileBuffer(
+        fileBuffer,
+        finalFilename,
+        '.private/messages'
+      );
+      
+      const fileUrl = `/api/objects/${objectPath}`;
+      
+      res.json({
+        url: fileUrl,
+        filename: file.originalname,
+        mimeType: isImage && file.mimetype !== 'image/gif' ? 'image/webp' : file.mimetype,
+        size: fileBuffer.length,
+        type: isImage ? 'image' : 'file',
+      });
+    } catch (error) {
+      console.error("Failed to upload message file:", error);
+      res.status(500).json({ message: "Dosya yüklenemedi" });
     }
   });
 

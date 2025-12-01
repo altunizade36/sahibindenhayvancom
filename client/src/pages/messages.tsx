@@ -37,6 +37,11 @@ import {
   CheckCheck,
   Circle,
   X,
+  Image as ImageIcon,
+  Paperclip,
+  FileText,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -50,6 +55,14 @@ type ListingInfo = {
   district: string;
 } | null;
 
+type Attachment = {
+  url: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  type: "image" | "file";
+};
+
 type Message = {
   id: string;
   senderId: string;
@@ -59,6 +72,7 @@ type Message = {
   status?: "sent" | "delivered" | "read";
   readAt?: string | null;
   messageType?: "text" | "image" | "file" | "system" | "offer";
+  attachments?: Attachment[];
   listing?: ListingInfo;
 };
 
@@ -299,9 +313,12 @@ export default function Messages() {
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
   const [onlineUsers, setOnlineUsers] = useState<Record<string, boolean>>({});
   const [showListingPanel, setShowListingPanel] = useState(true);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<Attachment | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.split("?")[1]);
@@ -330,16 +347,19 @@ export default function Messages() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, attachments }: { content: string; attachments?: Attachment[] }) => {
       const selectedConv = conversations?.find((c) => c.partnerId === selectedUserId);
       return apiRequest("POST", "/api/messages", {
         receiverId: selectedUserId,
         content,
         listingId: selectedConv?.lastMessage?.listing?.id || messagesData?.listing?.id || null,
+        messageType: attachments?.length ? (attachments[0].type === "image" ? "image" : "file") : "text",
+        attachments: attachments || [],
       });
     },
     onSuccess: () => {
       setMessageText("");
+      setPendingAttachment(null);
       queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedUserId] });
       queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
     },
@@ -351,6 +371,48 @@ export default function Messages() {
       });
     },
   });
+
+  const handleFileUpload = async (file: File) => {
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/messages/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Dosya yüklenemedi");
+      }
+      
+      const attachment = await response.json();
+      setPendingAttachment(attachment);
+      toast({
+        title: "Dosya yüklendi",
+        description: "Mesajınıza eklenmeye hazır",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Hata",
+        description: error.message || "Dosya yüklenemedi",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+    e.target.value = "";
+  };
 
   const archiveMutation = useMutation({
     mutationFn: async ({ conversationId, archived }: { conversationId: string; archived: boolean }) => {
@@ -487,9 +549,12 @@ export default function Messages() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim() || !selectedUserId) return;
+    if ((!messageText.trim() && !pendingAttachment) || !selectedUserId) return;
     sendTypingIndicator(false);
-    sendMessageMutation.mutate(messageText);
+    sendMessageMutation.mutate({
+      content: messageText.trim() || (pendingAttachment?.type === "image" ? "📷 Fotoğraf" : "📎 Dosya"),
+      attachments: pendingAttachment ? [pendingAttachment] : undefined,
+    });
   };
 
   const handleSelectConversation = (conv: Conversation) => {
@@ -896,15 +961,52 @@ export default function Messages() {
                         data-testid={`message-${message.id}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                          className={`max-w-[80%] rounded-2xl ${
+                            message.attachments?.length ? "p-1" : "px-4 py-2"
+                          } ${
                             isOwnMessage
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : "bg-muted rounded-bl-md"
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                          {message.attachments?.map((attachment, idx) => (
+                            <div key={idx} className="mb-1">
+                              {attachment.type === "image" ? (
+                                <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                                  <img
+                                    src={attachment.url}
+                                    alt={attachment.filename}
+                                    className="max-w-full rounded-lg max-h-60 object-cover"
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={attachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 p-2 rounded-lg ${
+                                    isOwnMessage ? "bg-primary-foreground/10" : "bg-background"
+                                  }`}
+                                >
+                                  <FileText className="h-8 w-8 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{attachment.filename}</p>
+                                    <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                      {(attachment.size / 1024).toFixed(1)} KB
+                                    </p>
+                                  </div>
+                                  <Download className="h-4 w-4 flex-shrink-0" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                          {message.content && message.content !== "📷 Fotoğraf" && message.content !== "📎 Dosya" && (
+                            <p className={`text-sm whitespace-pre-wrap break-words ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
+                              {message.content}
+                            </p>
+                          )}
                           <div
-                            className={`flex items-center justify-end gap-1 mt-1 ${
+                            className={`flex items-center justify-end gap-1 mt-1 ${message.attachments?.length ? "px-3 pb-1" : ""} ${
                               isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
                             }`}
                           >
@@ -933,7 +1035,59 @@ export default function Messages() {
           </ScrollArea>
 
           <form onSubmit={handleSendMessage} className="p-3 border-t flex-shrink-0">
+            {pendingAttachment && (
+              <div className="mb-2 p-2 bg-muted rounded-lg flex items-center gap-2">
+                {pendingAttachment.type === "image" ? (
+                  <img
+                    src={pendingAttachment.url}
+                    alt="Ek"
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-background rounded flex items-center justify-center">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{pendingAttachment.filename}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(pendingAttachment.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setPendingAttachment(null)}
+                  data-testid="button-remove-attachment"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <div className="flex gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                className="hidden"
+                data-testid="input-file"
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFile || sendMessageMutation.isPending}
+                data-testid="button-attach-file"
+              >
+                {uploadingFile ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Paperclip className="h-4 w-4" />
+                )}
+              </Button>
               <Input
                 ref={inputRef}
                 placeholder="Mesajınızı yazın..."
@@ -946,7 +1100,7 @@ export default function Messages() {
               <Button
                 type="submit"
                 size="icon"
-                disabled={!messageText.trim() || sendMessageMutation.isPending}
+                disabled={(!messageText.trim() && !pendingAttachment) || sendMessageMutation.isPending}
                 data-testid="button-send-message"
               >
                 <Send className="h-4 w-4" />
