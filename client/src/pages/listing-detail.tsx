@@ -411,7 +411,7 @@ export default function ListingDetail() {
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" className="w-full h-11" asChild>
                     <a 
-                      href={`tel:${listing.seller.phone}`}
+                      href={`tel:${listing.seller?.phone || ''}`}
                       data-testid="link-call-seller-mobile"
                     >
                       <PhoneCall className="w-4 h-4 mr-2" />
@@ -424,7 +424,7 @@ export default function ListingDetail() {
                     asChild
                   >
                     <a 
-                      href={`https://wa.me/${listing.seller.phone.replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                      href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       data-testid="link-whatsapp-seller-mobile"
@@ -616,7 +616,7 @@ export default function ListingDetail() {
                     {listing.seller?.phone && (
                       <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
                         <Phone className="w-3 h-3" />
-                        {listing.seller.phone}
+                        {listing.seller?.phone}
                       </div>
                     )}
                   </div>
@@ -652,7 +652,7 @@ export default function ListingDetail() {
                         asChild
                       >
                         <a 
-                          href={`tel:${listing.seller.phone}`}
+                          href={`tel:${listing.seller?.phone || ''}`}
                           data-testid="link-call-seller"
                         >
                           <PhoneCall className="w-4 h-4 mr-2" />
@@ -665,7 +665,7 @@ export default function ListingDetail() {
                         asChild
                       >
                         <a 
-                          href={`https://wa.me/${listing.seller.phone.replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                          href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           data-testid="link-whatsapp-seller"
