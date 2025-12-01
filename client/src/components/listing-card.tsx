@@ -32,7 +32,7 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
   if (variant === "horizontal") {
     return (
       <Card className="hover-elevate overflow-hidden w-full">
-        <Link href={`/ilanlar/${listing.id}`}>
+        <Link href={`/ilan/${listing.id}`}>
           <div className="flex flex-row relative w-full">
             {/* Image - smaller on very small screens */}
             <div className="relative w-[72px] min-[360px]:w-20 min-[400px]:w-28 sm:w-36 shrink-0">
@@ -128,7 +128,7 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
   // Vertical/Grid View (Default)
   return (
     <Card className="hover-elevate overflow-hidden">
-      <Link href={`/ilanlar/${listing.id}`}>
+      <Link href={`/ilan/${listing.id}`}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={mainImage}
@@ -157,7 +157,7 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
       </Link>
 
       <CardContent className="p-2.5 sm:p-3 md:p-4">
-        <Link href={`/ilanlar/${listing.id}`}>
+        <Link href={`/ilan/${listing.id}`}>
           <h3 className="font-semibold text-sm sm:text-base line-clamp-2 mb-1.5 sm:mb-2" data-testid={`text-listing-title-${listing.id}`}>
             {listing.title}
           </h3>
