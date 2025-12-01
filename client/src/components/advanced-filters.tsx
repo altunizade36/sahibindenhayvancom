@@ -43,6 +43,7 @@ export interface FilterValues {
   minPrice?: string;
   maxPrice?: string;
   city?: string;
+  district?: string;
   minAge?: string;
   maxAge?: string;
   ageCategory?: string;
@@ -84,6 +85,14 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
 
   const { data: cities = [] } = useQuery<Location[]>({
     queryKey: ["/api/locations", { type: "il" }],
+    staleTime: 1000 * 60 * 60,
+  });
+
+  // Fetch districts when city is selected (find city by name)
+  const selectedCityData = cities.find(c => c.name === localFilters.city);
+  const { data: districts = [] } = useQuery<Location[]>({
+    queryKey: ["/api/locations", { type: "ilce", parent: selectedCityData?.id }],
+    enabled: !!selectedCityData?.id,
     staleTime: 1000 * 60 * 60,
   });
 
@@ -172,23 +181,57 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="pt-2">
-              <Select
-                value={localFilters.city || 'all'}
-                onValueChange={(value) => setLocalFilters({ ...localFilters, city: value === 'all' ? undefined : value })}
-              >
-                <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-city">
-                  <SelectValue placeholder="Şehir Seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm Şehirler</SelectItem>
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.slug}>
-                      {city.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 pt-2">
+              {/* City Selection */}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">İl</Label>
+                <Select
+                  value={localFilters.city || 'all'}
+                  onValueChange={(value) => setLocalFilters({ 
+                    ...localFilters, 
+                    city: value === 'all' ? undefined : value,
+                    district: undefined // Reset district when city changes
+                  })}
+                >
+                  <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-city">
+                    <SelectValue placeholder="İl Seçin" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    <SelectItem value="all">Tüm İller</SelectItem>
+                    {cities.map((city) => (
+                      <SelectItem key={city.id} value={city.name}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* District Selection - Only shown when city is selected */}
+              {localFilters.city && districts.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">İlçe</Label>
+                  <Select
+                    value={localFilters.district || 'all'}
+                    onValueChange={(value) => setLocalFilters({ 
+                      ...localFilters, 
+                      district: value === 'all' ? undefined : value 
+                    })}
+                  >
+                    <SelectTrigger className="h-10 hover:bg-accent/50" data-testid="select-district">
+                      <SelectValue placeholder="İlçe Seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      <SelectItem value="all">Tüm İlçeler</SelectItem>
+                      {districts.map((district) => (
+                        <SelectItem key={district.id} value={district.name}>
+                          {district.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -480,10 +523,19 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
           )}
           {currentFilters.city && (
             <Badge variant="secondary" className="text-xs gap-1">
-              {cities.find(c => c.slug === currentFilters.city)?.name || currentFilters.city}
+              {currentFilters.city}
               <X 
                 className="w-3 h-3 cursor-pointer" 
-                onClick={() => onFilterChange({ ...currentFilters, city: undefined })}
+                onClick={() => onFilterChange({ ...currentFilters, city: undefined, district: undefined })}
+              />
+            </Badge>
+          )}
+          {currentFilters.district && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              {currentFilters.district}
+              <X 
+                className="w-3 h-3 cursor-pointer" 
+                onClick={() => onFilterChange({ ...currentFilters, district: undefined })}
               />
             </Badge>
           )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -19,26 +19,104 @@ interface ListingsResponse {
   totalPages: number;
 }
 
+// URL parameter keys that map to filter values
+const FILTER_URL_PARAMS = [
+  'city', 'district', 'minPrice', 'maxPrice', 'minAge', 'maxAge', 
+  'ageCategory', 'gender', 'breed', 'healthStatus', 'vaccinated', 
+  'neutered', 'pedigree', 'sortBy', 'sortOrder', 'characterTraits'
+] as const;
+
+// Parse filters from URL search params
+function parseFiltersFromURL(searchParams: URLSearchParams): FilterValues {
+  const filters: FilterValues = {};
+  
+  FILTER_URL_PARAMS.forEach(param => {
+    const value = searchParams.get(param);
+    if (value) {
+      if (param === 'characterTraits') {
+        filters.characterTraits = value.split(',').filter(Boolean);
+      } else {
+        (filters as any)[param] = value;
+      }
+    }
+  });
+  
+  return filters;
+}
+
+// Build URL search params from filters
+function buildURLFromFilters(
+  filters: FilterValues, 
+  categoryId?: string, 
+  search?: string,
+  page?: number
+): string {
+  const params = new URLSearchParams();
+  
+  if (categoryId) params.set('categoryId', categoryId);
+  if (search) params.set('search', search);
+  if (page && page > 1) params.set('page', page.toString());
+  
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '' && value !== null) {
+      if (key === 'characterTraits' && Array.isArray(value) && value.length > 0) {
+        params.set(key, value.join(','));
+      } else if (typeof value === 'string' && value) {
+        params.set(key, value);
+      }
+    }
+  });
+  
+  const queryString = params.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
 export default function ListingList() {
   const [location, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [filters, setFilters] = useState<FilterValues>({});
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
-  // URL'den parametreleri oku
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  // Parse URL parameters
+  const searchParams = useMemo(() => new URLSearchParams(location.split('?')[1] || ''), [location]);
   const urlCategoryId = searchParams.get("categoryId");
   const urlSearch = searchParams.get("search");
+  
+  // Initialize filters from URL
+  const [filters, setFilters] = useState<FilterValues>(() => parseFiltersFromURL(searchParams));
+  const [activeSearch, setActiveSearch] = useState(urlSearch || "");
 
-  // URL'den arama parametresini al
+  // Parse page from URL
+  const urlPage = parseInt(searchParams.get("page") || "1", 10);
+
+  // Sync URL changes to state (for back/forward navigation)
   useEffect(() => {
-    if (urlSearch) {
-      setSearchQuery(urlSearch);
-      setActiveSearch(urlSearch);
+    const newFilters = parseFiltersFromURL(searchParams);
+    setFilters(newFilters);
+    
+    const newSearch = searchParams.get("search") || "";
+    setSearchQuery(newSearch);
+    setActiveSearch(newSearch);
+    
+    // Sync page from URL
+    const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+    if (pageFromUrl !== currentPage) {
+      setCurrentPage(pageFromUrl);
     }
-  }, [urlSearch]);
+  }, [searchParams]);
+  
+  // Update URL when filters change (resets page to 1)
+  const updateURL = useCallback((newFilters: FilterValues, newSearch?: string, page: number = 1) => {
+    const url = `/ilanlar${buildURLFromFilters(newFilters, urlCategoryId || undefined, newSearch, page)}`;
+    setLocation(url, { replace: false });
+  }, [urlCategoryId, setLocation]);
+  
+  // Update URL when page changes
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    const url = `/ilanlar${buildURLFromFilters(filters, urlCategoryId || undefined, activeSearch || undefined, newPage)}`;
+    setLocation(url, { replace: false });
+  }, [filters, urlCategoryId, activeSearch, setLocation]);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -58,46 +136,38 @@ export default function ListingList() {
   
   const listings = listingsResponse?.data || [];
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setActiveSearch(searchQuery);
     setCurrentPage(1);
-    // URL'i güncelle
-    const params = new URLSearchParams(location.split('?')[1] || '');
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    } else {
-      params.delete('search');
-    }
-    setLocation(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
-  };
+    updateURL(filters, searchQuery || undefined);
+  }, [searchQuery, filters, updateURL]);
 
-  const handleFilterChange = (newFilters: FilterValues) => {
+  const handleFilterChange = useCallback((newFilters: FilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-  };
+    updateURL(newFilters, activeSearch || undefined);
+  }, [activeSearch, updateURL]);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery("");
     setActiveSearch("");
-    const params = new URLSearchParams(location.split('?')[1] || '');
-    params.delete('search');
-    setLocation(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
-  };
+    updateURL(filters, undefined);
+  }, [filters, updateURL]);
 
-  const clearCategory = () => {
-    const params = new URLSearchParams(location.split('?')[1] || '');
-    params.delete('categoryId');
-    setLocation(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
-  };
+  const clearCategory = useCallback(() => {
+    // Remove categoryId and navigate
+    const url = `/ilanlar${buildURLFromFilters(filters, undefined, activeSearch || undefined)}`;
+    setLocation(url);
+  }, [filters, activeSearch, setLocation]);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setSearchQuery("");
     setActiveSearch("");
     setFilters({});
     setCurrentPage(1);
     setLocation("/ilanlar");
-  };
+  }, [setLocation]);
 
   const hasActiveFilters = activeSearch || urlCategoryId || Object.keys(filters).filter(k => k !== 'sortBy' && k !== 'sortOrder').length > 0;
 
@@ -272,7 +342,7 @@ export default function ListingList() {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={listingsResponse.totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange}
                 />
               </div>
             )}

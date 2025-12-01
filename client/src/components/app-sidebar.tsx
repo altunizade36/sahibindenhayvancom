@@ -1,4 +1,4 @@
-import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronRight, MapPin } from "lucide-react";
+import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronRight, MapPin, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, Link } from "wouter";
@@ -20,6 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { Category, Location } from "@shared/schema";
 
 // Main navigation items
@@ -173,76 +174,81 @@ function CategoryTreeItem({
 }
 
 function LocationFilters() {
-  const [selectedIl, setSelectedIl] = useState<string | null>(null);
-  const [selectedIlce, setSelectedIlce] = useState<string | null>(null);
-  const [selectedMahalle, setSelectedMahalle] = useState<string | null>(null);
   const [location, navigate] = useLocation();
+  
+  // Parse current location filters from URL (uses city/district names)
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const urlCity = searchParams.get('city') || "";
+  const urlDistrict = searchParams.get('district') || "";
 
   // Fetch provinces (il)
   const { data: provinces = [] } = useQuery<Location[]>({
-    queryKey: ['/api/locations?type=il'],
+    queryKey: ['/api/locations', { type: 'il' }],
   });
+
+  // Find selected city to get its ID for district query (match by name)
+  const selectedCityData = provinces.find(p => p.name === urlCity);
 
   // Fetch districts (ilce) for selected province
   const { data: districts = [] } = useQuery<Location[]>({
-    queryKey: [`/api/locations?type=ilce&parent=${selectedIl}`],
-    enabled: !!selectedIl,
+    queryKey: ['/api/locations', { type: 'ilce', parent: selectedCityData?.id }],
+    enabled: !!selectedCityData?.id,
   });
 
-  // Fetch neighborhoods (mahalle) for selected district
-  const { data: neighborhoods = [] } = useQuery<Location[]>({
-    queryKey: [`/api/locations?type=mahalle&parent=${selectedIlce}`],
-    enabled: !!selectedIlce,
-  });
-
-  // Fetch villages (köy) for selected neighborhood
-  const { data: villages = [] } = useQuery<Location[]>({
-    queryKey: [`/api/locations?type=koy&parent=${selectedMahalle}`],
-    enabled: !!selectedMahalle,
-  });
-
-  const handleLocationChange = (locationId: string, level: 'il' | 'ilce' | 'mahalle' | 'koy') => {
-    // Merge with existing query params
+  const handleCityChange = (cityName: string) => {
     const params = new URLSearchParams(location.split('?')[1] || '');
-    params.set('konum', locationId);
-    
-    if (level === 'il') {
-      setSelectedIl(locationId);
-      setSelectedIlce(null);
-      setSelectedMahalle(null);
-    } else if (level === 'ilce') {
-      setSelectedIlce(locationId);
-      setSelectedMahalle(null);
-    } else if (level === 'mahalle') {
-      setSelectedMahalle(locationId);
+    if (cityName && cityName !== 'all') {
+      params.set('city', cityName);
+    } else {
+      params.delete('city');
     }
-    
-    navigate(`/ilanlar?${params.toString()}`);
+    // Reset district when city changes
+    params.delete('district');
+    navigate(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
+  };
+
+  const handleDistrictChange = (districtName: string) => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    if (districtName && districtName !== 'all') {
+      params.set('district', districtName);
+    } else {
+      params.delete('district');
+    }
+    navigate(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
+  };
+
+  const clearLocation = () => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    params.delete('city');
+    params.delete('district');
+    navigate(`/ilanlar${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   return (
     <div className="space-y-2">
-      <Select value={selectedIl || ""} onValueChange={(val) => handleLocationChange(val, 'il')}>
-        <SelectTrigger data-testid="select-il" className="w-full">
+      <Select value={urlCity || "all"} onValueChange={handleCityChange}>
+        <SelectTrigger data-testid="select-sidebar-city" className="w-full">
           <SelectValue placeholder="İl Seçin" />
         </SelectTrigger>
         <SelectContent className="max-h-72">
+          <SelectItem value="all">Tüm İller</SelectItem>
           {provinces.map((prov) => (
-            <SelectItem key={prov.id} value={prov.id} data-testid={`il-${prov.slug}`}>
+            <SelectItem key={prov.id} value={prov.name} data-testid={`sidebar-il-${prov.slug}`}>
               {prov.name}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {selectedIl && districts.length > 0 && (
-        <Select value={selectedIlce || ""} onValueChange={(val) => handleLocationChange(val, 'ilce')}>
-          <SelectTrigger data-testid="select-ilce" className="w-full">
+      {urlCity && districts.length > 0 && (
+        <Select value={urlDistrict || "all"} onValueChange={handleDistrictChange}>
+          <SelectTrigger data-testid="select-sidebar-district" className="w-full">
             <SelectValue placeholder="İlçe Seçin" />
           </SelectTrigger>
           <SelectContent className="max-h-72">
+            <SelectItem value="all">Tüm İlçeler</SelectItem>
             {districts.map((dist) => (
-              <SelectItem key={dist.id} value={dist.id} data-testid={`ilce-${dist.slug}`}>
+              <SelectItem key={dist.id} value={dist.name} data-testid={`sidebar-ilce-${dist.slug}`}>
                 {dist.name}
               </SelectItem>
             ))}
@@ -250,34 +256,17 @@ function LocationFilters() {
         </Select>
       )}
 
-      {selectedIlce && neighborhoods.length > 0 && (
-        <Select value={selectedMahalle || ""} onValueChange={(val) => handleLocationChange(val, 'mahalle')}>
-          <SelectTrigger data-testid="select-mahalle" className="w-full">
-            <SelectValue placeholder="Mahalle Seçin" />
-          </SelectTrigger>
-          <SelectContent className="max-h-72">
-            {neighborhoods.map((neigh) => (
-              <SelectItem key={neigh.id} value={neigh.id} data-testid={`mahalle-${neigh.slug}`}>
-                {neigh.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-
-      {selectedMahalle && villages.length > 0 && (
-        <Select onValueChange={(val) => handleLocationChange(val, 'koy')}>
-          <SelectTrigger data-testid="select-koy" className="w-full">
-            <SelectValue placeholder="Köy Seçin" />
-          </SelectTrigger>
-          <SelectContent className="max-h-72">
-            {villages.map((village) => (
-              <SelectItem key={village.id} value={village.id} data-testid={`koy-${village.slug}`}>
-                {village.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {(urlCity || urlDistrict) && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={clearLocation}
+          className="w-full h-8 text-xs text-muted-foreground"
+          data-testid="button-clear-location"
+        >
+          <X className="w-3 h-3 mr-1" />
+          Konumu Temizle
+        </Button>
       )}
     </div>
   );

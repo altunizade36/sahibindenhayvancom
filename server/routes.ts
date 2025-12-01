@@ -2281,6 +2281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit = '50', 
         categoryId, 
         city, 
+        district,
         minPrice, 
         maxPrice, 
         status, 
@@ -2350,6 +2351,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (city) {
         conditions.push(eq(listings.city, city as string));
+      }
+      
+      if (district) {
+        conditions.push(eq(listings.district, district as string));
       }
       
       if (status) {
