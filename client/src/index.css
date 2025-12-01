@@ -285,10 +285,4 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
-
-  /* Fix for category sidebar chevrons being clipped */
-  [data-sidebar="menu-button"].peer\/menu-button,
-  [data-sidebar="menu-sub-button"] {
-    overflow: visible !important;
-  }
 }

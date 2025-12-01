@@ -92,74 +92,34 @@ function CategoryTreeItem({
 
   if (level === 0) {
     return (
-      <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            isActive={isActive}
-            data-testid={`category-${category.slug}`}
-            onClick={handleNavigate}
-            className="justify-between"
-          >
-            <span className="truncate min-w-0 flex-1" title={category.name}>
-              {category.name}
-            </span>
-            <CollapsibleTrigger asChild>
-              <span
-                data-testid={`toggle-${category.slug}`}
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md hover:bg-sidebar-accent"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ChevronRight 
-                  className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
-                />
-              </span>
-            </CollapsibleTrigger>
-          </SidebarMenuButton>
-          <CollapsibleContent>
-            <SidebarMenuSub>
-              {category.children?.map((child) => (
-                <CategoryTreeItem
-                  key={child.id}
-                  category={child}
-                  level={level + 1}
-                  activeCategoryId={activeCategoryId}
-                  expandedIds={expandedIds}
-                  onToggle={onToggle}
-                />
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        </SidebarMenuItem>
-      </Collapsible>
-    );
-  }
-
-  return (
-    <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
+      <SidebarMenuItem>
+        <SidebarMenuButton
           isActive={isActive}
           data-testid={`category-${category.slug}`}
           onClick={handleNavigate}
-          className="justify-between"
         >
-          <span className="truncate min-w-0 flex-1" title={category.name}>
+          <span className="truncate" title={category.name}>
             {category.name}
           </span>
-          <CollapsibleTrigger asChild>
-            <span
-              data-testid={`toggle-${category.slug}`}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md hover:bg-sidebar-accent"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ChevronRight 
-                className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
-              />
-            </span>
-          </CollapsibleTrigger>
-        </SidebarMenuSubButton>
-        <CollapsibleContent>
-          <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
+        </SidebarMenuButton>
+        <CollapsibleTrigger
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggle(category.id);
+          }}
+          asChild
+        >
+          <SidebarMenuAction
+            data-testid={`toggle-${category.slug}`}
+            className="transition-transform duration-200"
+            style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </SidebarMenuAction>
+        </CollapsibleTrigger>
+        {isOpen && (
+          <SidebarMenuSub>
             {category.children?.map((child) => (
               <CategoryTreeItem
                 key={child.id}
@@ -171,9 +131,49 @@ function CategoryTreeItem({
               />
             ))}
           </SidebarMenuSub>
-        </CollapsibleContent>
-      </SidebarMenuSubItem>
-    </Collapsible>
+        )}
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton
+        isActive={isActive}
+        data-testid={`category-${category.slug}`}
+        onClick={handleNavigate}
+      >
+        <span className="truncate" title={category.name}>
+          {category.name}
+        </span>
+      </SidebarMenuSubButton>
+      <button
+        data-testid={`toggle-${category.slug}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle(category.id);
+        }}
+        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-transform duration-200"
+        style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+      >
+        <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+      {isOpen && (
+        <SidebarMenuSub className="ml-2 border-l border-sidebar-border pl-2">
+          {category.children?.map((child) => (
+            <CategoryTreeItem
+              key={child.id}
+              category={child}
+              level={level + 1}
+              activeCategoryId={activeCategoryId}
+              expandedIds={expandedIds}
+              onToggle={onToggle}
+            />
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarMenuSubItem>
   );
 }
 
