@@ -9,48 +9,72 @@ import { Navbar } from "@/components/navbar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SplashScreen, useSplashScreen } from "@/components/splash-screen";
+import { CookieConsent } from "@/components/cookie-consent";
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+// Critical pages - loaded immediately
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import ForgotPassword from "@/pages/forgot-password";
-import ResetPassword from "@/pages/reset-password";
-import CreateListing from "@/pages/create-listing";
-import BlogList from "@/pages/blog-list";
-import BlogDetail from "@/pages/blog-detail";
 import ListingList from "@/pages/listing-list";
 import ListingDetail from "@/pages/listing-detail";
-import Profile from "@/pages/profile";
-import Messages from "@/pages/messages";
-import VetServices from "@/pages/vet-services";
-import TransportServices from "@/pages/transport-services";
-import AuctionList from "@/pages/auction-list";
-import AuctionDetail from "@/pages/auction-detail";
-import AuctionCreate from "@/pages/auction-create";
-import LiveStreamList from "@/pages/live-stream-list";
-import LiveStreamWatch from "@/pages/live-stream-watch";
-import LiveStreamCreate from "@/pages/live-stream-create";
 import CategoryDetail from "@/pages/category-detail";
-import AdminDashboard from "@/pages/admin-dashboard";
-import AdminModeration from "@/pages/admin-moderation";
-import AdminBlog from "@/pages/admin-blog";
-import VerifyEmail from "@/pages/verify-email";
-import StoresList from "@/pages/stores-list";
-import StoreDetail from "@/pages/store-detail";
-import MyStore from "@/pages/my-store";
-import EditListing from "@/pages/edit-listing";
-import EditProfile from "@/pages/edit-profile";
-import NotificationsPage from "@/pages/notifications";
-import PanelDashboard from "@/pages/panel/index";
-import PanelIlanlarim from "@/pages/panel/ilanlarim";
-import PanelFavorilerim from "@/pages/panel/favorilerim";
-import PanelAyarlar from "@/pages/panel/ayarlar";
-import KullanimKosullari from "@/pages/legal/kullanim-kosullari";
-import GizlilikPolitikasi from "@/pages/legal/gizlilik-politikasi";
-import CerezPolitikasi from "@/pages/legal/cerez-politikasi";
-import IlanKurallari from "@/pages/legal/ilan-kurallari";
-import KVKK from "@/pages/legal/kvkk";
-import { CookieConsent } from "@/components/cookie-consent";
+
+// Lazy loaded pages - loaded on demand for better initial load time
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ResetPassword = lazy(() => import("@/pages/reset-password"));
+const CreateListing = lazy(() => import("@/pages/create-listing"));
+const BlogList = lazy(() => import("@/pages/blog-list"));
+const BlogDetail = lazy(() => import("@/pages/blog-detail"));
+const Profile = lazy(() => import("@/pages/profile"));
+const Messages = lazy(() => import("@/pages/messages"));
+const VetServices = lazy(() => import("@/pages/vet-services"));
+const TransportServices = lazy(() => import("@/pages/transport-services"));
+const AuctionList = lazy(() => import("@/pages/auction-list"));
+const AuctionDetail = lazy(() => import("@/pages/auction-detail"));
+const AuctionCreate = lazy(() => import("@/pages/auction-create"));
+const LiveStreamList = lazy(() => import("@/pages/live-stream-list"));
+const LiveStreamWatch = lazy(() => import("@/pages/live-stream-watch"));
+const LiveStreamCreate = lazy(() => import("@/pages/live-stream-create"));
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
+const AdminModeration = lazy(() => import("@/pages/admin-moderation"));
+const AdminBlog = lazy(() => import("@/pages/admin-blog"));
+const VerifyEmail = lazy(() => import("@/pages/verify-email"));
+const StoresList = lazy(() => import("@/pages/stores-list"));
+const StoreDetail = lazy(() => import("@/pages/store-detail"));
+const MyStore = lazy(() => import("@/pages/my-store"));
+const EditListing = lazy(() => import("@/pages/edit-listing"));
+const EditProfile = lazy(() => import("@/pages/edit-profile"));
+const NotificationsPage = lazy(() => import("@/pages/notifications"));
+const PanelDashboard = lazy(() => import("@/pages/panel/index"));
+const PanelIlanlarim = lazy(() => import("@/pages/panel/ilanlarim"));
+const PanelFavorilerim = lazy(() => import("@/pages/panel/favorilerim"));
+const PanelAyarlar = lazy(() => import("@/pages/panel/ayarlar"));
+const KullanimKosullari = lazy(() => import("@/pages/legal/kullanim-kosullari"));
+const GizlilikPolitikasi = lazy(() => import("@/pages/legal/gizlilik-politikasi"));
+const CerezPolitikasi = lazy(() => import("@/pages/legal/cerez-politikasi"));
+const IlanKurallari = lazy(() => import("@/pages/legal/ilan-kurallari"));
+const KVKK = lazy(() => import("@/pages/legal/kvkk"));
+
+// Loading fallback component
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
+// Suspense wrapper for lazy components
+function LazyRoute({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Component />
+    </Suspense>
+  );
+}
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -86,45 +110,45 @@ function NoSidebarLayout() {
           <Route path="/login" component={Login} />
           <Route path="/kayit" component={Register} />
           <Route path="/register" component={Register} />
-          <Route path="/forgot-password" component={ForgotPassword} />
-          <Route path="/reset-password" component={ResetPassword} />
-          <Route path="/verify-email" component={VerifyEmail} />
-          <Route path="/ilan-ver" component={CreateListing} />
-          <Route path="/ilan-duzenle/:id" component={EditListing} />
+          <Route path="/forgot-password">{() => <LazyRoute component={ForgotPassword} />}</Route>
+          <Route path="/reset-password">{() => <LazyRoute component={ResetPassword} />}</Route>
+          <Route path="/verify-email">{() => <LazyRoute component={VerifyEmail} />}</Route>
+          <Route path="/ilan-ver">{() => <LazyRoute component={CreateListing} />}</Route>
+          <Route path="/ilan-duzenle/:id">{() => <LazyRoute component={EditListing} />}</Route>
           <Route path="/ilan/:id" component={ListingDetail} />
-          <Route path="/profil" component={Profile} />
-          <Route path="/profil-duzenle" component={EditProfile} />
-          <Route path="/panel" component={PanelDashboard} />
-          <Route path="/panel/ilanlarim" component={PanelIlanlarim} />
-          <Route path="/panel/favorilerim" component={PanelFavorilerim} />
-          <Route path="/panel/ayarlar" component={PanelAyarlar} />
-          <Route path="/ayarlar" component={PanelAyarlar} />
-          <Route path="/favoriler" component={PanelFavorilerim} />
-          <Route path="/bildirimler" component={NotificationsPage} />
-          <Route path="/mesajlar" component={Messages} />
-          <Route path="/veterinerler" component={VetServices} />
-          <Route path="/tasima" component={TransportServices} />
-          <Route path="/blog" component={BlogList} />
-          <Route path="/blog/:slug" component={BlogDetail} />
-          <Route path="/magazalar" component={StoresList} />
-          <Route path="/magaza/:slug" component={StoreDetail} />
-          <Route path="/panel/magazam" component={MyStore} />
-          <Route path="/magazam" component={MyStore} />
-          <Route path="/acik-artirmalar" component={AuctionList} />
-          <Route path="/acik-artirma/:id" component={AuctionDetail} />
-          <Route path="/acik-artirma-olustur" component={AuctionCreate} />
-          <Route path="/canli-yayinlar" component={LiveStreamList} />
-          <Route path="/canli-yayin/:id" component={LiveStreamWatch} />
-          <Route path="/yayin-baslat" component={LiveStreamCreate} />
+          <Route path="/profil">{() => <LazyRoute component={Profile} />}</Route>
+          <Route path="/profil-duzenle">{() => <LazyRoute component={EditProfile} />}</Route>
+          <Route path="/panel">{() => <LazyRoute component={PanelDashboard} />}</Route>
+          <Route path="/panel/ilanlarim">{() => <LazyRoute component={PanelIlanlarim} />}</Route>
+          <Route path="/panel/favorilerim">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
+          <Route path="/panel/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
+          <Route path="/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
+          <Route path="/favoriler">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
+          <Route path="/bildirimler">{() => <LazyRoute component={NotificationsPage} />}</Route>
+          <Route path="/mesajlar">{() => <LazyRoute component={Messages} />}</Route>
+          <Route path="/veterinerler">{() => <LazyRoute component={VetServices} />}</Route>
+          <Route path="/tasima">{() => <LazyRoute component={TransportServices} />}</Route>
+          <Route path="/blog">{() => <LazyRoute component={BlogList} />}</Route>
+          <Route path="/blog/:slug">{() => <LazyRoute component={BlogDetail} />}</Route>
+          <Route path="/magazalar">{() => <LazyRoute component={StoresList} />}</Route>
+          <Route path="/magaza/:slug">{() => <LazyRoute component={StoreDetail} />}</Route>
+          <Route path="/panel/magazam">{() => <LazyRoute component={MyStore} />}</Route>
+          <Route path="/magazam">{() => <LazyRoute component={MyStore} />}</Route>
+          <Route path="/acik-artirmalar">{() => <LazyRoute component={AuctionList} />}</Route>
+          <Route path="/acik-artirma/:id">{() => <LazyRoute component={AuctionDetail} />}</Route>
+          <Route path="/acik-artirma-olustur">{() => <LazyRoute component={AuctionCreate} />}</Route>
+          <Route path="/canli-yayinlar">{() => <LazyRoute component={LiveStreamList} />}</Route>
+          <Route path="/canli-yayin/:id">{() => <LazyRoute component={LiveStreamWatch} />}</Route>
+          <Route path="/yayin-baslat">{() => <LazyRoute component={LiveStreamCreate} />}</Route>
           <Route path="/kategori/:slug" component={CategoryDetail} />
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/moderasyon" component={AdminModeration} />
-          <Route path="/admin/blog" component={AdminBlog} />
-          <Route path="/kullanim-kosullari" component={KullanimKosullari} />
-          <Route path="/gizlilik-politikasi" component={GizlilikPolitikasi} />
-          <Route path="/cerez-politikasi" component={CerezPolitikasi} />
-          <Route path="/ilan-kurallari" component={IlanKurallari} />
-          <Route path="/kvkk" component={KVKK} />
+          <Route path="/admin">{() => <LazyRoute component={AdminDashboard} />}</Route>
+          <Route path="/admin/moderasyon">{() => <LazyRoute component={AdminModeration} />}</Route>
+          <Route path="/admin/blog">{() => <LazyRoute component={AdminBlog} />}</Route>
+          <Route path="/kullanim-kosullari">{() => <LazyRoute component={KullanimKosullari} />}</Route>
+          <Route path="/gizlilik-politikasi">{() => <LazyRoute component={GizlilikPolitikasi} />}</Route>
+          <Route path="/cerez-politikasi">{() => <LazyRoute component={CerezPolitikasi} />}</Route>
+          <Route path="/ilan-kurallari">{() => <LazyRoute component={IlanKurallari} />}</Route>
+          <Route path="/kvkk">{() => <LazyRoute component={KVKK} />}</Route>
         </Switch>
       </main>
     </div>
