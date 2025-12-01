@@ -95,7 +95,7 @@ const createLimiter = rateLimit({
 });
 
 // Distributed rate limiting using Redis (for multi-instance deployments)
-// Uses sliding window algorithm with Upstash Redis
+// Uses atomic INCR for thread-safe counter increments
 async function checkRedisRateLimit(
   key: string,
   limit: number,
@@ -105,24 +105,24 @@ async function checkRedisRateLimit(
     const now = Math.floor(Date.now() / 1000);
     const windowKey = `ratelimit:${key}:${Math.floor(now / windowSeconds)}`;
     
-    // Get current count from cache
-    const current = await cache.get<number>(windowKey) || 0;
+    // Atomic increment using Redis INCR
+    // This is thread-safe across all server instances
+    const count = await cache.incr(windowKey, windowSeconds);
     
-    if (current >= limit) {
+    const resetAt = (Math.floor(now / windowSeconds) + 1) * windowSeconds;
+    
+    if (count > limit) {
       return {
         allowed: false,
         remaining: 0,
-        resetAt: (Math.floor(now / windowSeconds) + 1) * windowSeconds
+        resetAt
       };
     }
     
-    // Increment counter
-    await cache.set(windowKey, current + 1, windowSeconds);
-    
     return {
       allowed: true,
-      remaining: limit - current - 1,
-      resetAt: (Math.floor(now / windowSeconds) + 1) * windowSeconds
+      remaining: Math.max(0, limit - count),
+      resetAt
     };
   } catch (error) {
     // Fail open - allow request if Redis is unavailable

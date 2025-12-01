@@ -29,7 +29,46 @@ export function initializeRedis() {
 // Cache abstraction with fallback to in-memory
 const memoryCache = new Map<string, { value: any; expires: number }>();
 
+// In-memory rate limit counters (fallback when Redis unavailable)
+const rateLimitCounters = new Map<string, { count: number; expires: number }>();
+
 export const cache = {
+  /**
+   * Atomic increment with TTL - critical for rate limiting
+   * Uses Redis INCR which is atomic across all instances
+   */
+  async incr(key: string, ttl: number): Promise<number> {
+    try {
+      if (redisClient) {
+        // Atomic increment using Redis INCR
+        const count = await redisClient.incr(key);
+        // Set expiry only on first increment (when count = 1)
+        if (count === 1) {
+          await redisClient.expire(key, ttl);
+        }
+        return count;
+      }
+      
+      // Fallback to in-memory (single-instance only)
+      const now = Date.now();
+      const existing = rateLimitCounters.get(key);
+      
+      if (!existing || existing.expires < now) {
+        // New window
+        rateLimitCounters.set(key, { count: 1, expires: now + ttl * 1000 });
+        return 1;
+      }
+      
+      // Increment existing
+      existing.count++;
+      return existing.count;
+    } catch (error) {
+      console.error(`Cache incr error (${key}):`, error);
+      // Fail open - return 0 to allow request
+      return 0;
+    }
+  },
+
   /**
    * Get cached value
    */
@@ -203,4 +242,103 @@ export const cacheTTL = {
   userContent: 60, // 1 minute (dynamic)
   adminStats: 60, // 1 minute (admin needs fresh data)
   locations: 3600 * 24, // 24 hours (rarely changes)
+};
+
+// ============ WebSocket Message Broadcasting ============
+// For multi-instance deployments, uses Redis as message broker
+// Falls back to in-memory for single-instance deployments
+
+type BroadcastCallback = (channel: string, message: any) => void;
+const localSubscribers = new Map<string, Set<BroadcastCallback>>();
+
+export const messageBroker = {
+  /**
+   * Publish message to all subscribers (local + remote instances)
+   */
+  async publish(channel: string, message: any): Promise<void> {
+    try {
+      // Store in Redis for other instances to read (list-based pub/sub simulation)
+      if (redisClient) {
+        const messageWithTimestamp = {
+          ...message,
+          _timestamp: Date.now(),
+          _instanceId: process.env.REPL_ID || 'local',
+        };
+        
+        // Push to channel list with auto-expire (5 second TTL)
+        await redisClient.lpush(`ws:${channel}`, JSON.stringify(messageWithTimestamp));
+        await redisClient.ltrim(`ws:${channel}`, 0, 99); // Keep last 100 messages
+        await redisClient.expire(`ws:${channel}`, 5); // Expire after 5 seconds
+      }
+      
+      // Notify local subscribers immediately
+      const subscribers = localSubscribers.get(channel);
+      if (subscribers) {
+        for (const callback of subscribers) {
+          try {
+            callback(channel, message);
+          } catch (error) {
+            console.error(`Subscriber callback error (${channel}):`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Message publish error (${channel}):`, error);
+    }
+  },
+
+  /**
+   * Subscribe to channel messages
+   */
+  subscribe(channel: string, callback: BroadcastCallback): () => void {
+    if (!localSubscribers.has(channel)) {
+      localSubscribers.set(channel, new Set());
+    }
+    localSubscribers.get(channel)!.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const subscribers = localSubscribers.get(channel);
+      if (subscribers) {
+        subscribers.delete(callback);
+        if (subscribers.size === 0) {
+          localSubscribers.delete(channel);
+        }
+      }
+    };
+  },
+
+  /**
+   * Poll Redis for messages from other instances (for multi-instance sync)
+   * Call this periodically in multi-instance deployments
+   */
+  async pollMessages(channel: string, lastTimestamp: number): Promise<any[]> {
+    if (!redisClient) return [];
+    
+    try {
+      const messages = await redisClient.lrange(`ws:${channel}`, 0, 49);
+      return messages
+        .map(m => typeof m === 'string' ? JSON.parse(m) : m)
+        .filter((m: any) => m._timestamp > lastTimestamp && m._instanceId !== (process.env.REPL_ID || 'local'));
+    } catch (error) {
+      console.error(`Message poll error (${channel}):`, error);
+      return [];
+    }
+  },
+
+  /**
+   * Get subscriber count
+   */
+  getSubscriberCount(channel: string): number {
+    return localSubscribers.get(channel)?.size || 0;
+  },
+};
+
+// WebSocket channel constants
+export const wsChannels = {
+  chat: (userId: string) => `chat:${userId}`,
+  auction: (auctionId: string) => `auction:${auctionId}`,
+  stream: (streamId: string) => `stream:${streamId}`,
+  presence: () => 'presence:global',
+  notifications: (userId: string) => `notifications:${userId}`,
 };
