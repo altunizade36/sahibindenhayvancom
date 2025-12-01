@@ -41,7 +41,7 @@ export function MakeOfferModal({
   listingId,
   listingTitle,
   listingPrice,
-  sellerId,
+  sellerId: _sellerId,
 }: MakeOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
