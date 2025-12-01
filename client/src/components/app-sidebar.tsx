@@ -1,6 +1,6 @@
 import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronDown, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -16,7 +16,6 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -41,10 +40,21 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   const isActive = category.id === activeCategoryId;
   const shouldBeOpen = hasActiveDescendant(category, activeCategoryId);
   const [isOpen, setIsOpen] = useState(shouldBeOpen);
+  const userInteracted = useRef(false);
+  const prevShouldBeOpen = useRef(shouldBeOpen);
 
   useEffect(() => {
-    setIsOpen(shouldBeOpen);
+    if (shouldBeOpen && !prevShouldBeOpen.current) {
+      setIsOpen(true);
+      userInteracted.current = false;
+    }
+    prevShouldBeOpen.current = shouldBeOpen;
   }, [shouldBeOpen]);
+
+  const handleToggle = () => {
+    userInteracted.current = true;
+    setIsOpen(prev => !prev);
+  };
 
   const handleNavigate = () => {
     const params = new URLSearchParams(location.split('?')[1] || '');
@@ -84,30 +94,29 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
 
   if (level === 0) {
     return (
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <SidebarMenuItem>
-          <div className="flex items-center w-full">
-            <SidebarMenuButton
-              onClick={handleNavigate}
-              isActive={isActive}
-              className="overflow-hidden flex-1 min-w-0"
-              data-testid={`category-${category.slug}`}
-            >
-              <span className="truncate" title={category.name}>{category.name}</span>
-            </SidebarMenuButton>
-            <CollapsibleTrigger asChild>
-              <button
-                className="shrink-0 p-1.5 rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
-                data-testid={`toggle-${category.slug}`}
-                aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-              >
-                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </CollapsibleTrigger>
-          </div>
-        </SidebarMenuItem>
-        <CollapsibleContent>
-          <SidebarMenuSub className="overflow-hidden">
+      <SidebarMenuItem className="relative">
+        <div className="flex items-center gap-1">
+          <SidebarMenuButton
+            onClick={handleNavigate}
+            isActive={isActive}
+            className="flex-1 min-w-0 overflow-hidden"
+            data-testid={`category-${category.slug}`}
+          >
+            <span className="truncate" title={category.name}>{category.name}</span>
+          </SidebarMenuButton>
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="flex-none w-7 h-7 flex items-center justify-center rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
+            data-testid={`toggle-${category.slug}`}
+            aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
+            aria-expanded={isOpen}
+          >
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+        {isOpen && (
+          <SidebarMenuSub>
             {category.children?.map((child) => (
               <CategoryTreeItem
                 key={child.id}
@@ -117,36 +126,35 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
               />
             ))}
           </SidebarMenuSub>
-        </CollapsibleContent>
-      </Collapsible>
+        )}
+      </SidebarMenuItem>
     );
   }
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <SidebarMenuSubItem>
-        <div className="flex items-center w-full">
-          <SidebarMenuSubButton
-            onClick={handleNavigate}
-            isActive={isActive}
-            className="overflow-hidden flex-1 min-w-0"
-            data-testid={`category-${category.slug}`}
-          >
-            <span className="truncate" title={category.name}>{category.name}</span>
-          </SidebarMenuSubButton>
-          <CollapsibleTrigger asChild>
-            <button
-              className="shrink-0 p-1 rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
-              data-testid={`toggle-${category.slug}`}
-              aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-            >
-              <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </CollapsibleTrigger>
-        </div>
-      </SidebarMenuSubItem>
-      <CollapsibleContent>
-        <SidebarMenuSub className="overflow-hidden pl-2 ml-2 border-l border-sidebar-border">
+    <SidebarMenuSubItem className="relative">
+      <div className="flex items-center gap-1">
+        <SidebarMenuSubButton
+          onClick={handleNavigate}
+          isActive={isActive}
+          className="flex-1 min-w-0 overflow-hidden"
+          data-testid={`category-${category.slug}`}
+        >
+          <span className="truncate" title={category.name}>{category.name}</span>
+        </SidebarMenuSubButton>
+        <button
+          type="button"
+          onClick={handleToggle}
+          className="flex-none w-6 h-6 flex items-center justify-center rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
+          data-testid={`toggle-${category.slug}`}
+          aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
+          aria-expanded={isOpen}
+        >
+          <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      {isOpen && (
+        <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
           {category.children?.map((child) => (
             <CategoryTreeItem
               key={child.id}
@@ -156,8 +164,8 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
             />
           ))}
         </SidebarMenuSub>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </SidebarMenuSubItem>
   );
 }
 
