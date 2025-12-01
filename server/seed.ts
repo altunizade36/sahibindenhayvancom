@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { categories, locations, blogPosts, storeCategories, users } from "@shared/schema";
+import { categories, locations, blogPosts, storeCategories, users, categoryDocumentRequirements } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
@@ -239,6 +239,249 @@ export async function seedDatabase() {
 
     // Mağazalar kullanıcılar tarafından oluşturulacak - demo verisi yok
     console.log("⏭️  Stores will be created by users (no demo data)");
+
+    // ============ Seed Category Document Requirements (Turkish Legal Compliance) ============
+    const existingDocRequirements = await db.query.categoryDocumentRequirements.findMany({ limit: 1 });
+    if (existingDocRequirements.length === 0) {
+      console.log("📋 Seeding category document requirements (Turkish legal compliance)...");
+      
+      const documentRequirementsData = [
+        // ========== KÖPEKLER - 5199 sayılı Kanun (14 Temmuz 2022) ==========
+        {
+          categorySlug: "kopekler",
+          documentType: "microchip" as const,
+          requirement: "required" as const,
+          description: "Mikroçip zorunludur. 15 haneli ISO standardına uygun mikroçip gereklidir.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu - Madde 14",
+          penaltyInfo: "Mikroçipsiz satış için 5.043 TL idari para cezası"
+        },
+        {
+          categorySlug: "kopekler",
+          documentType: "passport" as const,
+          requirement: "required" as const,
+          description: "Evcil hayvan pasaportu zorunludur. Veteriner tarafından düzenlenir.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu - Madde 14",
+          penaltyInfo: "Pasaportsuz satış için 5.043 TL idari para cezası"
+        },
+        {
+          categorySlug: "kopekler",
+          documentType: "vaccination" as const,
+          requirement: "required" as const,
+          description: "Kuduz aşısı zorunludur. En az 1 yaşında ve güncel olmalıdır.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu",
+          penaltyInfo: "Aşısız hayvan satışı yasaktır"
+        },
+        {
+          categorySlug: "kopekler",
+          documentType: "health_certificate" as const,
+          requirement: "recommended" as const,
+          description: "Veteriner sağlık raporu önerilir. Hastalık taraması yapılmış olmalıdır.",
+          legalReference: "Tarım ve Orman Bakanlığı Yönetmeliği"
+        },
+        {
+          categorySlug: "kopekler",
+          documentType: "pedigree" as const,
+          requirement: "optional" as const,
+          description: "Soy belgesi (pedigri) safkan köpekler için önerilir.",
+          legalReference: "İsteğe bağlı belge"
+        },
+        
+        // ========== KEDİLER - 5199 sayılı Kanun ==========
+        {
+          categorySlug: "kediler",
+          documentType: "microchip" as const,
+          requirement: "required" as const,
+          description: "Mikroçip zorunludur. 15 haneli ISO standardına uygun mikroçip gereklidir.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu - Madde 14",
+          penaltyInfo: "Mikroçipsiz satış için 5.043 TL idari para cezası"
+        },
+        {
+          categorySlug: "kediler",
+          documentType: "passport" as const,
+          requirement: "required" as const,
+          description: "Evcil hayvan pasaportu zorunludur. Veteriner tarafından düzenlenir.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu - Madde 14",
+          penaltyInfo: "Pasaportsuz satış için 5.043 TL idari para cezası"
+        },
+        {
+          categorySlug: "kediler",
+          documentType: "vaccination" as const,
+          requirement: "required" as const,
+          description: "Kuduz ve karma aşıları zorunludur.",
+          legalReference: "5199 sayılı Hayvanları Koruma Kanunu"
+        },
+        {
+          categorySlug: "kediler",
+          documentType: "health_certificate" as const,
+          requirement: "recommended" as const,
+          description: "Veteriner sağlık raporu önerilir.",
+          legalReference: "Tarım ve Orman Bakanlığı Yönetmeliği"
+        },
+        {
+          categorySlug: "kediler",
+          documentType: "pedigree" as const,
+          requirement: "optional" as const,
+          description: "Soy belgesi safkan kediler için önerilir.",
+          legalReference: "İsteğe bağlı belge"
+        },
+        
+        // ========== BÜYÜKBAŞ HAYVANLAR - 5996 sayılı Kanun ==========
+        {
+          categorySlug: "buyukbas",
+          documentType: "turkvet" as const,
+          requirement: "required" as const,
+          description: "TÜRKVET kayıt belgesi zorunludur. Tarım İl Müdürlüğü'nden alınır.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu",
+          penaltyInfo: "TÜRKVET kaydı olmayan hayvan satışı yasaktır"
+        },
+        {
+          categorySlug: "buyukbas",
+          documentType: "ear_tag" as const,
+          requirement: "required" as const,
+          description: "Kulak küpesi zorunludur. Her hayvanın bireysel tanımlama numarası olmalıdır.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu",
+          penaltyInfo: "Kulak küpesi olmayan hayvan satışı yasaktır"
+        },
+        {
+          categorySlug: "buyukbas",
+          documentType: "transport" as const,
+          requirement: "required" as const,
+          description: "Nakil belgesi zorunludur. Veteriner tarafından düzenlenir.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu"
+        },
+        {
+          categorySlug: "buyukbas",
+          documentType: "health_certificate" as const,
+          requirement: "required" as const,
+          description: "Sağlık belgesi zorunludur. Bulaşıcı hastalık taraması yapılmış olmalıdır.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu"
+        },
+        
+        // ========== KÜÇÜKBAŞ HAYVANLAR - 5996 sayılı Kanun ==========
+        {
+          categorySlug: "kucukbas",
+          documentType: "turkvet" as const,
+          requirement: "required" as const,
+          description: "TÜRKVET kayıt belgesi zorunludur.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu",
+          penaltyInfo: "TÜRKVET kaydı olmayan hayvan satışı yasaktır"
+        },
+        {
+          categorySlug: "kucukbas",
+          documentType: "ear_tag" as const,
+          requirement: "required" as const,
+          description: "Kulak küpesi zorunludur.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu"
+        },
+        {
+          categorySlug: "kucukbas",
+          documentType: "transport" as const,
+          requirement: "required" as const,
+          description: "Nakil belgesi zorunludur.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu"
+        },
+        {
+          categorySlug: "kucukbas",
+          documentType: "health_certificate" as const,
+          requirement: "recommended" as const,
+          description: "Sağlık belgesi önerilir.",
+          legalReference: "5996 sayılı Veteriner Hizmetleri Kanunu"
+        },
+        
+        // ========== CITES TÜRLER - Papağanlar (2709 sayılı Kanun) ==========
+        {
+          categorySlug: "jako",
+          documentType: "cites" as const,
+          requirement: "required" as const,
+          description: "CITES belgesi zorunludur. Afrika Gri Papağanı (Jako) CITES Ek-I türüdür.",
+          legalReference: "2709 sayılı CITES Sözleşmesi Onay Kanunu",
+          penaltyInfo: "CITES belgesi olmadan satış: 50.000-500.000 TL para cezası + hapis cezası"
+        },
+        {
+          categorySlug: "jako",
+          documentType: "health_certificate" as const,
+          requirement: "recommended" as const,
+          description: "Veteriner sağlık raporu önerilir.",
+          legalReference: "CITES düzenlemesi"
+        },
+        {
+          categorySlug: "kakadu",
+          documentType: "cites" as const,
+          requirement: "required" as const,
+          description: "CITES belgesi zorunludur. Kakadu türleri CITES koruması altındadır.",
+          legalReference: "2709 sayılı CITES Sözleşmesi Onay Kanunu",
+          penaltyInfo: "CITES belgesi olmadan satış: 50.000-500.000 TL para cezası + hapis cezası"
+        },
+        {
+          categorySlug: "macaw",
+          documentType: "cites" as const,
+          requirement: "required" as const,
+          description: "CITES belgesi zorunludur. Macaw türleri CITES koruması altındadır.",
+          legalReference: "2709 sayılı CITES Sözleşmesi Onay Kanunu",
+          penaltyInfo: "CITES belgesi olmadan satış: 50.000-500.000 TL para cezası + hapis cezası"
+        },
+        {
+          categorySlug: "ara-papagan",
+          documentType: "cites" as const,
+          requirement: "required" as const,
+          description: "CITES belgesi zorunludur. Ara Papağan türleri CITES koruması altındadır.",
+          legalReference: "2709 sayılı CITES Sözleşmesi Onay Kanunu",
+          penaltyInfo: "CITES belgesi olmadan satış: 50.000-500.000 TL para cezası + hapis cezası"
+        },
+        {
+          categorySlug: "amazon-papagani",
+          documentType: "cites" as const,
+          requirement: "required" as const,
+          description: "CITES belgesi zorunludur. Amazon Papağanı türleri CITES koruması altındadır.",
+          legalReference: "2709 sayılı CITES Sözleşmesi Onay Kanunu",
+          penaltyInfo: "CITES belgesi olmadan satış: 50.000-500.000 TL para cezası + hapis cezası"
+        },
+        
+        // ========== ATLAR ==========
+        {
+          categorySlug: "atlar",
+          documentType: "passport" as const,
+          requirement: "required" as const,
+          description: "At pasaportu zorunludur. Türkiye Jokey Kulübü veya bakanlık tarafından düzenlenir.",
+          legalReference: "At Yarışları Hakkında Kanun ve Yönetmelikler"
+        },
+        {
+          categorySlug: "atlar",
+          documentType: "microchip" as const,
+          requirement: "required" as const,
+          description: "Mikroçip zorunludur. At pasaportu ile birlikte verilir.",
+          legalReference: "At Yarışları Hakkında Kanun ve Yönetmelikler"
+        },
+        {
+          categorySlug: "atlar",
+          documentType: "health_certificate" as const,
+          requirement: "recommended" as const,
+          description: "Veteriner sağlık raporu önerilir.",
+          legalReference: "Tarım ve Orman Bakanlığı Yönetmeliği"
+        },
+        {
+          categorySlug: "atlar",
+          documentType: "pedigree" as const,
+          requirement: "optional" as const,
+          description: "Soy belgesi safkan atlar için önerilir.",
+          legalReference: "Türkiye Jokey Kulübü"
+        }
+      ];
+      
+      for (const req of documentRequirementsData) {
+        try {
+          await db
+            .insert(categoryDocumentRequirements)
+            .values(req)
+            .onConflictDoNothing()
+            .execute();
+        } catch (err: any) {
+          console.log(`  ⚠️ Error inserting requirement ${req.categorySlug}-${req.documentType}: ${err.message}`);
+        }
+      }
+      
+      console.log(`✅ Category document requirements seeded: ${documentRequirementsData.length} requirements`);
+    }
     
     console.log("✅ Database seeded successfully");
   } catch (error) {
