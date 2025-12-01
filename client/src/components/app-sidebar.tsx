@@ -12,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuAction,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
@@ -97,21 +96,26 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
-          onClick={handleNavigate}
           isActive={isActive}
           data-testid={`category-${category.slug}`}
+          className="justify-between"
         >
-          <span className="truncate" title={category.name}>{category.name}</span>
+          <span 
+            className="truncate flex-1 cursor-pointer" 
+            title={category.name}
+            onClick={handleNavigate}
+          >
+            {category.name}
+          </span>
+          <ChevronDown 
+            className={`h-4 w-4 shrink-0 ml-auto transition-transform duration-200 cursor-pointer ${isOpen ? 'rotate-180' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggle();
+            }}
+            data-testid={`toggle-${category.slug}`}
+          />
         </SidebarMenuButton>
-        <SidebarMenuAction
-          onClick={handleToggle}
-          data-testid={`toggle-${category.slug}`}
-          aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-          aria-expanded={isOpen}
-          className="text-sidebar-foreground"
-        >
-          <ChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </SidebarMenuAction>
         {isOpen && (
           <SidebarMenuSub>
             {category.children?.map((child) => (
@@ -131,23 +135,26 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
-        onClick={handleNavigate}
         isActive={isActive}
         data-testid={`category-${category.slug}`}
-        className="pr-8"
+        className="justify-between"
       >
-        <span className="truncate" title={category.name}>{category.name}</span>
+        <span 
+          className="truncate flex-1 cursor-pointer" 
+          title={category.name}
+          onClick={handleNavigate}
+        >
+          {category.name}
+        </span>
+        <ChevronDown 
+          className={`h-4 w-4 shrink-0 ml-auto transition-transform duration-200 cursor-pointer ${isOpen ? 'rotate-180' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggle();
+          }}
+          data-testid={`toggle-${category.slug}`}
+        />
       </SidebarMenuSubButton>
-      <button
-        type="button"
-        onClick={handleToggle}
-        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent"
-        data-testid={`toggle-${category.slug}`}
-        aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-        aria-expanded={isOpen}
-      >
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
       {isOpen && (
         <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
           {category.children?.map((child) => (
