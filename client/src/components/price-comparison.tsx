@@ -37,7 +37,8 @@ interface ComparisonData {
 
 export function PriceComparison({ listingId, currentPrice }: PriceComparisonProps) {
   const { data, isLoading, error } = useQuery<ComparisonData>({
-    queryKey: ["/api/listings", listingId, "compare"],
+    queryKey: [`/api/listings/${listingId}/compare`],
+    enabled: !!listingId,
   });
   
   if (isLoading) {

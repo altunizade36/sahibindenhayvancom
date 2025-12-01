@@ -744,7 +744,7 @@ export default function ListingDetail() {
               <CardContent className="p-4 pt-2">
                 <SocialShare 
                   listingId={id || ""} 
-                  title={listing.title}
+                  title={listing?.title || ""}
                 />
               </CardContent>
             </Card>
@@ -752,7 +752,7 @@ export default function ListingDetail() {
             {/* Price Comparison */}
             <PriceComparison 
               listingId={id || ""} 
-              currentPrice={listing.price as string} 
+              currentPrice={(listing?.price as string) || "0"} 
             />
 
             {/* Safety Tips */}
@@ -791,7 +791,7 @@ export default function ListingDetail() {
           onOpenChange={setReportDialogOpen}
           reportedType="listing"
           reportedId={id || ""}
-          reportedTitle={listing.title}
+          reportedTitle={listing?.title || ""}
         />
 
         {/* Make Offer Modal */}
@@ -799,9 +799,9 @@ export default function ListingDetail() {
           open={makeOfferOpen}
           onOpenChange={setMakeOfferOpen}
           listingId={id || ""}
-          listingTitle={listing.title}
-          listingPrice={listing.price as string}
-          sellerId={listing.sellerId}
+          listingTitle={listing?.title || ""}
+          listingPrice={(listing?.price as string) || "0"}
+          sellerId={listing?.sellerId || ""}
         />
       </div>
     </div>
