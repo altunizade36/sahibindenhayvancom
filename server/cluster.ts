@@ -7,11 +7,25 @@ const numCPUs = os.cpus().length;
  * Production-grade cluster mode for horizontal scaling
  * Spawns worker processes equal to CPU cores
  * Automatically restarts crashed workers
+ * 
+ * NOTE: Disabled for Replit Autoscale deployments since Autoscale
+ * handles horizontal scaling automatically at the infrastructure level
  */
 export function setupCluster(isDevelopment: boolean = false) {
   // Disable clustering in development for easier debugging
   if (isDevelopment) {
     console.log('🔧 Development mode - cluster disabled');
+    return false;
+  }
+
+  // Disable clustering for Replit Autoscale deployments
+  // Autoscale handles horizontal scaling at infrastructure level
+  // Multi-process applications conflict with Autoscale's stateless requirement
+  const isReplitDeployment = process.env.REPL_ID || process.env.REPLIT_DEPLOYMENT;
+  const clusterDisabled = process.env.DISABLE_CLUSTER === 'true';
+  
+  if (isReplitDeployment || clusterDisabled) {
+    console.log('🔧 Cluster disabled (Replit Autoscale handles scaling)');
     return false;
   }
 
