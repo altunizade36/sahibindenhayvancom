@@ -81,26 +81,31 @@ No specific user preferences were provided in the original document.
 - **Bot Protection**: Google reCAPTCHA v3 for forms, Firebase invisible reCAPTCHA for phone auth.
 - **Monitoring**: Health checks, Prometheus metrics.
 
-### Performance & Scalability (High-Traffic Optimizations)
+### Performance & Scalability
 
-**Current Capacity**: ~5,000-10,000 concurrent users (Phase 2 complete)
+**Current Capacity**: ~200-500 concurrent users (Replit free tier limits)
 
-**Redis Caching System** (Upstash Redis):
-- Categories: 24h TTL (rarely changes)
-- Hot listings: 3min TTL (dynamic)
-- Admin stats: 1min TTL (fresh data)
+**Known Limitations**:
+- Upstash Redis free tier: 10,000 commands/day limit
+- Neon PostgreSQL: 2-5 connection pool limit
+- Single Node.js process for WebSocket
+- No load balancer or horizontal scaling
+
+**Caching System** (Upstash Redis with in-memory fallback):
+- Categories: 24h TTL
+- Hot listings: 3min TTL
+- Admin stats: 1min TTL
 - Blog posts: 1h TTL
-- Listing images: 5min TTL with CDN headers
 
-**Distributed Rate Limiting**:
-- Global API: 100 requests/min per IP (production)
+**Rate Limiting**:
+- Global API: 100 requests/min per IP
 - Strict limiter: 3 attempts/5min for login/register
-- Atomic Redis INCR for thread-safe distributed rate limiting
 
-**Memory Management**:
-- Automatic cleanup every 5 minutes for expired cache entries
-- Rate limit counter garbage collection
-- Prevents memory leaks in long-running instances
+**For 5,000+ Users Would Need**:
+- Redis paid plan (unlimited commands)
+- PostgreSQL connection pooler (PgBouncer)
+- Horizontal scaling with load balancer
+- Dedicated hosting (not Replit free tier)
 
 **Frontend Optimizations**:
 - React.lazy + Suspense for 30+ pages
