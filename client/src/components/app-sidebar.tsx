@@ -94,12 +94,12 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
 
   if (level === 0) {
     return (
-      <SidebarMenuItem className="relative">
-        <div className="flex items-center gap-1">
+      <SidebarMenuItem>
+        <div className="flex items-center w-full">
           <SidebarMenuButton
             onClick={handleNavigate}
             isActive={isActive}
-            className="flex-1 min-w-0 overflow-hidden"
+            className="flex-1 min-w-0 overflow-hidden pr-0"
             data-testid={`category-${category.slug}`}
           >
             <span className="truncate" title={category.name}>{category.name}</span>
@@ -107,12 +107,12 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
           <button
             type="button"
             onClick={handleToggle}
-            className="flex-none w-7 h-7 flex items-center justify-center rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md hover:bg-accent text-foreground"
             data-testid={`toggle-${category.slug}`}
             aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
             aria-expanded={isOpen}
           >
-            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
         {isOpen && (
@@ -132,12 +132,12 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   }
 
   return (
-    <SidebarMenuSubItem className="relative">
-      <div className="flex items-center gap-1">
+    <SidebarMenuSubItem>
+      <div className="flex items-center w-full">
         <SidebarMenuSubButton
           onClick={handleNavigate}
           isActive={isActive}
-          className="flex-1 min-w-0 overflow-hidden"
+          className="flex-1 min-w-0 overflow-hidden pr-0"
           data-testid={`category-${category.slug}`}
         >
           <span className="truncate" title={category.name}>{category.name}</span>
@@ -145,12 +145,12 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
         <button
           type="button"
           onClick={handleToggle}
-          className="flex-none w-6 h-6 flex items-center justify-center rounded-md hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-ring"
+          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent text-foreground"
           data-testid={`toggle-${category.slug}`}
           aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
           aria-expanded={isOpen}
         >
-          <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
       </div>
       {isOpen && (
