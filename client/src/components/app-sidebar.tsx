@@ -1,6 +1,6 @@
-import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronDown, MapPin } from "lucide-react";
+import { Home, List, MessageSquare, Calendar, Heart, Settings, Search, ChevronRight, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -33,30 +34,28 @@ function hasActiveDescendant(category: Category & { children?: Category[] }, act
   return category.children.some(child => hasActiveDescendant(child, activeCategoryId));
 }
 
-function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category: Category & { children?: Category[] }; level?: number; activeCategoryId?: string }) {
+function CategoryTreeItem({ 
+  category, 
+  level = 0, 
+  activeCategoryId,
+  expandedIds,
+  onToggle
+}: { 
+  category: Category & { children?: Category[] }; 
+  level?: number; 
+  activeCategoryId?: string;
+  expandedIds: Set<string>;
+  onToggle: (id: string) => void;
+}) {
   const [location, setLocation] = useLocation();
   
   const hasChildren = category.children && category.children.length > 0;
   const isActive = category.id === activeCategoryId;
-  const shouldBeOpen = hasActiveDescendant(category, activeCategoryId);
-  const [isOpen, setIsOpen] = useState(shouldBeOpen);
-  const userInteracted = useRef(false);
-  const prevShouldBeOpen = useRef(shouldBeOpen);
+  const isOpen = expandedIds.has(category.id);
 
-  useEffect(() => {
-    if (shouldBeOpen && !prevShouldBeOpen.current) {
-      setIsOpen(true);
-      userInteracted.current = false;
-    }
-    prevShouldBeOpen.current = shouldBeOpen;
-  }, [shouldBeOpen]);
-
-  const handleToggle = () => {
-    userInteracted.current = true;
-    setIsOpen(prev => !prev);
-  };
-
-  const handleNavigate = () => {
+  const handleNavigate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const params = new URLSearchParams(location.split('?')[1] || '');
     params.set('categoryId', category.id);
     setLocation(`/ilanlar?${params.toString()}`);
@@ -69,7 +68,6 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
           <SidebarMenuButton
             onClick={handleNavigate}
             isActive={isActive}
-            className="overflow-hidden"
             data-testid={`category-${category.slug}`}
           >
             <span className="truncate" title={category.name}>{category.name}</span>
@@ -83,7 +81,6 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
         <SidebarMenuSubButton
           onClick={handleNavigate}
           isActive={isActive}
-          className="overflow-hidden"
           data-testid={`category-${category.slug}`}
         >
           <span className="truncate" title={category.name}>{category.name}</span>
@@ -94,80 +91,82 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
 
   if (level === 0) {
     return (
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          isActive={isActive}
-          data-testid={`category-${category.slug}`}
-          className="justify-between"
-        >
-          <span 
-            className="truncate flex-1 cursor-pointer" 
-            title={category.name}
-            onClick={handleNavigate}
+      <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              isActive={isActive}
+              data-testid={`category-${category.slug}`}
+            >
+              <span 
+                className="truncate flex-1" 
+                title={category.name}
+                onClick={handleNavigate}
+              >
+                {category.name}
+              </span>
+              <ChevronRight 
+                className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                data-testid={`toggle-${category.slug}`}
+              />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {category.children?.map((child) => (
+                <CategoryTreeItem
+                  key={child.id}
+                  category={child}
+                  level={level + 1}
+                  activeCategoryId={activeCategoryId}
+                  expandedIds={expandedIds}
+                  onToggle={onToggle}
+                />
+              ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
+    );
+  }
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
+      <SidebarMenuSubItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuSubButton
+            isActive={isActive}
+            data-testid={`category-${category.slug}`}
           >
-            {category.name}
-          </span>
-          <ChevronDown 
-            className={`h-4 w-4 shrink-0 ml-auto transition-transform duration-200 cursor-pointer ${isOpen ? 'rotate-180' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleToggle();
-            }}
-            data-testid={`toggle-${category.slug}`}
-          />
-        </SidebarMenuButton>
-        {isOpen && (
-          <SidebarMenuSub>
+            <span 
+              className="truncate flex-1" 
+              title={category.name}
+              onClick={handleNavigate}
+            >
+              {category.name}
+            </span>
+            <ChevronRight 
+              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+              data-testid={`toggle-${category.slug}`}
+            />
+          </SidebarMenuSubButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
             {category.children?.map((child) => (
               <CategoryTreeItem
                 key={child.id}
                 category={child}
                 level={level + 1}
                 activeCategoryId={activeCategoryId}
+                expandedIds={expandedIds}
+                onToggle={onToggle}
               />
             ))}
           </SidebarMenuSub>
-        )}
-      </SidebarMenuItem>
-    );
-  }
-
-  return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton
-        isActive={isActive}
-        data-testid={`category-${category.slug}`}
-        className="justify-between"
-      >
-        <span 
-          className="truncate flex-1 cursor-pointer" 
-          title={category.name}
-          onClick={handleNavigate}
-        >
-          {category.name}
-        </span>
-        <ChevronDown 
-          className={`h-4 w-4 shrink-0 ml-auto transition-transform duration-200 cursor-pointer ${isOpen ? 'rotate-180' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggle();
-          }}
-          data-testid={`toggle-${category.slug}`}
-        />
-      </SidebarMenuSubButton>
-      {isOpen && (
-        <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
-          {category.children?.map((child) => (
-            <CategoryTreeItem
-              key={child.id}
-              category={child}
-              level={level + 1}
-              activeCategoryId={activeCategoryId}
-            />
-          ))}
-        </SidebarMenuSub>
-      )}
-    </SidebarMenuSubItem>
+        </CollapsibleContent>
+      </SidebarMenuSubItem>
+    </Collapsible>
   );
 }
 
@@ -282,9 +281,37 @@ function LocationFilters() {
   );
 }
 
+// Helper to collect all ancestor IDs of active category
+function getExpandedAncestors(categories: Category[], activeCategoryId?: string): Set<string> {
+  const result = new Set<string>();
+  
+  function findPath(cats: Category[], targetId: string, path: string[]): boolean {
+    for (const cat of cats) {
+      const catWithChildren = cat as Category & { children?: Category[] };
+      if (cat.id === targetId) {
+        path.forEach(id => result.add(id));
+        return true;
+      }
+      if (catWithChildren.children && catWithChildren.children.length > 0) {
+        if (findPath(catWithChildren.children, targetId, [...path, cat.id])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  if (activeCategoryId) {
+    findPath(categories, activeCategoryId, []);
+  }
+  
+  return result;
+}
+
 export function AppSidebar() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Extract categoryId from URL query params
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
@@ -294,6 +321,30 @@ export function AppSidebar() {
   const { data: categoryTree = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories/tree'],
   });
+
+  // Auto-expand ancestors of active category
+  useEffect(() => {
+    if (activeCategoryId && categoryTree.length > 0) {
+      const ancestors = getExpandedAncestors(categoryTree, activeCategoryId);
+      setExpandedIds(prev => {
+        const newSet = new Set(prev);
+        ancestors.forEach(id => newSet.add(id));
+        return newSet;
+      });
+    }
+  }, [activeCategoryId, categoryTree]);
+
+  const handleToggle = useCallback((categoryId: string) => {
+    setExpandedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  }, []);
 
   return (
     <Sidebar collapsible="offcanvas" data-testid="app-sidebar">
@@ -361,6 +412,8 @@ export function AppSidebar() {
                     key={rootCategory.id}
                     category={rootCategory}
                     activeCategoryId={activeCategoryId}
+                    expandedIds={expandedIds}
+                    onToggle={handleToggle}
                   />
                 ))}
               </SidebarMenu>
