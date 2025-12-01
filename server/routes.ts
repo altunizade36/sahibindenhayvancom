@@ -5467,14 +5467,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get images for a listing
+  // Get images for a listing (with CDN-friendly caching headers)
   app.get("/api/listing-images/:listingId", async (req: Request, res: Response) => {
     try {
+      // Try cache first
+      const cacheKey = `listing_images:${req.params.listingId}`;
+      const cached = await cache.get<any[]>(cacheKey);
+      
+      if (cached) {
+        // Set aggressive caching headers for CDN
+        res.set({
+          'Cache-Control': 'public, max-age=300, s-maxage=600', // 5min browser, 10min CDN
+          'CDN-Cache-Control': 'public, max-age=600',
+          'Vary': 'Accept-Encoding',
+        });
+        return res.json(cached);
+      }
+      
       const images = await db
         .select()
         .from(listingImages)
         .where(eq(listingImages.listingId, req.params.listingId))
         .orderBy(listingImages.displayOrder);
+      
+      // Cache for 5 minutes
+      await cache.set(cacheKey, images, 300);
+      
+      // Set caching headers
+      res.set({
+        'Cache-Control': 'public, max-age=300, s-maxage=600',
+        'CDN-Cache-Control': 'public, max-age=600',
+        'Vary': 'Accept-Encoding',
+      });
       
       res.json(images);
     } catch (error) {
