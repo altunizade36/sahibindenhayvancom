@@ -93,23 +93,27 @@ function CategoryTreeItem({
   if (level === 0) {
     return (
       <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
-        <SidebarMenuItem>
+        <SidebarMenuItem className="relative">
           <SidebarMenuButton
             isActive={isActive}
             data-testid={`category-${category.slug}`}
             onClick={handleNavigate}
+            className="pr-8"
           >
             <span className="truncate" title={category.name}>
               {category.name}
             </span>
           </SidebarMenuButton>
           <CollapsibleTrigger asChild>
-            <SidebarMenuAction
+            <button
               data-testid={`toggle-${category.slug}`}
-              className="data-[state=open]:rotate-90"
+              className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground z-10"
+              onClick={(e) => e.stopPropagation()}
             >
-              <ChevronRight className="h-4 w-4" />
-            </SidebarMenuAction>
+              <ChevronRight 
+                className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
+              />
+            </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <SidebarMenuSub>
@@ -146,9 +150,12 @@ function CategoryTreeItem({
         <CollapsibleTrigger asChild>
           <button
             data-testid={`toggle-${category.slug}`}
-            className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-md hover:bg-sidebar-accent transition-transform duration-200 data-[state=open]:rotate-90"
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground z-10"
+            onClick={(e) => e.stopPropagation()}
           >
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight 
+              className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
+            />
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
