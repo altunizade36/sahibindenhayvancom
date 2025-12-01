@@ -6938,6 +6938,101 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // ============ SEO: robots.txt ============
+  app.get("/robots.txt", (_req: Request, res: Response) => {
+    const robotsTxt = `User-agent: *
+Allow: /
+Allow: /ilanlar
+Allow: /blog
+Allow: /kategoriler
+
+Disallow: /panel/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://sahibindenhayvan.com/sitemap.xml
+`;
+    res.type('text/plain').send(robotsTxt);
+  });
+
+  // ============ SEO: sitemap.xml ============
+  app.get("/sitemap.xml", async (_req: Request, res: Response) => {
+    try {
+      const baseUrl = "https://sahibindenhayvan.com";
+      
+      // Get all categories
+      const allCategories = await db.select({ slug: categories.slug }).from(categories);
+      
+      // Get all active listings
+      const activeListings = await db
+        .select({ id: listings.id })
+        .from(listings)
+        .where(eq(listings.status, 'active'))
+        .limit(1000);
+      
+      // Get all blog posts
+      const allBlogPosts = await db
+        .select({ slug: blogPosts.slug })
+        .from(blogPosts);
+      
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/ilanlar</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+      
+      // Add category pages
+      for (const cat of allCategories) {
+        sitemap += `  <url>
+    <loc>${baseUrl}/ilanlar?categoryId=${cat.slug}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+      }
+      
+      // Add listing pages
+      for (const listing of activeListings) {
+        sitemap += `  <url>
+    <loc>${baseUrl}/ilan/${listing.id}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+`;
+      }
+      
+      // Add blog posts
+      for (const post of allBlogPosts) {
+        sitemap += `  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+`;
+      }
+      
+      sitemap += `</urlset>`;
+      
+      res.type('application/xml').send(sitemap);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Sitemap could not be generated");
+    }
+  });
+
   return httpServer;
 }
 
