@@ -2038,8 +2038,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(messages.senderId, userId));
       
       for (const msg of userMessages) {
-        if (msg.attachmentUrl) {
-          await objectStorage.deleteFile(msg.attachmentUrl);
+        if (msg.attachments && Array.isArray(msg.attachments)) {
+          for (const attachment of msg.attachments) {
+            if (attachment && typeof attachment === 'object' && 'url' in attachment) {
+              await objectStorage.deleteFile(attachment.url as string);
+            }
+          }
         }
       }
       
@@ -2345,7 +2349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(listingDocuments)
         .leftJoin(listings, eq(listingDocuments.listingId, listings.id))
         .leftJoin(users, eq(listings.sellerId, users.id))
-        .where(eq(listingDocuments.status, status as string))
+        .where(sql`${listingDocuments.status} = ${status}`)
         .orderBy(desc(listingDocuments.createdAt));
       
       res.json(documents);
@@ -4239,11 +4243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Upload to object storage
-      const objectPath = await objectStorageService.uploadFileBuffer(
-        fileBuffer,
-        finalFilename,
-        '.private/messages'
-      );
+      const objectStorage = new ObjectStorageService();
+      const contentType = isImage && file.mimetype !== 'image/gif' ? 'image/webp' : file.mimetype;
+      const objectPath = await objectStorage.uploadFileBuffer(fileBuffer, contentType);
       
       const fileUrl = `/api/objects/${objectPath}`;
       
@@ -5859,7 +5861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allStores = await db
         .select({
           id: stores.id,
-          name: stores.name,
+          name: stores.displayName,
           slug: stores.slug,
           description: stores.description,
           storeType: stores.storeType,
@@ -5896,11 +5898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const [updatedStore] = await db
         .update(stores)
-        .set({ 
-          status,
-          approvedAt: status === 'approved' ? new Date() : null,
-          approvedBy: status === 'approved' ? getUserId(req.user) : null,
-        })
+        .set({ status })
         .where(eq(stores.id, id))
         .returning();
       
@@ -5913,18 +5911,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (status === 'approved') {
           await db.insert(notifications).values({
             userId: updatedStore.ownerId,
-            type: 'store_approved',
+            type: 'system',
             title: 'Mağaza Onaylandı',
-            message: `"${updatedStore.name}" mağazanız onaylandı`,
+            message: `"${updatedStore.displayName}" mağazanız onaylandı`,
             link: `/magaza/${updatedStore.slug}`,
             relatedId: updatedStore.id,
           });
         } else if (status === 'rejected') {
           await db.insert(notifications).values({
             userId: updatedStore.ownerId,
-            type: 'store_rejected',
+            type: 'system',
             title: 'Mağaza Reddedildi',
-            message: `"${updatedStore.name}" mağaza başvurunuz reddedildi`,
+            message: `"${updatedStore.displayName}" mağaza başvurunuz reddedildi`,
             link: `/panel/magaza`,
             relatedId: updatedStore.id,
           });
@@ -6269,6 +6267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete store images from Object Storage
+      const objectStorage = new ObjectStorageService();
+      
       if (store.logo) {
         try {
           await objectStorage.deleteFile(store.logo);
