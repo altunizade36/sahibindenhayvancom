@@ -77,6 +77,7 @@ export const getQueryFn: <T>(options: {
     
     const res = await fetch(url, {
       credentials: "include",
+      cache: "no-store", // Prevent 304 responses with empty body
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
