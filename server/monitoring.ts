@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { db } from './db';
+import { db, getPoolStats } from './db';
 import { cache } from './cache';
 
 interface SystemMetrics {
@@ -26,6 +26,11 @@ interface HealthStatus {
   database: {
     connected: boolean;
     latency?: number;
+    pool: {
+      total: number;
+      idle: number;
+      waiting: number;
+    };
   };
   cache: {
     type: string;
@@ -83,6 +88,8 @@ export async function healthCheck(_req: Request, res: Response) {
 
     const totalLatency = Date.now() - startTime;
 
+    const poolStats = getPoolStats();
+    
     const health: HealthStatus = {
       status: dbConnected ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),
@@ -90,6 +97,7 @@ export async function healthCheck(_req: Request, res: Response) {
       database: {
         connected: dbConnected,
         latency: dbLatency,
+        pool: poolStats,
       },
       cache: {
         type: cacheStats.type,

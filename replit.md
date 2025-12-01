@@ -91,6 +91,12 @@ No specific user preferences were provided in the original document.
 - Single Node.js process for WebSocket
 - No load balancer or horizontal scaling
 
+**Database Optimizations**:
+- Neon PostgreSQL with connection pooling (maxUses: 7500)
+- Session store in PostgreSQL with 7-day TTL
+- Pool monitoring: /health endpoint shows pool.total, pool.idle, pool.waiting
+- Graceful shutdown with pool.end()
+
 **Caching System** (Upstash Redis with in-memory fallback):
 - Categories: 24h TTL
 - Hot listings: 3min TTL
