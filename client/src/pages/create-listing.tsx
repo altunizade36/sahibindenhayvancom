@@ -27,9 +27,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2, Check, GripVertical, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, X, ImagePlus, Loader2, Check, GripVertical, Star, ExternalLink, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import type { Location } from "@shared/schema";
 import { AGE_CATEGORIES, GENDER_OPTIONS, HEALTH_STATUS_OPTIONS, CHARACTER_TRAITS } from "@shared/listing-options";
@@ -66,6 +68,15 @@ const listingFormSchema = z.object({
   city: z.string().min(1, "İl seçiniz"),
   district: z.string().min(1, "İlçe seçiniz"),
   images: z.array(z.string()).default([]),
+  acceptListingRules: z.boolean().refine((val) => val === true, {
+    message: "İlan kurallarını kabul etmeniz gerekmektedir",
+  }),
+  acceptAnimalLaws: z.boolean().refine((val) => val === true, {
+    message: "Hayvan hakları beyanını onaylamanız gerekmektedir",
+  }),
+  hasRequiredDocuments: z.boolean().refine((val) => val === true, {
+    message: "Gerekli belgelere sahip olduğunuzu onaylamanız gerekmektedir",
+  }),
 });
 
 type ListingFormData = z.infer<typeof listingFormSchema>;
@@ -106,6 +117,9 @@ export default function CreateListing() {
       city: "",
       district: "",
       images: [],
+      acceptListingRules: false,
+      acceptAnimalLaws: false,
+      hasRequiredDocuments: false,
     },
   });
 
@@ -891,6 +905,90 @@ export default function CreateListing() {
                         )}
                       </div>
                     )}
+                  </div>
+
+                  <div className="space-y-4 pt-6 border-t">
+                    <p className="text-sm font-medium">Yasal Onaylar ve Beyanlar</p>
+                    
+                    <Alert className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+                        5199 sayılı Hayvanları Koruma Kanunu ve 5996 sayılı Veteriner Hizmetleri Kanunu gereğince, satışa sunulan hayvanların 
+                        sağlık belgesi, aşı kartı ve gerekli belgelere sahip olması zorunludur.
+                      </AlertDescription>
+                    </Alert>
+
+                    <FormField
+                      control={form.control}
+                      name="acceptListingRules"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-accept-listing-rules"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              <Link href="/ilan-kurallari" className="text-primary hover:underline inline-flex items-center gap-1" target="_blank">
+                                İlan Kuralları
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                              'nı okudum ve uyacağımı taahhüt ediyorum. Yasaklı hayvan türlerini ilanlamayacağımı beyan ederim.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="acceptAnimalLaws"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-accept-animal-laws"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              5199 sayılı Hayvanları Koruma Kanunu, 5996 sayılı Veteriner Hizmetleri Kanunu ve ilgili yönetmeliklere 
+                              uygun hareket edeceğimi, hayvanlara eziyet ve kötü muamele içeren hiçbir eylemde bulunmadığımı beyan ederim.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="hasRequiredDocuments"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-has-required-documents"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              İlanladığım hayvanın tüm yasal belgelerine (aşı kartı, sağlık raporu, kimlik belgesi, varsa pedigri/pasaport) 
+                              sahip olduğumu ve alıcıya teslim edeceğimi beyan ederim.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
               )}

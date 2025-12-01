@@ -2,15 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LogoFull } from "@/components/logo";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
@@ -42,6 +43,16 @@ const registerSchema = z.object({
     .refine((val) => /[a-zA-Z]/.test(val), "Şifrede en az bir harf olmalı")
     .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
   confirmPassword: z.string(),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: "Kullanım koşullarını kabul etmeniz gerekmektedir",
+  }),
+  acceptKvkk: z.boolean().refine((val) => val === true, {
+    message: "KVKK aydınlatma metnini okuduğunuzu onaylamanız gerekmektedir",
+  }),
+  isOver18: z.boolean().refine((val) => val === true, {
+    message: "18 yaşından büyük olduğunuzu onaylamanız gerekmektedir",
+  }),
+  acceptMarketing: z.boolean().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Şifreler aynı değil, tekrar kontrol edin",
   path: ["confirmPassword"],
@@ -114,6 +125,10 @@ export default function Register() {
       phone: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
+      acceptKvkk: false,
+      isOver18: false,
+      acceptMarketing: false,
     },
   });
 
@@ -408,6 +423,115 @@ export default function Register() {
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <p className="text-sm font-medium text-muted-foreground">Yasal Onaylar</p>
+                    
+                    <FormField
+                      control={form.control}
+                      name="acceptTerms"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-accept-terms"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              <Link href="/kullanim-kosullari" className="text-primary hover:underline inline-flex items-center gap-1" target="_blank">
+                                Kullanım Koşulları
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                              {" "}ve{" "}
+                              <Link href="/ilan-kurallari" className="text-primary hover:underline inline-flex items-center gap-1" target="_blank">
+                                İlan Kuralları
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                              'nı okudum, kabul ediyorum.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="acceptKvkk"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-accept-kvkk"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              <Link href="/kvkk" className="text-primary hover:underline inline-flex items-center gap-1" target="_blank">
+                                KVKK Aydınlatma Metni
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                              'ni ve{" "}
+                              <Link href="/gizlilik-politikasi" className="text-primary hover:underline inline-flex items-center gap-1" target="_blank">
+                                Gizlilik Politikası
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                              'nı okudum, kişisel verilerimin işlenmesine onay veriyorum.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="isOver18"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-is-over-18"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer">
+                              18 yaşından büyük olduğumu beyan ediyorum.
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="acceptMarketing"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-accept-marketing"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-normal cursor-pointer text-muted-foreground">
+                              Kampanya, indirim ve duyurulardan e-posta ile haberdar olmak istiyorum. (İsteğe bağlı)
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <Button
                     type="submit"

@@ -45,6 +45,12 @@ import PanelDashboard from "@/pages/panel/index";
 import PanelIlanlarim from "@/pages/panel/ilanlarim";
 import PanelFavorilerim from "@/pages/panel/favorilerim";
 import PanelAyarlar from "@/pages/panel/ayarlar";
+import KullanimKosullari from "@/pages/legal/kullanim-kosullari";
+import GizlilikPolitikasi from "@/pages/legal/gizlilik-politikasi";
+import CerezPolitikasi from "@/pages/legal/cerez-politikasi";
+import IlanKurallari from "@/pages/legal/ilan-kurallari";
+import KVKK from "@/pages/legal/kvkk";
+import { CookieConsent } from "@/components/cookie-consent";
 
 // Routes that should have the sidebar layout
 function SidebarLayout() {
@@ -114,6 +120,11 @@ function NoSidebarLayout() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/moderasyon" component={AdminModeration} />
           <Route path="/admin/blog" component={AdminBlog} />
+          <Route path="/kullanim-kosullari" component={KullanimKosullari} />
+          <Route path="/gizlilik-politikasi" component={GizlilikPolitikasi} />
+          <Route path="/cerez-politikasi" component={CerezPolitikasi} />
+          <Route path="/ilan-kurallari" component={IlanKurallari} />
+          <Route path="/kvkk" component={KVKK} />
         </Switch>
       </main>
     </div>
@@ -148,7 +159,12 @@ function Router() {
                            location.startsWith('/canli-yayin') ||
                            location.startsWith('/yayin-baslat') ||
                            location.startsWith('/kategori/') ||
-                           location.startsWith('/admin');
+                           location.startsWith('/admin') ||
+                           location.startsWith('/kullanim-kosullari') ||
+                           location.startsWith('/gizlilik-politikasi') ||
+                           location.startsWith('/cerez-politikasi') ||
+                           location.startsWith('/ilan-kurallari') ||
+                           location.startsWith('/kvkk');
   
   // Mobilde sidebar kapalı, desktop'ta açık olsun
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -177,6 +193,7 @@ function App() {
             {showSplash && <SplashScreen onComplete={hideSplash} />}
             <Toaster />
             <Router />
+            <CookieConsent />
           </TooltipProvider>
         </I18nProvider>
       </AuthProvider>
