@@ -5784,6 +5784,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ Admin User Management Routes ============
+  // Get all users (admin only)
+  app.get("/api/admin/users", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+          role: users.role,
+          emailVerified: users.emailVerified,
+          phoneVerified: users.phoneVerified,
+          createdAt: users.createdAt,
+        })
+        .from(users)
+        .orderBy(desc(users.createdAt))
+        .limit(200);
+      
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Error fetching users for admin:", error);
+      res.status(500).json({ message: "Kullanıcılar getirilemedi" });
+    }
+  });
+
+  // Update user role (admin only)
+  app.patch("/api/admin/users/:id/role", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      
+      // Validate role
+      const validRoles = ['buyer', 'seller', 'vet', 'transporter', 'admin'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Geçersiz rol" });
+      }
+      
+      const [updatedUser] = await db
+        .update(users)
+        .set({ role })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Rol güncellenemedi" });
+    }
+  });
+
+  // ============ Admin Store Management Routes ============
+  // Get all stores (admin only)
+  app.get("/api/admin/stores", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allStores = await db
+        .select({
+          id: stores.id,
+          name: stores.name,
+          slug: stores.slug,
+          description: stores.description,
+          storeType: stores.storeType,
+          city: stores.city,
+          status: stores.status,
+          createdAt: stores.createdAt,
+          ownerId: stores.ownerId,
+          ownerName: sql<string>`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
+          ownerEmail: users.email,
+        })
+        .from(stores)
+        .leftJoin(users, eq(stores.ownerId, users.id))
+        .orderBy(desc(stores.createdAt))
+        .limit(100);
+      
+      res.json(allStores);
+    } catch (error) {
+      console.error("Error fetching stores for admin:", error);
+      res.status(500).json({ message: "Mağazalar getirilemedi" });
+    }
+  });
+
+  // Update store status (admin only)
+  app.patch("/api/admin/stores/:id/status", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Validate status
+      const validStatuses = ['pending', 'approved', 'rejected', 'suspended'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+      
+      const [updatedStore] = await db
+        .update(stores)
+        .set({ 
+          status,
+          approvedAt: status === 'approved' ? new Date() : null,
+          approvedBy: status === 'approved' ? getUserId(req.user) : null,
+        })
+        .where(eq(stores.id, id))
+        .returning();
+      
+      if (!updatedStore) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+      
+      // Send notification to store owner
+      try {
+        if (status === 'approved') {
+          await db.insert(notifications).values({
+            userId: updatedStore.ownerId,
+            type: 'store_approved',
+            title: 'Mağaza Onaylandı',
+            message: `"${updatedStore.name}" mağazanız onaylandı`,
+            link: `/magaza/${updatedStore.slug}`,
+            relatedId: updatedStore.id,
+          });
+        } else if (status === 'rejected') {
+          await db.insert(notifications).values({
+            userId: updatedStore.ownerId,
+            type: 'store_rejected',
+            title: 'Mağaza Reddedildi',
+            message: `"${updatedStore.name}" mağaza başvurunuz reddedildi`,
+            link: `/panel/magaza`,
+            relatedId: updatedStore.id,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create store notification:", notifError);
+      }
+      
+      res.json(updatedStore);
+    } catch (error) {
+      console.error("Error updating store status:", error);
+      res.status(500).json({ message: "Durum güncellenemedi" });
+    }
+  });
+
   // ============ Admin Blog Management Routes ============
   // SECURITY: All admin blog routes require authentication + admin role
   // Get all blog posts (admin only - includes unpublished)
