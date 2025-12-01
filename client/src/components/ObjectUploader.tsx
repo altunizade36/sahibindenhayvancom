@@ -118,6 +118,16 @@ export function ObjectUploader({
           });
           continue;
         }
+        
+        // Dosya boyutu kontrolü
+        if (file.size > maxFileSize) {
+          toast({
+            title: "Dosya çok büyük",
+            description: `${file.name} ${Math.round(maxFileSize / 1024 / 1024)}MB'dan büyük olamaz`,
+            variant: "destructive",
+          });
+          continue;
+        }
 
         // Fotoğrafı otomatik optimize et (boyut ve kalite)
         let optimizedFile: Blob;
