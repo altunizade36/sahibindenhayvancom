@@ -18,7 +18,6 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Category, Location } from "@shared/schema";
@@ -308,13 +307,16 @@ export function AppSidebar() {
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const activeCategoryId = searchParams.get('categoryId') || undefined;
 
-  // Fetch category tree
-  const { data: categoryTree = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+  // Fetch category tree with retry and proper error handling
+  const { data: categoryTree = [], isLoading: categoriesLoading, isError, refetch } = useQuery<Category[]>({
     queryKey: ['/api/categories/tree'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    retryDelay: 1000,
   });
   
   // Debug log
-  console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading);
+  console.log('Categories loaded:', categoryTree.length, 'Loading:', categoriesLoading, 'Error:', isError);
 
   // Auto-expand ancestors of active category
   useEffect(() => {
@@ -397,20 +399,37 @@ export function AppSidebar() {
 
         {/* Category Tree */}
         <SidebarGroup className="flex-1">
-          <SidebarGroupLabel>Kategoriler {categoriesLoading ? '(Yükleniyor...)' : `(${categoryTree.length})`}</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            Kategoriler {categoriesLoading ? '(Yükleniyor...)' : isError ? '(Hata!)' : `(${categoryTree.length})`}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="max-h-[50vh] overflow-y-auto">
-              <SidebarMenu>
-                {categoryTree.map((rootCategory) => (
-                  <CategoryTreeItem
-                    key={rootCategory.id}
-                    category={rootCategory}
-                    activeCategoryId={activeCategoryId}
-                    expandedIds={expandedIds}
-                    onToggle={handleToggle}
-                  />
-                ))}
-              </SidebarMenu>
+              {isError ? (
+                <div className="p-2 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Kategoriler yüklenemedi</p>
+                  <Button variant="outline" size="sm" onClick={() => refetch()} data-testid="button-retry-categories">
+                    Tekrar Dene
+                  </Button>
+                </div>
+              ) : categoriesLoading ? (
+                <div className="p-2 space-y-2">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="h-8 bg-muted/50 rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <SidebarMenu>
+                  {categoryTree.map((rootCategory) => (
+                    <CategoryTreeItem
+                      key={rootCategory.id}
+                      category={rootCategory}
+                      activeCategoryId={activeCategoryId}
+                      expandedIds={expandedIds}
+                      onToggle={handleToggle}
+                    />
+                  ))}
+                </SidebarMenu>
+              )}
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
