@@ -41,6 +41,20 @@ let isServerReady = false;
 
 async function runServer() {
   const app = express();
+  
+  // ============ CRITICAL: Health check FIRST - before ANY middleware ============
+  // This MUST respond immediately for Replit deployment health checks
+  // No middleware, no async operations, just instant response
+  app.get("/", (req, res, next) => {
+    const acceptHeader = req.headers.accept || '';
+    if (!acceptHeader.includes('text/html')) {
+      return res.status(200).json({ status: 'ok', uptime: process.uptime() });
+    }
+    next();
+  });
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  });
 
   // Enable gzip compression for all responses (bandwidth optimization)
   app.use(compression({
@@ -89,10 +103,29 @@ async function runServer() {
     next();
   });
 
-  // Initialize Redis cache (fast, doesn't block)
+  // Create HTTP server IMMEDIATELY so we can start listening
+  const { createServer } = await import("http");
+  const httpServer = createServer(app);
+  
+  // Start listening IMMEDIATELY - health checks will work right away
+  const port = parseInt(process.env.PORT || '5000', 10);
+  httpServer.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+    isServerReady = true;
+  });
+
+  // Now do the slow async initialization in the background
+  // This won't block health checks since server is already listening
+  
+  // Initialize Redis cache
   initializeRedis();
   
-  const server = await registerRoutes(app);
+  // Register all other routes (includes setupAuth which is slow)
+  await registerRoutes(app, httpServer);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -102,45 +135,25 @@ async function runServer() {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite or static serving
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    isServerReady = true;
-    
-    // Only seed database in development or when explicitly enabled
-    // Production deployments should NOT seed on every startup
-    const shouldSeed = process.env.NODE_ENV === 'development' || process.env.ENABLE_AUTO_SEED === 'true';
-    
-    if (shouldSeed) {
-      // Seed database in background AFTER server is listening
-      // This allows health checks to pass immediately
-      seedDatabase()
-        .then(() => console.log('✅ Background database seeding complete'))
-        .catch(err => console.error('❌ Background seeding error:', err));
-    } else {
-      console.log('ℹ️  Database seeding skipped (production mode)');
-    }
-  });
+  // Database seeding in background (development only)
+  const shouldSeed = process.env.NODE_ENV === 'development' || process.env.ENABLE_AUTO_SEED === 'true';
+  if (shouldSeed) {
+    seedDatabase()
+      .then(() => console.log('✅ Background database seeding complete'))
+      .catch(err => console.error('❌ Background seeding error:', err));
+  } else {
+    console.log('ℹ️  Database seeding skipped (production mode)');
+  }
 
   // Setup graceful shutdown
-  setupGracefulShutdown(server);
+  setupGracefulShutdown(httpServer);
 }
 
 // Export for health checks

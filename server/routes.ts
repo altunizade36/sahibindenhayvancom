@@ -314,36 +314,22 @@ async function registerDevice(userId: string, req: Request): Promise<void> {
 // Legacy JWT middleware removed - now using Replit Auth sessions
 // Use isAuthenticated from replitAuth.ts for protected routes
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // ============ Health & Monitoring Routes (MUST BE FIRST!) ============
-  // These routes are registered BEFORE any middleware to ensure instant response
-  // for Replit deployment health checks which timeout quickly
-  
-  // Root route - MUST respond immediately for Replit deployment health checks
-  // Health checks hit "/" by default, so this must be ultra-fast (no middleware)
-  app.get("/", (req, res, next) => {
-    // If this is a health check (no Accept: text/html), respond immediately
-    const acceptHeader = req.headers.accept || '';
-    if (!acceptHeader.includes('text/html')) {
-      return res.status(200).json({ status: 'ok', uptime: process.uptime() });
-    }
-    // Otherwise, let Vite serve the frontend
-    next();
-  });
-  // /health - Lightweight endpoint for deployment health checks (instant response)
-  app.get("/health", healthCheck);
-  // /readiness - Comprehensive check with database/cache status (for detailed monitoring)
+export async function registerRoutes(app: Express, existingServer?: Server): Promise<Server> {
+  // ============ Additional Monitoring Routes ============
+  // Note: Main health checks (/ and /health) are registered in index.ts BEFORE any middleware
+  // These are additional monitoring endpoints
   app.get("/readiness", readinessCheck);
   app.get("/metrics", metricsEndpoint);
 
-  // ============ Replit Auth Setup (After health checks) ============
+  // ============ Replit Auth Setup ============
   await setupAuth(app);
 
   // ============ Global Rate Limiting (Production Only) ============
   // Apply Redis-based distributed rate limiting to all API routes
   app.use("/api", globalApiLimiter);
 
-  const httpServer = createServer(app);
+  // Use existing server if provided, otherwise create new one
+  const httpServer = existingServer || createServer(app);
   const wss = new WebSocketServer({ 
     server: httpServer, 
     path: "/ws",
