@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuAction,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
@@ -93,24 +94,22 @@ function CategoryTreeItem({
     return (
       <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
         <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={isActive}
+            data-testid={`category-${category.slug}`}
+            onClick={handleNavigate}
+          >
+            <span className="truncate" title={category.name}>
+              {category.name}
+            </span>
+          </SidebarMenuButton>
           <CollapsibleTrigger asChild>
-            <SidebarMenuButton
-              isActive={isActive}
-              data-testid={`category-${category.slug}`}
-              className="!overflow-visible"
+            <SidebarMenuAction
+              data-testid={`toggle-${category.slug}`}
+              className="data-[state=open]:rotate-90"
             >
-              <span 
-                className="truncate min-w-0 flex-1" 
-                title={category.name}
-                onClick={handleNavigate}
-              >
-                {category.name}
-              </span>
-              <ChevronRight 
-                className={`ml-auto h-4 w-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
-                data-testid={`toggle-${category.slug}`}
-              />
-            </SidebarMenuButton>
+              <ChevronRight className="h-4 w-4" />
+            </SidebarMenuAction>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <SidebarMenuSub>
@@ -133,25 +132,24 @@ function CategoryTreeItem({
 
   return (
     <Collapsible open={isOpen} onOpenChange={() => onToggle(category.id)}>
-      <SidebarMenuSubItem>
+      <SidebarMenuSubItem className="relative">
+        <SidebarMenuSubButton
+          isActive={isActive}
+          data-testid={`category-${category.slug}`}
+          onClick={handleNavigate}
+          className="pr-8"
+        >
+          <span className="truncate" title={category.name}>
+            {category.name}
+          </span>
+        </SidebarMenuSubButton>
         <CollapsibleTrigger asChild>
-          <SidebarMenuSubButton
-            isActive={isActive}
-            data-testid={`category-${category.slug}`}
-            className="!overflow-visible"
+          <button
+            data-testid={`toggle-${category.slug}`}
+            className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-md hover:bg-sidebar-accent transition-transform duration-200 data-[state=open]:rotate-90"
           >
-            <span 
-              className="truncate min-w-0 flex-1" 
-              title={category.name}
-              onClick={handleNavigate}
-            >
-              {category.name}
-            </span>
-            <ChevronRight 
-              className={`ml-auto h-4 w-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
-              data-testid={`toggle-${category.slug}`}
-            />
-          </SidebarMenuSubButton>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
