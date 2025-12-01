@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuAction,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
@@ -95,26 +96,22 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
   if (level === 0) {
     return (
       <SidebarMenuItem>
-        <div className="flex items-center w-full">
-          <SidebarMenuButton
-            onClick={handleNavigate}
-            isActive={isActive}
-            className="flex-1 min-w-0 overflow-hidden pr-0"
-            data-testid={`category-${category.slug}`}
-          >
-            <span className="truncate" title={category.name}>{category.name}</span>
-          </SidebarMenuButton>
-          <button
-            type="button"
-            onClick={handleToggle}
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md hover:bg-accent text-foreground"
-            data-testid={`toggle-${category.slug}`}
-            aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-            aria-expanded={isOpen}
-          >
-            <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
+        <SidebarMenuButton
+          onClick={handleNavigate}
+          isActive={isActive}
+          data-testid={`category-${category.slug}`}
+        >
+          <span className="truncate" title={category.name}>{category.name}</span>
+        </SidebarMenuButton>
+        <SidebarMenuAction
+          onClick={handleToggle}
+          data-testid={`toggle-${category.slug}`}
+          aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
+          aria-expanded={isOpen}
+          className="text-sidebar-foreground"
+        >
+          <ChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </SidebarMenuAction>
         {isOpen && (
           <SidebarMenuSub>
             {category.children?.map((child) => (
@@ -133,26 +130,24 @@ function CategoryTreeItem({ category, level = 0, activeCategoryId }: { category:
 
   return (
     <SidebarMenuSubItem>
-      <div className="flex items-center w-full">
-        <SidebarMenuSubButton
-          onClick={handleNavigate}
-          isActive={isActive}
-          className="flex-1 min-w-0 overflow-hidden pr-0"
-          data-testid={`category-${category.slug}`}
-        >
-          <span className="truncate" title={category.name}>{category.name}</span>
-        </SidebarMenuSubButton>
-        <button
-          type="button"
-          onClick={handleToggle}
-          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent text-foreground"
-          data-testid={`toggle-${category.slug}`}
-          aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
-          aria-expanded={isOpen}
-        >
-          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
+      <SidebarMenuSubButton
+        onClick={handleNavigate}
+        isActive={isActive}
+        data-testid={`category-${category.slug}`}
+        className="pr-8"
+      >
+        <span className="truncate" title={category.name}>{category.name}</span>
+      </SidebarMenuSubButton>
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent"
+        data-testid={`toggle-${category.slug}`}
+        aria-label={isOpen ? "Alt kategorileri gizle" : "Alt kategorileri göster"}
+        aria-expanded={isOpen}
+      >
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
       {isOpen && (
         <SidebarMenuSub className="pl-2 ml-2 border-l border-sidebar-border">
           {category.children?.map((child) => (
