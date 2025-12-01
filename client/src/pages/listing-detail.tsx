@@ -52,7 +52,7 @@ export default function ListingDetail() {
   const [makeOfferOpen, setMakeOfferOpen] = useState(false);
 
   const { data: listing, isLoading } = useQuery<ListingWithDetails>({
-    queryKey: ["/api/listings", id],
+    queryKey: [`/api/listings/${id}`],
     enabled: !!id,
   });
 
@@ -62,7 +62,7 @@ export default function ListingDetail() {
   });
 
   const { data: similarListings = [] } = useQuery<Listing[]>({
-    queryKey: ["/api/listings", id, "similar"],
+    queryKey: [`/api/listings/${id}/similar`],
     enabled: !!id,
   });
 
