@@ -203,6 +203,8 @@ export const users = pgTable("users", {
   positiveReviews: integer("positive_reviews").default(0),
   negativeReviews: integer("negative_reviews").default(0),
   sellerScore: integer("seller_score").default(0), // Computed score for level
+  sellerRating: decimal("seller_rating", { precision: 3, scale: 2 }).default("0"), // 0.00 - 5.00 ortalama puan
+  sellerReviewCount: integer("seller_review_count").default(0), // Toplam değerlendirme sayısı
   badges: jsonb("badges").$type<string[]>().default(sql`'[]'::jsonb`), // Achievement badges
   
   // Language preference
@@ -1509,3 +1511,157 @@ export const insertAdminBroadcastSchema = createInsertSchema(adminBroadcasts).om
 });
 
 export type InsertAdminBroadcast = z.infer<typeof insertAdminBroadcastSchema>;
+
+// ============ Viewed Listings (Son Görüntülenen İlanlar) ============
+export const viewedListings = pgTable("viewed_listings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  listingId: varchar("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+}, (table) => ({
+  userListingIdx: index("viewed_listings_user_listing_idx").on(table.userId, table.listingId),
+  userViewedIdx: index("viewed_listings_user_viewed_idx").on(table.userId, table.viewedAt),
+}));
+
+export const insertViewedListingSchema = createInsertSchema(viewedListings).omit({
+  id: true,
+  viewedAt: true,
+});
+
+export type InsertViewedListing = z.infer<typeof insertViewedListingSchema>;
+export type ViewedListing = typeof viewedListings.$inferSelect;
+
+// ============ Seller Reviews (Bireysel Satıcı Değerlendirmeleri) ============
+export const sellerReviews = pgTable("seller_reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reviewerId: varchar("reviewer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  listingId: varchar("listing_id").references(() => listings.id, { onDelete: "set null" }),
+  rating: integer("rating").notNull(), // 1-5 yıldız
+  comment: text("comment"),
+  sellerResponse: text("seller_response"), // Satıcının yanıtı
+  sellerResponseAt: timestamp("seller_response_at"),
+  isVerifiedPurchase: boolean("is_verified_purchase").default(false), // Gerçek alışveriş yapıldı mı
+  helpfulCount: integer("helpful_count").default(0),
+  status: text("status").default("active").notNull(), // active, hidden, reported
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  sellerIdx: index("seller_reviews_seller_idx").on(table.sellerId),
+  reviewerIdx: index("seller_reviews_reviewer_idx").on(table.reviewerId),
+  ratingIdx: index("seller_reviews_rating_idx").on(table.rating),
+  sellerReviewerUnique: index("seller_reviews_seller_reviewer_unique").on(table.sellerId, table.reviewerId),
+}));
+
+export const insertSellerReviewSchema = createInsertSchema(sellerReviews).omit({
+  id: true,
+  sellerResponse: true,
+  sellerResponseAt: true,
+  helpfulCount: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSellerReview = z.infer<typeof insertSellerReviewSchema>;
+export type SellerReview = typeof sellerReviews.$inferSelect;
+
+// ============ Listing Videos (İlan Videoları) ============
+export const listingVideos = pgTable("listing_videos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  duration: integer("duration"), // saniye cinsinden
+  size: integer("size"), // byte cinsinden
+  mimeType: text("mime_type"),
+  order: integer("order").default(0),
+  status: text("status").default("processing").notNull(), // processing, ready, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdx: index("listing_videos_listing_idx").on(table.listingId),
+  orderIdx: index("listing_videos_order_idx").on(table.listingId, table.order),
+}));
+
+export const insertListingVideoSchema = createInsertSchema(listingVideos).omit({
+  id: true,
+  thumbnailUrl: true,
+  duration: true,
+  size: true,
+  status: true,
+  createdAt: true,
+});
+
+export type InsertListingVideo = z.infer<typeof insertListingVideoSchema>;
+export type ListingVideo = typeof listingVideos.$inferSelect;
+
+// ============ Contact Requests (Misafir İletişim Talepleri) ============
+export const contactRequests = pgTable("contact_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  senderName: text("sender_name").notNull(),
+  senderEmail: text("sender_email").notNull(),
+  senderPhone: text("sender_phone"),
+  message: text("message").notNull(),
+  ipAddress: varchar("ip_address"),
+  recaptchaScore: decimal("recaptcha_score", { precision: 3, scale: 2 }),
+  status: text("status").default("pending").notNull(), // pending, replied, spam, archived
+  repliedAt: timestamp("replied_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdx: index("contact_requests_listing_idx").on(table.listingId),
+  sellerIdx: index("contact_requests_seller_idx").on(table.sellerId),
+  statusIdx: index("contact_requests_status_idx").on(table.status),
+  emailIdx: index("contact_requests_email_idx").on(table.senderEmail),
+}));
+
+export const insertContactRequestSchema = createInsertSchema(contactRequests).omit({
+  id: true,
+  ipAddress: true,
+  recaptchaScore: true,
+  status: true,
+  repliedAt: true,
+  createdAt: true,
+});
+
+export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
+export type ContactRequest = typeof contactRequests.$inferSelect;
+
+// ============ Category Statistics (Kategori İstatistikleri) ============
+export const categoryStats = pgTable("category_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categorySlug: varchar("category_slug").notNull(),
+  date: timestamp("date").notNull(),
+  totalListings: integer("total_listings").default(0),
+  activeListings: integer("active_listings").default(0),
+  avgPrice: decimal("avg_price", { precision: 12, scale: 2 }),
+  minPrice: decimal("min_price", { precision: 12, scale: 2 }),
+  maxPrice: decimal("max_price", { precision: 12, scale: 2 }),
+  totalViews: integer("total_views").default(0),
+  totalFavorites: integer("total_favorites").default(0),
+  newListings: integer("new_listings").default(0), // O gün eklenen ilanlar
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  categoryDateIdx: index("category_stats_category_date_idx").on(table.categorySlug, table.date),
+  dateIdx: index("category_stats_date_idx").on(table.date),
+}));
+
+export type CategoryStat = typeof categoryStats.$inferSelect;
+
+// ============ Search Notification Log (Arama Bildirim Geçmişi) ============
+export const searchNotificationLogs = pgTable("search_notification_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  savedSearchId: varchar("saved_search_id").notNull().references(() => savedSearches.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  matchedListingIds: jsonb("matched_listing_ids").$type<string[]>().default([]),
+  emailSent: boolean("email_sent").default(false),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  savedSearchIdx: index("search_notification_logs_saved_search_idx").on(table.savedSearchId),
+  userIdx: index("search_notification_logs_user_idx").on(table.userId),
+  sentIdx: index("search_notification_logs_sent_idx").on(table.sentAt),
+}));
+
+export type SearchNotificationLog = typeof searchNotificationLogs.$inferSelect;
