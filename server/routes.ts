@@ -5993,21 +5993,60 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.json(cached);
       }
 
+      // Calculate today's start
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      // Calculate week start for growth calculation
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - 7);
+
       // Parallel queries for better performance
-      const [usersCount, listingsCount, activeListings, pendingListings, verifiedUsers] = await Promise.all([
+      const [
+        usersCount, 
+        listingsCount, 
+        activeListings, 
+        pendingListings, 
+        verifiedUsers,
+        storesCount,
+        pendingStores,
+        pendingReports,
+        pendingDocuments,
+        todayListings,
+        todayUsers,
+        lastWeekUsers
+      ] = await Promise.all([
         db.select({ count: count() }).from(users),
         db.select({ count: count() }).from(listings),
         db.select({ count: count() }).from(listings).where(eq(listings.status, "active")),
         db.select({ count: count() }).from(listings).where(eq(listings.status, "pending")),
-        db.select({ count: count() }).from(users).where(eq(users.emailVerified, true))
+        db.select({ count: count() }).from(users).where(eq(users.emailVerified, true)),
+        db.select({ count: count() }).from(stores),
+        db.select({ count: count() }).from(stores).where(eq(stores.status, "pending")),
+        db.select({ count: count() }).from(reports).where(eq(reports.status, "pending")),
+        db.select({ count: count() }).from(listingDocuments).where(eq(listingDocuments.status, "pending")),
+        db.select({ count: count() }).from(listings).where(gte(listings.createdAt, todayStart)),
+        db.select({ count: count() }).from(users).where(gte(users.createdAt, todayStart)),
+        db.select({ count: count() }).from(users).where(gte(users.createdAt, weekStart))
       ]);
 
+      const totalUsersNum = Number(usersCount[0].count);
+      const lastWeekUsersNum = Number(lastWeekUsers[0].count);
+      const weeklyGrowth = totalUsersNum > 0 ? Math.round((lastWeekUsersNum / totalUsersNum) * 100) : 0;
+
       const stats = {
-        totalUsers: Number(usersCount[0].count),
+        totalUsers: totalUsersNum,
         verifiedUsers: Number(verifiedUsers[0].count),
         totalListings: Number(listingsCount[0].count),
         activeListings: Number(activeListings[0].count),
         pendingListings: Number(pendingListings[0].count),
+        totalStores: Number(storesCount[0].count),
+        pendingStores: Number(pendingStores[0].count),
+        pendingReports: Number(pendingReports[0].count),
+        pendingDocuments: Number(pendingDocuments[0].count),
+        todayListings: Number(todayListings[0].count),
+        todayUsers: Number(todayUsers[0].count),
+        weeklyGrowth: weeklyGrowth,
       };
 
       // Cache stats for 1 minute
@@ -6207,6 +6246,46 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Rol güncellenemedi" });
+    }
+  });
+
+  // Update user status - ban/unban (admin only)
+  app.patch("/api/admin/users/:id/status", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Validate status
+      const validStatuses = ['active', 'banned', 'suspended'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+      
+      // Prevent self-ban
+      const adminId = getUserId(req.user);
+      if (id === adminId) {
+        return res.status(400).json({ message: "Kendinizi yasaklayamazsınız" });
+      }
+      
+      // For now, we'll handle status via role - banned users get their role set to a special value
+      // In a full implementation, add a status column to users table
+      const [updatedUser] = await db
+        .update(users)
+        .set({ 
+          role: status === 'banned' ? 'banned' as any : 'buyer' as any,
+        })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+      
+      // Return user with computed status field
+      res.json({ ...updatedUser, status: updatedUser.role === 'banned' ? 'banned' : 'active' });
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Durum güncellenemedi" });
     }
   });
 
