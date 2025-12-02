@@ -48,6 +48,7 @@ integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", 
 [userenv]
 
 [userenv.shared]
+ADMIN_PANEL_PIN = "252525"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-b7d12b8c-c133-494b-8a4c-92a2124522b3"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import {
   BarChart3,
   AlertCircle,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -65,13 +66,34 @@ interface NavGroup {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pinVerified, setPinVerified] = useState<boolean | null>(null);
 
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
     refetchInterval: 30000,
+    enabled: pinVerified === true,
   });
+
+  const { data: pinStatus, isLoading: pinLoading } = useQuery<{ verified: boolean }>({
+    queryKey: ["/api/admin/pin-status"],
+    enabled: user?.role === "admin",
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (pinStatus !== undefined) {
+      const sessionVerified = sessionStorage.getItem("adminPinVerified") === "true";
+      setPinVerified(pinStatus.verified || sessionVerified);
+    }
+  }, [pinStatus]);
+
+  useEffect(() => {
+    if (pinVerified === false && user?.role === "admin" && !location.includes("/admin/pin-dogrula")) {
+      setLocation("/admin/pin-dogrula");
+    }
+  }, [pinVerified, user, location, setLocation]);
 
   if (user?.role !== "admin") {
     return (
@@ -86,6 +108,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     );
+  }
+
+  if (pinLoading || pinVerified === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 mx-auto animate-spin text-primary" />
+          <p className="text-muted-foreground">Doğrulanıyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pinVerified) {
+    return null;
   }
 
   const navGroups: NavGroup[] = [

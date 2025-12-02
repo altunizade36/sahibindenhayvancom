@@ -5983,6 +5983,50 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     next();
   }
 
+  // Admin PIN verification middleware
+  function adminPinMiddleware(req: Request, res: Response, next: Function) {
+    const session = req.session as any;
+    if (!session.adminPinVerified) {
+      return res.status(403).json({ 
+        message: "Admin PIN doğrulaması gereklidir",
+        requirePin: true 
+      });
+    }
+    next();
+  }
+
+  // Admin PIN verification endpoint
+  app.post("/api/admin/verify-pin", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { pin } = req.body;
+      const adminPin = process.env.ADMIN_PANEL_PIN || "252525";
+      
+      if (!pin) {
+        return res.status(400).json({ message: "PIN kodu gereklidir" });
+      }
+      
+      if (pin !== adminPin) {
+        console.log(`Admin PIN verification failed for user: ${getUserId(req.user)}`);
+        return res.status(401).json({ message: "Geçersiz PIN kodu" });
+      }
+      
+      // Store PIN verification in session
+      (req.session as any).adminPinVerified = true;
+      console.log(`Admin PIN verified for user: ${getUserId(req.user)}`);
+      
+      res.json({ success: true, message: "PIN doğrulandı" });
+    } catch (error) {
+      console.error("Admin PIN verification error:", error);
+      res.status(500).json({ message: "Doğrulama hatası" });
+    }
+  });
+
+  // Check admin PIN status
+  app.get("/api/admin/pin-status", isAuthenticated, adminMiddleware, (req: Request, res: Response) => {
+    const session = req.session as any;
+    res.json({ verified: !!session.adminPinVerified });
+  });
+
   // Admin dashboard stats
   app.get("/api/admin/stats", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
     try {

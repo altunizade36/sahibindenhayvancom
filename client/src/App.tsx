@@ -41,6 +41,7 @@ const LiveStreamList = lazy(() => import("@/pages/live-stream-list"));
 const LiveStreamWatch = lazy(() => import("@/pages/live-stream-watch"));
 const LiveStreamCreate = lazy(() => import("@/pages/live-stream-create"));
 const AdminDashboard = lazy(() => import("@/pages/admin/index"));
+const AdminPinVerify = lazy(() => import("@/pages/admin/pin-verify"));
 const AdminUsers = lazy(() => import("@/pages/admin/users"));
 const AdminListings = lazy(() => import("@/pages/admin/listings"));
 const AdminStores = lazy(() => import("@/pages/admin/stores"));
@@ -156,6 +157,7 @@ function NoSidebarLayout() {
           <Route path="/canli-yayin/:id">{() => <LazyRoute component={LiveStreamWatch} />}</Route>
           <Route path="/yayin-baslat">{() => <LazyRoute component={LiveStreamCreate} />}</Route>
           <Route path="/kategori/:slug" component={CategoryDetail} />
+          <Route path="/admin/pin-dogrula">{() => <LazyRoute component={AdminPinVerify} />}</Route>
           <Route path="/admin">{() => <LazyRoute component={AdminDashboard} />}</Route>
           <Route path="/admin/kullanicilar">{() => <LazyRoute component={AdminUsers} />}</Route>
           <Route path="/admin/ilanlar">{() => <LazyRoute component={AdminListings} />}</Route>
