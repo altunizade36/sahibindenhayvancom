@@ -49,6 +49,13 @@ integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", 
 
 [userenv.shared]
 ADMIN_PANEL_PIN = "252525"
+VITE_FIREBASE_API_KEY = "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw"
+VITE_FIREBASE_AUTH_DOMAIN = "sahibindenhayvan-55728.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID = "sahibindenhayvan-55728"
+VITE_FIREBASE_STORAGE_BUCKET = "sahibindenhayvan-55728.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "391297918869"
+VITE_FIREBASE_APP_ID = "1:391297918869:web:4d10c85c9c5c810670789c"
+VITE_FIREBASE_MEASUREMENT_ID = "G-L6M9FYENF1"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-b7d12b8c-c133-494b-8a4c-92a2124522b3"

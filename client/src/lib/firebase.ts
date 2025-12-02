@@ -27,13 +27,13 @@ import {
 } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw",
-  authDomain: "sahibindenhayvan-55728.firebaseapp.com",
-  projectId: "sahibindenhayvan-55728",
-  storageBucket: "sahibindenhayvan-55728.firebasestorage.app",
-  messagingSenderId: "391297918869",
-  appId: "1:391297918869:web:4d10c85c9c5c810670789c",
-  measurementId: "G-L6M9FYENF1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "sahibindenhayvan-55728.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "sahibindenhayvan-55728",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "sahibindenhayvan-55728.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "391297918869",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:391297918869:web:4d10c85c9c5c810670789c",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-L6M9FYENF1"
 };
 
 // Initialize Firebase
