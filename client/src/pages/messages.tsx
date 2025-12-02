@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -223,16 +223,107 @@ type EmojiPickerProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+// Emoji anahtar kelimeleri (Türkçe)
+const EMOJI_KEYWORDS: Record<string, string[]> = {
+  "👍": ["beğeni", "tamam", "iyi", "ok", "başparmak", "like"],
+  "❤️": ["kalp", "aşk", "sevgi", "kırmızı", "heart", "love"],
+  "😊": ["gülümseme", "mutlu", "smile", "happy"],
+  "😂": ["kahkaha", "gülmek", "gülen", "komik", "laugh"],
+  "🙏": ["dua", "teşekkür", "rica", "lütfen", "pray"],
+  "👏": ["alkış", "tebrik", "bravo", "clap"],
+  "🔥": ["ateş", "sıcak", "harika", "fire"],
+  "✨": ["parıltı", "yıldız", "muhteşem", "sparkle"],
+  "💯": ["yüz", "mükemmel", "tam", "perfect"],
+  "🎉": ["parti", "kutlama", "confetti"],
+  "😍": ["aşık", "kalp gözlü", "bayıldım"],
+  "🥰": ["sevgi", "aşk", "mutlu"],
+  "😘": ["öpücük", "kiss"],
+  "🤗": ["sarılma", "kucak", "hug"],
+  "😢": ["üzgün", "ağlama", "sad", "cry"],
+  "😭": ["ağlıyor", "gözyaşı", "çok üzgün"],
+  "😤": ["sinirli", "kızgın", "angry"],
+  "🤔": ["düşünme", "hmm", "think"],
+  "👀": ["göz", "bakış", "eyes", "look"],
+  "💪": ["kas", "güç", "kuvvet", "strong", "muscle"],
+  "🐶": ["köpek", "dog", "puppy"],
+  "🐱": ["kedi", "cat", "kitty"],
+  "🐰": ["tavşan", "rabbit"],
+  "🦊": ["tilki", "fox"],
+  "🐻": ["ayı", "bear"],
+  "🐼": ["panda"],
+  "🐯": ["kaplan", "tiger"],
+  "🦁": ["aslan", "lion"],
+  "🐮": ["inek", "cow"],
+  "🐷": ["domuz", "pig"],
+  "🐸": ["kurbağa", "frog"],
+  "🐔": ["tavuk", "chicken"],
+  "🐦": ["kuş", "bird"],
+  "🐴": ["at", "horse"],
+  "🐶": ["köpek", "dog"],
+  "💔": ["kırık kalp", "üzgün", "broken heart"],
+  "💕": ["kalpler", "sevgi", "hearts"],
+  "🧡": ["turuncu kalp", "orange heart"],
+  "💛": ["sarı kalp", "yellow heart"],
+  "💚": ["yeşil kalp", "green heart"],
+  "💙": ["mavi kalp", "blue heart"],
+  "💜": ["mor kalp", "purple heart"],
+  "🖤": ["siyah kalp", "black heart"],
+  "🤍": ["beyaz kalp", "white heart"],
+  "👋": ["selam", "el sallama", "merhaba", "wave", "hello"],
+  "👌": ["tamam", "iyi", "ok"],
+  "✌️": ["barış", "zafer", "peace", "victory"],
+  "👎": ["beğenmedim", "kötü", "dislike"],
+  "👊": ["yumruk", "fist"],
+  "🤝": ["tokalaşma", "anlaşma", "handshake"],
+  "🎁": ["hediye", "gift", "present"],
+  "📱": ["telefon", "phone", "mobile"],
+  "💻": ["bilgisayar", "laptop", "computer"],
+  "📷": ["kamera", "fotoğraf", "camera"],
+  "💰": ["para", "money"],
+  "💳": ["kredi kartı", "card"],
+  "⚽": ["futbol", "football", "soccer"],
+  "🏀": ["basketbol", "basketball"],
+  "🎾": ["tenis", "tennis"],
+  "🏆": ["kupa", "şampiyonluk", "trophy"],
+  "🎮": ["oyun", "game", "gaming"],
+  "🎵": ["müzik", "nota", "music"],
+  "🎬": ["film", "sinema", "movie"],
+  "📚": ["kitap", "okumak", "book"],
+  "✈️": ["uçak", "seyahat", "plane", "travel"],
+  "🚗": ["araba", "car"],
+  "🏠": ["ev", "house", "home"],
+  "🌞": ["güneş", "sun"],
+  "🌧️": ["yağmur", "rain"],
+  "❄️": ["kar", "snow"],
+  "☕": ["kahve", "çay", "coffee"],
+  "🍕": ["pizza"],
+  "🍔": ["hamburger", "burger"],
+  "🍰": ["pasta", "cake"],
+  "🎂": ["doğum günü", "birthday"],
+};
+
 function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
   const [activeCategory, setActiveCategory] = useState("Sık Kullanılan");
   const [emojiSearch, setEmojiSearch] = useState("");
   
-  // Emoji arama fonksiyonu
-  const filteredEmojis = emojiSearch
-    ? Object.values(EMOJI_CATEGORIES).flatMap(cat => cat.emojis).filter((emoji, index, self) => 
-        self.indexOf(emoji) === index
-      )
-    : EMOJI_CATEGORIES[activeCategory]?.emojis || [];
+  // Emoji arama fonksiyonu - anahtar kelimelerle eşleştirme
+  const filteredEmojis = useMemo(() => {
+    if (!emojiSearch.trim()) {
+      return EMOJI_CATEGORIES[activeCategory]?.emojis || [];
+    }
+    
+    const searchLower = emojiSearch.toLowerCase().trim();
+    const allEmojis = Object.values(EMOJI_CATEGORIES).flatMap(cat => cat.emojis);
+    const uniqueEmojis = [...new Set(allEmojis)];
+    
+    return uniqueEmojis.filter(emoji => {
+      const keywords = EMOJI_KEYWORDS[emoji];
+      if (keywords) {
+        return keywords.some(kw => kw.toLowerCase().includes(searchLower));
+      }
+      return false;
+    });
+  }, [emojiSearch, activeCategory]);
   
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
@@ -301,22 +392,30 @@ function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
             {!emojiSearch && (
               <p className="text-xs text-muted-foreground mb-2 px-1">{activeCategory}</p>
             )}
-            <div className="grid grid-cols-8 gap-0.5">
-              {filteredEmojis.map((emoji, idx) => (
-                <button
-                  key={`${emoji}-${idx}`}
-                  className="w-9 h-9 flex items-center justify-center text-xl hover:bg-muted rounded-md transition-colors active:scale-95"
-                  onClick={() => {
-                    onSelect(emoji);
-                    onOpenChange(false);
-                    setEmojiSearch("");
-                  }}
-                  data-testid={`button-emoji-${idx}`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+            {emojiSearch && filteredEmojis.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                <Search className="h-8 w-8 mb-2 opacity-50" />
+                <p className="text-sm">Emoji bulunamadı</p>
+                <p className="text-xs mt-1">"{emojiSearch}" için sonuç yok</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-8 gap-0.5">
+                {filteredEmojis.map((emoji, idx) => (
+                  <button
+                    key={`${emoji}-${idx}`}
+                    className="w-9 h-9 flex items-center justify-center text-xl hover:bg-muted rounded-md transition-colors active:scale-95"
+                    onClick={() => {
+                      onSelect(emoji);
+                      onOpenChange(false);
+                      setEmojiSearch("");
+                    }}
+                    data-testid={`button-emoji-${idx}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </ScrollArea>
       </PopoverContent>
