@@ -412,63 +412,75 @@ export default function ListingDetail() {
               </DialogContent>
             </Dialog>
 
-            {/* Mobile Quick Actions */}
-            <div className="lg:hidden space-y-2">
-              <div className="grid grid-cols-2 gap-2">
+            {/* Mobile Quick Actions - Enhanced */}
+            <div className="lg:hidden space-y-3">
+              {/* Primary Message Button - Full Width */}
+              {listing.sellerId !== user?.id && (
                 <Button
-                  className="h-11"
+                  size="lg"
+                  className="w-full h-14 text-base font-semibold shadow-lg"
                   onClick={handleMessageSeller}
-                  disabled={listing.sellerId === user?.id}
                   data-testid="button-message-seller-mobile"
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj"}
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  Satıcıya Mesaj Gönder
                 </Button>
-                <Button
-                  variant="outline"
-                  className="h-11"
-                  onClick={handleFavoriteClick}
-                  disabled={toggleFavoriteMutation.isPending}
-                  data-testid="button-toggle-favorite-mobile"
-                >
-                  <Heart
-                    className={`w-4 h-4 mr-2 ${
-                      isFavorited ? "fill-red-500 text-red-500" : ""
-                    }`}
-                  />
-                  {isFavorited ? "Favoride" : "Favorile"}
-                </Button>
+              )}
+              
+              <div className="grid grid-cols-2 gap-2">
+                {listing.sellerId === user?.id ? (
+                  <Badge variant="secondary" className="h-11 justify-center col-span-2">
+                    Bu sizin ilanınız
+                  </Badge>
+                ) : (
+                  <>
+                    {/* Phone and WhatsApp buttons */}
+                    {listing.seller?.phone && (
+                      <>
+                        <Button variant="outline" className="w-full h-11" asChild>
+                          <a 
+                            href={`tel:${listing.seller?.phone || ''}`}
+                            data-testid="link-call-seller-mobile"
+                          >
+                            <PhoneCall className="w-4 h-4 mr-2" />
+                            Ara
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 text-green-600 border-green-500"
+                          asChild
+                        >
+                          <a 
+                            href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="link-whatsapp-seller-mobile"
+                          >
+                            <SiWhatsapp className="w-4 h-4 mr-2" />
+                            WhatsApp
+                          </a>
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
               
-              {/* Mobile Phone and WhatsApp buttons */}
-              {listing.seller?.phone && listing.sellerId !== user?.id && (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="w-full h-11" asChild>
-                    <a 
-                      href={`tel:${listing.seller?.phone || ''}`}
-                      data-testid="link-call-seller-mobile"
-                    >
-                      <PhoneCall className="w-4 h-4 mr-2" />
-                      Ara
-                    </a>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full h-11 text-green-600 border-green-600"
-                    asChild
-                  >
-                    <a 
-                      href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-testid="link-whatsapp-seller-mobile"
-                    >
-                      <SiWhatsapp className="w-4 h-4 mr-2" />
-                      WhatsApp
-                    </a>
-                  </Button>
-                </div>
-              )}
+              <Button
+                variant="outline"
+                className="w-full h-11"
+                onClick={handleFavoriteClick}
+                disabled={toggleFavoriteMutation.isPending}
+                data-testid="button-toggle-favorite-mobile"
+              >
+                <Heart
+                  className={`w-4 h-4 mr-2 ${
+                    isFavorited ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+                {isFavorited ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+              </Button>
             </div>
 
             {/* Details */}
@@ -630,6 +642,67 @@ export default function ListingDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
+            {/* Primary Contact CTA - Big prominent message button */}
+            {listing.sellerId !== user?.id && (
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                <CardContent className="p-4 md:p-5">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-2">
+                      <MessageSquare className="w-7 h-7 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">Bu İlanla İlgileniyor musunuz?</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Satıcıyla hemen iletişime geçin
+                      </p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                      onClick={handleMessageSeller}
+                      data-testid="button-message-seller-primary"
+                    >
+                      <MessageSquare className="w-5 h-5 mr-2" />
+                      Satıcıya Mesaj Gönder
+                    </Button>
+                    
+                    {listing.seller?.phone && (
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          className="h-11 bg-background"
+                          asChild
+                        >
+                          <a 
+                            href={`tel:${listing.seller?.phone || ''}`}
+                            data-testid="link-call-seller-primary"
+                          >
+                            <PhoneCall className="w-4 h-4 mr-2" />
+                            Ara
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-11 bg-background text-green-600 border-green-500 hover:bg-green-50 hover:text-green-700"
+                          asChild
+                        >
+                          <a 
+                            href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="link-whatsapp-seller-primary"
+                          >
+                            <SiWhatsapp className="w-4 h-4 mr-2" />
+                            WhatsApp
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Seller Info */}
             <Card>
               <CardHeader className="p-4 pb-2">
@@ -637,18 +710,23 @@ export default function ListingDetail() {
               </CardHeader>
               <CardContent className="p-4 pt-2 space-y-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 md:w-12 md:h-12">
-                    <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
-                    <AvatarFallback>
-                      {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-12 h-12 md:w-14 md:h-14 ring-2 ring-background shadow-md">
+                      <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                        {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Online indicator placeholder */}
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" title="Çevrimiçi" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate text-sm md:text-base" data-testid="text-seller-name">
+                    <div className="font-semibold truncate text-base" data-testid="text-seller-name">
                       {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
                     </div>
+                    <div className="text-xs text-green-600 font-medium">Çevrimiçi</div>
                     {listing.seller?.phone && (
-                      <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                         <Phone className="w-3 h-3" />
                         {listing.seller?.phone}
                       </div>
@@ -665,52 +743,14 @@ export default function ListingDetail() {
                   </div>
                 )}
                 
-                {/* Contact Buttons */}
-                <div className="space-y-2">
-                  <Button
-                    className="w-full h-10 md:h-11 hidden lg:flex"
-                    onClick={handleMessageSeller}
-                    disabled={listing.sellerId === user?.id}
-                    data-testid="button-message-seller"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    {listing.sellerId === user?.id ? "Kendi İlanınız" : "Mesaj Gönder"}
-                  </Button>
-                  
-                  {/* Phone and WhatsApp buttons - only show if seller has phone */}
-                  {listing.seller?.phone && listing.sellerId !== user?.id && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="w-full h-10"
-                        asChild
-                      >
-                        <a 
-                          href={`tel:${listing.seller?.phone || ''}`}
-                          data-testid="link-call-seller"
-                        >
-                          <PhoneCall className="w-4 h-4 mr-2" />
-                          Ara
-                        </a>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full h-10 text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700"
-                        asChild
-                      >
-                        <a 
-                          href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-testid="link-whatsapp-seller"
-                        >
-                          <SiWhatsapp className="w-4 h-4 mr-2" />
-                          WhatsApp
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                {/* Compact Contact Buttons for own listing view */}
+                {listing.sellerId === user?.id && (
+                  <div className="pt-2">
+                    <Badge variant="secondary" className="w-full justify-center py-2">
+                      Bu sizin ilanınız
+                    </Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

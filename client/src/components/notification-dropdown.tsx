@@ -26,9 +26,65 @@ import {
   Settings,
   Loader2,
   X,
+  Volume2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
+
+let audioContextInstance: AudioContext | null = null;
+let userHasInteracted = false;
+
+function initAudioContext() {
+  if (!audioContextInstance) {
+    try {
+      audioContextInstance = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (e) {
+      // Audio not supported
+    }
+  }
+  return audioContextInstance;
+}
+
+function handleUserInteraction() {
+  if (!userHasInteracted) {
+    userHasInteracted = true;
+    const ctx = initAudioContext();
+    if (ctx?.state === "suspended") {
+      ctx.resume();
+    }
+  }
+}
+
+if (typeof window !== "undefined") {
+  document.addEventListener("click", handleUserInteraction, { once: true });
+  document.addEventListener("keydown", handleUserInteraction, { once: true });
+}
+
+function playNotificationSound() {
+  if (!userHasInteracted) return;
+  
+  try {
+    const audioContext = initAudioContext();
+    if (!audioContext || audioContext.state !== "running") return;
+    
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = "sine";
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (e) {
+    // Audio not supported or blocked
+  }
+}
 
 interface Notification {
   id: string;
@@ -87,9 +143,12 @@ export function NotificationDropdown() {
     queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
     
+    playNotificationSound();
+    
     toast({
       title: notification.title,
       description: notification.message,
+      duration: 5000,
     });
   }, [toast]);
 
