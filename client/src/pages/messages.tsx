@@ -20,6 +20,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Send,
   MessageSquare,
   ArrowLeft,
@@ -43,6 +53,12 @@ import {
   FileText,
   Download,
   Loader2,
+  Smile,
+  Reply,
+  Pencil,
+  Trash2,
+  Copy,
+  CornerUpLeft,
 } from "lucide-react";
 import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -75,6 +91,8 @@ type Message = {
   messageType?: "text" | "image" | "file" | "system" | "offer";
   attachments?: Attachment[];
   listing?: ListingInfo;
+  isDeleted?: boolean;
+  isEdited?: boolean;
 };
 
 type PartnerUser = {
@@ -155,6 +173,91 @@ function TypingIndicator() {
     </div>
   );
 }
+
+// Emoji kategorileri
+const EMOJI_CATEGORIES = {
+  "Sık Kullanılan": ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "✨", "💯", "🎉"],
+  "Yüzler": ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "🥲", "😋"],
+  "Hayvanlar": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆"],
+  "El Hareketleri": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "👇", "☝️", "👍", "👎"],
+  "Kalpler": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟"],
+};
+
+type EmojiPickerProps = {
+  onSelect: (emoji: string) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
+  const [activeCategory, setActiveCategory] = useState("Sık Kullanılan");
+  
+  return (
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className="flex-shrink-0"
+          data-testid="button-emoji-picker"
+        >
+          <Smile className="h-5 w-5" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-80 p-0" 
+        align="start"
+        side="top"
+        sideOffset={8}
+      >
+        <div className="border-b">
+          <ScrollArea className="w-full">
+            <div className="flex p-1 gap-1">
+              {Object.keys(EMOJI_CATEGORIES).map((category) => (
+                <Button
+                  key={category}
+                  size="sm"
+                  variant={activeCategory === category ? "secondary" : "ghost"}
+                  className="text-xs whitespace-nowrap h-7 px-2"
+                  onClick={() => setActiveCategory(category)}
+                  data-testid={`button-emoji-category-${category}`}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <div className="p-2 h-48 overflow-y-auto">
+          <div className="grid grid-cols-8 gap-1">
+            {EMOJI_CATEGORIES[activeCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, idx) => (
+              <button
+                key={idx}
+                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-muted rounded transition-colors"
+                onClick={() => {
+                  onSelect(emoji);
+                  onOpenChange(false);
+                }}
+                data-testid={`button-emoji-${idx}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// Reply message type
+type ReplyMessage = {
+  id: string;
+  content: string;
+  senderId: string;
+  senderName: string;
+} | null;
 
 function ListingPanel({ listing, user }: { listing: ListingInfo; user: PartnerUser | null }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -318,6 +421,10 @@ export default function Messages() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [pendingAttachment, setPendingAttachment] = useState<Attachment | null>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<ReplyMessage>(null);
+  const [messageSearchQuery, setMessageSearchQuery] = useState("");
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -569,6 +676,73 @@ export default function Messages() {
     }, 2000);
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setMessageText((prev) => prev + emoji);
+    inputRef.current?.focus();
+  };
+
+  const handleReplyToMessage = (message: Message) => {
+    const senderName = message.senderId === user?.id 
+      ? "Siz" 
+      : `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim() || "Kullanıcı";
+    
+    // Fallback content for attachment-only messages
+    let replyContent = message.content;
+    if (!replyContent || replyContent === "Fotograf" || replyContent === "Dosya") {
+      if (message.attachments?.length) {
+        const firstAttachment = message.attachments[0];
+        replyContent = firstAttachment.type === "image" ? "Fotoğraf gönderisi" : `Dosya: ${firstAttachment.filename}`;
+      } else {
+        replyContent = "Mesaj";
+      }
+    }
+    
+    setReplyToMessage({
+      id: message.id,
+      content: replyContent,
+      senderId: message.senderId,
+      senderName,
+    });
+    inputRef.current?.focus();
+  };
+
+  const handleCopyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({
+      title: "Kopyalandı",
+      description: "Mesaj panoya kopyalandı",
+    });
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      // Optimistically update UI
+      queryClient.setQueryData<MessagesResponse>(
+        ["/api/messages", selectedUserId],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            messages: old.messages.map((m) =>
+              m.id === messageId
+                ? { ...m, content: "Bu mesaj silindi", isDeleted: true }
+                : m
+            ),
+          };
+        }
+      );
+      
+      ws.send(JSON.stringify({
+        type: "delete_message",
+        messageId,
+      }));
+      toast({
+        title: "Silindi",
+        description: "Mesaj silindi",
+      });
+    }
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesData?.messages]);
@@ -601,6 +775,13 @@ export default function Messages() {
   const currentListing = messagesData?.listing || selectedConversation?.lastMessage?.listing;
   const currentUser = selectedConversation?.user;
   const messages = messagesData?.messages || [];
+
+  // Filter messages for in-conversation search
+  const filteredMessages = messageSearchQuery
+    ? messages.filter((m) => 
+        m.content.toLowerCase().includes(messageSearchQuery.toLowerCase())
+      )
+    : messages;
 
   const filteredConversations = conversations?.filter((conv) => {
     // Unread filter
@@ -921,6 +1102,21 @@ export default function Messages() {
               </Button>
             )}
 
+            {/* In-conversation Search */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setShowMessageSearch(!showMessageSearch)}
+                  data-testid="button-message-search"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Mesajlarda Ara</TooltipContent>
+            </Tooltip>
+
             {selectedConversation && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -972,6 +1168,39 @@ export default function Messages() {
             )}
           </div>
 
+          {/* In-conversation Search Input */}
+          {showMessageSearch && (
+            <div className="p-2 border-b bg-muted/30">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Mesajlarda ara..."
+                  value={messageSearchQuery}
+                  onChange={(e) => setMessageSearchQuery(e.target.value)}
+                  className="pl-9 pr-9"
+                  autoFocus
+                  data-testid="input-message-search"
+                />
+                {messageSearchQuery && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setMessageSearchQuery("")}
+                    data-testid="button-clear-message-search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {messageSearchQuery && (
+                <p className="text-xs text-muted-foreground mt-1 px-1">
+                  {filteredMessages.length} sonuç bulundu
+                </p>
+              )}
+            </div>
+          )}
+
           {showListingPanel && currentListing && (
             <div className="lg:hidden border-b max-h-80 overflow-auto">
               <ListingPanel listing={currentListing} user={currentUser || null} />
@@ -995,12 +1224,12 @@ export default function Messages() {
               </div>
             ) : (
               <div className="space-y-3">
-                {messages.map((message, index) => {
+                {filteredMessages.map((message, index) => {
                   const isOwnMessage = message.senderId === user.id;
                   const showDate =
                     index === 0 ||
                     new Date(message.createdAt).toDateString() !==
-                      new Date(messages[index - 1].createdAt).toDateString();
+                      new Date(filteredMessages[index - 1].createdAt).toDateString();
 
                   return (
                     <div key={message.id}>
@@ -1016,11 +1245,59 @@ export default function Messages() {
                         </div>
                       )}
                       <div
-                        className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
+                        className={`group flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                         data-testid={`message-${message.id}`}
                       >
+                        {/* Message Actions - Left side for own messages */}
+                        {isOwnMessage && !message.isDeleted && (
+                          <div className="flex items-center gap-0.5 mr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  data-testid={`button-delete-message-${message.id}`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Sil</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => handleCopyMessage(message.content)}
+                                  data-testid={`button-copy-message-${message.id}`}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Kopyala</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => handleReplyToMessage(message)}
+                                  data-testid={`button-reply-message-${message.id}`}
+                                >
+                                  <Reply className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Yanıtla</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )}
+
                         <div
-                          className={`max-w-[80%] rounded-2xl ${
+                          className={`max-w-[70%] rounded-2xl transition-all duration-200 hover:shadow-md ${
                             message.attachments?.length ? "p-1" : "px-4 py-2"
                           } ${
                             isOwnMessage
@@ -1028,41 +1305,50 @@ export default function Messages() {
                               : "bg-muted rounded-bl-md"
                           }`}
                         >
-                          {message.attachments?.map((attachment, idx) => (
-                            <div key={idx} className="mb-1">
-                              {attachment.type === "image" ? (
-                                <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                                  <img
-                                    src={attachment.url}
-                                    alt={attachment.filename}
-                                    className="max-w-full rounded-lg max-h-60 object-cover"
-                                  />
-                                </a>
-                              ) : (
-                                <a
-                                  href={attachment.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 p-2 rounded-lg ${
-                                    isOwnMessage ? "bg-primary-foreground/10" : "bg-background"
-                                  }`}
-                                >
-                                  <FileText className="h-8 w-8 flex-shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">{attachment.filename}</p>
-                                    <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                                      {(attachment.size / 1024).toFixed(1)} KB
-                                    </p>
-                                  </div>
-                                  <Download className="h-4 w-4 flex-shrink-0" />
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                          {message.content && message.content !== "📷 Fotoğraf" && message.content !== "📎 Dosya" && (
-                            <p className={`text-sm whitespace-pre-wrap break-words ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
-                              {message.content}
+                          {/* Deleted message styling */}
+                          {message.isDeleted ? (
+                            <p className={`text-sm italic opacity-60 ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
+                              Bu mesaj silindi
                             </p>
+                          ) : (
+                            <>
+                              {message.attachments?.map((attachment, idx) => (
+                                <div key={idx} className="mb-1">
+                                  {attachment.type === "image" ? (
+                                    <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                                      <img
+                                        src={attachment.url}
+                                        alt={attachment.filename}
+                                        className="max-w-full rounded-lg max-h-60 object-cover"
+                                      />
+                                    </a>
+                                  ) : (
+                                    <a
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`flex items-center gap-2 p-2 rounded-lg ${
+                                        isOwnMessage ? "bg-primary-foreground/10" : "bg-background"
+                                      }`}
+                                    >
+                                      <FileText className="h-8 w-8 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate">{attachment.filename}</p>
+                                        <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                          {(attachment.size / 1024).toFixed(1)} KB
+                                        </p>
+                                      </div>
+                                      <Download className="h-4 w-4 flex-shrink-0" />
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                              {message.content && message.content !== "Fotograf" && message.content !== "Dosya" && (
+                                <p className={`text-sm whitespace-pre-wrap break-words ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
+                                  {message.content}
+                                </p>
+                              )}
+                            </>
                           )}
                           <div
                             className={`flex items-center justify-end gap-1 mt-1 ${message.attachments?.length ? "px-3 pb-1" : ""} ${
@@ -1075,6 +1361,40 @@ export default function Messages() {
                             {isOwnMessage && <MessageStatus status={message.status} />}
                           </div>
                         </div>
+
+                        {/* Message Actions - Right side for partner messages */}
+                        {!isOwnMessage && !message.isDeleted && (
+                          <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => handleReplyToMessage(message)}
+                                  data-testid={`button-reply-message-${message.id}`}
+                                >
+                                  <Reply className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Yanıtla</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => handleCopyMessage(message.content)}
+                                  data-testid={`button-copy-message-${message.id}`}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Kopyala</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -1094,6 +1414,27 @@ export default function Messages() {
           </ScrollArea>
 
           <form onSubmit={handleSendMessage} className="p-3 border-t flex-shrink-0">
+            {/* Reply Preview */}
+            {replyToMessage && (
+              <div className="mb-2 p-2 bg-primary/10 border-l-4 border-primary rounded-r-lg flex items-start gap-2">
+                <CornerUpLeft className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-primary">{replyToMessage.senderName}</p>
+                  <p className="text-sm text-muted-foreground truncate">{replyToMessage.content}</p>
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => setReplyToMessage(null)}
+                  data-testid="button-cancel-reply"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+
             {/* Upload Progress */}
             {uploadingFile && (
               <div className="mb-2 p-3 bg-muted rounded-lg">
@@ -1139,7 +1480,7 @@ export default function Messages() {
                 </Button>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -1162,6 +1503,14 @@ export default function Messages() {
                   <Paperclip className="h-4 w-4" />
                 )}
               </Button>
+              
+              {/* Emoji Picker */}
+              <EmojiPicker 
+                onSelect={handleEmojiSelect}
+                isOpen={emojiPickerOpen}
+                onOpenChange={setEmojiPickerOpen}
+              />
+              
               <Input
                 ref={inputRef}
                 placeholder="Mesajınızı yazın..."
