@@ -439,14 +439,25 @@ export default function MyStore() {
   if (!hasStore) {
     return (
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Building2 className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Mağazanızı Açın</h1>
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            Profesyonel bir mağaza profili oluşturarak binlerce potansiyel alıcıya ulaşın. 
+            Mağazanız onaylandıktan sonra ilanlarınızı mağazanız altında yayınlayabilirsiniz.
+          </p>
+        </div>
+        
         <Card>
           <CardHeader className="px-4 py-4 sm:px-6">
             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
-              Mağazanızı Oluşturun
+              Mağaza Bilgileri
             </CardTitle>
             <CardDescription className="text-sm">
-              Profesyonel bir mağaza profili oluşturarak ürünlerinizi sergileyin
+              Aşağıdaki formu doldurarak mağazanızı oluşturun
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">

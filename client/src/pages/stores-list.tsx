@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight } from "lucide-react";
+import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,28 +53,86 @@ const storeTypeLabels: Record<string, string> = {
 };
 
 export default function StoresList() {
+  const { user } = useUser();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Fetch hierarchical store categories
   const { data: categories = [] } = useQuery<StoreCategory[]>({
     queryKey: ["/api/store-categories"],
   });
 
+  // Build query params
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    if (typeFilter !== "all") params.type = typeFilter;
+    if (debouncedSearch) params.search = debouncedSearch;
+    return params;
+  }, [typeFilter, debouncedSearch]);
+
   // Fetch stores (either all or by category)
-  const { data: stores = [], isLoading } = useQuery<StoreListItem[]>({
+  const { data: stores = [], isLoading, isFetching } = useQuery<StoreListItem[]>({
     queryKey: selectedCategoryId 
-      ? ["/api/store-categories", selectedCategoryId, "stores"]
-      : ["/api/stores", { type: typeFilter !== "all" ? typeFilter : undefined, search: search || undefined }],
+      ? ["/api/store-categories", selectedCategoryId, "stores", queryParams]
+      : ["/api/stores", queryParams],
+    queryFn: async () => {
+      let url: string;
+      if (selectedCategoryId) {
+        // Category view - append filter params to category endpoint
+        const params = new URLSearchParams();
+        if (typeFilter !== "all") params.set("type", typeFilter);
+        if (debouncedSearch) params.set("search", debouncedSearch);
+        const queryString = params.toString();
+        url = `/api/store-categories/${selectedCategoryId}/stores${queryString ? `?${queryString}` : ""}`;
+      } else {
+        // All stores view
+        const params = new URLSearchParams();
+        if (typeFilter !== "all") params.set("type", typeFilter);
+        if (debouncedSearch) params.set("search", debouncedSearch);
+        const queryString = params.toString();
+        url = `/api/stores${queryString ? `?${queryString}` : ""}`;
+      }
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) throw new Error("Mağazalar yüklenemedi");
+      return response.json();
+    },
   });
 
-  const filteredStores = stores.filter(store => {
-    if (cityFilter !== "all" && store.city !== cityFilter) return false;
-    return true;
-  });
+  // Apply client-side filters (city filter + fallback for unsupported backend filters)
+  const filteredStores = useMemo(() => {
+    return stores.filter(store => {
+      // City filter is always applied client-side
+      if (cityFilter !== "all" && store.city !== cityFilter) return false;
+      
+      // Fallback client-side filtering if backend doesn't support these filters
+      if (debouncedSearch) {
+        const searchLower = debouncedSearch.toLowerCase();
+        const matchesName = store.displayName?.toLowerCase().includes(searchLower) || false;
+        const matchesSummary = store.summary?.toLowerCase().includes(searchLower) || false;
+        const matchesCity = store.city?.toLowerCase().includes(searchLower) || false;
+        if (!matchesName && !matchesSummary && !matchesCity) return false;
+      }
+      
+      // Type filter fallback
+      if (typeFilter !== "all" && store.storeType !== typeFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [stores, cityFilter, debouncedSearch, typeFilter]);
 
   const cities = Array.from(new Set(stores.map(s => s.city).filter(Boolean)));
 
@@ -172,14 +231,20 @@ export default function StoresList() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+              <div className="relative">
                 <label className="text-sm font-medium mb-2 block">Mağaza Adı</label>
-                <Input
-                  placeholder="Mağaza ara..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  data-testid="input-store-search"
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Mağaza ara..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    data-testid="input-store-search"
+                    className="pr-8"
+                  />
+                  {isFetching && (
+                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">Mağaza Tipi</label>
@@ -233,7 +298,26 @@ export default function StoresList() {
           <div className="text-center py-16">
             <Store className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold mb-2">Mağaza bulunamadı</h3>
-            <p className="text-muted-foreground">Farklı filtreler deneyebilirsiniz</p>
+            <p className="text-muted-foreground mb-6">
+              {debouncedSearch || typeFilter !== "all" || cityFilter !== "all" || selectedCategoryId
+                ? "Arama kriterlerinize uygun mağaza bulunamadı. Farklı filtreler deneyebilirsiniz."
+                : "Henüz kayıtlı mağaza bulunmuyor."}
+            </p>
+            {user && (
+              <Link href="/panel/magazam">
+                <Button data-testid="button-open-store">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Mağaza Aç
+                </Button>
+              </Link>
+            )}
+            {!user && (
+              <Link href="/giris">
+                <Button variant="outline" data-testid="button-login-to-open-store">
+                  Mağaza Açmak İçin Giriş Yapın
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
