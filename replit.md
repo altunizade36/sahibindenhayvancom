@@ -49,6 +49,14 @@ No specific user preferences were provided in the original document.
       - Responsive design for mobile/desktop
     - **Services**: Listings for veterinary and transportation services with profiles, reviews, and ratings.
     - **User Panel System**: Modern dashboard at `/panel/` with dedicated pages for listings (`/panel/ilanlarim`), favorites (`/panel/favorilerim`), and account settings (`/panel/ayarlar`). Features include quick stats, status filters, profile management, password change, and security status overview.
+    - **Competitive Features (7 systems)**:
+      1. **Recently Viewed Listings**: Tracks user viewing history, carousel display on home page, stored in `viewed_listings` table
+      2. **Listing Comparison**: Compare up to 4 listings side-by-side at `/karsilastir`, uses CompareContext with localStorage
+      3. **Guest Contact Form**: reCAPTCHA v3 protected form for non-logged visitors, stored in `contact_requests` table
+      4. **Individual Seller Rating**: Star rating (1-5) system with review text, stored in `seller_reviews` table, displayed on listing detail
+      5. **Saved Search Email Notifications**: Background job (saved-search-notifier.ts) every 60 minutes, sends matching listings via Resend API
+      6. **Direct Video Upload**: Video upload to object storage, stored in `listing_videos` table with processing status tracking
+      7. **Advanced Statistics**: Category price statistics with avg/min/max/median prices, city distribution, price ranges, market overview
 
 **Key API Endpoints:**
 - **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
@@ -63,6 +71,11 @@ No specific user preferences were provided in the original document.
 - **Favorites**: `/api/favorites`
 - **Saved Searches**: `/api/saved-searches` (GET list, POST create), `/api/saved-searches/:id` (PATCH update, DELETE remove) - kayıtlı aramalar ve bildirim ayarları
 - **Seller Analytics**: `/api/seller/analytics` (GET dashboard stats), `/api/seller/analytics/listing/:id` (GET individual listing performance)
+- **Recently Viewed**: `/api/viewed-listings` (GET user's history, POST add view, DELETE remove)
+- **Seller Reviews**: `/api/sellers/:sellerId/reviews` (GET reviews, POST add review)
+- **Contact Requests**: `/api/contact-requests` (POST submit guest form with reCAPTCHA)
+- **Video Upload**: `/api/listing-videos/upload` (POST), `/api/listing-videos/:listingId` (GET, DELETE)
+- **Category Statistics**: `/api/category-stats/:categorySlug` (GET real-time stats), `/api/market-stats` (GET overall market stats)
 - **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management), `/api/admin/document-requirements` (belge gereksinimleri yönetimi), `/api/admin/listing-documents` (belge doğrulama)
 
 **WebSocket Events:**
