@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle, ExternalLink } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { Progress } from "@/components/ui/progress";
 import { LogoFull } from "@/components/logo";
 import { Link, useLocation } from "wouter";
@@ -12,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
@@ -20,7 +22,8 @@ import {
   setupRecaptcha, 
   cleanupRecaptcha,
   formatPhoneNumber,
-  clearRateLimit
+  clearRateLimit,
+  signInWithGoogle
 } from "@/lib/firebase";
 
 const registerSchema = z.object({
@@ -66,6 +69,7 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [step, setStep] = useState<Step>("form");
   const [formData, setFormData] = useState<RegisterForm | null>(null);
   const [otpCode, setOtpCode] = useState("");
@@ -73,6 +77,39 @@ export default function Register() {
   const [smsProgress, setSmsProgress] = useState(0);
   const [smsStatus, setSmsStatus] = useState<"sending" | "waiting" | "ready">("sending");
   const [resendCountdown, setResendCountdown] = useState(0);
+  
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const { idToken, user } = await signInWithGoogle();
+      
+      const res = await apiRequest("POST", "/api/auth/firebase/login", {
+        idToken,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        provider: "google",
+      });
+      
+      const response: any = await res.json();
+      
+      toast({
+        title: "Kayıt Başarılı!",
+        description: response.message || "Google ile kayıt yapıldı.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Kayıt Başarısız",
+        description: error.message || "Google ile kayıt yapılamadı.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   useEffect(() => {
     clearRateLimit();
@@ -283,6 +320,32 @@ export default function Register() {
         <CardContent className="space-y-4">
           {step === "form" && (
             <>
+              {/* Google ile Kayıt */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignUp}
+                disabled={isGoogleLoading || isLoading}
+                data-testid="button-google-signup"
+              >
+                {isGoogleLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <SiGoogle className="w-4 h-4 mr-2" />
+                )}
+                Google ile Kayıt Ol
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">veya form ile</span>
+                </div>
+              </div>
+
               <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <span>Hem telefon hem email ile giriş yapabileceksiniz</span>

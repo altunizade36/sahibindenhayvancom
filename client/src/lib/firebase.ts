@@ -5,7 +5,14 @@ import {
   signInWithPhoneNumber,
   ConfirmationResult,
   PhoneAuthProvider,
-  signInWithCredential
+  signInWithCredential,
+  GoogleAuthProvider,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail as firebaseSendPasswordReset,
+  User
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -238,5 +245,143 @@ export function cleanupRecaptcha(): void {
   window.confirmationResult = undefined;
 }
 
+// ============================================
+// GOOGLE SIGN-IN
+// ============================================
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+export async function signInWithGoogle(): Promise<{ idToken: string; user: User }> {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
+      'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
+      'auth/cancelled-popup-request': 'Giriş iptal edildi',
+      'auth/account-exists-with-different-credential': 'Bu email başka bir giriş yöntemiyle kayıtlı',
+      'auth/network-request-failed': 'Ağ hatası. İnternet bağlantınızı kontrol edin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Google ile giriş başarısız';
+    throw new Error(message);
+  }
+}
+
+// ============================================
+// EMAIL/PASSWORD AUTHENTICATION
+// ============================================
+
+// Register with email and password
+export async function registerWithEmail(email: string, password: string): Promise<{ idToken: string; user: User }> {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Send email verification
+    await sendEmailVerification(user, {
+      url: window.location.origin + '/giris',
+      handleCodeInApp: false,
+    });
+    
+    const idToken = await user.getIdToken();
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/email-already-in-use': 'Bu email adresi zaten kayıtlı',
+      'auth/invalid-email': 'Geçersiz email adresi',
+      'auth/operation-not-allowed': 'Email/şifre girişi aktif değil',
+      'auth/weak-password': 'Şifre çok zayıf. En az 6 karakter olmalı.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Kayıt başarısız';
+    throw new Error(message);
+  }
+}
+
+// Sign in with email and password
+export async function signInWithEmail(email: string, password: string): Promise<{ idToken: string; user: User }> {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/invalid-email': 'Geçersiz email adresi',
+      'auth/user-disabled': 'Bu hesap devre dışı bırakılmış',
+      'auth/user-not-found': 'Bu email ile kayıtlı kullanıcı bulunamadı',
+      'auth/wrong-password': 'Yanlış şifre',
+      'auth/invalid-credential': 'Email veya şifre hatalı',
+      'auth/too-many-requests': 'Çok fazla başarısız deneme. Lütfen bekleyin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Giriş başarısız';
+    throw new Error(message);
+  }
+}
+
+// Send password reset email
+export async function sendPasswordReset(email: string): Promise<void> {
+  try {
+    await firebaseSendPasswordReset(auth, email, {
+      url: window.location.origin + '/giris',
+      handleCodeInApp: false,
+    });
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/invalid-email': 'Geçersiz email adresi',
+      'auth/user-not-found': 'Bu email ile kayıtlı kullanıcı bulunamadı',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Şifre sıfırlama emaili gönderilemedi';
+    throw new Error(message);
+  }
+}
+
+// Resend email verification
+export async function resendEmailVerification(): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Giriş yapmanız gerekiyor');
+  }
+  
+  try {
+    await sendEmailVerification(user, {
+      url: window.location.origin + '/giris',
+      handleCodeInApp: false,
+    });
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/too-many-requests': 'Çok fazla istek. Lütfen bekleyin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Email gönderilemedi';
+    throw new Error(message);
+  }
+}
+
+// Check if current user's email is verified
+export function isEmailVerified(): boolean {
+  const user = auth.currentUser;
+  return user?.emailVerified ?? false;
+}
+
+// Get current Firebase user
+export function getCurrentUser(): User | null {
+  return auth.currentUser;
+}
+
+// Sign out from Firebase
+export async function signOutFirebase(): Promise<void> {
+  await auth.signOut();
+}
+
 export { RecaptchaVerifier, signInWithPhoneNumber };
-export type { ConfirmationResult };
+export type { ConfirmationResult, User };

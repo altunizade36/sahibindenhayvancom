@@ -18,6 +18,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import PhoneLogin from "@/pages/phone-login";
 import ListingList from "@/pages/listing-list";
 import ListingDetail from "@/pages/listing-detail";
 import CategoryDetail from "@/pages/category-detail";
@@ -108,6 +109,7 @@ function NoSidebarLayout() {
         <Switch>
           <Route path="/giris" component={Login} />
           <Route path="/login" component={Login} />
+          <Route path="/telefon-giris" component={PhoneLogin} />
           <Route path="/kayit" component={Register} />
           <Route path="/register" component={Register} />
           <Route path="/forgot-password">{() => <LazyRoute component={ForgotPassword} />}</Route>
@@ -159,6 +161,7 @@ function Router() {
   const [location] = useLocation();
   const isNoSidebarRoute = location.startsWith('/giris') || 
                            location.startsWith('/login') || 
+                           location.startsWith('/telefon-giris') || 
                            location.startsWith('/kayit') || 
                            location.startsWith('/register') || 
                            location.startsWith('/forgot-password') || 

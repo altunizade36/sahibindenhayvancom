@@ -3,15 +3,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatPhoneNumber } from "@/lib/firebase";
+import { formatPhoneNumber, signInWithGoogle } from "@/lib/firebase";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email veya telefon numaranızı yazın"),
@@ -29,6 +31,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [identifierType, setIdentifierType] = useState<"unknown" | "email" | "phone">("unknown");
 
   const form = useForm<LoginForm>({
@@ -58,6 +61,7 @@ export default function Login() {
         identifier = formatPhoneNumber(data.identifier);
       }
 
+      // Use backend authentication (supports both Firebase and legacy users)
       const res = await apiRequest("POST", "/api/auth/login", {
         identifier: identifier,
         password: data.password,
@@ -92,6 +96,40 @@ export default function Login() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const { idToken, user } = await signInWithGoogle();
+      
+      // Send to our backend to create/update session
+      const res = await apiRequest("POST", "/api/auth/firebase/login", {
+        idToken,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        provider: "google",
+      });
+      
+      const response: any = await res.json();
+      
+      toast({
+        title: "Giriş Başarılı!",
+        description: response.message || "Google ile giriş yapıldı.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Giriş Başarısız",
+        description: error.message || "Google ile giriş yapılamadı.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   const getIdentifierIcon = () => {
     switch (identifierType) {
       case "email":
@@ -119,6 +157,46 @@ export default function Login() {
         </CardHeader>
         
         <CardContent className="space-y-4">
+          {/* Google Sign In Button */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading || isLoading}
+            data-testid="button-google-login"
+          >
+            {isGoogleLoading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <SiGoogle className="w-4 h-4 mr-2" />
+            )}
+            Google ile Giriş Yap
+          </Button>
+
+          {/* Phone Login Link */}
+          <Link href="/telefon-giris">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isLoading}
+              data-testid="button-phone-login"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Telefon ile Giriş Yap
+            </Button>
+          </Link>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">veya email ile</span>
+            </div>
+          </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-login">
               <FormField
@@ -154,7 +232,7 @@ export default function Login() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>Şifre</FormLabel>
-                      <Link href="/forgot-password">
+                      <Link href="/sifremi-unuttum">
                         <span className="text-xs text-primary hover:underline cursor-pointer" data-testid="link-forgot-password">
                           Şifremi Unuttum
                         </span>

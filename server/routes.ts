@@ -1689,6 +1689,103 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // Firebase Social/Email Login - Google, Email/Password authentication
+  app.post('/api/auth/firebase/login', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { idToken, email, displayName, photoURL, provider = 'email' } = req.body;
+
+      if (!idToken) {
+        return res.status(400).json({ message: "Firebase token gereklidir" });
+      }
+
+      // Verify Firebase ID token
+      const decodedToken = await verifyFirebaseToken(idToken);
+      
+      if (!decodedToken) {
+        return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
+      }
+
+      const firebaseUid = decodedToken.uid;
+      const firebaseEmail = decodedToken.email || email;
+      const emailVerified = decodedToken.email_verified || (provider === 'google');
+
+      if (!firebaseEmail) {
+        return res.status(400).json({ message: "Email adresi bulunamadı" });
+      }
+
+      let user;
+
+      // Check if user exists with this email or Firebase UID
+      const existingUser = await db.query.users.findFirst({
+        where: or(
+          eq(users.email, firebaseEmail),
+          eq(users.firebaseUid, firebaseUid)
+        ),
+      });
+
+      if (existingUser) {
+        // Update existing user with Firebase info
+        await db
+          .update(users)
+          .set({ 
+            firebaseUid,
+            emailVerified: emailVerified || existingUser.emailVerified,
+            profileImageUrl: photoURL || existingUser.profileImageUrl,
+          })
+          .where(eq(users.id, existingUser.id));
+
+        user = existingUser;
+      } else {
+        // Create new user from Firebase/Google
+        const nameParts = displayName?.split(' ') || [];
+        const firstName = nameParts[0] || firebaseEmail.split('@')[0];
+        const lastName = nameParts.slice(1).join(' ') || null;
+
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            email: firebaseEmail,
+            emailVerified,
+            firebaseUid,
+            firstName,
+            lastName,
+            profileImageUrl: photoURL || null,
+          })
+          .returning();
+
+        user = newUser;
+
+        console.log(`✅ New user created via Firebase ${provider}: ${user.email}`);
+      }
+
+      // Create session
+      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
+        if (err) {
+          console.error("Session creation error:", err);
+          return res.status(500).json({ message: "Oturum oluşturulamadı" });
+        }
+
+        res.json({
+          message: `${provider === 'google' ? 'Google' : 'Email'} ile giriş başarılı!`,
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            phoneVerified: user.phoneVerified,
+            emailVerified: user.emailVerified,
+            profileImageUrl: user.profileImageUrl,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Firebase login error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
   // Verify phone for existing user (add phone to account)
   app.post('/api/auth/phone/add', isAuthenticated, createLimiter, async (req: Request, res: Response) => {
     try {
