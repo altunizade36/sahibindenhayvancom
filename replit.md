@@ -32,7 +32,10 @@ No specific user preferences were provided in the original document.
 - **Backend**: Node.js + Express.
 - **Real-time**: WebSocket for messaging with session-based authentication (uses Replit Auth session cookies).
 - **Core Functionality**:
-    - **Animal Listings**: Advanced search with 6 filters (price, location, breed, age, health), image galleries, document uploads, and moderation.
+    - **Animal Listings**: Advanced search with 6 filters (price, location, breed, age, health), image galleries, document uploads, and moderation. 
+      - **Privacy**: Sensitive registration data (microchip, passport, ear tag, TÜRKVET numbers) are NOT stored or displayed - these remain private to sellers only
+      - **Price Handling**: Turkish locale format sanitization (12.500,00 → 12500.00), max 99,999,999.99 TL
+    - **Infinite Scroll + Pagination**: Home page uses hybrid browsing with infinite scroll (IntersectionObserver-based) and optional page numbers. /ilanlar uses traditional pagination with advanced filters for SEO.
     - **Hierarchical Categories**: 459 categories across 14 main domains (e.g., Pets, Farm Animals, Fish, Horses, Beekeeping).
     - **Advanced Messaging System**: Modern WhatsApp/Telegram-like real-time chat with:
       - Message types: text, image, file, system, offer
