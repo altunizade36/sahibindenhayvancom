@@ -1707,18 +1707,19 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       const firebaseUid = decodedToken.uid;
       const firebaseEmail = decodedToken.email || email;
-      const emailVerified = decodedToken.email_verified || (provider === 'google');
+      // For Apple/Twitter, email might not be available - generate a unique placeholder
+      const emailVerified = decodedToken.email_verified || (provider === 'google') || (provider === 'facebook');
 
-      if (!firebaseEmail) {
-        return res.status(400).json({ message: "Email adresi bulunamadı" });
-      }
+      // For Apple/Twitter with hidden email, we'll use Firebase UID as identifier
+      // Users can update their email later in profile settings
+      const effectiveEmail = firebaseEmail || `${firebaseUid}@${provider}.sahibindenhayvan.com`;
 
       let user;
 
       // Check if user exists with this email or Firebase UID
       const existingUser = await db.query.users.findFirst({
         where: or(
-          eq(users.email, firebaseEmail),
+          eq(users.email, effectiveEmail),
           eq(users.firebaseUid, firebaseUid)
         ),
       });
@@ -1736,16 +1737,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
         user = existingUser;
       } else {
-        // Create new user from Firebase/Google
+        // Create new user from Firebase/Social provider
         const nameParts = displayName?.split(' ') || [];
-        const firstName = nameParts[0] || firebaseEmail.split('@')[0];
+        const firstName = nameParts[0] || effectiveEmail.split('@')[0];
         const lastName = nameParts.slice(1).join(' ') || null;
 
         const [newUser] = await db
           .insert(users)
           .values({
-            email: firebaseEmail,
-            emailVerified,
+            email: effectiveEmail,
+            emailVerified: firebaseEmail ? emailVerified : false, // Not verified if using placeholder email
             firebaseUid,
             firstName,
             lastName,
@@ -1765,8 +1766,17 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           return res.status(500).json({ message: "Oturum oluşturulamadı" });
         }
 
+        const providerNames: Record<string, string> = {
+          google: 'Google',
+          facebook: 'Facebook',
+          twitter: 'X (Twitter)',
+          apple: 'Apple',
+          email: 'Email'
+        };
+        const providerName = providerNames[provider] || provider;
+
         res.json({
-          message: `${provider === 'google' ? 'Google' : 'Email'} ile giriş başarılı!`,
+          message: `${providerName} ile giriş başarılı!`,
           user: {
             id: user.id,
             email: user.email,

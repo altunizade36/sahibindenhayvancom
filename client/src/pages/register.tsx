@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, CheckCircle2, MessageCircle, ExternalLink } from "lucide-react";
-import { SiGoogle } from "react-icons/si";
+import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
+import { FaXTwitter } from "react-icons/fa6";
 import { Progress } from "@/components/ui/progress";
 import { LogoFull } from "@/components/logo";
 import { Link, useLocation } from "wouter";
@@ -23,7 +24,10 @@ import {
   cleanupRecaptcha,
   formatPhoneNumber,
   clearRateLimit,
-  signInWithGoogle
+  signInWithGoogle,
+  signInWithFacebook,
+  signInWithTwitter,
+  signInWithApple
 } from "@/lib/firebase";
 
 const registerSchema = z.object({
@@ -69,7 +73,7 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("form");
   const [formData, setFormData] = useState<RegisterForm | null>(null);
   const [otpCode, setOtpCode] = useState("");
@@ -78,36 +82,86 @@ export default function Register() {
   const [smsStatus, setSmsStatus] = useState<"sending" | "waiting" | "ready">("sending");
   const [resendCountdown, setResendCountdown] = useState(0);
   
-  const handleGoogleSignUp = async () => {
-    setIsGoogleLoading(true);
+  const handleSocialSignUp = async (provider: 'google' | 'facebook' | 'twitter' | 'apple') => {
+    setSocialLoading(provider);
+    const providerNames: Record<string, string> = {
+      google: 'Google',
+      facebook: 'Facebook',
+      twitter: 'X (Twitter)',
+      apple: 'Apple'
+    };
+    const providerName = providerNames[provider];
+    
     try {
-      const { idToken, user } = await signInWithGoogle();
+      let result;
+      
+      switch (provider) {
+        case 'google':
+          result = await signInWithGoogle();
+          break;
+        case 'facebook':
+          result = await signInWithFacebook();
+          break;
+        case 'twitter':
+          result = await signInWithTwitter();
+          break;
+        case 'apple':
+          result = await signInWithApple();
+          break;
+      }
+      
+      // Check if we got a valid result
+      if (!result || !result.idToken) {
+        throw new Error('Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.');
+      }
+      
+      // For Apple/Twitter, email might be null - backend will handle this
+      const email = result.user.email || null;
+      const displayName = result.user.displayName || null;
+      const photoURL = result.user.photoURL || null;
       
       const res = await apiRequest("POST", "/api/auth/firebase/login", {
-        idToken,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        provider: "google",
+        idToken: result.idToken,
+        email,
+        displayName,
+        photoURL,
+        provider,
       });
       
       const response: any = await res.json();
       
       toast({
         title: "Kayıt Başarılı!",
-        description: response.message || "Google ile kayıt yapıldı.",
+        description: response.message || `${providerName} ile kayıt yapıldı.`,
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
+      let errorMessage = `${providerName} ile kayıt yapılamadı.`;
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Kayıt penceresi kapatıldı. Lütfen tekrar deneyin.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup penceresi engellendi. Tarayıcı ayarlarınızı kontrol edin.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Kayıt iptal edildi.';
+      } else if (error.code === 'auth/operation-not-supported-in-this-environment') {
+        errorMessage = 'Bu kayıt yöntemi bu ortamda desteklenmiyor. Farklı bir yöntem deneyin.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'Bu email adresi farklı bir kayıt yöntemiyle kayıtlı. O yöntemi deneyin.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         variant: "destructive",
         title: "Kayıt Başarısız",
-        description: error.message || "Google ile kayıt yapılamadı.",
+        description: errorMessage,
       });
     } finally {
-      setIsGoogleLoading(false);
+      setSocialLoading(null);
     }
   };
 
@@ -320,29 +374,91 @@ export default function Register() {
         <CardContent className="space-y-4">
           {step === "form" && (
             <>
-              {/* Google ile Kayıt */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleGoogleSignUp}
-                disabled={isGoogleLoading || isLoading}
-                data-testid="button-google-signup"
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <SiGoogle className="w-4 h-4 mr-2" />
-                )}
-                Google ile Kayıt Ol
-              </Button>
+              {/* Social Sign Up Buttons Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Google */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={() => handleSocialSignUp('google')}
+                  disabled={socialLoading !== null || isLoading}
+                  data-testid="button-google-signup"
+                >
+                  {socialLoading === 'google' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <SiGoogle className="w-5 h-5 mr-2 text-[#4285F4]" />
+                      <span className="text-sm">Google</span>
+                    </>
+                  )}
+                </Button>
 
-              <div className="relative">
+                {/* Facebook */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={() => handleSocialSignUp('facebook')}
+                  disabled={socialLoading !== null || isLoading}
+                  data-testid="button-facebook-signup"
+                >
+                  {socialLoading === 'facebook' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <SiFacebook className="w-5 h-5 mr-2 text-[#1877F2]" />
+                      <span className="text-sm">Facebook</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* X (Twitter) */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={() => handleSocialSignUp('twitter')}
+                  disabled={socialLoading !== null || isLoading}
+                  data-testid="button-twitter-signup"
+                >
+                  {socialLoading === 'twitter' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <FaXTwitter className="w-5 h-5 mr-2" />
+                      <span className="text-sm">X</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Apple */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={() => handleSocialSignUp('apple')}
+                  disabled={socialLoading !== null || isLoading}
+                  data-testid="button-apple-signup"
+                >
+                  {socialLoading === 'apple' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <SiApple className="w-5 h-5 mr-2" />
+                      <span className="text-sm">Apple</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">veya form ile</span>
+                  <span className="bg-card px-3 text-muted-foreground">veya form ile</span>
                 </div>
               </div>
 

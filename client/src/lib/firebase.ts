@@ -7,6 +7,9 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
   GoogleAuthProvider,
+  FacebookAuthProvider,
+  TwitterAuthProvider,
+  OAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -381,6 +384,88 @@ export function getCurrentUser(): User | null {
 // Sign out from Firebase
 export async function signOutFirebase(): Promise<void> {
   await auth.signOut();
+}
+
+// ============================================
+// FACEBOOK SIGN-IN
+// ============================================
+const facebookProvider = new FacebookAuthProvider();
+facebookProvider.addScope('email');
+facebookProvider.addScope('public_profile');
+
+export async function signInWithFacebook(): Promise<{ idToken: string; user: User }> {
+  try {
+    const result = await signInWithPopup(auth, facebookProvider);
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
+      'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
+      'auth/cancelled-popup-request': 'Giriş iptal edildi',
+      'auth/account-exists-with-different-credential': 'Bu email başka bir giriş yöntemiyle kayıtlı. Lütfen o yöntemi kullanın.',
+      'auth/network-request-failed': 'Ağ hatası. İnternet bağlantınızı kontrol edin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Facebook ile giriş başarısız';
+    throw new Error(message);
+  }
+}
+
+// ============================================
+// TWITTER (X) SIGN-IN
+// ============================================
+const twitterProvider = new TwitterAuthProvider();
+
+export async function signInWithTwitter(): Promise<{ idToken: string; user: User }> {
+  try {
+    const result = await signInWithPopup(auth, twitterProvider);
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
+      'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
+      'auth/cancelled-popup-request': 'Giriş iptal edildi',
+      'auth/account-exists-with-different-credential': 'Bu email başka bir giriş yöntemiyle kayıtlı. Lütfen o yöntemi kullanın.',
+      'auth/network-request-failed': 'Ağ hatası. İnternet bağlantınızı kontrol edin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Twitter ile giriş başarısız';
+    throw new Error(message);
+  }
+}
+
+// ============================================
+// APPLE SIGN-IN
+// ============================================
+const appleProvider = new OAuthProvider('apple.com');
+appleProvider.addScope('email');
+appleProvider.addScope('name');
+
+export async function signInWithApple(): Promise<{ idToken: string; user: User }> {
+  try {
+    const result = await signInWithPopup(auth, appleProvider);
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
+      'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
+      'auth/cancelled-popup-request': 'Giriş iptal edildi',
+      'auth/account-exists-with-different-credential': 'Bu email başka bir giriş yöntemiyle kayıtlı. Lütfen o yöntemi kullanın.',
+      'auth/network-request-failed': 'Ağ hatası. İnternet bağlantınızı kontrol edin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Apple ile giriş başarısız';
+    throw new Error(message);
+  }
 }
 
 export { RecaptchaVerifier, signInWithPhoneNumber };
