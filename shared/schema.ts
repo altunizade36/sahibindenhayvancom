@@ -151,6 +151,13 @@ export const categoryDocumentRequirementEnum = pgEnum("category_document_require
   "optional"      // İsteğe bağlı
 ]);
 
+// User account status enum
+export const userStatusEnum = pgEnum("user_status", [
+  "active",      // Normal aktif kullanıcı
+  "banned",      // Yasaklanmış
+  "suspended",   // Geçici askıya alınmış
+]);
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",
@@ -201,12 +208,19 @@ export const users = pgTable("users", {
   // Language preference
   preferredLanguage: text("preferred_language").default("tr"), // tr or en
   
+  // Account status (for ban/suspend functionality)
+  status: userStatusEnum("status").default("active").notNull(),
+  statusChangedAt: timestamp("status_changed_at"),
+  statusChangedBy: varchar("status_changed_by"),
+  statusReason: text("status_reason"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   roleIdx: index("users_role_idx").on(table.role),
   cityIdx: index("users_city_idx").on(table.city),
   createdAtIdx: index("users_created_at_idx").on(table.createdAt),
+  statusIdx: index("users_status_idx").on(table.status),
 }));
 
 export type UpsertUser = typeof users.$inferInsert;

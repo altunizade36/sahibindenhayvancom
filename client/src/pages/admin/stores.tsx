@@ -357,7 +357,7 @@ export default function AdminStoresPage() {
                   variant: "destructive",
                 },
                 {
-                  label: store.status === "suspended" ? "Askıyı Kaldır" : "Askıya Al",
+                  label: "Askıya Al",
                   icon: <Ban className="h-4 w-4" />,
                   onClick: (store) => setSuspendStore(store),
                   variant: "destructive",

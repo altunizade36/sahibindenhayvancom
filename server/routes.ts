@@ -6205,8 +6205,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           lastName: users.lastName,
           username: users.username,
           role: users.role,
+          status: users.status,
+          statusChangedAt: users.statusChangedAt,
+          statusReason: users.statusReason,
           emailVerified: users.emailVerified,
           phoneVerified: users.phoneVerified,
+          profileImageUrl: users.profileImageUrl,
           createdAt: users.createdAt,
         })
         .from(users)
@@ -6253,7 +6257,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   app.patch("/api/admin/users/:id/status", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, reason } = req.body;
       
       // Validate status
       const validStatuses = ['active', 'banned', 'suspended'];
@@ -6267,12 +6271,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Kendinizi yasaklayamazsınız" });
       }
       
-      // For now, we'll handle status via role - banned users get their role set to a special value
-      // In a full implementation, add a status column to users table
+      // Update user status with audit trail
       const [updatedUser] = await db
         .update(users)
         .set({ 
-          role: status === 'banned' ? 'banned' as any : 'buyer' as any,
+          status: status as any,
+          statusChangedAt: new Date(),
+          statusChangedBy: adminId,
+          statusReason: reason || null,
         })
         .where(eq(users.id, id))
         .returning();
@@ -6281,8 +6287,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
       
-      // Return user with computed status field
-      res.json({ ...updatedUser, status: updatedUser.role === 'banned' ? 'banned' : 'active' });
+      res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user status:", error);
       res.status(500).json({ message: "Durum güncellenemedi" });
