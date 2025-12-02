@@ -208,11 +208,10 @@ function createEmailService(): EmailService {
 }
 
 // Check if auto-verify should be enabled
-// TEMPORARILY DISABLED: Email verification bypassed - all users auto-verified
-// This allows immediate login without email confirmation
-// TODO: Re-enable when email service (SendGrid/Resend) is properly configured
+// Returns true only when RESEND_API_KEY is NOT configured (development mode)
 export function shouldAutoVerifyEmail(): boolean {
-  return true; // Always auto-verify until email service is set up
+  const hasResendKey = !!process.env.RESEND_API_KEY;
+  return !hasResendKey; // Auto-verify only in development mode (when no Resend key)
 }
 
 // Export email service instance
