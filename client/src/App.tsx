@@ -85,7 +85,7 @@ function SidebarLayout() {
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-y-auto">
           {/* Mobilde sidebar toggle butonu */}
           <div className="md:hidden sticky top-0 z-40 bg-background border-b p-2">
             <SidebarTrigger data-testid="button-sidebar-toggle" />

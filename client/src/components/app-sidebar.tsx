@@ -454,7 +454,7 @@ export function AppSidebar() {
             ) : null}
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="max-h-[50vh] overflow-y-auto">
+            <div className="overflow-y-auto">
               {isError ? (
                 <div className="p-2 text-center">
                   <p className="text-sm text-muted-foreground mb-2">Kategoriler yüklenemedi</p>
