@@ -1007,6 +1007,46 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 
+// Saved Searches table (Kayıtlı Aramalar)
+export const savedSearches = pgTable("saved_searches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  filters: jsonb("filters").$type<{
+    minPrice?: string;
+    maxPrice?: string;
+    city?: string;
+    district?: string;
+    categorySlug?: string;
+    gender?: string;
+    ageCategory?: string;
+    breed?: string;
+    healthStatus?: string;
+    vaccinated?: string;
+    neutered?: string;
+    pedigree?: string;
+    characterTraits?: string[];
+    searchQuery?: string;
+  }>().notNull(),
+  notifyEnabled: boolean("notify_enabled").default(false).notNull(),
+  lastNotifiedAt: timestamp("last_notified_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("saved_searches_user_idx").on(table.userId),
+  notifyIdx: index("saved_searches_notify_idx").on(table.notifyEnabled),
+}));
+
+export const insertSavedSearchSchema = createInsertSchema(savedSearches).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastNotifiedAt: true,
+});
+
+export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
+export type SavedSearch = typeof savedSearches.$inferSelect;
+
 // Notification type enum
 export const notificationTypeEnum = pgEnum("notification_type", [
   "new_message",        // Yeni mesaj geldi
@@ -1017,6 +1057,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "auction_outbid",     // Açık artırmada birisi geçti
   "auction_won",        // Açık artırmayı kazandı
   "auction_ending",     // Açık artırma bitiyor
+  "saved_search_match", // Kayıtlı arama eşleşmesi bulundu
   "system",             // Sistem bildirimi
 ]);
 

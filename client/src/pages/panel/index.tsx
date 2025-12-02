@@ -293,6 +293,12 @@ export default function PanelDashboard() {
               count={notificationCount.count}
               active={location === "/bildirimler"}
             />
+            <SidebarLink
+              href="/panel/analizler"
+              icon={TrendingUp}
+              label="Analizler"
+              active={location === "/panel/analizler"}
+            />
 
             <div className="pt-4 mt-4 border-t">
               <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase">
@@ -381,6 +387,15 @@ export default function PanelDashboard() {
                 >
                   <Heart className="w-4 h-4 mr-1" />
                   Favoriler
+                </Button>
+              </Link>
+              <Link href="/panel/analizler">
+                <Button
+                  variant={location === "/panel/analizler" ? "default" : "outline"}
+                  size="sm"
+                >
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  Analizler
                 </Button>
               </Link>
               <Link href="/panel/ayarlar">
@@ -493,6 +508,12 @@ export default function PanelDashboard() {
                   }
                   icon={MessageSquare}
                   href="/mesajlar"
+                />
+                <QuickActionCard
+                  title="Analizleri Görüntüle"
+                  description="İlan performansını takip edin"
+                  icon={TrendingUp}
+                  href="/panel/analizler"
                 />
               </div>
             </div>

@@ -101,9 +101,22 @@ const formatPrice = (value: number): string => {
   return value.toString();
 };
 
+interface SavedSearch {
+  id: string;
+  name: string;
+  filters: FilterValues;
+  notifyEnabled: boolean;
+  createdAt: string;
+}
+
 export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<FilterValues>(currentFilters);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [savedSearchesOpen, setSavedSearchesOpen] = useState(false);
+  const [searchName, setSearchName] = useState("");
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setLocalFilters(currentFilters);
@@ -114,6 +127,60 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
     staleTime: 1000 * 60 * 60,
   });
 
+  // Fetch saved searches
+  const { data: savedSearches = [], isLoading: loadingSavedSearches } = useQuery<SavedSearch[]>({
+    queryKey: ["/api/saved-searches"],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Save search mutation
+  const saveSearchMutation = useMutation({
+    mutationFn: async (data: { name: string; filters: FilterValues; notifyEnabled: boolean }) => {
+      return await apiRequest("POST", "/api/saved-searches", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-searches"] });
+      setSaveDialogOpen(false);
+      setSearchName("");
+      setNotifyEnabled(false);
+      toast({
+        title: "Arama kaydedildi",
+        description: "Aramayı kayıtlı aramalarınızdan bulabilirsiniz.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Hata",
+        description: error.message || "Arama kaydedilemedi",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete saved search mutation
+  const deleteSearchMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/saved-searches/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-searches"] });
+      toast({
+        title: "Arama silindi",
+        description: "Kayıtlı arama başarıyla silindi.",
+      });
+    },
+  });
+
+  // Toggle notification mutation
+  const toggleNotifyMutation = useMutation({
+    mutationFn: async ({ id, notifyEnabled }: { id: string; notifyEnabled: boolean }) => {
+      return await apiRequest("PATCH", `/api/saved-searches/${id}`, { notifyEnabled });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-searches"] });
+    },
+  });
+
   // Fetch districts when city is selected (find city by name)
   const selectedCityData = cities.find(c => c.name === localFilters.city);
   const { data: districts = [] } = useQuery<Location[]>({
@@ -121,6 +188,32 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
     enabled: !!selectedCityData?.id,
     staleTime: 1000 * 60 * 60,
   });
+
+  const handleSaveSearch = () => {
+    if (!searchName.trim()) {
+      toast({
+        title: "Hata",
+        description: "Lütfen aramaya bir isim verin",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveSearchMutation.mutate({
+      name: searchName.trim(),
+      filters: currentFilters,
+      notifyEnabled,
+    });
+  };
+
+  const handleLoadSearch = (savedSearch: SavedSearch) => {
+    onFilterChange(savedSearch.filters);
+    setSavedSearchesOpen(false);
+    setIsOpen(false);
+    toast({
+      title: "Arama yüklendi",
+      description: `"${savedSearch.name}" araması uygulandı.`,
+    });
+  };
 
   const handleApply = () => {
     onFilterChange(localFilters);
@@ -550,29 +643,180 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
               
               <ScrollArea className="flex-1 p-3 min-[400px]:p-4 overflow-y-auto">
                 <FilterContent />
+                
+                {/* Saved Searches Section */}
+                {savedSearches.length > 0 && (
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-sm font-medium flex items-center gap-2">
+                        <BellRing className="w-4 h-4" />
+                        Kayıtlı Aramalarım
+                      </Label>
+                      <Badge variant="outline" className="text-xs">
+                        {savedSearches.length}/10
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      {savedSearches.slice(0, 5).map((search) => (
+                        <div 
+                          key={search.id}
+                          className="flex items-center justify-between p-2 rounded-lg border bg-card hover-elevate cursor-pointer"
+                          onClick={() => handleLoadSearch(search)}
+                          data-testid={`saved-search-${search.id}`}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-sm truncate">{search.name}</span>
+                            {search.notifyEnabled && (
+                              <Bell className="w-3 h-3 text-primary shrink-0" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleNotifyMutation.mutate({
+                                  id: search.id,
+                                  notifyEnabled: !search.notifyEnabled,
+                                });
+                              }}
+                              data-testid={`toggle-notify-${search.id}`}
+                            >
+                              {search.notifyEnabled ? (
+                                <Bell className="w-3.5 h-3.5 text-primary" />
+                              ) : (
+                                <Bell className="w-3.5 h-3.5 text-muted-foreground" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteSearchMutation.mutate(search.id);
+                              }}
+                              data-testid={`delete-search-${search.id}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {savedSearches.length > 5 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs"
+                          onClick={() => setSavedSearchesOpen(true)}
+                        >
+                          Tümünü Gör ({savedSearches.length})
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </ScrollArea>
 
-              <SheetFooter className="p-3 min-[400px]:p-4 border-t gap-2 shrink-0">
-                <Button 
-                  variant="outline" 
-                  onClick={handleReset}
-                  className="flex-1 h-11"
-                  data-testid="button-reset-filters"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Temizle
-                </Button>
-                <Button 
-                  onClick={handleApply}
-                  className="flex-1 h-11"
-                  data-testid="button-apply-filters"
-                >
-                  <Check className="w-4 h-4 mr-2" />
-                  Uygula ({activeFilterCount})
-                </Button>
+              <SheetFooter className="p-3 min-[400px]:p-4 border-t shrink-0">
+                <div className="w-full space-y-2">
+                  {/* Save Search Button */}
+                  {activeFilterCount > 0 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSaveDialogOpen(true)}
+                      className="w-full h-10"
+                      data-testid="button-save-search"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Bu Aramayı Kaydet
+                    </Button>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleReset}
+                      className="flex-1 h-11"
+                      data-testid="button-reset-filters"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Temizle
+                    </Button>
+                    <Button 
+                      onClick={handleApply}
+                      className="flex-1 h-11"
+                      data-testid="button-apply-filters"
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      Uygula ({activeFilterCount})
+                    </Button>
+                  </div>
+                </div>
               </SheetFooter>
             </SheetContent>
           </Sheet>
+
+          {/* Save Search Dialog */}
+          <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Save className="w-5 h-5" />
+                  Aramayı Kaydet
+                </DialogTitle>
+                <DialogDescription>
+                  Bu arama kriterlerini kaydedin ve yeni ilanlardan haberdar olun.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="search-name">Arama Adı</Label>
+                  <Input
+                    id="search-name"
+                    placeholder="Örn: Golden Retriever İstanbul"
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    data-testid="input-search-name"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="notify-switch" className="flex items-center gap-2">
+                      <Bell className="w-4 h-4" />
+                      Bildirim Al
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Yeni eşleşen ilanlar için bildirim alın
+                    </p>
+                  </div>
+                  <Switch
+                    id="notify-switch"
+                    checked={notifyEnabled}
+                    onCheckedChange={setNotifyEnabled}
+                    data-testid="switch-notify"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setSaveDialogOpen(false)}
+                >
+                  İptal
+                </Button>
+                <Button
+                  onClick={handleSaveSearch}
+                  disabled={saveSearchMutation.isPending}
+                  data-testid="button-confirm-save-search"
+                >
+                  {saveSearchMutation.isPending ? "Kaydediliyor..." : "Kaydet"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

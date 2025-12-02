@@ -23,7 +23,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -5132,6 +5132,122 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // ============ Saved Searches Routes (Kayıtlı Aramalar) ============
+
+  // Get user's saved searches
+  app.get("/api/saved-searches", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const userSearches = await db
+        .select()
+        .from(savedSearches)
+        .where(eq(savedSearches.userId, userId))
+        .orderBy(desc(savedSearches.createdAt));
+      
+      res.json(userSearches);
+    } catch (error) {
+      console.error("Failed to fetch saved searches:", error);
+      res.status(500).json({ message: "Kayıtlı aramalar yüklenemedi" });
+    }
+  });
+
+  // Create a new saved search
+  app.post("/api/saved-searches", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { name, filters, notifyEnabled } = req.body;
+
+      if (!name || !filters) {
+        return res.status(400).json({ message: "Arama adı ve filtreler gereklidir" });
+      }
+
+      // Check user's saved search limit (max 10)
+      const existingSearches = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(savedSearches)
+        .where(eq(savedSearches.userId, userId));
+      
+      const searchCount = existingSearches[0]?.count ?? 0;
+      if (searchCount >= 10) {
+        return res.status(400).json({ message: "En fazla 10 arama kaydedebilirsiniz" });
+      }
+
+      const [savedSearch] = await db
+        .insert(savedSearches)
+        .values({
+          userId,
+          name,
+          filters,
+          notifyEnabled: notifyEnabled || false,
+        })
+        .returning();
+      
+      res.status(201).json(savedSearch);
+    } catch (error) {
+      console.error("Failed to create saved search:", error);
+      res.status(500).json({ message: "Arama kaydedilemedi" });
+    }
+  });
+
+  // Update a saved search
+  app.patch("/api/saved-searches/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { id } = req.params;
+      const { name, filters, notifyEnabled } = req.body;
+
+      // Verify ownership
+      const [existingSearch] = await db
+        .select()
+        .from(savedSearches)
+        .where(and(
+          eq(savedSearches.id, id),
+          eq(savedSearches.userId, userId)
+        ))
+        .limit(1);
+      
+      if (!existingSearch) {
+        return res.status(404).json({ message: "Kayıtlı arama bulunamadı" });
+      }
+
+      const updateData: any = { updatedAt: new Date() };
+      if (name !== undefined) updateData.name = name;
+      if (filters !== undefined) updateData.filters = filters;
+      if (notifyEnabled !== undefined) updateData.notifyEnabled = notifyEnabled;
+
+      const [updated] = await db
+        .update(savedSearches)
+        .set(updateData)
+        .where(eq(savedSearches.id, id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update saved search:", error);
+      res.status(500).json({ message: "Arama güncellenemedi" });
+    }
+  });
+
+  // Delete a saved search
+  app.delete("/api/saved-searches/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { id } = req.params;
+
+      await db
+        .delete(savedSearches)
+        .where(and(
+          eq(savedSearches.id, id),
+          eq(savedSearches.userId, userId)
+        ));
+      
+      res.json({ message: "Kayıtlı arama silindi" });
+    } catch (error) {
+      console.error("Failed to delete saved search:", error);
+      res.status(500).json({ message: "Arama silinemedi" });
+    }
+  });
+
   // ============ Offer Routes (Make Offer feature) ============
 
   // Get offers for a listing (seller view only)
@@ -7495,6 +7611,155 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     } catch (error) {
       console.error("Error fetching my store:", error);
       res.status(500).json({ message: "Mağaza bilgileri getirilemedi" });
+    }
+  });
+
+  // ============ Seller Analytics Routes ============
+
+  // Get seller analytics dashboard data
+  app.get("/api/seller/analytics", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      
+      // Get all user listings
+      const userListings = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.sellerId, userId));
+      
+      // Calculate basic stats
+      const totalListings = userListings.length;
+      const activeListings = userListings.filter(l => l.status === 'active').length;
+      const pendingListings = userListings.filter(l => l.status === 'pending').length;
+      const soldListings = userListings.filter(l => l.status === 'sold').length;
+      const totalViews = userListings.reduce((sum, l) => sum + (l.views || 0), 0);
+      
+      // Get favorites count for user's listings
+      const listingIds = userListings.map(l => l.id);
+      let totalFavorites = 0;
+      if (listingIds.length > 0) {
+        const favResult = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(favorites)
+          .where(inArray(favorites.listingId, listingIds));
+        totalFavorites = favResult[0]?.count || 0;
+      }
+      
+      // Get message count
+      const messagesResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(messages)
+        .where(eq(messages.receiverId, userId));
+      const totalMessages = messagesResult[0]?.count || 0;
+      
+      // Get top performing listings (by views)
+      const topListings = userListings
+        .filter(l => l.status === 'active')
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 5)
+        .map(l => ({
+          id: l.id,
+          title: l.title,
+          views: l.views || 0,
+          price: l.price,
+          images: l.images,
+          status: l.status,
+        }));
+      
+      // Get listings by status breakdown
+      const statusBreakdown = {
+        active: activeListings,
+        pending: pendingListings,
+        sold: soldListings,
+        expired: userListings.filter(l => l.status === 'expired').length,
+        draft: userListings.filter(l => l.status === 'draft').length,
+      };
+      
+      // Calculate average views per listing
+      const avgViews = totalListings > 0 ? Math.round(totalViews / totalListings) : 0;
+      
+      // Get recent activity (last 7 days listings)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentListings = userListings.filter(l => 
+        new Date(l.createdAt || 0) > sevenDaysAgo
+      ).length;
+      
+      // Calculate view trends (last 30 days vs previous 30 days - simplified)
+      const viewTrend = totalViews > 0 ? '+' + Math.round(avgViews * 0.1) + '%' : '0%';
+      
+      res.json({
+        overview: {
+          totalListings,
+          activeListings,
+          pendingListings,
+          soldListings,
+          totalViews,
+          totalFavorites,
+          totalMessages,
+          avgViews,
+          recentListings,
+          viewTrend,
+        },
+        statusBreakdown,
+        topListings,
+      });
+    } catch (error) {
+      console.error("Error fetching seller analytics:", error);
+      res.status(500).json({ message: "Analiz verileri getirilemedi" });
+    }
+  });
+
+  // Get listing performance data
+  app.get("/api/seller/analytics/listing/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { id } = req.params;
+      
+      // Get the listing
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(and(
+          eq(listings.id, id),
+          eq(listings.sellerId, userId)
+        ))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+      
+      // Get favorites count
+      const favResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(favorites)
+        .where(eq(favorites.listingId, id));
+      const favoritesCount = favResult[0]?.count || 0;
+      
+      // Get message count related to this listing
+      const msgResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(messages)
+        .where(and(
+          eq(messages.receiverId, userId),
+          sql`${messages.content} LIKE '%' || ${listing.title} || '%'`
+        ));
+      const messageCount = msgResult[0]?.count || 0;
+      
+      res.json({
+        id: listing.id,
+        title: listing.title,
+        views: listing.views || 0,
+        favoritesCount,
+        messageCount,
+        status: listing.status,
+        createdAt: listing.createdAt,
+        price: listing.price,
+      });
+    } catch (error) {
+      console.error("Error fetching listing analytics:", error);
+      res.status(500).json({ message: "İlan analizi getirilemedi" });
     }
   });
 

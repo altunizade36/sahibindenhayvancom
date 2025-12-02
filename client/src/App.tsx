@@ -63,6 +63,7 @@ const PanelDashboard = lazy(() => import("@/pages/panel/index"));
 const PanelIlanlarim = lazy(() => import("@/pages/panel/ilanlarim"));
 const PanelFavorilerim = lazy(() => import("@/pages/panel/favorilerim"));
 const PanelAyarlar = lazy(() => import("@/pages/panel/ayarlar"));
+const PanelAnalizler = lazy(() => import("@/pages/panel/analizler"));
 const KullanimKosullari = lazy(() => import("@/pages/legal/kullanim-kosullari"));
 const GizlilikPolitikasi = lazy(() => import("@/pages/legal/gizlilik-politikasi"));
 const CerezPolitikasi = lazy(() => import("@/pages/legal/cerez-politikasi"));
@@ -138,6 +139,7 @@ function NoSidebarLayout() {
           <Route path="/panel/ilanlarim">{() => <LazyRoute component={PanelIlanlarim} />}</Route>
           <Route path="/panel/favorilerim">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
           <Route path="/panel/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
+          <Route path="/panel/analizler">{() => <LazyRoute component={PanelAnalizler} />}</Route>
           <Route path="/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
           <Route path="/favoriler">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
           <Route path="/bildirimler">{() => <LazyRoute component={NotificationsPage} />}</Route>
