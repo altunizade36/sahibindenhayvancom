@@ -11,11 +11,19 @@ import {
   TwitterAuthProvider,
   OAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
   sendPasswordResetEmail as firebaseSendPasswordReset,
-  User
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+  linkWithCredential,
+  EmailAuthProvider,
+  User,
+  ActionCodeSettings
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -35,6 +43,9 @@ const app = initializeApp(firebaseConfig);
 // Firebase Phone Auth uses its own invisible reCAPTCHA automatically
 
 export const auth = getAuth(app);
+
+// Set Turkish language for Firebase Auth (affects SMS messages, reCAPTCHA, etc.)
+auth.languageCode = 'tr';
 
 // Rate limit key for cleanup only
 const RATE_LIMIT_KEY = 'firebase_phone_rate_limit';
@@ -263,6 +274,13 @@ export async function signInWithGoogle(): Promise<{ idToken: string; user: User 
     
     return { idToken, user };
   } catch (error: any) {
+    // If popup fails, try redirect method (better for mobile)
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.log('Popup not supported, trying redirect...');
+      await signInWithRedirect(auth, googleProvider);
+      throw new Error('Yönlendirme yapılıyor...');
+    }
+    
     const errorMessages: Record<string, string> = {
       'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
       'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
@@ -401,6 +419,13 @@ export async function signInWithFacebook(): Promise<{ idToken: string; user: Use
     
     return { idToken, user };
   } catch (error: any) {
+    // If popup fails, try redirect method (better for mobile)
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.log('Popup not supported, trying redirect...');
+      await signInWithRedirect(auth, facebookProvider);
+      throw new Error('Yönlendirme yapılıyor...');
+    }
+    
     const errorMessages: Record<string, string> = {
       'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
       'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
@@ -427,6 +452,13 @@ export async function signInWithTwitter(): Promise<{ idToken: string; user: User
     
     return { idToken, user };
   } catch (error: any) {
+    // If popup fails, try redirect method (better for mobile)
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.log('Popup not supported, trying redirect...');
+      await signInWithRedirect(auth, twitterProvider);
+      throw new Error('Yönlendirme yapılıyor...');
+    }
+    
     const errorMessages: Record<string, string> = {
       'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
       'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
@@ -446,6 +478,10 @@ export async function signInWithTwitter(): Promise<{ idToken: string; user: User
 const appleProvider = new OAuthProvider('apple.com');
 appleProvider.addScope('email');
 appleProvider.addScope('name');
+// Set Turkish locale for Apple Sign-In screen
+appleProvider.setCustomParameters({
+  locale: 'tr_TR'
+});
 
 export async function signInWithApple(): Promise<{ idToken: string; user: User }> {
   try {
@@ -455,6 +491,13 @@ export async function signInWithApple(): Promise<{ idToken: string; user: User }
     
     return { idToken, user };
   } catch (error: any) {
+    // If popup fails, try redirect method (better for mobile)
+    if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.log('Popup not supported, trying redirect...');
+      await signInWithRedirect(auth, appleProvider);
+      throw new Error('Yönlendirme yapılıyor...');
+    }
+    
     const errorMessages: Record<string, string> = {
       'auth/popup-closed-by-user': 'Giriş penceresi kapatıldı',
       'auth/popup-blocked': 'Pop-up engellendi. Lütfen tarayıcı ayarlarınızdan izin verin.',
@@ -465,6 +508,123 @@ export async function signInWithApple(): Promise<{ idToken: string; user: User }
     
     const message = errorMessages[error.code] || error.message || 'Apple ile giriş başarısız';
     throw new Error(message);
+  }
+}
+
+// ============================================
+// EMAIL LINK (MAGIC LINK) SIGN-IN - Passwordless
+// ============================================
+const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
+
+// Send sign-in link to email (Magic Link / Passwordless)
+export async function sendEmailSignInLink(email: string): Promise<void> {
+  const actionCodeSettings: ActionCodeSettings = {
+    // URL to redirect to after email link is clicked
+    url: `${window.location.origin}/email-giris-dogrula`,
+    handleCodeInApp: true,
+  };
+
+  try {
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    // Save email locally for when user returns via link
+    window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/invalid-email': 'Geçersiz email adresi',
+      'auth/missing-email': 'Email adresi gerekli',
+      'auth/quota-exceeded': 'Email kotası aşıldı. Lütfen daha sonra deneyin.',
+      'auth/too-many-requests': 'Çok fazla istek. Lütfen bekleyin.',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Email bağlantısı gönderilemedi';
+    throw new Error(message);
+  }
+}
+
+// Check if current URL is an email sign-in link
+export function isEmailSignInLink(url: string = window.location.href): boolean {
+  return isSignInWithEmailLink(auth, url);
+}
+
+// Complete sign-in with email link
+export async function completeEmailSignIn(email?: string): Promise<{ idToken: string; user: User }> {
+  const url = window.location.href;
+  
+  if (!isSignInWithEmailLink(auth, url)) {
+    throw new Error('Bu link geçerli bir oturum açma bağlantısı değil');
+  }
+
+  // Get email from localStorage or ask user
+  let signInEmail = email || window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+  
+  if (!signInEmail) {
+    throw new Error('Email adresi gerekli. Lütfen linki aynı cihazda açın veya email adresinizi girin.');
+  }
+
+  try {
+    const result = await signInWithEmailLink(auth, signInEmail, url);
+    // Clear saved email
+    window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+    
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return { idToken, user };
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/expired-action-code': 'Bağlantının süresi dolmuş. Yeni bir bağlantı isteyin.',
+      'auth/invalid-action-code': 'Geçersiz bağlantı. Yeni bir bağlantı isteyin.',
+      'auth/invalid-email': 'Email adresi bağlantıyla eşleşmiyor',
+      'auth/user-disabled': 'Bu hesap devre dışı bırakılmış',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Oturum açma başarısız';
+    throw new Error(message);
+  }
+}
+
+// Get saved email for sign-in (if user returns on same device)
+export function getSavedEmailForSignIn(): string | null {
+  return window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+}
+
+// Link email credential to existing user
+export async function linkEmailToAccount(email: string, url: string = window.location.href): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Önce oturum açmanız gerekiyor');
+  }
+
+  try {
+    const credential = EmailAuthProvider.credentialWithLink(email, url);
+    await linkWithCredential(user, credential);
+    window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+  } catch (error: any) {
+    const errorMessages: Record<string, string> = {
+      'auth/provider-already-linked': 'Email zaten hesaba bağlı',
+      'auth/email-already-in-use': 'Bu email başka bir hesaba bağlı',
+      'auth/invalid-email': 'Geçersiz email adresi',
+    };
+    
+    const message = errorMessages[error.code] || error.message || 'Email bağlama başarısız';
+    throw new Error(message);
+  }
+}
+
+// ============================================
+// REDIRECT RESULT HANDLER (for social logins on mobile)
+// ============================================
+export async function handleRedirectResult(): Promise<{ idToken: string; user: User } | null> {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      const idToken = await result.user.getIdToken();
+      return { idToken, user: result.user };
+    }
+    return null;
+  } catch (error: any) {
+    console.error('Redirect result error:', error);
+    return null;
   }
 }
 

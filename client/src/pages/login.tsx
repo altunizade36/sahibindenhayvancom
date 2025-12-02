@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, Phone, ArrowRight, Loader2, User } from "lucide-react";
+import { Mail, Lock, Phone, ArrowRight, Loader2, User, Link2 } from "lucide-react";
 import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 import { Link, useLocation } from "wouter";
@@ -19,7 +19,9 @@ import {
   signInWithGoogle, 
   signInWithFacebook, 
   signInWithTwitter, 
-  signInWithApple 
+  signInWithApple,
+  handleRedirectResult,
+  sendEmailSignInLink
 } from "@/lib/firebase";
 
 const loginSchema = z.object({
@@ -40,6 +42,38 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [identifierType, setIdentifierType] = useState<"unknown" | "email" | "phone">("unknown");
+  const [magicLinkEmail, setMagicLinkEmail] = useState("");
+  const [showMagicLink, setShowMagicLink] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
+
+  // Handle redirect result (for mobile social logins)
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const result = await handleRedirectResult();
+        if (result) {
+          const res = await apiRequest("POST", "/api/auth/firebase/login", {
+            idToken: result.idToken,
+            email: result.user.email || null,
+            displayName: result.user.displayName || null,
+            photoURL: result.user.photoURL || null,
+            provider: "redirect",
+          });
+          const response: any = await res.json();
+          toast({
+            title: "Giriş Başarılı!",
+            description: response.message || "Giriş yapıldı.",
+          });
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          setLocation("/");
+        }
+      } catch (error) {
+        console.error('Redirect check error:', error);
+      }
+    };
+    checkRedirect();
+  }, []);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -100,6 +134,36 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleMagicLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magicLinkEmail.trim() || !magicLinkEmail.includes('@')) {
+      toast({
+        variant: "destructive",
+        title: "Geçersiz Email",
+        description: "Lütfen geçerli bir email adresi girin.",
+      });
+      return;
+    }
+
+    setMagicLinkLoading(true);
+    try {
+      await sendEmailSignInLink(magicLinkEmail.trim());
+      setMagicLinkSent(true);
+      toast({
+        title: "Email Gönderildi!",
+        description: "Giriş bağlantısı email adresinize gönderildi. Spam klasörünü de kontrol edin.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Email gönderilemedi.",
+      });
+    } finally {
+      setMagicLinkLoading(false);
     }
   };
 
@@ -293,19 +357,94 @@ export default function Login() {
             </Button>
           </div>
 
-          {/* Phone Login - Full Width */}
-          <Link href="/telefon-giris">
+          {/* Phone Login & Magic Link - Side by Side */}
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/telefon-giris">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 border-primary/30 hover:border-primary hover:bg-primary/5"
+                disabled={isLoading}
+                data-testid="button-phone-login"
+              >
+                <Phone className="w-5 h-5 mr-2 text-primary" />
+                <span className="text-sm">Telefon</span>
+              </Button>
+            </Link>
+            
             <Button
               type="button"
               variant="outline"
-              className="w-full h-11 border-primary/30 hover:border-primary hover:bg-primary/5"
+              className="w-full h-11 border-secondary/30 hover:border-secondary hover:bg-secondary/5"
               disabled={isLoading}
-              data-testid="button-phone-login"
+              onClick={() => setShowMagicLink(!showMagicLink)}
+              data-testid="button-magic-link-toggle"
             >
-              <Phone className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-sm">Telefon ile Giriş Yap</span>
+              <Link2 className="w-5 h-5 mr-2 text-secondary" />
+              <span className="text-sm">Şifresiz</span>
             </Button>
-          </Link>
+          </div>
+
+          {/* Magic Link Form (Toggle) */}
+          {showMagicLink && (
+            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              {magicLinkSent ? (
+                <div className="text-center space-y-2">
+                  <Mail className="w-8 h-8 mx-auto text-green-500" />
+                  <p className="text-sm text-muted-foreground">
+                    <strong>{magicLinkEmail}</strong> adresine giriş bağlantısı gönderildi!
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Email'inizi kontrol edin. Spam klasörüne de bakın.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs text-primary hover:underline"
+                    onClick={() => {
+                      setMagicLinkSent(false);
+                      setMagicLinkEmail("");
+                    }}
+                    data-testid="button-magic-link-retry"
+                  >
+                    Farklı email ile dene
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Email adresinize giriş bağlantısı göndereceğiz. Şifre gerekmez!
+                  </p>
+                  <Input
+                    type="email"
+                    placeholder="ornek@email.com"
+                    value={magicLinkEmail}
+                    onChange={(e) => setMagicLinkEmail(e.target.value)}
+                    disabled={magicLinkLoading}
+                    data-testid="input-magic-link-email"
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={magicLinkLoading || !magicLinkEmail.includes('@')}
+                    data-testid="button-magic-link-send"
+                  >
+                    {magicLinkLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Gönderiliyor...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Bağlantı Gönder
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
 
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center">
