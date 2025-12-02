@@ -761,6 +761,34 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
               conversationId: conversation.id,
               isTyping: false,
             });
+            
+            // Create notification for receiver (if not online or in background)
+            try {
+              const senderName = (user as any).firstName 
+                ? `${(user as any).firstName} ${(user as any).lastName || ''}`.trim()
+                : (user as any).username || 'Birisi';
+              
+              const [notification] = await db.insert(notifications).values({
+                userId: message.receiverId,
+                type: 'new_message',
+                title: 'Yeni Mesaj',
+                message: `${senderName}: ${message.content?.substring(0, 100)}${message.content?.length > 100 ? '...' : ''}`,
+                link: `/mesajlar`,
+                relatedId: conversation.id,
+              }).returning();
+              
+              // Send notification via WebSocket
+              broadcastToUser(message.receiverId, {
+                type: "notification",
+                notification: {
+                  ...notification,
+                  senderName,
+                  senderProfileImage: (user as any).profileImageUrl,
+                },
+              });
+            } catch (notifError) {
+              console.error("Failed to create message notification:", notifError);
+            }
           } else if (message.type === "delete_message") {
             // Soft delete a message
             const messageId = message.messageId;

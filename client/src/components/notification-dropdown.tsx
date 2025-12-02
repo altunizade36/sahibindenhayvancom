@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import {
   Bell,
   MessageSquare,
@@ -67,7 +68,10 @@ const notificationColors: Record<string, string> = {
 
 export function NotificationDropdown() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: notificationCount = { count: 0 } } = useQuery<{ count: number }>({
     queryKey: ["/api/notifications/count"],
@@ -78,6 +82,62 @@ export function NotificationDropdown() {
     queryKey: ["/api/notifications"],
     enabled: isOpen,
   });
+
+  const handleWebSocketNotification = useCallback((notification: Notification & { senderName?: string }) => {
+    queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+    
+    toast({
+      title: notification.title,
+      description: notification.message,
+    });
+  }, [toast]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const connectWebSocket = () => {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: "auth", userId: user.id }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "notification") {
+            handleWebSocketNotification(data.notification);
+          }
+        } catch (e) {
+          console.error("Failed to parse WebSocket message:", e);
+        }
+      };
+      
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+      
+      ws.onclose = () => {
+        wsRef.current = null;
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+      };
+      
+      wsRef.current = ws;
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [user, handleWebSocketNotification]);
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
