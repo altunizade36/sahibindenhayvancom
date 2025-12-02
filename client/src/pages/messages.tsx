@@ -174,13 +174,47 @@ function TypingIndicator() {
   );
 }
 
-// Emoji kategorileri
-const EMOJI_CATEGORIES = {
-  "Sık Kullanılan": ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "✨", "💯", "🎉"],
-  "Yüzler": ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "🥲", "😋"],
-  "Hayvanlar": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆"],
-  "El Hareketleri": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "👇", "☝️", "👍", "👎"],
-  "Kalpler": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟"],
+// Emoji kategorileri - Genişletilmiş ve organize edilmiş
+const EMOJI_CATEGORIES: Record<string, { icon: string; emojis: string[] }> = {
+  "Sık Kullanılan": {
+    icon: "⭐",
+    emojis: ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "✨", "💯", "🎉", "😍", "🥰", "😘", "🤗", "😢", "😭", "😤", "🤔", "👀", "💪"]
+  },
+  "Yüzler": {
+    icon: "😀",
+    emojis: ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑", "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐"]
+  },
+  "Hayvanlar": {
+    icon: "🐶",
+    emojis: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺", "🐈", "🐈‍⬛", "🪶", "🐓", "🦃", "🦤", "🦚", "🦜", "🦢", "🦩", "🕊", "🐇", "🦝", "🦨", "🦡", "🦫", "🦦", "🦥"]
+  },
+  "El Hareketleri": {
+    icon: "👋",
+    emojis: ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁", "👅", "👄"]
+  },
+  "Kalpler": {
+    icon: "❤️",
+    emojis: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "♥️", "💌", "💋", "👄", "🫶"]
+  },
+  "Nesneler": {
+    icon: "📦",
+    emojis: ["📱", "💻", "🖥️", "🖨️", "⌨️", "🖱️", "🖲️", "💾", "💿", "📀", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️", "🧭", "⏱️", "⏲️", "⏰", "🕰️", "⌛", "⏳", "📡", "🔋", "🔌", "💡", "🔦", "🕯️", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "💎", "⚖️", "🪜", "🧰", "🪛", "🔧", "🔨", "⚒️", "🛠️", "⛏️", "🪚", "🔩", "⚙️", "🪤", "🧱", "⛓️", "🧲", "🔫", "💣", "🧨", "🪓", "🔪", "🗡️", "⚔️", "🛡️", "🚬", "⚰️", "🪦", "⚱️", "🏺", "🔮", "📿", "🧿", "💈", "⚗️", "🔭", "🔬", "🕳️", "🩹", "🩺", "💊", "💉", "🩸", "🧬", "🦠", "🧫", "🧪", "🌡️", "🧹", "🧺", "🧻", "🚽", "🚰", "🚿", "🛁", "🛀", "🧼", "🪥", "🪒", "🧽", "🪣", "🧴", "🛎️", "🔑", "🗝️", "🚪", "🪑", "🛋️", "🛏️", "🛌", "🧸", "🖼️", "🛍️", "🛒", "🎁", "🎈", "🎏", "🎀", "🎊", "🎉", "🎎", "🏮", "🎐", "🧧", "✉️", "📩", "📨", "📧", "💌", "📥", "📤", "📦", "🏷️", "📪", "📫", "📬", "📭", "📮", "📯", "📜", "📃", "📄", "📑", "🧾", "📊", "📈", "📉", "🗒️", "🗓️", "📆", "📅", "🗑️", "📇", "🗃️", "🗳️", "🗄️", "📋", "📁", "📂", "🗂️", "🗞️", "📰", "📓", "📔", "📒", "📕", "📗", "📘", "📙", "📚", "📖", "🔖", "🧷", "🔗", "📎", "🖇️", "📐", "📏", "🧮", "📌", "📍", "✂️", "🖊️", "🖋️", "✒️", "🖌️", "🖍️", "📝", "✏️", "🔍", "🔎", "🔏", "🔐", "🔒", "🔓"]
+  },
+  "Aktiviteler": {
+    icon: "⚽",
+    emojis: ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛼", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🪂", "🏋️", "🤼", "🤸", "🤺", "⛹️", "🤾", "🏌️", "🏇", "🧘", "🏄", "🏊", "🤽", "🚣", "🧗", "🚵", "🚴", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖️", "🏵️", "🎗️", "🎫", "🎟️", "🎪", "🤹", "🎭", "🩰", "🎨", "🎬", "🎤", "🎧", "🎼", "🎹", "🥁", "🪘", "🎷", "🎺", "🪗", "🎸", "🪕", "🎻", "🎲", "♟️", "🎯", "🎳", "🎮", "🎰", "🧩"]
+  },
+};
+
+// Emoji kategori ikonları
+const CATEGORY_ICONS: Record<string, string> = {
+  "Sık Kullanılan": "⭐",
+  "Yüzler": "😀",
+  "Hayvanlar": "🐶",
+  "El Hareketleri": "👋",
+  "Kalpler": "❤️",
+  "Nesneler": "📦",
+  "Aktiviteler": "⚽",
 };
 
 type EmojiPickerProps = {
@@ -191,6 +225,14 @@ type EmojiPickerProps = {
 
 function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
   const [activeCategory, setActiveCategory] = useState("Sık Kullanılan");
+  const [emojiSearch, setEmojiSearch] = useState("");
+  
+  // Emoji arama fonksiyonu
+  const filteredEmojis = emojiSearch
+    ? Object.values(EMOJI_CATEGORIES).flatMap(cat => cat.emojis).filter((emoji, index, self) => 
+        self.indexOf(emoji) === index
+      )
+    : EMOJI_CATEGORIES[activeCategory]?.emojis || [];
   
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
@@ -199,53 +241,84 @@ function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
           type="button"
           size="icon"
           variant="ghost"
-          className="flex-shrink-0"
+          className="flex-shrink-0 h-9 w-9"
           data-testid="button-emoji-picker"
         >
           <Smile className="h-5 w-5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0" 
+        className="w-[320px] p-0" 
         align="start"
         side="top"
         sideOffset={8}
       >
-        <div className="border-b">
-          <ScrollArea className="w-full">
-            <div className="flex p-1 gap-1">
-              {Object.keys(EMOJI_CATEGORIES).map((category) => (
-                <Button
-                  key={category}
-                  size="sm"
-                  variant={activeCategory === category ? "secondary" : "ghost"}
-                  className="text-xs whitespace-nowrap h-7 px-2"
-                  onClick={() => setActiveCategory(category)}
-                  data-testid={`button-emoji-category-${category}`}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-        <div className="p-2 h-48 overflow-y-auto">
-          <div className="grid grid-cols-8 gap-1">
-            {EMOJI_CATEGORIES[activeCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, idx) => (
-              <button
-                key={idx}
-                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-muted rounded transition-colors"
-                onClick={() => {
-                  onSelect(emoji);
-                  onOpenChange(false);
-                }}
-                data-testid={`button-emoji-${idx}`}
-              >
-                {emoji}
-              </button>
-            ))}
+        {/* Arama */}
+        <div className="p-2 border-b">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Emoji ara..."
+              value={emojiSearch}
+              onChange={(e) => setEmojiSearch(e.target.value)}
+              className="h-8 pl-8 text-sm"
+              data-testid="input-emoji-search"
+            />
           </div>
         </div>
+        
+        {/* Kategori Seçici - İkon tabanlı */}
+        {!emojiSearch && (
+          <div className="border-b px-1 py-1.5">
+            <div className="flex justify-between">
+              {Object.keys(EMOJI_CATEGORIES).map((category) => (
+                <Tooltip key={category}>
+                  <TooltipTrigger asChild>
+                    <button
+                      className={`w-9 h-8 flex items-center justify-center text-lg rounded transition-colors ${
+                        activeCategory === category 
+                          ? "bg-primary/10 text-primary" 
+                          : "hover:bg-muted"
+                      }`}
+                      onClick={() => setActiveCategory(category)}
+                      data-testid={`button-emoji-category-${category}`}
+                    >
+                      {CATEGORY_ICONS[category]}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {category}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Emoji Grid */}
+        <ScrollArea className="h-[200px]">
+          <div className="p-2">
+            {!emojiSearch && (
+              <p className="text-xs text-muted-foreground mb-2 px-1">{activeCategory}</p>
+            )}
+            <div className="grid grid-cols-8 gap-0.5">
+              {filteredEmojis.map((emoji, idx) => (
+                <button
+                  key={`${emoji}-${idx}`}
+                  className="w-9 h-9 flex items-center justify-center text-xl hover:bg-muted rounded-md transition-colors active:scale-95"
+                  onClick={() => {
+                    onSelect(emoji);
+                    onOpenChange(false);
+                    setEmojiSearch("");
+                  }}
+                  data-testid={`button-emoji-${idx}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   );
@@ -934,64 +1007,79 @@ export default function Messages() {
                 return (
                   <div
                     key={conversation.id}
-                    className={`relative group rounded-lg ${
+                    className={`relative group rounded-xl transition-all duration-150 ${
                       selectedConversationId === conversation.id || selectedUserId === conversation.partnerId
-                        ? "bg-accent"
-                        : "hover-elevate"
+                        ? "bg-primary/10 shadow-sm"
+                        : "hover:bg-muted/50"
                     }`}
                   >
                     <button
                       onClick={() => handleSelectConversation(conversation)}
-                      className="w-full p-3 text-left transition-colors"
+                      className="w-full p-3 text-left"
                       data-testid={`button-conversation-${conversation.partnerId}`}
                     >
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 items-center">
                         <div className="relative flex-shrink-0">
-                          <Avatar className="h-12 w-12">
+                          <Avatar className="h-[52px] w-[52px] ring-2 ring-background shadow-sm">
                             <AvatarImage src={conversation.user?.profileImageUrl || undefined} />
-                            <AvatarFallback>
+                            <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-primary/20 to-primary/5">
                               {(conversation.user?.firstName || conversation.user?.email)?.[0]?.toUpperCase() || "?"}
                             </AvatarFallback>
                           </Avatar>
                           {isOnline && (
-                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                            <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-green-500 border-[2.5px] border-background shadow-sm" />
                           )}
                           {conversation.isPinned && (
-                            <Pin className="absolute -top-1 -right-1 h-3 w-3 text-primary" />
+                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center shadow-sm">
+                              <Pin className="h-3 w-3 text-primary-foreground" />
+                            </div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-semibold truncate text-sm flex items-center gap-1">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="font-semibold truncate text-[15px] flex items-center gap-1.5">
                               {conversation.user?.firstName && conversation.user?.lastName
                                 ? `${conversation.user.firstName} ${conversation.user.lastName}`
                                 : conversation.user?.email?.split("@")[0] || "Kullanıcı"}
-                              {conversation.isMuted && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                              {conversation.isMuted && <BellOff className="h-3.5 w-3.5 text-muted-foreground" />}
                             </span>
-                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                            <span className={`text-xs flex-shrink-0 ${conversation.unreadCount > 0 ? "text-primary font-medium" : "text-muted-foreground"}`}>
                               {conversation.lastMessage?.createdAt &&
                                 formatMessageTime(conversation.lastMessage.createdAt)}
                             </span>
                           </div>
 
-                          {isTyping ? (
-                            <p className="text-sm text-primary font-medium">yazıyor...</p>
-                          ) : (
-                            <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
-                              {conversation.lastMessage?.senderId === user.id && (
-                                <MessageStatus status={conversation.lastMessage?.status} />
-                              )}
-                              {conversation.lastMessage?.content || "Henüz mesaj yok"}
-                            </p>
-                          )}
+                          <div className="flex items-center justify-between gap-2">
+                            {isTyping ? (
+                              <p className="text-sm text-primary font-medium flex items-center gap-1.5">
+                                <span className="flex gap-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                                </span>
+                                yazıyor...
+                              </p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground truncate flex items-center gap-1.5 flex-1 min-w-0">
+                                {conversation.lastMessage?.senderId === user.id && (
+                                  <span className="flex-shrink-0">
+                                    <MessageStatus status={conversation.lastMessage?.status} />
+                                  </span>
+                                )}
+                                <span className="truncate">
+                                  {conversation.lastMessage?.content || "Henüz mesaj yok"}
+                                </span>
+                              </p>
+                            )}
+                            
+                            {conversation.unreadCount > 0 && (
+                              <span className="flex-shrink-0 min-w-[22px] h-[22px] flex items-center justify-center bg-primary text-primary-foreground text-xs font-semibold px-1.5 rounded-full shadow-sm">
+                                {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
+                              </span>
+                            )}
+                          </div>
                         </div>
-
-                        {conversation.unreadCount > 0 && (
-                          <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full self-center">
-                            {conversation.unreadCount}
-                          </span>
-                        )}
                       </div>
                     </button>
 
@@ -1040,11 +1128,11 @@ export default function Messages() {
 
       {selectedUserId ? (
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="p-3 border-b flex items-center gap-3 flex-shrink-0">
+          <div className="px-3 py-2.5 border-b flex items-center gap-3 flex-shrink-0 bg-background/95 backdrop-blur-sm">
             <Button
               size="icon"
               variant="ghost"
-              className="lg:hidden"
+              className="lg:hidden h-9 w-9"
               onClick={() => {
                 setSelectedUserId(null);
                 setSelectedConversationId(null);
@@ -1058,29 +1146,36 @@ export default function Messages() {
             {currentUser && (
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="relative">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-11 w-11 ring-2 ring-background shadow-sm">
                     <AvatarImage src={currentUser.profileImageUrl || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-primary/20 to-primary/5">
                       {(currentUser.firstName || currentUser.email)?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   {isPartnerOnline && (
-                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background shadow-sm" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-sm truncate" data-testid="text-chat-user-name">
+                  <div className="font-semibold text-[15px] truncate" data-testid="text-chat-user-name">
                     {currentUser.firstName && currentUser.lastName
                       ? `${currentUser.firstName} ${currentUser.lastName}`
                       : currentUser.email?.split("@")[0]}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs">
                     {isPartnerTyping ? (
-                      <span className="text-primary">yazıyor...</span>
+                      <span className="text-primary font-medium flex items-center gap-1">
+                        <span className="flex gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </span>
+                        yazıyor...
+                      </span>
                     ) : isPartnerOnline ? (
-                      <span className="text-green-600">Çevrimiçi</span>
+                      <span className="text-green-600 font-medium">Çevrimiçi</span>
                     ) : currentUser.lastSeenAt ? (
-                      <span>Son görülme: {formatLastSeen(currentUser.lastSeenAt)}</span>
+                      <span className="text-muted-foreground">Son görülme: {formatLastSeen(currentUser.lastSeenAt)}</span>
                     ) : null}
                   </div>
                 </div>
@@ -1297,68 +1392,100 @@ export default function Messages() {
                         )}
 
                         <div
-                          className={`max-w-[70%] rounded-2xl transition-all duration-200 hover:shadow-md ${
-                            message.attachments?.length ? "p-1" : "px-4 py-2"
+                          className={`relative max-w-[75%] sm:max-w-[70%] rounded-2xl shadow-sm transition-all duration-150 ${
+                            message.attachments?.length ? "p-1" : "px-3 py-2"
                           } ${
                             isOwnMessage
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-muted rounded-bl-md"
-                          }`}
+                              ? "bg-primary text-primary-foreground rounded-br-sm"
+                              : "bg-muted rounded-bl-sm"
+                          } ${!message.isDeleted ? "hover:shadow-md" : "opacity-75"}`}
                         >
                           {/* Deleted message styling */}
                           {message.isDeleted ? (
-                            <p className={`text-sm italic opacity-60 ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
-                              Bu mesaj silindi
-                            </p>
+                            <div className="flex items-center gap-2 py-1">
+                              <span className="inline-block w-4 h-4 rounded-full border-2 border-current opacity-50" />
+                              <p className="text-sm italic opacity-70">
+                                Bu mesaj silindi
+                              </p>
+                            </div>
                           ) : (
                             <>
-                              {message.attachments?.map((attachment, idx) => (
-                                <div key={idx} className="mb-1">
-                                  {attachment.type === "image" ? (
-                                    <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                                      <img
-                                        src={attachment.url}
-                                        alt={attachment.filename}
-                                        className="max-w-full rounded-lg max-h-60 object-cover"
-                                      />
-                                    </a>
-                                  ) : (
-                                    <a
-                                      href={attachment.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`flex items-center gap-2 p-2 rounded-lg ${
-                                        isOwnMessage ? "bg-primary-foreground/10" : "bg-background"
-                                      }`}
-                                    >
-                                      <FileText className="h-8 w-8 flex-shrink-0" />
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{attachment.filename}</p>
-                                        <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                                          {(attachment.size / 1024).toFixed(1)} KB
-                                        </p>
-                                      </div>
-                                      <Download className="h-4 w-4 flex-shrink-0" />
-                                    </a>
-                                  )}
+                              {/* Resim ekleri - Lightbox tarzı */}
+                              {message.attachments?.filter(a => a.type === "image").map((attachment, idx) => (
+                                <div key={`img-${idx}`} className="mb-1.5 overflow-hidden rounded-xl">
+                                  <a 
+                                    href={attachment.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="block relative group"
+                                  >
+                                    <img
+                                      src={attachment.url}
+                                      alt={attachment.filename}
+                                      className="max-w-full w-full max-h-[280px] object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                        <ExternalLink className="h-3 w-3" />
+                                        Büyüt
+                                      </span>
+                                    </div>
+                                  </a>
                                 </div>
                               ))}
-                              {message.content && message.content !== "Fotograf" && message.content !== "Dosya" && (
-                                <p className={`text-sm whitespace-pre-wrap break-words ${message.attachments?.length ? "px-3 pt-1" : ""}`}>
+                              
+                              {/* Dosya ekleri - Modern tasarım */}
+                              {message.attachments?.filter(a => a.type === "file").map((attachment, idx) => (
+                                <a
+                                  key={`file-${idx}`}
+                                  href={attachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-3 p-3 rounded-xl mb-1.5 transition-colors ${
+                                    isOwnMessage 
+                                      ? "bg-primary-foreground/15 hover:bg-primary-foreground/25" 
+                                      : "bg-background hover:bg-background/80"
+                                  }`}
+                                >
+                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                    isOwnMessage ? "bg-primary-foreground/20" : "bg-primary/10"
+                                  }`}>
+                                    <FileText className={`h-5 w-5 ${isOwnMessage ? "" : "text-primary"}`} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{attachment.filename}</p>
+                                    <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                      {attachment.size >= 1024 * 1024 
+                                        ? `${(attachment.size / (1024 * 1024)).toFixed(1)} MB`
+                                        : `${(attachment.size / 1024).toFixed(1)} KB`
+                                      }
+                                    </p>
+                                  </div>
+                                  <Download className={`h-4 w-4 flex-shrink-0 ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
+                                </a>
+                              ))}
+                              
+                              {/* Mesaj içeriği */}
+                              {message.content && !message.content.startsWith("📷") && !message.content.startsWith("📎") && message.content !== "Fotograf" && message.content !== "Dosya" && (
+                                <p className={`text-[15px] leading-relaxed whitespace-pre-wrap break-words ${message.attachments?.length ? "px-2 pt-1" : ""}`}>
                                   {message.content}
                                 </p>
                               )}
                             </>
                           )}
+                          
+                          {/* Zaman ve durum göstergesi */}
                           <div
-                            className={`flex items-center justify-end gap-1 mt-1 ${message.attachments?.length ? "px-3 pb-1" : ""} ${
-                              isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
+                            className={`flex items-center justify-end gap-1.5 mt-1 ${message.attachments?.length ? "px-2 pb-0.5" : ""} ${
+                              isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground/70"
                             }`}
                           >
-                            <span className="text-[10px]">
+                            <span className="text-[11px] font-medium">
                               {format(new Date(message.createdAt), "HH:mm", { locale: tr })}
                             </span>
-                            {isOwnMessage && <MessageStatus status={message.status} />}
+                            {isOwnMessage && !message.isDeleted && <MessageStatus status={message.status} />}
                           </div>
                         </div>
 
@@ -1413,66 +1540,78 @@ export default function Messages() {
             )}
           </ScrollArea>
 
-          <form onSubmit={handleSendMessage} className="p-3 border-t flex-shrink-0">
-            {/* Reply Preview */}
+          <form onSubmit={handleSendMessage} className="p-3 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
+            {/* Reply Preview - Modern tasarım */}
             {replyToMessage && (
-              <div className="mb-2 p-2 bg-primary/10 border-l-4 border-primary rounded-r-lg flex items-start gap-2">
-                <CornerUpLeft className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-primary">{replyToMessage.senderName}</p>
+              <div className="mb-3 p-2.5 bg-primary/5 border-l-4 border-primary rounded-r-xl flex items-start gap-3 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Reply className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 py-0.5">
+                  <p className="text-xs font-semibold text-primary mb-0.5">{replyToMessage.senderName}</p>
                   <p className="text-sm text-muted-foreground truncate">{replyToMessage.content}</p>
                 </div>
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6"
+                  className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => setReplyToMessage(null)}
                   data-testid="button-cancel-reply"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             )}
 
-            {/* Upload Progress */}
+            {/* Upload Progress - Animasyonlu */}
             {uploadingFile && (
-              <div className="mb-2 p-3 bg-muted rounded-lg">
+              <div className="mb-3 p-3 bg-muted/50 rounded-xl border">
                 <div className="flex items-center gap-3 mb-2">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">Dosya yükleniyor...</p>
                     <p className="text-xs text-muted-foreground">%{uploadProgress} tamamlandı</p>
                   </div>
+                  <span className="text-sm font-semibold text-primary">{uploadProgress}%</span>
                 </div>
-                <Progress value={uploadProgress} className="h-2" />
+                <Progress value={uploadProgress} className="h-1.5" />
               </div>
             )}
             
-            {/* Pending Attachment Preview */}
+            {/* Pending Attachment Preview - Geliştirilmiş */}
             {pendingAttachment && !uploadingFile && (
-              <div className="mb-2 p-2 bg-muted rounded-lg flex items-center gap-2">
+              <div className="mb-3 p-2.5 bg-muted/50 rounded-xl border flex items-center gap-3">
                 {pendingAttachment.type === "image" ? (
-                  <img
-                    src={pendingAttachment.url}
-                    alt="Ek"
-                    className="w-16 h-16 object-cover rounded"
-                  />
+                  <div className="relative w-16 h-16 rounded-lg overflow-hidden shadow-sm">
+                    <img
+                      src={pendingAttachment.url}
+                      alt="Ek"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/10" />
+                  </div>
                 ) : (
-                  <div className="w-16 h-16 bg-background rounded flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
+                  <div className="w-16 h-16 bg-background rounded-lg flex items-center justify-center border shadow-sm">
+                    <FileText className="h-7 w-7 text-primary" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{pendingAttachment.filename}</p>
                   <p className="text-xs text-muted-foreground">
-                    {(pendingAttachment.size / 1024).toFixed(1)} KB
+                    {pendingAttachment.size >= 1024 * 1024 
+                      ? `${(pendingAttachment.size / (1024 * 1024)).toFixed(1)} MB`
+                      : `${(pendingAttachment.size / 1024).toFixed(1)} KB`
+                    }
                   </p>
                 </div>
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
+                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => setPendingAttachment(null)}
                   data-testid="button-remove-attachment"
                 >
@@ -1480,7 +1619,9 @@ export default function Messages() {
                 </Button>
               </div>
             )}
-            <div className="flex gap-2 items-center">
+            
+            {/* Input Area - Profesyonel tasarım */}
+            <div className="flex gap-1.5 items-end">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -1489,20 +1630,28 @@ export default function Messages() {
                 className="hidden"
                 data-testid="input-file"
               />
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingFile || sendMessageMutation.isPending}
-                data-testid="button-attach-file"
-              >
-                {uploadingFile ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Paperclip className="h-4 w-4" />
-                )}
-              </Button>
+              
+              {/* Dosya ekleme butonu */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 flex-shrink-0"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingFile || sendMessageMutation.isPending}
+                    data-testid="button-attach-file"
+                  >
+                    {uploadingFile ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-5 w-5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Dosya Ekle</TooltipContent>
+              </Tooltip>
               
               {/* Emoji Picker */}
               <EmojiPicker 
@@ -1511,32 +1660,46 @@ export default function Messages() {
                 onOpenChange={setEmojiPickerOpen}
               />
               
-              <Input
-                ref={inputRef}
-                placeholder="Mesajınızı yazın..."
-                value={messageText}
-                onChange={handleInputChange}
-                disabled={sendMessageMutation.isPending}
-                className="flex-1"
-                data-testid="input-message"
-              />
+              {/* Mesaj input alanı */}
+              <div className="flex-1 relative">
+                <Input
+                  ref={inputRef}
+                  placeholder="Mesajınızı yazın..."
+                  value={messageText}
+                  onChange={handleInputChange}
+                  disabled={sendMessageMutation.isPending}
+                  className="h-10 pr-3 text-[15px] rounded-xl border-muted-foreground/20 focus:border-primary/50"
+                  data-testid="input-message"
+                />
+              </div>
+              
+              {/* Gönder butonu */}
               <Button
                 type="submit"
                 size="icon"
+                className="h-10 w-10 rounded-xl flex-shrink-0 shadow-sm"
                 disabled={(!messageText.trim() && !pendingAttachment) || sendMessageMutation.isPending}
                 data-testid="button-send-message"
               >
-                <Send className="h-4 w-4" />
+                {sendMessageMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </form>
         </div>
       ) : (
-        <div className="hidden lg:flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground mb-3" />
-            <p className="text-lg font-semibold mb-2">Mesajlaşmaya Başlayın</p>
-            <p className="text-sm text-muted-foreground">Soldaki listeden bir konuşma seçin</p>
+        <div className="hidden lg:flex flex-1 items-center justify-center bg-muted/20">
+          <div className="text-center max-w-sm mx-auto">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/5 flex items-center justify-center">
+              <MessageSquare className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Mesajlaşmaya Başlayın</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Soldaki listeden bir konuşma seçin veya ilanlardan satıcılara mesaj gönderin
+            </p>
           </div>
         </div>
       )}
