@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -309,11 +310,13 @@ export default function Messages() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
   const [onlineUsers, setOnlineUsers] = useState<Record<string, boolean>>({});
   const [showListingPanel, setShowListingPanel] = useState(true);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [pendingAttachment, setPendingAttachment] = useState<Attachment | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -374,22 +377,50 @@ export default function Messages() {
 
   const handleFileUpload = async (file: File) => {
     setUploadingFile(true);
+    setUploadProgress(0);
+    
     try {
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch("/api/messages/upload", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
+      // Use XMLHttpRequest for progress tracking
+      const xhr = new XMLHttpRequest();
+      
+      const uploadPromise = new Promise<Attachment>((resolve, reject) => {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const progress = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(progress);
+          }
+        };
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
+            } catch {
+              reject(new Error("Geçersiz yanıt"));
+            }
+          } else {
+            try {
+              const error = JSON.parse(xhr.responseText);
+              reject(new Error(error.message || "Dosya yüklenemedi"));
+            } catch {
+              reject(new Error("Dosya yüklenemedi"));
+            }
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error("Ağ hatası"));
+        xhr.onabort = () => reject(new Error("Yükleme iptal edildi"));
+        
+        xhr.open("POST", "/api/messages/upload");
+        xhr.withCredentials = true;
+        xhr.send(formData);
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Dosya yüklenemedi");
-      }
-      
-      const attachment = await response.json();
+      const attachment = await uploadPromise;
       setPendingAttachment(attachment);
       toast({
         title: "Dosya yüklendi",
@@ -403,6 +434,7 @@ export default function Messages() {
       });
     } finally {
       setUploadingFile(false);
+      setUploadProgress(0);
     }
   };
 
@@ -571,6 +603,10 @@ export default function Messages() {
   const messages = messagesData?.messages || [];
 
   const filteredConversations = conversations?.filter((conv) => {
+    // Unread filter
+    if (showUnreadOnly && conv.unreadCount === 0) return false;
+    
+    // Search filter
     if (!searchQuery) return true;
     const userName = conv.user
       ? `${conv.user.firstName || ""} ${conv.user.lastName || ""}`.toLowerCase()
@@ -578,6 +614,8 @@ export default function Messages() {
     const lastMessageContent = conv.lastMessage?.content?.toLowerCase() || "";
     return userName.includes(searchQuery.toLowerCase()) || lastMessageContent.includes(searchQuery.toLowerCase());
   });
+  
+  const unreadConversationsCount = conversations?.filter(c => c.unreadCount > 0).length || 0;
 
   const isPartnerTyping = selectedUserId && typingUsers[selectedUserId];
   const isPartnerOnline = selectedUserId && (onlineUsers[selectedUserId] || currentUser?.isOnline);
@@ -658,12 +696,33 @@ export default function Messages() {
             </div>
           )}
 
-          {showArchived && (
-            <Badge variant="secondary" className="text-xs">
+          {/* Quick filters */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={showUnreadOnly ? "default" : "outline"}
+              className="h-7 text-xs"
+              onClick={() => setShowUnreadOnly(!showUnreadOnly)}
+              data-testid="button-filter-unread"
+            >
+              {unreadConversationsCount > 0 && (
+                <Badge variant="destructive" className="h-4 px-1 mr-1.5 text-[10px]">
+                  {unreadConversationsCount}
+                </Badge>
+              )}
+              Okunmamış
+            </Button>
+            <Button
+              size="sm"
+              variant={showArchived ? "default" : "outline"}
+              className="h-7 text-xs"
+              onClick={() => setShowArchived(!showArchived)}
+              data-testid="button-filter-archived"
+            >
               <Archive className="h-3 w-3 mr-1" />
-              Arşivlenmiş konuşmalar gösteriliyor
-            </Badge>
-          )}
+              Arşiv
+            </Button>
+          </div>
         </div>
 
         <ScrollArea className="flex-1">
@@ -1035,7 +1094,22 @@ export default function Messages() {
           </ScrollArea>
 
           <form onSubmit={handleSendMessage} className="p-3 border-t flex-shrink-0">
-            {pendingAttachment && (
+            {/* Upload Progress */}
+            {uploadingFile && (
+              <div className="mb-2 p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">Dosya yükleniyor...</p>
+                    <p className="text-xs text-muted-foreground">%{uploadProgress} tamamlandı</p>
+                  </div>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            )}
+            
+            {/* Pending Attachment Preview */}
+            {pendingAttachment && !uploadingFile && (
               <div className="mb-2 p-2 bg-muted rounded-lg flex items-center gap-2">
                 {pendingAttachment.type === "image" ? (
                   <img

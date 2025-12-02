@@ -878,6 +878,73 @@ export default function ListingDetail() {
           sellerId={listing?.sellerId || ""}
         />
       </div>
+
+      {/* Sticky Mobile Footer - Always visible contact bar */}
+      {listing.sellerId !== user?.id && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-40 safe-area-pb">
+          <div className="container mx-auto px-3 py-3">
+            <div className="flex items-center gap-2">
+              {/* Primary: Platform Message */}
+              <Button
+                size="lg"
+                className="flex-1 h-12 text-base font-semibold"
+                onClick={handleMessageSeller}
+                data-testid="button-message-seller-sticky"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Mesaj Gönder
+              </Button>
+              
+              {/* Secondary: Phone */}
+              {listing.seller?.phone && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 shrink-0"
+                  onClick={() => window.location.href = `tel:${listing.seller?.phone || ''}`}
+                  data-testid="button-call-seller-sticky"
+                >
+                  <PhoneCall className="w-5 h-5" />
+                </Button>
+              )}
+              
+              {/* Secondary: WhatsApp */}
+              {listing.seller?.phone && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 shrink-0 text-green-600 border-green-500"
+                  onClick={() => window.open(`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`, '_blank')}
+                  data-testid="button-whatsapp-seller-sticky"
+                >
+                  <SiWhatsapp className="w-5 h-5" />
+                </Button>
+              )}
+              
+              {/* Favorite */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 shrink-0"
+                onClick={handleFavoriteClick}
+                disabled={toggleFavoriteMutation.isPending}
+                data-testid="button-favorite-sticky"
+              >
+                <Heart
+                  className={`w-5 h-5 ${
+                    isFavorited ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Spacer for sticky footer on mobile */}
+      {listing.sellerId !== user?.id && (
+        <div className="lg:hidden h-20" />
+      )}
     </div>
   );
 }
