@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search-bar";
 import { ListingCard } from "@/components/listing-card";
 import { Pagination } from "@/components/pagination";
+import { RecentlyViewedListings } from "@/components/recently-viewed-listings";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Gavel, Loader2, ChevronUp } from "lucide-react";
@@ -118,6 +119,8 @@ export default function Home() {
 
       <section className="py-4 md:py-6 flex-1 min-h-[400px]">
         <div className="container mx-auto px-4 h-full">
+          <RecentlyViewedListings />
+          
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg md:text-xl font-bold">İlanlar</h2>

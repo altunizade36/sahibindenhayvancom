@@ -5,6 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seed";
 import { initializeRedis, cache } from "./cache";
 import { setupCluster, setupGracefulShutdown } from "./cluster";
+import { savedSearchNotifier } from "./saved-search-notifier";
 
 // Extend Express Request type for rawBody
 declare module 'http' {
@@ -151,6 +152,11 @@ async function runServer() {
   } else {
     console.log('ℹ️  Database seeding skipped (production mode)');
   }
+
+  // Start saved search notifier (background email notifications)
+  savedSearchNotifier.start().catch(err => {
+    console.error('❌ Saved search notifier failed to start:', err);
+  });
 
   // Setup graceful shutdown
   setupGracefulShutdown(httpServer);

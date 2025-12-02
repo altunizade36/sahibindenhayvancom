@@ -1,9 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { MapPin, Eye, Heart, Clock, Store } from "lucide-react";
+import { MapPin, Eye, Heart, Clock, Store, GitCompare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useCompare } from "@/contexts/compare-context";
 import type { Listing, User } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -20,13 +22,25 @@ interface ListingCardProps {
 
 export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }: ListingCardProps) {
   const [, setLocation] = useLocation();
+  const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useCompare();
   const mainImage = listing.images?.[0] || "/placeholder-animal.jpg";
   const price = parseFloat(listing.price || "0");
+  const inCompare = isInCompare(listing.id);
   
   const sellerName = listing.seller 
     ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || 'Anonim'
     : 'Anonim';
   const sellerInitial = sellerName.charAt(0).toUpperCase();
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCompare) {
+      removeFromCompare(listing.id);
+    } else if (canAddMore) {
+      addToCompare(listing.id);
+    }
+  };
 
   // Horizontal/List View
   if (variant === "horizontal") {
@@ -101,8 +115,20 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
             </div>
 
             {/* Actions - absolute positioned on very small screens */}
-            {onFavoriteToggle && (
-              <div className="absolute top-1 right-1 min-[360px]:static min-[360px]:p-1 min-[400px]:p-2 flex items-start">
+            <div className="absolute top-1 right-1 min-[360px]:static min-[360px]:p-1 min-[400px]:p-2 flex items-start gap-0.5">
+              <Button
+                size="icon"
+                variant="ghost"
+                className={`h-6 w-6 min-[360px]:h-7 min-[360px]:w-7 min-[400px]:h-8 min-[400px]:w-8 bg-background/80 min-[360px]:bg-transparent ${inCompare ? "text-primary" : ""}`}
+                onClick={handleCompareClick}
+                disabled={!inCompare && !canAddMore}
+                data-testid={`button-compare-${listing.id}`}
+              >
+                <GitCompare
+                  className={`w-3.5 h-3.5 min-[400px]:w-4 min-[400px]:h-4 ${inCompare ? "text-primary" : ""}`}
+                />
+              </Button>
+              {onFavoriteToggle && (
                 <Button
                   size="icon"
                   variant="ghost"
@@ -117,8 +143,8 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
                     className={`w-3.5 h-3.5 min-[400px]:w-4 min-[400px]:h-4 ${listing.isFavorite ? "fill-destructive text-destructive" : ""}`}
                   />
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </Link>
       </Card>
@@ -201,22 +227,41 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
             })}
           </span>
         </div>
-        {onFavoriteToggle && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 sm:h-8 sm:w-8"
-            onClick={(e) => {
-              e.preventDefault();
-              onFavoriteToggle();
-            }}
-            data-testid={`button-favorite-${listing.id}`}
-          >
-            <Heart
-              className={`w-4 h-4 sm:w-5 sm:h-5 ${listing.isFavorite ? "fill-destructive text-destructive" : ""}`}
-            />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className={`h-7 w-7 sm:h-8 sm:w-8 ${inCompare ? "text-primary" : ""}`}
+                onClick={handleCompareClick}
+                disabled={!inCompare && !canAddMore}
+                data-testid={`button-compare-${listing.id}`}
+              >
+                <GitCompare className={`w-4 h-4 sm:w-5 sm:h-5 ${inCompare ? "text-primary" : ""}`} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {inCompare ? "Karşılaştırmadan Çıkar" : canAddMore ? "Karşılaştır" : "Maksimum 4 ilan"}
+            </TooltipContent>
+          </Tooltip>
+          {onFavoriteToggle && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 sm:h-8 sm:w-8"
+              onClick={(e) => {
+                e.preventDefault();
+                onFavoriteToggle();
+              }}
+              data-testid={`button-favorite-${listing.id}`}
+            >
+              <Heart
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${listing.isFavorite ? "fill-destructive text-destructive" : ""}`}
+              />
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

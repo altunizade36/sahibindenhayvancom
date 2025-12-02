@@ -23,7 +23,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -5250,6 +5250,1070 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     } catch (error) {
       console.error("Failed to delete saved search:", error);
       res.status(500).json({ message: "Arama silinemedi" });
+    }
+  });
+
+  // ============ Viewed Listings (Son Görüntülenen İlanlar) ============
+
+  // Get user's recently viewed listings
+  app.get("/api/viewed-listings", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+      const viewed = await db
+        .select({
+          viewedAt: viewedListings.viewedAt,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            price: listings.price,
+            images: listings.images,
+            city: listings.city,
+            district: listings.district,
+            categoryId: listings.categoryId,
+            status: listings.status,
+            createdAt: listings.createdAt,
+          }
+        })
+        .from(viewedListings)
+        .innerJoin(listings, eq(viewedListings.listingId, listings.id))
+        .where(eq(viewedListings.userId, userId))
+        .orderBy(desc(viewedListings.viewedAt))
+        .limit(limit);
+
+      res.json(viewed.map(v => ({
+        ...v.listing,
+        viewedAt: v.viewedAt
+      })));
+    } catch (error) {
+      console.error("Failed to fetch viewed listings:", error);
+      res.status(500).json({ message: "Son görüntülenen ilanlar yüklenemedi" });
+    }
+  });
+
+  // Add a listing to viewed history
+  app.post("/api/viewed-listings", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { listingId } = req.body;
+
+      if (!listingId) {
+        return res.status(400).json({ message: "İlan ID gerekli" });
+      }
+
+      // Check if listing exists
+      const [listing] = await db
+        .select({ id: listings.id })
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      // Delete existing view record for same listing (if exists)
+      await db
+        .delete(viewedListings)
+        .where(and(
+          eq(viewedListings.userId, userId),
+          eq(viewedListings.listingId, listingId)
+        ));
+
+      // Insert new view record
+      await db.insert(viewedListings).values({
+        userId,
+        listingId,
+      });
+
+      // Keep only last 50 viewed listings per user
+      const userViews = await db
+        .select({ id: viewedListings.id })
+        .from(viewedListings)
+        .where(eq(viewedListings.userId, userId))
+        .orderBy(desc(viewedListings.viewedAt));
+
+      if (userViews.length > 50) {
+        const idsToDelete = userViews.slice(50).map(v => v.id);
+        await db
+          .delete(viewedListings)
+          .where(inArray(viewedListings.id, idsToDelete));
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to add viewed listing:", error);
+      res.status(500).json({ message: "Görüntüleme kaydedilemedi" });
+    }
+  });
+
+  // Clear viewed history
+  app.delete("/api/viewed-listings", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+
+      await db
+        .delete(viewedListings)
+        .where(eq(viewedListings.userId, userId));
+
+      res.json({ message: "Görüntüleme geçmişi temizlendi" });
+    } catch (error) {
+      console.error("Failed to clear viewed listings:", error);
+      res.status(500).json({ message: "Görüntüleme geçmişi temizlenemedi" });
+    }
+  });
+
+  // ============ Listing Comparison (İlan Karşılaştırma) ============
+
+  // Get multiple listings for comparison
+  app.get("/api/listings/compare", async (req: Request, res: Response) => {
+    try {
+      const ids = req.query.id;
+      
+      if (!ids) {
+        return res.json([]);
+      }
+
+      const listingIds = Array.isArray(ids) ? ids as string[] : [ids as string];
+      
+      if (listingIds.length === 0 || listingIds.length > 4) {
+        return res.status(400).json({ message: "1-4 arası ilan seçebilirsiniz" });
+      }
+
+      const compareListings = await db
+        .select()
+        .from(listings)
+        .where(inArray(listings.id, listingIds));
+
+      res.json(compareListings);
+    } catch (error) {
+      console.error("Failed to fetch listings for comparison:", error);
+      res.status(500).json({ message: "İlanlar karşılaştırma için yüklenemedi" });
+    }
+  });
+
+  // ============ Seller Reviews (Bireysel Satıcı Puanlama) ============
+
+  // Get reviews for a seller
+  app.get("/api/sellers/:sellerId/reviews", async (req: Request, res: Response) => {
+    try {
+      const { sellerId } = req.params;
+      const { page = "1", limit = "10" } = req.query;
+
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const reviewsData = await db
+        .select({
+          review: sellerReviews,
+          reviewer: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+          },
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            images: listings.images,
+          },
+        })
+        .from(sellerReviews)
+        .leftJoin(users, eq(sellerReviews.reviewerId, users.id))
+        .leftJoin(listings, eq(sellerReviews.listingId, listings.id))
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        )
+        .orderBy(desc(sellerReviews.createdAt))
+        .limit(limitNum)
+        .offset(offset);
+
+      // Get total count
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        );
+
+      // Get average rating
+      const [avgResult] = await db
+        .select({ 
+          avgRating: sql<number>`COALESCE(AVG(rating), 0)`,
+          totalReviews: sql<number>`count(*)`
+        })
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        );
+
+      // Get rating distribution
+      const ratingDistribution = await db
+        .select({
+          rating: sellerReviews.rating,
+          count: sql<number>`count(*)`
+        })
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        )
+        .groupBy(sellerReviews.rating);
+
+      res.json({
+        reviews: reviewsData,
+        total: Number(countResult?.count || 0),
+        page: pageNum,
+        limit: limitNum,
+        avgRating: Number(avgResult?.avgRating || 0).toFixed(1),
+        totalReviews: Number(avgResult?.totalReviews || 0),
+        ratingDistribution: ratingDistribution.reduce((acc, r) => {
+          acc[r.rating] = Number(r.count);
+          return acc;
+        }, {} as Record<number, number>),
+      });
+    } catch (error) {
+      console.error("Failed to fetch seller reviews:", error);
+      res.status(500).json({ message: "Değerlendirmeler yüklenemedi" });
+    }
+  });
+
+  // Get seller summary (for showing in listing card/detail)
+  app.get("/api/sellers/:sellerId/rating", async (req: Request, res: Response) => {
+    try {
+      const { sellerId } = req.params;
+
+      const [result] = await db
+        .select({ 
+          avgRating: sql<number>`COALESCE(AVG(rating), 0)`,
+          totalReviews: sql<number>`count(*)`
+        })
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        );
+
+      res.json({
+        sellerId,
+        avgRating: Number(result?.avgRating || 0).toFixed(1),
+        totalReviews: Number(result?.totalReviews || 0),
+      });
+    } catch (error) {
+      console.error("Failed to fetch seller rating:", error);
+      res.status(500).json({ message: "Satıcı puanı yüklenemedi" });
+    }
+  });
+
+  // Create a seller review (authenticated)
+  app.post("/api/sellers/:sellerId/reviews", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { sellerId } = req.params;
+      const reviewerId = getUserId(req.user);
+      const { rating, comment, listingId } = req.body;
+
+      // Can't review yourself
+      if (sellerId === reviewerId) {
+        return res.status(400).json({ message: "Kendinizi değerlendiremezsiniz" });
+      }
+
+      // Validate rating
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Geçerli bir puan verin (1-5)" });
+      }
+
+      // Check if already reviewed (within last 30 days for same listing)
+      const existingReview = await db
+        .select()
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.reviewerId, reviewerId),
+            listingId ? eq(sellerReviews.listingId, listingId) : sql`true`
+          )
+        )
+        .limit(1);
+
+      if (existingReview.length > 0) {
+        return res.status(400).json({ message: "Bu satıcıyı zaten değerlendirdiniz" });
+      }
+
+      // Check if verified purchase (if listing provided)
+      let isVerifiedPurchase = false;
+      if (listingId) {
+        // Could check messages or transactions to verify purchase
+        // For now, just mark as unverified
+        isVerifiedPurchase = false;
+      }
+
+      const [review] = await db
+        .insert(sellerReviews)
+        .values({
+          sellerId,
+          reviewerId,
+          listingId: listingId || null,
+          rating,
+          comment: comment || null,
+          isVerifiedPurchase,
+        })
+        .returning();
+
+      // Update seller's average rating in users table
+      const [avgResult] = await db
+        .select({ 
+          avgRating: sql<number>`COALESCE(AVG(rating), 0)`,
+          totalReviews: sql<number>`count(*)`
+        })
+        .from(sellerReviews)
+        .where(
+          and(
+            eq(sellerReviews.sellerId, sellerId),
+            eq(sellerReviews.status, "active")
+          )
+        );
+
+      // Update seller's rating in users table
+      await db
+        .update(users)
+        .set({
+          sellerRating: avgResult?.avgRating?.toString() || "0",
+          sellerReviewCount: Number(avgResult?.totalReviews || 0),
+        })
+        .where(eq(users.id, sellerId));
+
+      // Create notification for seller
+      await db.insert(notifications).values({
+        userId: sellerId,
+        type: "review",
+        title: "Yeni Değerlendirme",
+        content: `Bir alıcı size ${rating} yıldız verdi.`,
+        data: JSON.stringify({ reviewId: review.id, rating }),
+        isRead: false,
+      });
+
+      res.status(201).json(review);
+    } catch (error) {
+      console.error("Failed to create seller review:", error);
+      res.status(500).json({ message: "Değerlendirme oluşturulamadı" });
+    }
+  });
+
+  // Seller responds to a review
+  app.patch("/api/seller-reviews/:reviewId/respond", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { reviewId } = req.params;
+      const userId = getUserId(req.user);
+      const { response } = req.body;
+
+      if (!response || response.length < 5) {
+        return res.status(400).json({ message: "Yanıt en az 5 karakter olmalı" });
+      }
+
+      // Verify user is the seller
+      const [review] = await db
+        .select()
+        .from(sellerReviews)
+        .where(eq(sellerReviews.id, reviewId))
+        .limit(1);
+
+      if (!review) {
+        return res.status(404).json({ message: "Değerlendirme bulunamadı" });
+      }
+
+      if (review.sellerId !== userId) {
+        return res.status(403).json({ message: "Bu değerlendirmeye yanıt verme yetkiniz yok" });
+      }
+
+      if (review.sellerResponse) {
+        return res.status(400).json({ message: "Bu değerlendirmeye zaten yanıt verdiniz" });
+      }
+
+      const [updated] = await db
+        .update(sellerReviews)
+        .set({
+          sellerResponse: response,
+          sellerResponseAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(sellerReviews.id, reviewId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to respond to review:", error);
+      res.status(500).json({ message: "Yanıt verilemedi" });
+    }
+  });
+
+  // Mark review as helpful
+  app.post("/api/seller-reviews/:reviewId/helpful", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { reviewId } = req.params;
+
+      const [updated] = await db
+        .update(sellerReviews)
+        .set({
+          helpfulCount: sql`helpful_count + 1`,
+        })
+        .where(eq(sellerReviews.id, reviewId))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({ message: "Değerlendirme bulunamadı" });
+      }
+
+      res.json({ helpfulCount: updated.helpfulCount });
+    } catch (error) {
+      console.error("Failed to mark review as helpful:", error);
+      res.status(500).json({ message: "İşlem başarısız" });
+    }
+  });
+
+  // ============ Category Statistics (Gelişmiş İstatistikler) ============
+
+  // Get real-time category price statistics
+  app.get("/api/category-stats/:categorySlug", async (req: Request, res: Response) => {
+    try {
+      const { categorySlug } = req.params;
+
+      // Get the category and its children
+      const category = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.slug, categorySlug))
+        .limit(1);
+
+      if (!category.length) {
+        return res.status(404).json({ message: "Kategori bulunamadı" });
+      }
+
+      // Get all subcategory slugs
+      const allCategories = await db
+        .select({ id: categories.id, slug: categories.slug })
+        .from(categories)
+        .where(
+          or(
+            eq(categories.slug, categorySlug),
+            ilike(categories.slug, `${categorySlug}-%`)
+          )
+        );
+
+      const categoryIds = allCategories.map(c => c.id);
+
+      // Calculate real-time statistics for active listings
+      const [stats] = await db
+        .select({
+          totalListings: sql<number>`count(*)`,
+          avgPrice: sql<number>`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
+          minPrice: sql<number>`COALESCE(MIN(CAST(${listings.price} AS DECIMAL)), 0)`,
+          maxPrice: sql<number>`COALESCE(MAX(CAST(${listings.price} AS DECIMAL)), 0)`,
+          medianPrice: sql<number>`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(${listings.price} AS DECIMAL))`,
+          totalViews: sql<number>`COALESCE(SUM(${listings.views}), 0)`,
+          totalFavorites: sql<number>`COALESCE(SUM(${listings.favoriteCount}), 0)`,
+        })
+        .from(listings)
+        .where(
+          and(
+            inArray(listings.categoryId, categoryIds),
+            eq(listings.status, "active")
+          )
+        );
+
+      // Get city distribution
+      const cityDistribution = await db
+        .select({
+          city: listings.city,
+          count: sql<number>`count(*)`
+        })
+        .from(listings)
+        .where(
+          and(
+            inArray(listings.categoryId, categoryIds),
+            eq(listings.status, "active")
+          )
+        )
+        .groupBy(listings.city)
+        .orderBy(desc(sql`count(*)`))
+        .limit(10);
+
+      // Get price range distribution
+      const priceRanges = await db
+        .select({
+          range: sql<string>`
+            CASE 
+              WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
+              WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
+              WHEN CAST(${listings.price} AS DECIMAL) < 10000 THEN '5K-10K'
+              WHEN CAST(${listings.price} AS DECIMAL) < 25000 THEN '10K-25K'
+              WHEN CAST(${listings.price} AS DECIMAL) < 50000 THEN '25K-50K'
+              ELSE '50K+'
+            END
+          `,
+          count: sql<number>`count(*)`
+        })
+        .from(listings)
+        .where(
+          and(
+            inArray(listings.categoryId, categoryIds),
+            eq(listings.status, "active")
+          )
+        )
+        .groupBy(sql`
+          CASE 
+            WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
+            WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
+            WHEN CAST(${listings.price} AS DECIMAL) < 10000 THEN '5K-10K'
+            WHEN CAST(${listings.price} AS DECIMAL) < 25000 THEN '10K-25K'
+            WHEN CAST(${listings.price} AS DECIMAL) < 50000 THEN '25K-50K'
+            ELSE '50K+'
+          END
+        `);
+
+      // Get listings by date (last 30 days)
+      const listingsByDate = await db
+        .select({
+          date: sql<string>`DATE(${listings.createdAt})`,
+          count: sql<number>`count(*)`
+        })
+        .from(listings)
+        .where(
+          and(
+            inArray(listings.categoryId, categoryIds),
+            sql`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
+          )
+        )
+        .groupBy(sql`DATE(${listings.createdAt})`)
+        .orderBy(sql`DATE(${listings.createdAt})`);
+
+      res.json({
+        categorySlug,
+        categoryName: category[0].name,
+        stats: {
+          totalListings: Number(stats?.totalListings || 0),
+          avgPrice: Number(stats?.avgPrice || 0).toFixed(2),
+          minPrice: Number(stats?.minPrice || 0).toFixed(2),
+          maxPrice: Number(stats?.maxPrice || 0).toFixed(2),
+          medianPrice: Number(stats?.medianPrice || 0).toFixed(2),
+          totalViews: Number(stats?.totalViews || 0),
+          totalFavorites: Number(stats?.totalFavorites || 0),
+        },
+        cityDistribution,
+        priceRanges,
+        listingsByDate,
+      });
+    } catch (error) {
+      console.error("Failed to fetch category stats:", error);
+      res.status(500).json({ message: "İstatistikler yüklenemedi" });
+    }
+  });
+
+  // Get price trends for a category (historical data)
+  app.get("/api/category-stats/:categorySlug/trends", async (req: Request, res: Response) => {
+    try {
+      const { categorySlug } = req.params;
+      const { days = "30" } = req.query;
+      const daysNum = parseInt(days as string) || 30;
+
+      const trends = await db
+        .select()
+        .from(categoryStats)
+        .where(
+          and(
+            eq(categoryStats.categorySlug, categorySlug),
+            sql`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
+          )
+        )
+        .orderBy(categoryStats.date);
+
+      res.json(trends);
+    } catch (error) {
+      console.error("Failed to fetch category trends:", error);
+      res.status(500).json({ message: "Trend verileri yüklenemedi" });
+    }
+  });
+
+  // Get overall market statistics
+  app.get("/api/market-stats", async (req: Request, res: Response) => {
+    try {
+      // Get overall market stats
+      const [overallStats] = await db
+        .select({
+          totalListings: sql<number>`count(*)`,
+          activeListings: sql<number>`count(*) FILTER (WHERE ${listings.status} = 'active')`,
+          avgPrice: sql<number>`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)) FILTER (WHERE ${listings.status} = 'active'), 0)`,
+          totalViews: sql<number>`COALESCE(SUM(${listings.views}), 0)`,
+        })
+        .from(listings);
+
+      // Get top categories by listing count
+      const topCategories = await db
+        .select({
+          categoryId: listings.categoryId,
+          categoryName: categories.name,
+          categorySlug: categories.slug,
+          count: sql<number>`count(*)`,
+          avgPrice: sql<number>`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
+        })
+        .from(listings)
+        .leftJoin(categories, eq(listings.categoryId, categories.id))
+        .where(eq(listings.status, "active"))
+        .groupBy(listings.categoryId, categories.name, categories.slug)
+        .orderBy(desc(sql`count(*)`))
+        .limit(10);
+
+      // Get listings created in last 7 days
+      const recentActivity = await db
+        .select({
+          date: sql<string>`DATE(${listings.createdAt})`,
+          count: sql<number>`count(*)`
+        })
+        .from(listings)
+        .where(sql`${listings.createdAt} >= CURRENT_DATE - INTERVAL '7 days'`)
+        .groupBy(sql`DATE(${listings.createdAt})`)
+        .orderBy(sql`DATE(${listings.createdAt})`);
+
+      res.json({
+        overview: {
+          totalListings: Number(overallStats?.totalListings || 0),
+          activeListings: Number(overallStats?.activeListings || 0),
+          avgPrice: Number(overallStats?.avgPrice || 0).toFixed(2),
+          totalViews: Number(overallStats?.totalViews || 0),
+        },
+        topCategories: topCategories.map(c => ({
+          ...c,
+          count: Number(c.count),
+          avgPrice: Number(c.avgPrice).toFixed(2),
+        })),
+        recentActivity,
+      });
+    } catch (error) {
+      console.error("Failed to fetch market stats:", error);
+      res.status(500).json({ message: "Pazar istatistikleri yüklenemedi" });
+    }
+  });
+
+  // ============ Listing Videos (İlan Videoları) ============
+
+  // Upload a video for a listing
+  app.post("/api/listing-videos/upload", createLimiter, isAuthenticated, upload.single('video'), async (req: Request, res: Response) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "Video dosyası yüklemeniz gerekmektedir." });
+      }
+
+      const listingId = req.body.listingId;
+      if (!listingId) {
+        return res.status(400).json({ message: "İlan ID'si belirtilmemiş." });
+      }
+
+      // Verify ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı." });
+      }
+
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu ilana video yükleme yetkiniz yok." });
+      }
+
+      // Validate video file
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Desteklenen video formatları: MP4, WebM, MOV, AVI" });
+      }
+
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (file.size > maxSize) {
+        return res.status(400).json({ message: "Video boyutu 100MB'ı geçemez." });
+      }
+
+      // Check video count limit
+      const existingVideos = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(listingVideos)
+        .where(eq(listingVideos.listingId, listingId));
+
+      if (Number(existingVideos[0]?.count || 0) >= 3) {
+        return res.status(400).json({ message: "Bir ilan için en fazla 3 video yükleyebilirsiniz." });
+      }
+
+      // Upload to object storage
+      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+      if (!bucketId) {
+        return res.status(500).json({ message: "Object storage yapılandırılmamış." });
+      }
+
+      const timestamp = Date.now();
+      const safeFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const videoPath = `videos/${listingId}/${timestamp}-${safeFilename}`;
+
+      try {
+        const { Storage } = await import("@google-cloud/storage");
+        const storage = new Storage();
+        const bucket = storage.bucket(bucketId);
+        const blob = bucket.file(videoPath);
+
+        await blob.save(file.buffer, {
+          metadata: {
+            contentType: file.mimetype,
+          },
+        });
+
+        await blob.makePublic();
+        const videoUrl = `https://storage.googleapis.com/${bucketId}/${videoPath}`;
+
+        // Get current max order
+        const maxOrderResult = await db
+          .select({ maxOrder: sql<number>`COALESCE(MAX(${listingVideos.order}), 0)` })
+          .from(listingVideos)
+          .where(eq(listingVideos.listingId, listingId));
+        const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1;
+
+        // Create video record
+        const [video] = await db
+          .insert(listingVideos)
+          .values({
+            listingId,
+            url: videoUrl,
+            mimeType: file.mimetype,
+            size: file.size,
+            order: nextOrder,
+            status: "ready",
+          })
+          .returning();
+
+        res.status(201).json(video);
+      } catch (storageError) {
+        console.error("Video upload to storage failed:", storageError);
+        return res.status(500).json({ message: "Video yüklenirken bir hata oluştu." });
+      }
+    } catch (error) {
+      console.error("Video upload failed:", error);
+      res.status(500).json({ message: "Video yüklenemedi." });
+    }
+  });
+
+  // Get videos for a listing
+  app.get("/api/listing-videos/:listingId", async (req: Request, res: Response) => {
+    try {
+      const { listingId } = req.params;
+
+      const videos = await db
+        .select()
+        .from(listingVideos)
+        .where(eq(listingVideos.listingId, listingId))
+        .orderBy(listingVideos.order);
+
+      res.json(videos);
+    } catch (error) {
+      console.error("Failed to fetch listing videos:", error);
+      res.status(500).json({ message: "Videolar yüklenemedi." });
+    }
+  });
+
+  // Delete a video
+  app.delete("/api/listing-videos/:videoId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { videoId } = req.params;
+      const userId = getUserId(req.user);
+
+      // Get video and verify ownership
+      const [video] = await db
+        .select({
+          video: listingVideos,
+          listing: { sellerId: listings.sellerId }
+        })
+        .from(listingVideos)
+        .leftJoin(listings, eq(listingVideos.listingId, listings.id))
+        .where(eq(listingVideos.id, videoId))
+        .limit(1);
+
+      if (!video) {
+        return res.status(404).json({ message: "Video bulunamadı." });
+      }
+
+      if (video.listing?.sellerId !== userId && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu videoyu silme yetkiniz yok." });
+      }
+
+      // Delete from storage (optional, can fail silently)
+      try {
+        const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+        if (bucketId && video.video.url) {
+          const videoPath = video.video.url.replace(`https://storage.googleapis.com/${bucketId}/`, '');
+          const { Storage } = await import("@google-cloud/storage");
+          const storage = new Storage();
+          const bucket = storage.bucket(bucketId);
+          await bucket.file(videoPath).delete().catch(() => {});
+        }
+      } catch (e) {
+        console.warn("Failed to delete video from storage:", e);
+      }
+
+      // Delete from database
+      await db.delete(listingVideos).where(eq(listingVideos.id, videoId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete video:", error);
+      res.status(500).json({ message: "Video silinemedi." });
+    }
+  });
+
+  // ============ Guest Contact Requests (Misafir İletişim Formu) ============
+
+  // Verify reCAPTCHA token
+  async function verifyRecaptcha(token: string): Promise<{ success: boolean; score: number }> {
+    try {
+      const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+      if (!secretKey) {
+        console.warn("RECAPTCHA_SECRET_KEY not configured, skipping verification");
+        return { success: true, score: 1.0 };
+      }
+
+      const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `secret=${secretKey}&response=${token}`,
+      });
+
+      const data = await response.json() as { success: boolean; score?: number };
+      return { success: data.success, score: data.score || 0 };
+    } catch (error) {
+      console.error("reCAPTCHA verification failed:", error);
+      return { success: false, score: 0 };
+    }
+  }
+
+  // Create a guest contact request (no login required)
+  app.post("/api/contact-requests", async (req: Request, res: Response) => {
+    try {
+      const { listingId, senderName, senderEmail, senderPhone, message, recaptchaToken } = req.body;
+
+      // Validate required fields
+      if (!listingId || !senderName || !senderEmail || !message) {
+        return res.status(400).json({ message: "Lütfen tüm gerekli alanları doldurun" });
+      }
+
+      // Get the listing to find the seller
+      const [listing] = await db
+        .select({ sellerId: listings.userId })
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      // Verify reCAPTCHA
+      let recaptchaScore = 1.0;
+      if (recaptchaToken) {
+        const recaptchaResult = await verifyRecaptcha(recaptchaToken);
+        recaptchaScore = recaptchaResult.score;
+        
+        // Block if score is too low (likely bot)
+        if (!recaptchaResult.success || recaptchaScore < 0.3) {
+          return res.status(400).json({ message: "Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin." });
+        }
+      }
+
+      // Get IP address
+      const ipAddress = req.ip || req.socket.remoteAddress || "unknown";
+
+      // Determine status based on reCAPTCHA score
+      const status = recaptchaScore < 0.5 ? "spam" : "pending";
+
+      // Create the contact request
+      const [contactRequest] = await db
+        .insert(contactRequests)
+        .values({
+          listingId,
+          sellerId: listing.sellerId,
+          senderName,
+          senderEmail,
+          senderPhone: senderPhone || null,
+          message,
+          ipAddress,
+          recaptchaScore: recaptchaScore.toString(),
+          status,
+        })
+        .returning();
+
+      // If not spam, create a notification for the seller
+      if (status !== "spam") {
+        await db.insert(notifications).values({
+          userId: listing.sellerId,
+          type: "message",
+          title: "Yeni İletişim Talebi",
+          content: `${senderName} adlı ziyaretçi "${listingId}" ilanınız hakkında iletişime geçmek istiyor.`,
+          data: JSON.stringify({ contactRequestId: contactRequest.id, listingId }),
+          isRead: false,
+        });
+      }
+
+      res.status(201).json({ 
+        message: "Mesajınız satıcıya iletildi. En kısa sürede sizinle iletişime geçilecektir.",
+        id: contactRequest.id
+      });
+    } catch (error) {
+      console.error("Failed to create contact request:", error);
+      res.status(500).json({ message: "Mesaj gönderilemedi. Lütfen tekrar deneyin." });
+    }
+  });
+
+  // Get contact requests for seller (authenticated)
+  app.get("/api/contact-requests", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { status, listingId } = req.query;
+
+      let query = db
+        .select({
+          contactRequest: contactRequests,
+          listing: listings,
+        })
+        .from(contactRequests)
+        .leftJoin(listings, eq(contactRequests.listingId, listings.id))
+        .where(eq(contactRequests.sellerId, userId))
+        .orderBy(desc(contactRequests.createdAt));
+
+      // Optional filters
+      const conditions = [eq(contactRequests.sellerId, userId)];
+      if (status && typeof status === "string") {
+        conditions.push(eq(contactRequests.status, status));
+      }
+      if (listingId && typeof listingId === "string") {
+        conditions.push(eq(contactRequests.listingId, listingId));
+      }
+
+      const results = await db
+        .select({
+          contactRequest: contactRequests,
+          listing: {
+            id: listings.id,
+            title: listings.title,
+            images: listings.images,
+          },
+        })
+        .from(contactRequests)
+        .leftJoin(listings, eq(contactRequests.listingId, listings.id))
+        .where(and(...conditions))
+        .orderBy(desc(contactRequests.createdAt));
+
+      res.json(results);
+    } catch (error) {
+      console.error("Failed to fetch contact requests:", error);
+      res.status(500).json({ message: "İletişim talepleri yüklenemedi" });
+    }
+  });
+
+  // Mark contact request as replied
+  app.patch("/api/contact-requests/:id/reply", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req.user);
+
+      const [updated] = await db
+        .update(contactRequests)
+        .set({ 
+          status: "replied", 
+          repliedAt: new Date() 
+        })
+        .where(
+          and(
+            eq(contactRequests.id, id),
+            eq(contactRequests.sellerId, userId)
+          )
+        )
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({ message: "İletişim talebi bulunamadı" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update contact request:", error);
+      res.status(500).json({ message: "İletişim talebi güncellenemedi" });
+    }
+  });
+
+  // Archive or mark as spam
+  app.patch("/api/contact-requests/:id/status", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const userId = getUserId(req.user);
+
+      if (!["pending", "replied", "spam", "archived"].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+
+      const [updated] = await db
+        .update(contactRequests)
+        .set({ status })
+        .where(
+          and(
+            eq(contactRequests.id, id),
+            eq(contactRequests.sellerId, userId)
+          )
+        )
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({ message: "İletişim talebi bulunamadı" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Failed to update contact request status:", error);
+      res.status(500).json({ message: "İletişim talebi güncellenemedi" });
+    }
+  });
+
+  // Get unread contact request count
+  app.get("/api/contact-requests/count", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+
+      const [result] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(contactRequests)
+        .where(
+          and(
+            eq(contactRequests.sellerId, userId),
+            eq(contactRequests.status, "pending")
+          )
+        );
+
+      res.json({ count: Number(result?.count || 0) });
+    } catch (error) {
+      console.error("Failed to count contact requests:", error);
+      res.status(500).json({ message: "İletişim talepleri sayılamadı" });
     }
   });
 

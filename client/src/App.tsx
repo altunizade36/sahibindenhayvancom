@@ -10,6 +10,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SplashScreen, useSplashScreen } from "@/components/splash-screen";
 import { CookieConsent } from "@/components/cookie-consent";
+import { CompareProvider } from "@/contexts/compare-context";
+import { CompareBar } from "@/components/compare-bar";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -64,6 +66,8 @@ const PanelIlanlarim = lazy(() => import("@/pages/panel/ilanlarim"));
 const PanelFavorilerim = lazy(() => import("@/pages/panel/favorilerim"));
 const PanelAyarlar = lazy(() => import("@/pages/panel/ayarlar"));
 const PanelAnalizler = lazy(() => import("@/pages/panel/analizler"));
+const PanelSonGoruntuleneler = lazy(() => import("@/pages/panel/son-goruntuleneler"));
+const ComparePage = lazy(() => import("@/pages/compare"));
 const KullanimKosullari = lazy(() => import("@/pages/legal/kullanim-kosullari"));
 const GizlilikPolitikasi = lazy(() => import("@/pages/legal/gizlilik-politikasi"));
 const CerezPolitikasi = lazy(() => import("@/pages/legal/cerez-politikasi"));
@@ -140,6 +144,7 @@ function NoSidebarLayout() {
           <Route path="/panel/favorilerim">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
           <Route path="/panel/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
           <Route path="/panel/analizler">{() => <LazyRoute component={PanelAnalizler} />}</Route>
+          <Route path="/panel/son-goruntuleneler">{() => <LazyRoute component={PanelSonGoruntuleneler} />}</Route>
           <Route path="/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
           <Route path="/favoriler">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
           <Route path="/bildirimler">{() => <LazyRoute component={NotificationsPage} />}</Route>
@@ -159,6 +164,7 @@ function NoSidebarLayout() {
           <Route path="/canli-yayin/:id">{() => <LazyRoute component={LiveStreamWatch} />}</Route>
           <Route path="/yayin-baslat">{() => <LazyRoute component={LiveStreamCreate} />}</Route>
           <Route path="/kategori/:slug" component={CategoryDetail} />
+          <Route path="/karsilastir">{() => <LazyRoute component={ComparePage} />}</Route>
           <Route path="/admin/pin-dogrula">{() => <LazyRoute component={AdminPinVerify} />}</Route>
           <Route path="/admin">{() => <LazyRoute component={AdminDashboard} />}</Route>
           <Route path="/admin/kullanicilar">{() => <LazyRoute component={AdminUsers} />}</Route>
@@ -211,6 +217,7 @@ function Router() {
                            location.startsWith('/canli-yayin') ||
                            location.startsWith('/yayin-baslat') ||
                            location.startsWith('/kategori/') ||
+                           location.startsWith('/karsilastir') ||
                            location.startsWith('/admin') ||
                            location.startsWith('/kullanim-kosullari') ||
                            location.startsWith('/gizlilik-politikasi') ||
@@ -241,12 +248,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <I18nProvider>
-          <TooltipProvider>
-            {showSplash && <SplashScreen onComplete={hideSplash} />}
-            <Toaster />
-            <Router />
-            <CookieConsent />
-          </TooltipProvider>
+          <CompareProvider>
+            <TooltipProvider>
+              {showSplash && <SplashScreen onComplete={hideSplash} />}
+              <Toaster />
+              <Router />
+              <CompareBar />
+              <CookieConsent />
+            </TooltipProvider>
+          </CompareProvider>
         </I18nProvider>
       </AuthProvider>
     </QueryClientProvider>

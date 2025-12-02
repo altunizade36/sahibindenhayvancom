@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,9 @@ import { ListingStats } from "@/components/listing-stats";
 import { MakeOfferModal } from "@/components/make-offer-modal";
 import { PriceComparison } from "@/components/price-comparison";
 import { SellerLevelBadge } from "@/components/seller-level-badge";
+import { GuestContactForm } from "@/components/guest-contact-form";
+import { SellerRatingSummary, SellerReviews } from "@/components/seller-rating";
+import { VideoGallery } from "@/components/video-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -71,6 +74,7 @@ export default function ListingDetail() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [makeOfferOpen, setMakeOfferOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const viewTrackedRef = useRef(false);
 
   const { data: listing, isLoading } = useQuery<ListingWithDetails>({
     queryKey: [`/api/listings/${id}`],
@@ -88,6 +92,41 @@ export default function ListingDetail() {
   });
 
   const isFavorited = favorites?.some((fav) => fav.listingId === id);
+
+  // Track listing view for recently viewed feature
+  const trackViewMutation = useMutation({
+    mutationFn: async (listingId: string) => {
+      return apiRequest("POST", "/api/viewed-listings", { listingId });
+    },
+  });
+
+  // Track view when listing loads (only once per page visit)
+  useEffect(() => {
+    if (listing && isAuthenticated && id && !viewTrackedRef.current) {
+      viewTrackedRef.current = true;
+      trackViewMutation.mutate(id);
+      
+      // Also store in localStorage for guest users sync later
+      try {
+        const viewed = JSON.parse(localStorage.getItem('viewedListings') || '[]');
+        const filtered = viewed.filter((v: any) => v.id !== id);
+        filtered.unshift({ id, viewedAt: new Date().toISOString() });
+        localStorage.setItem('viewedListings', JSON.stringify(filtered.slice(0, 50)));
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    } else if (listing && !isAuthenticated && id) {
+      // For guest users, only store in localStorage
+      try {
+        const viewed = JSON.parse(localStorage.getItem('viewedListings') || '[]');
+        const filtered = viewed.filter((v: any) => v.id !== id);
+        filtered.unshift({ id, viewedAt: new Date().toISOString() });
+        localStorage.setItem('viewedListings', JSON.stringify(filtered.slice(0, 50)));
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    }
+  }, [listing, isAuthenticated, id]);
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
@@ -551,6 +590,9 @@ export default function ListingDetail() {
                   </p>
                 </div>
 
+                {/* Video Gallery */}
+                <VideoGallery listingId={listing.id} />
+
                 {(listing.breed || listing.age || listing.gender) && (
                   <>
                     <Separator />
@@ -785,65 +827,75 @@ export default function ListingDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Primary Contact CTA - Big prominent message button */}
+            {/* Primary Contact CTA - Big prominent message button or Guest Contact Form */}
             {listing.sellerId !== user?.id && (
-              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
-                <CardContent className="p-4 md:p-5">
-                  <div className="text-center space-y-3">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-2">
-                      <MessageSquare className="w-7 h-7 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">Bu İlanla İlgileniyor musunuz?</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Satıcıyla hemen iletişime geçin
-                      </p>
-                    </div>
-                    <Button
-                      size="lg"
-                      className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                      onClick={handleMessageSeller}
-                      data-testid="button-message-seller-primary"
-                    >
-                      <MessageSquare className="w-5 h-5 mr-2" />
-                      Satıcıya Mesaj Gönder
-                    </Button>
-                    
-                    {listing.seller?.phone && (
-                      <div className="grid grid-cols-2 gap-2 pt-2">
+              <>
+                {isAuthenticated ? (
+                  <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                    <CardContent className="p-4 md:p-5">
+                      <div className="text-center space-y-3">
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-2">
+                          <MessageSquare className="w-7 h-7 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">Bu İlanla İlgileniyor musunuz?</h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Satıcıyla hemen iletişime geçin
+                          </p>
+                        </div>
                         <Button
-                          variant="outline"
-                          className="h-11 bg-background"
-                          asChild
+                          size="lg"
+                          className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                          onClick={handleMessageSeller}
+                          data-testid="button-message-seller-primary"
                         >
-                          <a 
-                            href={`tel:${listing.seller?.phone || ''}`}
-                            data-testid="link-call-seller-primary"
-                          >
-                            <PhoneCall className="w-4 h-4 mr-2" />
-                            Ara
-                          </a>
+                          <MessageSquare className="w-5 h-5 mr-2" />
+                          Satıcıya Mesaj Gönder
                         </Button>
-                        <Button
-                          variant="outline"
-                          className="h-11 bg-background text-green-600 border-green-500 hover:bg-green-50 hover:text-green-700"
-                          asChild
-                        >
-                          <a 
-                            href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-testid="link-whatsapp-seller-primary"
-                          >
-                            <SiWhatsapp className="w-4 h-4 mr-2" />
-                            WhatsApp
-                          </a>
-                        </Button>
+                        
+                        {listing.seller?.phone && (
+                          <div className="grid grid-cols-2 gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              className="h-11 bg-background"
+                              asChild
+                            >
+                              <a 
+                                href={`tel:${listing.seller?.phone || ''}`}
+                                data-testid="link-call-seller-primary"
+                              >
+                                <PhoneCall className="w-4 h-4 mr-2" />
+                                Ara
+                              </a>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="h-11 bg-background text-green-600 border-green-500 hover:bg-green-50 hover:text-green-700"
+                              asChild
+                            >
+                              <a 
+                                href={`https://wa.me/${(listing.seller?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '90')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                data-testid="link-whatsapp-seller-primary"
+                              >
+                                <SiWhatsapp className="w-4 h-4 mr-2" />
+                                WhatsApp
+                              </a>
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <GuestContactForm
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                    sellerName={listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username : undefined}
+                  />
+                )}
+              </>
             )}
 
             {/* Seller Info */}
@@ -868,6 +920,7 @@ export default function ListingDetail() {
                       {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
                     </div>
                     <div className="text-xs text-green-600 font-medium">Çevrimiçi</div>
+                    <SellerRatingSummary sellerId={listing.sellerId} compact />
                     {listing.seller?.phone && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                         <Phone className="w-3 h-3" />
@@ -896,6 +949,13 @@ export default function ListingDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Seller Reviews */}
+            <SellerReviews
+              sellerId={listing.sellerId}
+              listingId={listing.id}
+              canReview={isAuthenticated && listing.sellerId !== user?.id}
+            />
 
             {/* Actions */}
             <Card>
