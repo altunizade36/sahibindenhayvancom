@@ -3357,13 +3357,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Fiyat en fazla 99.999.999,99 TL olabilir" });
       }
 
+      // Remove sensitive fields that should not be stored publicly
+      const { microchipNumber, passportNumber, earTagNumber, turkvetNumber, ...safeBody } = req.body;
+      
       const parsedData = insertListingSchema.parse({
-        ...req.body,
+        ...safeBody,
         price: numericPrice.toString(),
         sellerId: sellerId,
         status: listingStatus,
         // Auto-detect listing source: if storeId provided, it's a store listing
-        listingSource: req.body.storeId ? 'store' : 'individual',
+        listingSource: safeBody.storeId ? 'store' : 'individual',
       });
 
       // Create listing - completely free, but requires admin approval
@@ -3424,12 +3427,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const isPriceDrop = newPrice < oldPrice && oldPrice > 0;
 
       // Auto-detect listing source when storeId changes
-      const updateData: any = { ...req.body, updatedAt: new Date() };
+      // Remove sensitive fields that should not be stored
+      const { microchipNumber, passportNumber, earTagNumber, turkvetNumber, ...safeBody } = req.body;
+      const updateData: any = { ...safeBody, updatedAt: new Date() };
       if (sanitizedPrice) {
         updateData.price = sanitizedPrice;
       }
-      if ('storeId' in req.body) {
-        updateData.listingSource = req.body.storeId ? 'store' : 'individual';
+      if ('storeId' in safeBody) {
+        updateData.listingSource = safeBody.storeId ? 'store' : 'individual';
       }
 
       const [updated] = await db
@@ -6171,12 +6176,22 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const sellerId = getUserId(user);
 
       // Minimal validation for drafts - just need sellerId
+      // Sanitize price - remove locale formatting and ensure valid number
+      let sanitizedPrice = "0";
+      if (req.body.price) {
+        const priceStr = String(req.body.price).replace(/\./g, '').replace(/,/g, '.');
+        const priceNum = parseFloat(priceStr);
+        if (!isNaN(priceNum) && priceNum >= 0 && priceNum <= 99999999.99) {
+          sanitizedPrice = priceNum.toFixed(2);
+        }
+      }
+      
       const draftData = {
         sellerId,
         categoryId: req.body.categoryId || null,
         title: req.body.title || "Taslak İlan",
         description: req.body.description || "",
-        price: req.body.price || "0",
+        price: sanitizedPrice,
         city: req.body.city || "",
         district: req.body.district || "",
         status: 'draft' as const,
@@ -6191,10 +6206,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         neutered: req.body.neutered || false,
         pedigree: req.body.pedigree || false,
         characterTraits: req.body.characterTraits || [],
-        microchipNumber: req.body.microchipNumber || null,
-        passportNumber: req.body.passportNumber || null,
-        earTagNumber: req.body.earTagNumber || null,
-        turkvetNumber: req.body.turkvetNumber || null,
         deliveryInfo: req.body.deliveryInfo || null,
         warrantyInfo: req.body.warrantyInfo || null,
       };
@@ -6240,16 +6251,24 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const updateData: any = { updatedAt: new Date() };
       
       const allowedFields = [
-        'categoryId', 'title', 'description', 'price', 'city', 'district',
+        'categoryId', 'title', 'description', 'city', 'district',
         'images', 'videoUrls', 'categoryAttributes', 'breed', 'ageCategory',
         'gender', 'healthStatus', 'vaccinated', 'neutered', 'pedigree',
-        'characterTraits', 'microchipNumber', 'passportNumber', 'earTagNumber',
-        'turkvetNumber', 'deliveryInfo', 'warrantyInfo'
+        'characterTraits', 'deliveryInfo', 'warrantyInfo'
       ];
 
       for (const field of allowedFields) {
         if (req.body[field] !== undefined) {
           updateData[field] = req.body[field];
+        }
+      }
+      
+      // Handle price separately with sanitization
+      if (req.body.price !== undefined) {
+        const priceStr = String(req.body.price).replace(/\./g, '').replace(/,/g, '.');
+        const priceNum = parseFloat(priceStr);
+        if (!isNaN(priceNum) && priceNum >= 0 && priceNum <= 99999999.99) {
+          updateData.price = priceNum.toFixed(2);
         }
       }
 

@@ -84,10 +84,6 @@ const listingFormSchema = z.object({
   district: z.string().min(1, "İlçe seçiniz"),
   images: z.array(z.string()).default([]),
   videoUrls: z.array(z.string()).default([]),
-  microchipNumber: z.string().optional(),
-  passportNumber: z.string().optional(),
-  earTagNumber: z.string().optional(),
-  turkvetNumber: z.string().optional(),
   deliveryInfo: z.string().optional(),
   warrantyInfo: z.string().optional(),
   acceptListingRules: z.boolean().refine((val) => val === true, {
@@ -174,10 +170,6 @@ export default function CreateListing() {
       district: "",
       images: [],
       videoUrls: [],
-      microchipNumber: "",
-      passportNumber: "",
-      earTagNumber: "",
-      turkvetNumber: "",
       deliveryInfo: "",
       warrantyInfo: "",
       acceptListingRules: false,
@@ -870,72 +862,6 @@ export default function CreateListing() {
                     />
                   </div>
 
-                  {/* Category-specific fields */}
-                  {categoryType === 'pet' && (
-                    <div className="space-y-3 md:space-y-4 p-4 bg-muted/50 rounded-lg">
-                      <h4 className="text-sm font-semibold">Evcil Hayvan Bilgileri</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="microchipNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Mikroçip Numarası</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="15 haneli mikroçip no" data-testid="input-microchip" />
-                              </FormControl>
-                              <FormDescription className="text-xs">Kedi ve köpekler için zorunludur</FormDescription>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="passportNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Pasaport Numarası</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Hayvan pasaport no" data-testid="input-passport" />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {categoryType === 'livestock' && (
-                    <div className="space-y-3 md:space-y-4 p-4 bg-muted/50 rounded-lg">
-                      <h4 className="text-sm font-semibold">Çiftlik Hayvanı Bilgileri</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="earTagNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Kulak Küpesi Numarası</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="TR-XX-XXXXXXXX" data-testid="input-ear-tag" />
-                              </FormControl>
-                              <FormDescription className="text-xs">Büyükbaş/küçükbaş için zorunludur</FormDescription>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="turkvetNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>TÜRKVET Kayıt No</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="TÜRKVET kayıt numarası" data-testid="input-turkvet" />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div className="space-y-3 md:space-y-4">
                     <h3 className="text-base md:text-lg font-semibold">Hayvan Özellikleri</h3>

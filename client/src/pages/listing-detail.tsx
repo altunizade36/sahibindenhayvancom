@@ -40,10 +40,7 @@ import {
   Truck,
   ShieldAlert,
   Play,
-  Fingerprint,
-  CreditCard,
   Tag,
-  ClipboardCheck,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import type { Listing, User, Category, Location } from "@shared/schema";
@@ -53,10 +50,6 @@ type ListingWithDetails = Listing & {
   seller?: User;
   category?: Category;
   location?: Location;
-  microchipNumber?: string;
-  passportNumber?: string;
-  earTagNumber?: string;
-  turkvetNumber?: string;
   deliveryInfo?: string;
   warrantyInfo?: string;
   videoUrls?: string[];
@@ -659,64 +652,6 @@ export default function ListingDetail() {
                   </>
                 )}
 
-                {/* Official Registration Info */}
-                {(listing.microchipNumber || listing.passportNumber || listing.earTagNumber || listing.turkvetNumber) && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
-                        <ClipboardCheck className="w-4 h-4 text-primary" />
-                        Resmi Kayıt Bilgileri
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-muted/50 rounded-lg p-3">
-                        {listing.microchipNumber && (
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Fingerprint className="w-4 h-4 text-primary" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Mikroçip No</div>
-                              <div className="text-sm font-medium font-mono" data-testid="text-microchip-number">{listing.microchipNumber}</div>
-                            </div>
-                          </div>
-                        )}
-                        {listing.passportNumber && (
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <CreditCard className="w-4 h-4 text-primary" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Pasaport No</div>
-                              <div className="text-sm font-medium font-mono" data-testid="text-passport-number">{listing.passportNumber}</div>
-                            </div>
-                          </div>
-                        )}
-                        {listing.earTagNumber && (
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Tag className="w-4 h-4 text-primary" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Kulak Küpesi No</div>
-                              <div className="text-sm font-medium font-mono" data-testid="text-ear-tag-number">{listing.earTagNumber}</div>
-                            </div>
-                          </div>
-                        )}
-                        {listing.turkvetNumber && (
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <ShieldCheck className="w-4 h-4 text-primary" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">TÜRKVET Kayıt No</div>
-                              <div className="text-sm font-medium font-mono" data-testid="text-turkvet-number">{listing.turkvetNumber}</div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
 
                 {/* Videos */}
                 {listing.videoUrls && Array.isArray(listing.videoUrls) && listing.videoUrls.length > 0 && (
