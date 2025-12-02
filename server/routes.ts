@@ -23,7 +23,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -6542,6 +6542,250 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     } catch (error) {
       console.error("Error deleting blog post:", error);
       res.status(500).json({ message: "Blog yazısı silinemedi" });
+    }
+  });
+
+  // ============ Admin Audit Logs ============
+  
+  // Get audit logs
+  app.get("/api/admin/audit-logs", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { level, entity, limit = "100", offset = "0" } = req.query;
+      
+      let query = db
+        .select({
+          id: auditLogs.id,
+          userId: auditLogs.userId,
+          action: auditLogs.action,
+          entity: auditLogs.entity,
+          entityId: auditLogs.entityId,
+          details: auditLogs.details,
+          ipAddress: auditLogs.ipAddress,
+          level: auditLogs.level,
+          createdAt: auditLogs.createdAt,
+        })
+        .from(auditLogs)
+        .$dynamic();
+      
+      if (level && level !== "all") {
+        query = query.where(eq(auditLogs.level, level as string));
+      }
+      
+      if (entity && entity !== "all") {
+        query = query.where(eq(auditLogs.entity, entity as string));
+      }
+      
+      const logs = await query
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(parseInt(limit as string))
+        .offset(parseInt(offset as string));
+      
+      // Get user names for logs
+      const userIds = [...new Set(logs.filter(l => l.userId).map(l => l.userId!))] as string[];
+      const userNames = userIds.length > 0 ? await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(sql`${users.id} IN ${userIds}`) : [];
+      
+      const userMap = Object.fromEntries(userNames.map(u => [u.id, `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Anonim']));
+      
+      const logsWithUserNames = logs.map(log => ({
+        ...log,
+        userName: log.userId ? userMap[log.userId] || 'Bilinmiyor' : 'Sistem',
+      }));
+      
+      res.json(logsWithUserNames);
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Log kayıtları getirilemedi" });
+    }
+  });
+
+  // Get audit log stats
+  app.get("/api/admin/audit-logs/stats", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const [totalCount, todayCount, warningCount, errorCount] = await Promise.all([
+        db.select({ count: count() }).from(auditLogs),
+        db.select({ count: count() }).from(auditLogs).where(gte(auditLogs.createdAt, todayStart)),
+        db.select({ count: count() }).from(auditLogs).where(eq(auditLogs.level, "warning")),
+        db.select({ count: count() }).from(auditLogs).where(eq(auditLogs.level, "error")),
+      ]);
+      
+      res.json({
+        totalActions: Number(totalCount[0].count),
+        todayActions: Number(todayCount[0].count),
+        warnings: Number(warningCount[0].count),
+        errors: Number(errorCount[0].count),
+      });
+    } catch (error) {
+      console.error("Error fetching audit log stats:", error);
+      res.status(500).json({ message: "İstatistikler getirilemedi" });
+    }
+  });
+
+  // ============ Admin System Settings ============
+  
+  // Get all settings
+  app.get("/api/admin/settings", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const settings = await db.select().from(systemSettings).orderBy(systemSettings.category, systemSettings.key);
+      
+      // Group by category
+      const grouped: Record<string, Record<string, string>> = {};
+      for (const setting of settings) {
+        if (!grouped[setting.category]) {
+          grouped[setting.category] = {};
+        }
+        grouped[setting.category][setting.key] = setting.value || '';
+      }
+      
+      res.json(grouped);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ message: "Ayarlar getirilemedi" });
+    }
+  });
+
+  // Update settings
+  app.patch("/api/admin/settings", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const updates: Record<string, string> = req.body;
+      
+      for (const [key, value] of Object.entries(updates)) {
+        await db
+          .update(systemSettings)
+          .set({ value, updatedBy: userId, updatedAt: new Date() })
+          .where(eq(systemSettings.key, key));
+      }
+      
+      // Log the action
+      await db.insert(auditLogs).values({
+        userId,
+        action: "UPDATE",
+        entity: "settings",
+        details: `Ayarlar güncellendi: ${Object.keys(updates).join(", ")}`,
+        ipAddress: req.ip,
+        level: "info",
+      });
+      
+      res.json({ message: "Ayarlar güncellendi" });
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      res.status(500).json({ message: "Ayarlar güncellenemedi" });
+    }
+  });
+
+  // ============ Admin Broadcasts ============
+  
+  // Get all broadcasts
+  app.get("/api/admin/broadcasts", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const broadcasts = await db
+        .select()
+        .from(adminBroadcasts)
+        .orderBy(desc(adminBroadcasts.createdAt))
+        .limit(100);
+      
+      res.json(broadcasts);
+    } catch (error) {
+      console.error("Error fetching broadcasts:", error);
+      res.status(500).json({ message: "Bildirimler getirilemedi" });
+    }
+  });
+
+  // Get broadcast stats
+  app.get("/api/admin/broadcasts/stats", isAuthenticated, adminMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allBroadcasts = await db.select().from(adminBroadcasts);
+      
+      const totalSent = allBroadcasts.reduce((sum, b) => sum + (b.recipientCount || 0), 0);
+      const totalDelivered = allBroadcasts.reduce((sum, b) => sum + (b.deliveredCount || 0), 0);
+      const totalOpened = allBroadcasts.reduce((sum, b) => sum + (b.openedCount || 0), 0);
+      const pendingCount = allBroadcasts.filter(b => b.status === "pending").length;
+      
+      res.json({
+        totalSent,
+        deliveryRate: totalSent > 0 ? ((totalDelivered / totalSent) * 100).toFixed(1) : 0,
+        openRate: totalDelivered > 0 ? ((totalOpened / totalDelivered) * 100).toFixed(1) : 0,
+        pendingQueue: pendingCount,
+      });
+    } catch (error) {
+      console.error("Error fetching broadcast stats:", error);
+      res.status(500).json({ message: "İstatistikler getirilemedi" });
+    }
+  });
+
+  // Create and send broadcast
+  app.post("/api/admin/broadcasts", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req.user);
+      const { title, content, type, targetAudience } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ message: "Başlık ve içerik gereklidir" });
+      }
+      
+      // Count recipients based on target audience
+      let recipientCount = 0;
+      if (targetAudience === "all") {
+        const [result] = await db.select({ count: count() }).from(users);
+        recipientCount = Number(result.count);
+      } else if (targetAudience === "verified") {
+        const [result] = await db.select({ count: count() }).from(users).where(eq(users.emailVerified, true));
+        recipientCount = Number(result.count);
+      } else if (targetAudience === "sellers") {
+        const [result] = await db.select({ count: count() }).from(users).where(eq(users.role, "seller"));
+        recipientCount = Number(result.count);
+      } else {
+        const [result] = await db.select({ count: count() }).from(users);
+        recipientCount = Number(result.count);
+      }
+      
+      // Create broadcast record
+      const [broadcast] = await db.insert(adminBroadcasts).values({
+        title,
+        content,
+        type: type || "push",
+        targetAudience: targetAudience || "all",
+        sentBy: userId,
+        recipientCount,
+        deliveredCount: recipientCount, // Simulated
+        status: "sent",
+        sentAt: new Date(),
+      }).returning();
+      
+      // Create notifications for all target users (in-app notifications)
+      const targetUsers = await db.select({ id: users.id }).from(users).limit(1000);
+      
+      for (const user of targetUsers) {
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "system",
+          title,
+          message: content,
+          isRead: false,
+        });
+      }
+      
+      // Log the action
+      await db.insert(auditLogs).values({
+        userId,
+        action: "CREATE",
+        entity: "broadcast",
+        entityId: broadcast.id,
+        details: `Toplu bildirim gönderildi: "${title}" - ${recipientCount} alıcı`,
+        ipAddress: req.ip,
+        level: "info",
+      });
+      
+      res.json(broadcast);
+    } catch (error) {
+      console.error("Error creating broadcast:", error);
+      res.status(500).json({ message: "Bildirim gönderilemedi" });
     }
   });
 

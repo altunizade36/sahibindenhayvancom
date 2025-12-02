@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/admin-layout";
 import { StatCard, StatCardGrid } from "@/components/admin/stat-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -18,7 +18,6 @@ import {
   Activity,
   Search,
   RefreshCw,
-  Download,
   User,
   FileText,
   Settings,
@@ -26,8 +25,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Trash2,
-  Filter,
+  Store,
+  Flag,
+  Loader2,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -36,22 +36,20 @@ interface AuditLogEntry {
   id: string;
   action: string;
   entity: string;
-  entityId: string;
-  userId: string;
+  entityId: string | null;
+  userId: string | null;
   userName: string;
-  details: string;
-  ipAddress: string;
+  details: string | null;
+  ipAddress: string | null;
   createdAt: string;
   level: "info" | "warning" | "error";
 }
 
-interface SystemLogEntry {
-  id: string;
-  type: string;
-  message: string;
-  source: string;
-  level: "info" | "warning" | "error" | "debug";
-  createdAt: string;
+interface LogStats {
+  totalActions: number;
+  todayActions: number;
+  warnings: number;
+  errors: number;
 }
 
 export default function AdminLogsPage() {
@@ -59,110 +57,26 @@ export default function AdminLogsPage() {
   const [levelFilter, setLevelFilter] = useState("all");
   const [entityFilter, setEntityFilter] = useState("all");
 
-  const auditLogs: AuditLogEntry[] = [
-    {
-      id: "1",
-      action: "UPDATE",
-      entity: "listing",
-      entityId: "abc123",
-      userId: "user1",
-      userName: "Admin Mehmet",
-      details: "İlan durumu 'pending' -> 'active' olarak güncellendi",
-      ipAddress: "192.168.1.1",
-      createdAt: new Date().toISOString(),
-      level: "info",
-    },
-    {
-      id: "2",
-      action: "DELETE",
-      entity: "user",
-      entityId: "user456",
-      userId: "user1",
-      userName: "Admin Mehmet",
-      details: "Kullanıcı hesabı silindi",
-      ipAddress: "192.168.1.1",
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      level: "warning",
-    },
-    {
-      id: "3",
-      action: "CREATE",
-      entity: "store",
-      entityId: "store789",
-      userId: "user2",
-      userName: "Admin Ayşe",
-      details: "Yeni mağaza onaylandı: PetWorld",
-      ipAddress: "192.168.1.2",
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      level: "info",
-    },
-    {
-      id: "4",
-      action: "UPDATE",
-      entity: "settings",
-      entityId: "security",
-      userId: "user1",
-      userName: "Admin Mehmet",
-      details: "Güvenlik ayarları güncellendi",
-      ipAddress: "192.168.1.1",
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      level: "warning",
-    },
-    {
-      id: "5",
-      action: "BAN",
-      entity: "user",
-      entityId: "user999",
-      userId: "user1",
-      userName: "Admin Mehmet",
-      details: "Kullanıcı yasaklandı: Spam aktivitesi",
-      ipAddress: "192.168.1.1",
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      level: "error",
-    },
-  ];
+  const { data: logs = [], isLoading, refetch } = useQuery<AuditLogEntry[]>({
+    queryKey: ["/api/admin/audit-logs", levelFilter, entityFilter],
+  });
 
-  const systemLogs: SystemLogEntry[] = [
-    {
-      id: "1",
-      type: "AUTH",
-      message: "Başarılı giriş: admin@example.com",
-      source: "AuthService",
-      level: "info",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      type: "EMAIL",
-      message: "Email gönderildi: user@example.com",
-      source: "EmailService",
-      level: "info",
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-    },
-    {
-      id: "3",
-      type: "ERROR",
-      message: "Veritabanı bağlantı hatası (yeniden denendi)",
-      source: "Database",
-      level: "warning",
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      id: "4",
-      type: "CACHE",
-      message: "Önbellek temizlendi",
-      source: "CacheService",
-      level: "info",
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-  ];
+  const { data: stats } = useQuery<LogStats>({
+    queryKey: ["/api/admin/audit-logs/stats"],
+  });
 
-  const stats = {
-    totalActions: 1250,
-    todayActions: 45,
-    warnings: 12,
-    errors: 3,
-  };
+  const filteredLogs = logs.filter((log) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        log.action.toLowerCase().includes(query) ||
+        log.entity.toLowerCase().includes(query) ||
+        log.userName.toLowerCase().includes(query) ||
+        (log.details && log.details.toLowerCase().includes(query))
+      );
+    }
+    return true;
+  });
 
   const getActionIcon = (entity: string) => {
     switch (entity) {
@@ -173,7 +87,11 @@ export default function AdminLogsPage() {
       case "settings":
         return <Settings className="h-4 w-4" />;
       case "store":
-        return <Shield className="h-4 w-4" />;
+        return <Store className="h-4 w-4" />;
+      case "report":
+        return <Flag className="h-4 w-4" />;
+      case "broadcast":
+        return <Activity className="h-4 w-4" />;
       default:
         return <Activity className="h-4 w-4" />;
     }
@@ -182,219 +100,210 @@ export default function AdminLogsPage() {
   const getLevelBadge = (level: string) => {
     switch (level) {
       case "info":
-        return <Badge variant="default" className="bg-blue-500">Bilgi</Badge>;
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <CheckCircle className="h-3 w-3" />
+            Bilgi
+          </Badge>
+        );
       case "warning":
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Uyarı</Badge>;
+        return (
+          <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-600">
+            <AlertCircle className="h-3 w-3" />
+            Uyarı
+          </Badge>
+        );
       case "error":
-        return <Badge variant="destructive">Hata</Badge>;
-      case "debug":
-        return <Badge variant="outline">Debug</Badge>;
+        return (
+          <Badge variant="destructive" className="gap-1">
+            <AlertCircle className="h-3 w-3" />
+            Hata
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{level}</Badge>;
+        return <Badge variant="secondary">{level}</Badge>;
     }
   };
 
-  const filteredAuditLogs = auditLogs.filter((log) => {
-    if (levelFilter !== "all" && log.level !== levelFilter) return false;
-    if (entityFilter !== "all" && log.entity !== entityFilter) return false;
-    if (searchQuery && !log.details.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const getActionLabel = (action: string) => {
+    const labels: Record<string, string> = {
+      CREATE: "Oluşturma",
+      UPDATE: "Güncelleme",
+      DELETE: "Silme",
+      LOGIN: "Giriş",
+      LOGOUT: "Çıkış",
+      BAN: "Yasaklama",
+      UNBAN: "Yasak Kaldırma",
+      APPROVE: "Onaylama",
+      REJECT: "Reddetme",
+    };
+    return labels[action] || action;
+  };
+
+  const getEntityLabel = (entity: string) => {
+    const labels: Record<string, string> = {
+      user: "Kullanıcı",
+      listing: "İlan",
+      store: "Mağaza",
+      report: "Şikayet",
+      settings: "Ayarlar",
+      blog: "Blog",
+      category: "Kategori",
+      broadcast: "Bildirim",
+    };
+    return labels[entity] || entity;
+  };
 
   return (
     <AdminLayout>
       <div className="space-y-6" data-testid="page-admin-logs">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Aktivite Logları</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Sistem Logları</h1>
             <p className="text-muted-foreground">
-              Admin aktivitelerini ve sistem loglarını izleyin
+              Admin işlemlerini ve sistem aktivitelerini izleyin
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Dışa Aktar
-            </Button>
-            <Button variant="outline">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="outline" onClick={() => refetch()} data-testid="button-refresh-logs">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Yenile
+          </Button>
         </div>
 
         <StatCardGrid columns={4}>
           <StatCard
             title="Toplam İşlem"
-            value={stats.totalActions}
+            value={(stats?.totalActions || 0).toLocaleString("tr-TR")}
             icon={<Activity className="h-4 w-4" />}
           />
           <StatCard
-            title="Bugün"
-            value={stats.todayActions}
+            title="Bugünkü İşlem"
+            value={stats?.todayActions || 0}
             icon={<Clock className="h-4 w-4" />}
           />
           <StatCard
             title="Uyarılar"
-            value={stats.warnings}
+            value={stats?.warnings || 0}
             icon={<AlertCircle className="h-4 w-4" />}
             variant="warning"
           />
           <StatCard
             title="Hatalar"
-            value={stats.errors}
+            value={stats?.errors || 0}
             icon={<AlertCircle className="h-4 w-4" />}
-            variant="danger"
+            variant="destructive"
           />
         </StatCardGrid>
 
-        <Tabs defaultValue="audit" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="audit">Admin Aktiviteleri</TabsTrigger>
-            <TabsTrigger value="system">Sistem Logları</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="audit">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                  <CardTitle>Audit Log</CardTitle>
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Ara..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 w-48"
-                      />
-                    </div>
-                    <Select value={levelFilter} onValueChange={setLevelFilter}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Seviye" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tümü</SelectItem>
-                        <SelectItem value="info">Bilgi</SelectItem>
-                        <SelectItem value="warning">Uyarı</SelectItem>
-                        <SelectItem value="error">Hata</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={entityFilter} onValueChange={setEntityFilter}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Tür" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tümü</SelectItem>
-                        <SelectItem value="user">Kullanıcı</SelectItem>
-                        <SelectItem value="listing">İlan</SelectItem>
-                        <SelectItem value="store">Mağaza</SelectItem>
-                        <SelectItem value="settings">Ayarlar</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle>Aktivite Logları</CardTitle>
+                <CardDescription>Tüm admin işlemlerinin kaydı</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Log ara..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 w-64"
+                    data-testid="input-search-logs"
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <div className="space-y-3">
-                    {filteredAuditLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-start gap-4 p-4 bg-accent/50 rounded-lg"
-                      >
-                        <div
-                          className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                            log.level === "error"
-                              ? "bg-red-100 text-red-600"
-                              : log.level === "warning"
-                              ? "bg-yellow-100 text-yellow-600"
-                              : "bg-blue-100 text-blue-600"
-                          }`}
-                        >
-                          {getActionIcon(log.entity)}
+                <Select value={levelFilter} onValueChange={setLevelFilter}>
+                  <SelectTrigger className="w-32" data-testid="select-level-filter">
+                    <SelectValue placeholder="Seviye" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tümü</SelectItem>
+                    <SelectItem value="info">Bilgi</SelectItem>
+                    <SelectItem value="warning">Uyarı</SelectItem>
+                    <SelectItem value="error">Hata</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={entityFilter} onValueChange={setEntityFilter}>
+                  <SelectTrigger className="w-32" data-testid="select-entity-filter">
+                    <SelectValue placeholder="Varlık" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tümü</SelectItem>
+                    <SelectItem value="user">Kullanıcı</SelectItem>
+                    <SelectItem value="listing">İlan</SelectItem>
+                    <SelectItem value="store">Mağaza</SelectItem>
+                    <SelectItem value="report">Şikayet</SelectItem>
+                    <SelectItem value="settings">Ayarlar</SelectItem>
+                    <SelectItem value="broadcast">Bildirim</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredLogs.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Henüz log kaydı yok</p>
+                <p className="text-sm mt-2">Admin işlemleri burada görüntülenecek</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-3">
+                  {filteredLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      data-testid={`log-item-${log.id}`}
+                    >
+                      <div className="p-2 rounded-full bg-muted">
+                        {getActionIcon(log.entity)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{getActionLabel(log.action)}</span>
+                          <Badge variant="outline">{getEntityLabel(log.entity)}</Badge>
+                          {getLevelBadge(log.level)}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium">{log.action}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {log.entity}
-                            </Badge>
-                            {getLevelBadge(log.level)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1">
+                        {log.details && (
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                             {log.details}
                           </p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>{log.userName}</span>
-                            <span>{log.ipAddress}</span>
-                            <span>
-                              {formatDistanceToNow(new Date(log.createdAt), {
-                                addSuffix: true,
-                                locale: tr,
-                              })}
+                        )}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {log.userName}
+                          </span>
+                          {log.ipAddress && (
+                            <span className="flex items-center gap-1">
+                              <Shield className="h-3 w-3" />
+                              {log.ipAddress}
                             </span>
-                          </div>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="system">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sistem Logları</CardTitle>
-                <CardDescription>Uygulama ve servis logları</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <div className="space-y-2 font-mono text-sm">
-                    {systemLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className={`p-3 rounded border-l-4 ${
-                          log.level === "error"
-                            ? "bg-red-50 dark:bg-red-900/20 border-red-500"
-                            : log.level === "warning"
-                            ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
-                            : log.level === "debug"
-                            ? "bg-gray-50 dark:bg-gray-900/20 border-gray-500"
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`text-xs font-bold ${
-                              log.level === "error"
-                                ? "text-red-600"
-                                : log.level === "warning"
-                                ? "text-yellow-600"
-                                : log.level === "debug"
-                                ? "text-gray-600"
-                                : "text-blue-600"
-                            }`}
-                          >
-                            [{log.level.toUpperCase()}]
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(log.createdAt), "HH:mm:ss")}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {log.source}
-                          </Badge>
+                      <div className="text-right text-sm text-muted-foreground whitespace-nowrap">
+                        <div>{format(new Date(log.createdAt), "HH:mm", { locale: tr })}</div>
+                        <div className="text-xs">
+                          {formatDistanceToNow(new Date(log.createdAt), { 
+                            addSuffix: true, 
+                            locale: tr 
+                          })}
                         </div>
-                        <p className="text-sm">{log.message}</p>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

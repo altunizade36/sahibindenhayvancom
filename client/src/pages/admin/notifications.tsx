@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,41 +24,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Bell,
   Send,
   Users,
   Mail,
-  MessageSquare,
-  AlertCircle,
   CheckCircle,
   Clock,
-  Plus,
   Megaphone,
-  Target,
-  Smartphone,
+  Loader2,
 } from "lucide-react";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
-interface NotificationTemplate {
-  id: string;
-  name: string;
-  type: "email" | "push" | "sms";
-  subject: string;
-  content: string;
-  createdAt: string;
-}
-
-interface SentNotification {
+interface Broadcast {
   id: string;
   title: string;
   content: string;
   type: string;
-  recipients: number;
-  delivered: number;
-  opened: number;
-  sentAt: string;
-  status: "sent" | "pending" | "failed";
+  targetAudience: string;
+  recipientCount: number;
+  deliveredCount: number;
+  openedCount: number;
+  status: string;
+  sentAt: string | null;
+  createdAt: string;
+}
+
+interface BroadcastStats {
+  totalSent: number;
+  deliveryRate: string | number;
+  openRate: string | number;
+  pendingQueue: number;
 }
 
 export default function AdminNotificationsPage() {
@@ -70,55 +68,86 @@ export default function AdminNotificationsPage() {
     content: "",
     type: "push",
     targetAudience: "all",
-    sendEmail: true,
-    sendPush: true,
-    sendSms: false,
   });
 
-  const sentNotifications: SentNotification[] = [
-    {
-      id: "1",
-      title: "Yeni Özellik: Canlı Yayın",
-      content: "Artık hayvan satıcıları canlı yayın yapabilir!",
-      type: "push",
-      recipients: 1250,
-      delivered: 1180,
-      opened: 450,
-      sentAt: new Date().toISOString(),
-      status: "sent",
-    },
-    {
-      id: "2",
-      title: "Güvenlik Güncellemesi",
-      content: "Hesap güvenliğiniz için şifrenizi güncelleyin",
-      type: "email",
-      recipients: 5000,
-      delivered: 4850,
-      opened: 1200,
-      sentAt: new Date(Date.now() - 86400000).toISOString(),
-      status: "sent",
-    },
-  ];
+  const { data: broadcasts = [], isLoading } = useQuery<Broadcast[]>({
+    queryKey: ["/api/admin/broadcasts"],
+  });
 
-  const stats = {
-    totalSent: 25000,
-    deliveryRate: 97.5,
-    openRate: 42.3,
-    pendingQueue: 0,
-  };
+  const { data: stats } = useQuery<BroadcastStats>({
+    queryKey: ["/api/admin/broadcasts/stats"],
+  });
+
+  const sendMutation = useMutation({
+    mutationFn: async (data: typeof notificationForm) => {
+      return apiRequest("POST", "/api/admin/broadcasts", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/broadcasts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/broadcasts/stats"] });
+      toast({ title: "Bildirim başarıyla gönderildi" });
+      setIsComposeOpen(false);
+      setNotificationForm({
+        title: "",
+        content: "",
+        type: "push",
+        targetAudience: "all",
+      });
+    },
+    onError: () => {
+      toast({ title: "Bildirim gönderilemedi", variant: "destructive" });
+    },
+  });
 
   const handleSendNotification = () => {
-    toast({ title: "Bildirim gönderildi" });
-    setIsComposeOpen(false);
-    setNotificationForm({
-      title: "",
-      content: "",
-      type: "push",
-      targetAudience: "all",
-      sendEmail: true,
-      sendPush: true,
-      sendSms: false,
-    });
+    if (!notificationForm.title || !notificationForm.content) {
+      toast({ title: "Başlık ve içerik gereklidir", variant: "destructive" });
+      return;
+    }
+    sendMutation.mutate(notificationForm);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "sent":
+        return <Badge variant="default">Gönderildi</Badge>;
+      case "pending":
+        return <Badge variant="secondary">Bekliyor</Badge>;
+      case "failed":
+        return <Badge variant="destructive">Başarısız</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "push":
+        return "Uygulama";
+      case "email":
+        return "E-posta";
+      case "sms":
+        return "SMS";
+      case "all":
+        return "Tümü";
+      default:
+        return type;
+    }
+  };
+
+  const getAudienceLabel = (audience: string) => {
+    switch (audience) {
+      case "all":
+        return "Tüm Kullanıcılar";
+      case "verified":
+        return "Doğrulanmış";
+      case "sellers":
+        return "Satıcılar";
+      case "buyers":
+        return "Alıcılar";
+      default:
+        return audience;
+    }
   };
 
   return (
@@ -128,10 +157,10 @@ export default function AdminNotificationsPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Bildirim Yönetimi</h1>
             <p className="text-muted-foreground">
-              Toplu bildirim gönderin ve kampanyaları yönetin
+              Toplu bildirim gönderin ve geçmişi görüntüleyin
             </p>
           </div>
-          <Button onClick={() => setIsComposeOpen(true)}>
+          <Button onClick={() => setIsComposeOpen(true)} data-testid="button-new-broadcast">
             <Megaphone className="h-4 w-4 mr-2" />
             Yeni Bildirim
           </Button>
@@ -140,315 +169,168 @@ export default function AdminNotificationsPage() {
         <StatCardGrid columns={4}>
           <StatCard
             title="Toplam Gönderim"
-            value={stats.totalSent.toLocaleString("tr-TR")}
+            value={(stats?.totalSent || 0).toLocaleString("tr-TR")}
             icon={<Send className="h-4 w-4" />}
           />
           <StatCard
             title="Teslim Oranı"
-            value={`%${stats.deliveryRate}`}
+            value={`%${stats?.deliveryRate || 0}`}
             icon={<CheckCircle className="h-4 w-4" />}
             variant="success"
           />
           <StatCard
             title="Açılma Oranı"
-            value={`%${stats.openRate}`}
+            value={`%${stats?.openRate || 0}`}
             icon={<Mail className="h-4 w-4" />}
           />
           <StatCard
             title="Bekleyen"
-            value={stats.pendingQueue}
+            value={stats?.pendingQueue || 0}
             icon={<Clock className="h-4 w-4" />}
           />
         </StatCardGrid>
 
-        <Tabs defaultValue="history" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="history">Gönderim Geçmişi</TabsTrigger>
-            <TabsTrigger value="templates">Şablonlar</TabsTrigger>
-            <TabsTrigger value="segments">Hedef Kitleler</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="history">
-            <Card>
-              <CardHeader>
-                <CardTitle>Son Gönderimler</CardTitle>
-                <CardDescription>Gönderilen bildirimlerin listesi</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {sentNotifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className="flex items-center justify-between p-4 bg-accent/50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                            notification.type === "email"
-                              ? "bg-blue-100 text-blue-600"
-                              : notification.type === "push"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-yellow-100 text-yellow-600"
-                          }`}
-                        >
-                          {notification.type === "email" ? (
-                            <Mail className="h-5 w-5" />
-                          ) : notification.type === "push" ? (
-                            <Bell className="h-5 w-5" />
-                          ) : (
-                            <Smartphone className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{notification.title}</p>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {notification.content}
-                          </p>
-                        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Gönderim Geçmişi</CardTitle>
+            <CardDescription>Gönderilen bildirimlerin listesi</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : broadcasts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Henüz bildirim gönderilmemiş</p>
+                <p className="text-sm mt-2">İlk toplu bildirimi göndermek için yukarıdaki butona tıklayın</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {broadcasts.map((broadcast) => (
+                  <div
+                    key={broadcast.id}
+                    className="flex items-start justify-between p-4 border rounded-lg"
+                    data-testid={`broadcast-item-${broadcast.id}`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{broadcast.title}</h4>
+                        {getStatusBadge(broadcast.status)}
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right text-sm">
-                          <p>
-                            <span className="text-muted-foreground">Gönderilen:</span>{" "}
-                            {notification.recipients.toLocaleString()}
-                          </p>
-                          <p>
-                            <span className="text-muted-foreground">Açılan:</span>{" "}
-                            {notification.opened.toLocaleString()} (
-                            {((notification.opened / notification.delivered) * 100).toFixed(1)}%)
-                          </p>
-                        </div>
-                        <Badge
-                          variant={
-                            notification.status === "sent"
-                              ? "default"
-                              : notification.status === "pending"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                          className={notification.status === "sent" ? "bg-green-500" : ""}
-                        >
-                          {notification.status === "sent"
-                            ? "Gönderildi"
-                            : notification.status === "pending"
-                            ? "Bekliyor"
-                            : "Başarısız"}
-                        </Badge>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {broadcast.content}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                        <span>Tip: {getTypeLabel(broadcast.type)}</span>
+                        <span>Hedef: {getAudienceLabel(broadcast.targetAudience)}</span>
+                        <span>Alıcı: {broadcast.recipientCount.toLocaleString("tr-TR")}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="templates">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Bildirim Şablonları</CardTitle>
-                  <CardDescription>Hazır bildirim şablonları</CardDescription>
-                </div>
-                <Button variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Yeni Şablon
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    {
-                      name: "Hoş Geldiniz",
-                      type: "email",
-                      description: "Yeni kullanıcı kayıt bildirimi",
-                    },
-                    {
-                      name: "İlan Onayı",
-                      type: "push",
-                      description: "İlan onaylandığında gönderilir",
-                    },
-                    {
-                      name: "Yeni Mesaj",
-                      type: "push",
-                      description: "Yeni mesaj bildirimi",
-                    },
-                    {
-                      name: "Şikayet Bildirimi",
-                      type: "email",
-                      description: "Şikayet durumu güncellemesi",
-                    },
-                  ].map((template, i) => (
-                    <Card key={i} className="hover-elevate cursor-pointer">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="font-medium">{template.name}</p>
-                          <Badge variant="outline">{template.type}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {template.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="segments">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Hedef Kitleler</CardTitle>
-                  <CardDescription>Kullanıcı segmentasyonu</CardDescription>
-                </div>
-                <Button variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Yeni Segment
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { name: "Tüm Kullanıcılar", count: 5000, description: "Tüm kayıtlı kullanıcılar" },
-                    { name: "Aktif Satıcılar", count: 450, description: "Son 30 günde ilan veren satıcılar" },
-                    { name: "Yeni Kullanıcılar", count: 120, description: "Son 7 günde kayıt olanlar" },
-                    { name: "Mağaza Sahipleri", count: 85, description: "Onaylı mağaza sahipleri" },
-                    { name: "Premium Üyeler", count: 200, description: "Premium abonelik sahibi kullanıcılar" },
-                  ].map((segment, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-4 bg-accent/50 rounded-lg hover-elevate cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Target className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">{segment.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {segment.description}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary">{segment.count} kullanıcı</Badge>
+                    <div className="text-right text-sm text-muted-foreground">
+                      {broadcast.sentAt && format(new Date(broadcast.sentAt), "d MMM yyyy HH:mm", { locale: tr })}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Yeni Bildirim Gönder</DialogTitle>
-            <DialogDescription>
-              Hedef kitlenize toplu bildirim gönderin
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Başlık</Label>
-              <Input
-                id="title"
-                placeholder="Bildirim başlığı"
-                value={notificationForm.title}
-                onChange={(e) =>
-                  setNotificationForm({ ...notificationForm, title: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="content">İçerik</Label>
-              <Textarea
-                id="content"
-                placeholder="Bildirim içeriği..."
-                rows={4}
-                value={notificationForm.content}
-                onChange={(e) =>
-                  setNotificationForm({ ...notificationForm, content: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Hedef Kitle</Label>
-              <Select
-                value={notificationForm.targetAudience}
-                onValueChange={(value) =>
-                  setNotificationForm({ ...notificationForm, targetAudience: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
-                  <SelectItem value="sellers">Satıcılar</SelectItem>
-                  <SelectItem value="buyers">Alıcılar</SelectItem>
-                  <SelectItem value="stores">Mağaza Sahipleri</SelectItem>
-                  <SelectItem value="new">Yeni Kullanıcılar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+        <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Yeni Bildirim Gönder</DialogTitle>
+              <DialogDescription>
+                Tüm kullanıcılara veya belirli gruplara bildirim gönderin
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
-              <Label>Gönderim Kanalları</Label>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4" />
-                    <span>Push Bildirimi</span>
-                  </div>
-                  <Switch
-                    checked={notificationForm.sendPush}
-                    onCheckedChange={(checked) =>
-                      setNotificationForm({ ...notificationForm, sendPush: checked })
+              <div className="space-y-2">
+                <Label htmlFor="title">Başlık</Label>
+                <Input
+                  id="title"
+                  placeholder="Bildirim başlığı"
+                  value={notificationForm.title}
+                  onChange={(e) =>
+                    setNotificationForm({ ...notificationForm, title: e.target.value })
+                  }
+                  data-testid="input-broadcast-title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="content">İçerik</Label>
+                <Textarea
+                  id="content"
+                  placeholder="Bildirim içeriği"
+                  rows={4}
+                  value={notificationForm.content}
+                  onChange={(e) =>
+                    setNotificationForm({ ...notificationForm, content: e.target.value })
+                  }
+                  data-testid="input-broadcast-content"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Bildirim Tipi</Label>
+                  <Select
+                    value={notificationForm.type}
+                    onValueChange={(value) =>
+                      setNotificationForm({ ...notificationForm, type: value })
                     }
-                  />
+                  >
+                    <SelectTrigger data-testid="select-broadcast-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="push">Uygulama İçi</SelectItem>
+                      <SelectItem value="email">E-posta</SelectItem>
+                      <SelectItem value="all">Tümü</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    <span>Email</span>
-                  </div>
-                  <Switch
-                    checked={notificationForm.sendEmail}
-                    onCheckedChange={(checked) =>
-                      setNotificationForm({ ...notificationForm, sendEmail: checked })
+                <div className="space-y-2">
+                  <Label>Hedef Kitle</Label>
+                  <Select
+                    value={notificationForm.targetAudience}
+                    onValueChange={(value) =>
+                      setNotificationForm({ ...notificationForm, targetAudience: value })
                     }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
-                    <span>SMS</span>
-                  </div>
-                  <Switch
-                    checked={notificationForm.sendSms}
-                    onCheckedChange={(checked) =>
-                      setNotificationForm({ ...notificationForm, sendSms: checked })
-                    }
-                  />
+                  >
+                    <SelectTrigger data-testid="select-broadcast-audience">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
+                      <SelectItem value="verified">Doğrulanmış Kullanıcılar</SelectItem>
+                      <SelectItem value="sellers">Satıcılar</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
-              İptal
-            </Button>
-            <Button onClick={handleSendNotification}>
-              <Send className="h-4 w-4 mr-2" />
-              Gönder
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
+                İptal
+              </Button>
+              <Button 
+                onClick={handleSendNotification} 
+                disabled={sendMutation.isPending}
+                data-testid="button-send-broadcast"
+              >
+                {sendMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Gönder
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </AdminLayout>
   );
 }

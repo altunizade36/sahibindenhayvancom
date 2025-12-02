@@ -1355,3 +1355,72 @@ export const storeMediaRelations = relations(storeMedia, ({ one }) => ({
     references: [stores.id],
   }),
 }));
+
+// ============ Audit Logs ============
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(), // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, BAN, UNBAN, APPROVE, REJECT
+  entity: text("entity").notNull(), // user, listing, store, report, blog, category, settings
+  entityId: varchar("entity_id"),
+  details: text("details"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  level: text("level").default("info").notNull(), // info, warning, error
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("audit_logs_user_idx").on(table.userId),
+  entityIdx: index("audit_logs_entity_idx").on(table.entity),
+  createdIdx: index("audit_logs_created_idx").on(table.createdAt),
+  levelIdx: index("audit_logs_level_idx").on(table.level),
+}));
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+// ============ System Settings ============
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").notNull().unique(),
+  value: text("value"),
+  category: text("category").notNull(), // general, email, security, notifications
+  description: text("description"),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+
+// ============ Admin Broadcasts ============
+export const adminBroadcasts = pgTable("admin_broadcasts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  type: text("type").default("push").notNull(), // push, email, sms, all
+  targetAudience: text("target_audience").default("all").notNull(), // all, sellers, buyers, verified
+  sentBy: varchar("sent_by").references(() => users.id),
+  recipientCount: integer("recipient_count").default(0),
+  deliveredCount: integer("delivered_count").default(0),
+  openedCount: integer("opened_count").default(0),
+  status: text("status").default("pending").notNull(), // pending, sending, sent, failed
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index("admin_broadcasts_status_idx").on(table.status),
+  createdIdx: index("admin_broadcasts_created_idx").on(table.createdAt),
+}));
+
+export type AdminBroadcast = typeof adminBroadcasts.$inferSelect;
+
+export const insertAdminBroadcastSchema = createInsertSchema(adminBroadcasts).omit({
+  id: true,
+  sentBy: true,
+  recipientCount: true,
+  deliveredCount: true,
+  openedCount: true,
+  status: true,
+  sentAt: true,
+  createdAt: true,
+});
+
+export type InsertAdminBroadcast = z.infer<typeof insertAdminBroadcastSchema>;
