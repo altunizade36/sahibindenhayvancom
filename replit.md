@@ -19,6 +19,11 @@ No specific user preferences were provided in the original document.
   - **4915 sayılı Kara Avcılığı Kanunu**: DKMP (Doğa Koruma ve Milli Parklar) izin belgesi zorunluluğu
   - **Yasak Hayvan Kategorileri Kaldırıldı**: Egzotik hayvanlar (tilki, fennec, lemur, maymun, serval, ocelot, rakun, sugar glider, prairie dog, piranha, keklik)
 - **Firebase Phone Authentication**: Production-ready SMS verification using Firebase Auth. Supports Turkish phone numbers (+90), invisible reCAPTCHA for bot protection, and automatic user creation/login. Firebase Admin SDK verifies tokens server-side.
+- **Complete Authentication System**:
+  - **Login Methods**: Google, Facebook, Twitter/X, Apple social login + Email/Password + Phone SMS OTP + Magic Link (passwordless email)
+  - **Security Features**: Redis-based rate limiting (atomic INCR), brute force protection (3 attempts/5min), login history tracking (IP, user agent, device)
+  - **Firebase Config**: Uses environment variables (VITE_FIREBASE_*) with fallback defaults
+  - **Pages**: /giris (login), /kayit (register), /telefon-giris (phone login), /sifremi-unuttum (forgot password), /email-dogrula (verify email)
 - **Professional Stores System**: Verified sellers can create branded storefronts with custom logos, banners, and color themes. Supports various store types like Petshop, Veterinary, etc., with a review system and admin approval workflow.
 - **Blog System**: Features 32 professional blog posts covering various animal types, including legal disclaimers and citations from Turkish veterinary organizations. Admin-only CRUD for blog management.
 
