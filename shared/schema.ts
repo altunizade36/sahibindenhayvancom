@@ -438,6 +438,18 @@ export const listings = pgTable("listings", {
   healthDocuments: jsonb("health_documents").$type<string[]>().default([]),
   characterTraits: jsonb("character_traits").$type<string[]>().default([]),
   ageCategory: text("age_category"),
+  // Enhanced listing fields
+  videoUrls: jsonb("video_urls").$type<string[]>().default([]), // YouTube, Vimeo, etc.
+  categoryAttributes: jsonb("category_attributes").$type<Record<string, any>>().default({}), // Category-specific fields
+  // Pedigree/lineage info for pets
+  microchipNumber: text("microchip_number"), // Mikroçip numarası
+  passportNumber: text("passport_number"), // Pasaport numarası
+  // Livestock-specific fields  
+  earTagNumber: text("ear_tag_number"), // Kulak küpesi numarası
+  turkvetNumber: text("turkvet_number"), // TÜRKVET kayıt numarası
+  // Seller notes
+  deliveryInfo: text("delivery_info"), // Teslimat bilgisi
+  warrantyInfo: text("warranty_info"), // Garanti bilgisi
   locationId: varchar("location_id").references(() => locations.id, { onDelete: "set null" }),
   city: text("city").notNull(), // Denormalized for backward compatibility (should sync with locationId)
   district: text("district").notNull(), // Denormalized for backward compatibility
@@ -465,12 +477,44 @@ export const insertListingSchema = createInsertSchema(listings, {
   images: z.array(z.string()).optional().default([]),
   healthDocuments: z.array(z.string()).optional().default([]),
   characterTraits: z.array(z.string()).optional().default([]),
+  videoUrls: z.array(z.string()).optional().default([]),
+  categoryAttributes: z.record(z.any()).optional().default({}),
 }).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
   views: true,
 });
+
+// Draft listing schema for partial saves (less strict validation)
+export const draftListingSchema = z.object({
+  categoryId: z.string().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  price: z.union([z.string(), z.number()]).optional(),
+  breed: z.string().optional(),
+  age: z.string().optional(),
+  ageCategory: z.string().optional(),
+  gender: z.string().optional(),
+  healthStatus: z.string().optional(),
+  vaccinated: z.boolean().optional(),
+  neutered: z.boolean().optional(),
+  pedigree: z.boolean().optional(),
+  characterTraits: z.array(z.string()).optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  images: z.array(z.string()).optional(),
+  videoUrls: z.array(z.string()).optional(),
+  categoryAttributes: z.record(z.any()).optional(),
+  microchipNumber: z.string().optional(),
+  passportNumber: z.string().optional(),
+  earTagNumber: z.string().optional(),
+  turkvetNumber: z.string().optional(),
+  deliveryInfo: z.string().optional(),
+  warrantyInfo: z.string().optional(),
+});
+
+export type DraftListing = z.infer<typeof draftListingSchema>;
 
 export type InsertListing = z.infer<typeof insertListingSchema>;
 export type Listing = typeof listings.$inferSelect;

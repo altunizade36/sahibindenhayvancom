@@ -91,6 +91,25 @@ const uploadMessageFiles = multer({
   },
 });
 
+// Upload config for legal documents (PDF, images)
+const uploadDocuments = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg', 'image/png', 'image/webp'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Sadece PDF, JPEG, PNG veya WebP dosyaları yüklenebilir'));
+    }
+  },
+});
+
 // Legacy alias for backward compatibility
 const upload = uploadImages;
 
@@ -3123,6 +3142,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         isFavorite = !!favorite;
       }
 
+      // Get listing documents
+      const listingDocs = await db
+        .select({
+          id: listingDocuments.id,
+          documentType: listingDocuments.documentType,
+          documentUrl: listingDocuments.documentUrl,
+          documentNumber: listingDocuments.documentNumber,
+          status: listingDocuments.status,
+        })
+        .from(listingDocuments)
+        .where(eq(listingDocuments.listingId, listing.id));
+
       // Sanitize seller object
       let sanitizedSeller = null;
       if (seller) {
@@ -3137,6 +3168,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         category: categoryInfo,
         store: storeInfo,
         isFavorite,
+        documents: listingDocs,
       });
     } catch (error) {
       console.error("Error fetching listing:", error);
@@ -5863,6 +5895,382 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // ============ Listing Documents Routes ============
+
+  // Upload document for a listing
+  app.post("/api/listings/:listingId/documents", isAuthenticated, uploadDocuments.single('document'), async (req: Request, res: Response) => {
+    try {
+      const { listingId } = req.params;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "Belge dosyası gereklidir" });
+      }
+
+      // Verify listing ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+      
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu ilana belge yükleme yetkiniz yok" });
+      }
+
+      // Only allow document uploads for draft or pending listings
+      if (!['draft', 'pending', 'active'].includes(listing.status || '')) {
+        return res.status(400).json({ message: "Bu ilan durumunda belge yüklenemez" });
+      }
+
+      // Parse document metadata from request body
+      const documentType = req.body.documentType as string;
+      if (!documentType) {
+        return res.status(400).json({ message: "Belge tipi belirtilmelidir" });
+      }
+
+      const validDocTypes = ['microchip', 'passport', 'vaccination', 'health_certificate', 'pedigree', 'cites', 'turkvet', 'transport', 'ear_tag', 'breeding_permit', 'dkmp_permit', 'import_permit', 'other'];
+      if (!validDocTypes.includes(documentType)) {
+        return res.status(400).json({ message: "Geçersiz belge tipi" });
+      }
+
+      // Validate file type (PDF, JPEG, PNG)
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Sadece PDF, JPEG, PNG veya WebP dosyaları yüklenebilir" });
+      }
+
+      // Upload to object storage
+      const objectStorage = new ObjectStorageService();
+      const documentPath = await objectStorage.uploadFileBuffer(file.buffer, file.mimetype);
+      
+      // The path returned is like /objects/uploads/xxx
+      // For display URL, we use the same path which will be served via /objects/:path route
+      const documentUrl = documentPath;
+      const documentKey = documentPath;
+
+      // Create document record
+      const [document] = await db.insert(listingDocuments).values({
+        listingId,
+        documentType: documentType as any,
+        documentUrl,
+        documentKey,
+        documentNumber: req.body.documentNumber || null,
+        issueDate: req.body.issueDate ? new Date(req.body.issueDate) : null,
+        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : null,
+        issuingAuthority: req.body.issuingAuthority || null,
+        status: 'pending',
+      }).returning();
+
+      res.status(201).json({
+        message: "Belge başarıyla yüklendi",
+        document,
+      });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Belge yüklenirken bir hata oluştu" });
+    }
+  });
+
+  // Get documents for a listing
+  app.get("/api/listings/:listingId/documents", async (req: Request, res: Response) => {
+    try {
+      const { listingId } = req.params;
+      
+      const documents = await db
+        .select()
+        .from(listingDocuments)
+        .where(eq(listingDocuments.listingId, listingId))
+        .orderBy(listingDocuments.createdAt);
+      
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching listing documents:", error);
+      res.status(500).json({ message: "Belgeler getirilemedi" });
+    }
+  });
+
+  // Delete a document
+  app.delete("/api/listings/:listingId/documents/:documentId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { listingId, documentId } = req.params;
+
+      // Verify listing ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+      
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+      
+      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu belgeyi silme yetkiniz yok" });
+      }
+
+      // Get document
+      const [document] = await db
+        .select()
+        .from(listingDocuments)
+        .where(and(
+          eq(listingDocuments.id, documentId),
+          eq(listingDocuments.listingId, listingId)
+        ))
+        .limit(1);
+
+      if (!document) {
+        return res.status(404).json({ message: "Belge bulunamadı" });
+      }
+
+      // Delete from storage
+      try {
+        const objectStorage = new ObjectStorageService();
+        await objectStorage.deleteFile(document.documentKey);
+      } catch (storageError) {
+        console.error("Error deleting document from storage:", storageError);
+      }
+
+      // Delete from database
+      await db.delete(listingDocuments).where(eq(listingDocuments.id, documentId));
+
+      res.json({ message: "Belge başarıyla silindi" });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ message: "Belge silinirken bir hata oluştu" });
+    }
+  });
+
+  // ============ Draft Listing Routes ============
+
+  // Create a draft listing
+  app.post("/api/listings/draft", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const sellerId = getUserId(user);
+
+      // Minimal validation for drafts - just need sellerId
+      const draftData = {
+        sellerId,
+        categoryId: req.body.categoryId || null,
+        title: req.body.title || "Taslak İlan",
+        description: req.body.description || "",
+        price: req.body.price || "0",
+        city: req.body.city || "",
+        district: req.body.district || "",
+        status: 'draft' as const,
+        images: req.body.images || [],
+        videoUrls: req.body.videoUrls || [],
+        categoryAttributes: req.body.categoryAttributes || {},
+        breed: req.body.breed || null,
+        ageCategory: req.body.ageCategory || null,
+        gender: req.body.gender || null,
+        healthStatus: req.body.healthStatus || null,
+        vaccinated: req.body.vaccinated || false,
+        neutered: req.body.neutered || false,
+        pedigree: req.body.pedigree || false,
+        characterTraits: req.body.characterTraits || [],
+        microchipNumber: req.body.microchipNumber || null,
+        passportNumber: req.body.passportNumber || null,
+        earTagNumber: req.body.earTagNumber || null,
+        turkvetNumber: req.body.turkvetNumber || null,
+        deliveryInfo: req.body.deliveryInfo || null,
+        warrantyInfo: req.body.warrantyInfo || null,
+      };
+
+      const [listing] = await db.insert(listings).values(draftData as any).returning();
+
+      res.status(201).json({
+        message: "Taslak oluşturuldu",
+        listing,
+      });
+    } catch (error) {
+      console.error("Failed to create draft listing:", error);
+      res.status(500).json({ message: "Taslak oluşturulamadı" });
+    }
+  });
+
+  // Update a draft listing (autosave)
+  app.patch("/api/listings/:listingId/draft", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { listingId } = req.params;
+      const sellerId = getUserId(req.user);
+
+      // Verify ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      if (listing.sellerId !== sellerId && (req.user as any).role !== "admin") {
+        return res.status(403).json({ message: "Bu ilanı düzenleme yetkiniz yok" });
+      }
+
+      if (listing.status !== 'draft') {
+        return res.status(400).json({ message: "Sadece taslak ilanlar bu şekilde güncellenebilir" });
+      }
+
+      // Partial update - only update provided fields
+      const updateData: any = { updatedAt: new Date() };
+      
+      const allowedFields = [
+        'categoryId', 'title', 'description', 'price', 'city', 'district',
+        'images', 'videoUrls', 'categoryAttributes', 'breed', 'ageCategory',
+        'gender', 'healthStatus', 'vaccinated', 'neutered', 'pedigree',
+        'characterTraits', 'microchipNumber', 'passportNumber', 'earTagNumber',
+        'turkvetNumber', 'deliveryInfo', 'warrantyInfo'
+      ];
+
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      }
+
+      const [updatedListing] = await db
+        .update(listings)
+        .set(updateData)
+        .where(eq(listings.id, listingId))
+        .returning();
+
+      res.json({
+        message: "Taslak güncellendi",
+        listing: updatedListing,
+      });
+    } catch (error) {
+      console.error("Failed to update draft listing:", error);
+      res.status(500).json({ message: "Taslak güncellenemedi" });
+    }
+  });
+
+  // Get user's draft listings
+  app.get("/api/listings/drafts", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const sellerId = getUserId(req.user);
+
+      const drafts = await db
+        .select()
+        .from(listings)
+        .where(and(
+          eq(listings.sellerId, sellerId),
+          eq(listings.status, 'draft')
+        ))
+        .orderBy(desc(listings.updatedAt));
+
+      res.json(drafts);
+    } catch (error) {
+      console.error("Failed to fetch draft listings:", error);
+      res.status(500).json({ message: "Taslaklar getirilemedi" });
+    }
+  });
+
+  // Publish a draft (convert to pending/active)
+  app.post("/api/listings/:listingId/publish", isAuthenticated, createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { listingId } = req.params;
+      const sellerId = getUserId(req.user);
+      const user = req.user!;
+
+      // Verify ownership
+      const [listing] = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.id, listingId))
+        .limit(1);
+
+      if (!listing) {
+        return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      if (listing.sellerId !== sellerId) {
+        return res.status(403).json({ message: "Bu ilanı yayınlama yetkiniz yok" });
+      }
+
+      if (listing.status !== 'draft') {
+        return res.status(400).json({ message: "Bu ilan zaten yayınlanmış" });
+      }
+
+      // Validate required fields
+      if (!listing.categoryId || !listing.title || listing.title === "Taslak İlan") {
+        return res.status(400).json({ message: "Lütfen kategori ve başlık alanlarını doldurun" });
+      }
+
+      if (!listing.description || listing.description.length < 20) {
+        return res.status(400).json({ message: "Açıklama en az 20 karakter olmalıdır" });
+      }
+
+      if (!listing.city || !listing.district) {
+        return res.status(400).json({ message: "Konum bilgisi gereklidir" });
+      }
+
+      // Email verification check for production
+      if (!(user as any).emailVerified && process.env.NODE_ENV === 'production') {
+        return res.status(403).json({
+          message: "İlan yayınlamak için email adresinizi doğrulamanız gerekmektedir.",
+          requiresVerification: true,
+        });
+      }
+
+      // CAPTCHA verification
+      const recaptchaToken = req.body.recaptchaToken;
+      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === 'production') {
+        if (!recaptchaToken) {
+          return res.status(400).json({
+            message: "Bot koruması doğrulaması gereklidir",
+            errorCode: "RECAPTCHA_REQUIRED",
+          });
+        }
+        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
+        if (!isValid) {
+          return res.status(400).json({
+            message: "Bot koruması doğrulaması başarısız",
+            errorCode: "RECAPTCHA_FAILED",
+          });
+        }
+      }
+
+      // Set status based on environment
+      const newStatus = process.env.NODE_ENV === 'production' ? 'pending' : 'active';
+
+      const [publishedListing] = await db
+        .update(listings)
+        .set({
+          status: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(listings.id, listingId))
+        .returning();
+
+      // Update user stats
+      await db
+        .update(users)
+        .set({
+          totalListings: sql`${users.totalListings} + 1`,
+        })
+        .where(eq(users.id, sellerId));
+
+      res.json({
+        message: newStatus === 'pending' 
+          ? "İlanınız yayınlandı ve onay bekliyor" 
+          : "İlanınız başarıyla yayınlandı",
+        listing: publishedListing,
+      });
+    } catch (error) {
+      console.error("Failed to publish listing:", error);
+      res.status(500).json({ message: "İlan yayınlanamadı" });
+    }
+  });
+
   // ============ Report Routes ============
 
   // Create a report
@@ -6581,7 +6989,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .offset(parseInt(offset as string));
       
       // Get user names for logs
-      const userIds = [...new Set(logs.filter(l => l.userId).map(l => l.userId!))] as string[];
+      const userIds = Array.from(new Set(logs.filter(l => l.userId).map(l => l.userId!))) as string[];
       const userNames = userIds.length > 0 ? await db
         .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
         .from(users)

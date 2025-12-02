@@ -36,6 +36,14 @@ import {
   PhoneCall,
   ZoomIn,
   X,
+  FileText,
+  Truck,
+  ShieldAlert,
+  Play,
+  Fingerprint,
+  CreditCard,
+  Tag,
+  ClipboardCheck,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import type { Listing, User, Category, Location } from "@shared/schema";
@@ -45,6 +53,20 @@ type ListingWithDetails = Listing & {
   seller?: User;
   category?: Category;
   location?: Location;
+  microchipNumber?: string;
+  passportNumber?: string;
+  earTagNumber?: string;
+  turkvetNumber?: string;
+  deliveryInfo?: string;
+  warrantyInfo?: string;
+  videoUrls?: string[];
+  documents?: Array<{
+    id: string;
+    documentType: string;
+    documentUrl: string;
+    status: string;
+    documentNumber?: string;
+  }>;
 };
 
 export default function ListingDetail() {
@@ -632,6 +654,192 @@ export default function ListingDetail() {
                             </Badge>
                           );
                         })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Official Registration Info */}
+                {(listing.microchipNumber || listing.passportNumber || listing.earTagNumber || listing.turkvetNumber) && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
+                        <ClipboardCheck className="w-4 h-4 text-primary" />
+                        Resmi Kayıt Bilgileri
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-muted/50 rounded-lg p-3">
+                        {listing.microchipNumber && (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Fingerprint className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-muted-foreground">Mikroçip No</div>
+                              <div className="text-sm font-medium font-mono" data-testid="text-microchip-number">{listing.microchipNumber}</div>
+                            </div>
+                          </div>
+                        )}
+                        {listing.passportNumber && (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <CreditCard className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-muted-foreground">Pasaport No</div>
+                              <div className="text-sm font-medium font-mono" data-testid="text-passport-number">{listing.passportNumber}</div>
+                            </div>
+                          </div>
+                        )}
+                        {listing.earTagNumber && (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Tag className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-muted-foreground">Kulak Küpesi No</div>
+                              <div className="text-sm font-medium font-mono" data-testid="text-ear-tag-number">{listing.earTagNumber}</div>
+                            </div>
+                          </div>
+                        )}
+                        {listing.turkvetNumber && (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-muted-foreground">TÜRKVET Kayıt No</div>
+                              <div className="text-sm font-medium font-mono" data-testid="text-turkvet-number">{listing.turkvetNumber}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Videos */}
+                {listing.videoUrls && Array.isArray(listing.videoUrls) && listing.videoUrls.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
+                        <Play className="w-4 h-4 text-primary" />
+                        Videolar
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3">
+                        {listing.videoUrls.map((url, idx) => {
+                          const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+                          const videoId = isYouTube 
+                            ? url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s]+)/)?.[1]
+                            : null;
+                          
+                          if (videoId) {
+                            return (
+                              <div key={idx} className="aspect-video rounded-lg overflow-hidden bg-muted" data-testid={`video-embed-${idx}`}>
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${videoId}`}
+                                  title={`Video ${idx + 1}`}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            );
+                          }
+                          return (
+                            <a 
+                              key={idx} 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                              data-testid={`video-link-${idx}`}
+                            >
+                              <Play className="w-5 h-5 text-primary" />
+                              <span className="text-sm truncate flex-1">{url}</span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Delivery Info */}
+                {listing.deliveryInfo && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-primary" />
+                        Teslimat Bilgisi
+                      </h3>
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid="text-delivery-info">
+                          {listing.deliveryInfo}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Warranty Info */}
+                {listing.warrantyInfo && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-primary" />
+                        Garanti Bilgisi
+                      </h3>
+                      <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                        <p className="text-sm text-green-800 dark:text-green-200 whitespace-pre-wrap" data-testid="text-warranty-info">
+                          {listing.warrantyInfo}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Documents/Certificates */}
+                {listing.documents && Array.isArray(listing.documents) && listing.documents.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-primary" />
+                        Belgeler ve Sertifikalar
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {listing.documents.map((doc) => (
+                          <a
+                            key={doc.id}
+                            href={doc.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors group"
+                            data-testid={`document-link-${doc.id}`}
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <FileText className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium capitalize">
+                                {doc.documentType.replace(/_/g, ' ')}
+                              </div>
+                              {doc.documentNumber && (
+                                <div className="text-xs text-muted-foreground">No: {doc.documentNumber}</div>
+                              )}
+                              <Badge 
+                                variant={doc.status === 'verified' ? 'default' : 'secondary'} 
+                                className="mt-1 text-xs"
+                              >
+                                {doc.status === 'verified' ? 'Onaylı' : 'Beklemede'}
+                              </Badge>
+                            </div>
+                          </a>
+                        ))}
                       </div>
                     </div>
                   </>

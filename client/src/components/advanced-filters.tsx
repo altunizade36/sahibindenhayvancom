@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -30,9 +31,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Filter, X, SlidersHorizontal, MapPin, Calendar, Heart, Tag, ArrowUpDown, Check, Syringe, Scissors, Award } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Filter, X, SlidersHorizontal, MapPin, Calendar, Heart, Tag, ArrowUpDown, Check, Syringe, Scissors, Award, Bell, Save, Trash2, BellRing } from "lucide-react";
 import type { Location, Category } from "@shared/schema";
 import { AGE_CATEGORIES, GENDER_OPTIONS, HEALTH_STATUS_OPTIONS, CHARACTER_TRAITS } from "@shared/listing-options";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdvancedFiltersProps {
   onFilterChange: (filters: FilterValues) => void;
@@ -74,6 +86,20 @@ const quickFilters = [
   { key: "gender", value: "male", label: "Erkek", icon: Tag },
   { key: "gender", value: "female", label: "Dişi", icon: Tag },
 ];
+
+const pricePresets = [
+  { label: "5.000 TL'ye kadar", max: 5000 },
+  { label: "10.000 TL'ye kadar", max: 10000 },
+  { label: "25.000 TL'ye kadar", max: 25000 },
+  { label: "50.000 TL'ye kadar", max: 50000 },
+  { label: "100.000 TL'ye kadar", max: 100000 },
+];
+
+const formatPrice = (value: number): string => {
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+  return value.toString();
+};
 
 export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -145,28 +171,79 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Min (₺)</Label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={localFilters.minPrice || ''}
-                  onChange={(e) => setLocalFilters({ ...localFilters, minPrice: e.target.value })}
-                  className="h-10"
-                  data-testid="input-min-price"
+            <div className="space-y-4 pt-2">
+              {/* Price Presets */}
+              <div className="flex flex-wrap gap-1.5">
+                {pricePresets.map((preset) => {
+                  const isSelected = !localFilters.minPrice && localFilters.maxPrice === String(preset.max);
+                  return (
+                    <Badge
+                      key={preset.max}
+                      variant={isSelected ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setLocalFilters({ 
+                        ...localFilters, 
+                        minPrice: undefined,
+                        maxPrice: isSelected ? undefined : String(preset.max)
+                      })}
+                      data-testid={`badge-price-preset-${preset.max}`}
+                    >
+                      {preset.label}
+                    </Badge>
+                  );
+                })}
+              </div>
+              
+              {/* Price Range Slider */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{localFilters.minPrice ? `₺${Number(localFilters.minPrice).toLocaleString('tr-TR')}` : '₺0'}</span>
+                  <span>{localFilters.maxPrice ? `₺${Number(localFilters.maxPrice).toLocaleString('tr-TR')}` : '₺1.000.000+'}</span>
+                </div>
+                <Slider
+                  min={0}
+                  max={1000000}
+                  step={1000}
+                  value={[
+                    Number(localFilters.minPrice) || 0,
+                    Number(localFilters.maxPrice) || 1000000
+                  ]}
+                  onValueChange={([min, max]) => {
+                    setLocalFilters({
+                      ...localFilters,
+                      minPrice: min > 0 ? String(min) : undefined,
+                      maxPrice: max < 1000000 ? String(max) : undefined,
+                    });
+                  }}
+                  className="cursor-pointer"
+                  data-testid="slider-price-range"
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Max (₺)</Label>
-                <Input
-                  type="number"
-                  placeholder="∞"
-                  value={localFilters.maxPrice || ''}
-                  onChange={(e) => setLocalFilters({ ...localFilters, maxPrice: e.target.value })}
-                  className="h-10"
-                  data-testid="input-max-price"
-                />
+
+              {/* Manual Price Inputs */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Min (₺)</Label>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={localFilters.minPrice || ''}
+                    onChange={(e) => setLocalFilters({ ...localFilters, minPrice: e.target.value })}
+                    className="h-10"
+                    data-testid="input-min-price"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Max (₺)</Label>
+                  <Input
+                    type="number"
+                    placeholder="∞"
+                    value={localFilters.maxPrice || ''}
+                    onChange={(e) => setLocalFilters({ ...localFilters, maxPrice: e.target.value })}
+                    className="h-10"
+                    data-testid="input-max-price"
+                  />
+                </div>
               </div>
             </div>
           </AccordionContent>
