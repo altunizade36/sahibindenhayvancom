@@ -1,12 +1,28 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import { EventEmitter } from "events";
 import { db } from "./db";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
+
+// Global notification event emitter for real-time WebSocket notifications
+export const notificationEmitter = new EventEmitter();
+export type NotificationEvent = {
+  userId: string;
+  notification: {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    link: string | null;
+    relatedId: string | null;
+    createdAt: Date;
+  };
+};
 import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
@@ -399,6 +415,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     return false;
   };
   
+  // Listen for notification events from HTTP routes and broadcast via WebSocket
+  notificationEmitter.on('notification', (event: NotificationEvent) => {
+    broadcastToUser(event.userId, {
+      type: "notification",
+      notification: event.notification,
+    });
+  });
+  
   // Helper: Get or create conversation
   const getOrCreateConversation = async (participant1Id: string, participant2Id: string, listingId?: string) => {
     const conversationId = generateConversationId(participant1Id, participant2Id);
@@ -442,8 +466,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       return;
     }
 
+    let userId: string | null = null;
+
     try {
-      // Run session middleware to populate req.session and req.user
+      // Try session-based authentication first
       const sessionMiddleware = getSession();
       await new Promise<void>((resolve, reject) => {
         sessionMiddleware(req, {} as any, (err?: any) => {
@@ -452,7 +478,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       });
 
-      // Run passport middleware to deserialize user
       await new Promise<void>((resolve, reject) => {
         passport.initialize()(req as any, {} as any, (err?: any) => {
           if (err) reject(err);
@@ -467,14 +492,60 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       });
 
-      // Check if user is authenticated
       const user = (req as any).user;
-      if (!(req as any).isAuthenticated || !(req as any).isAuthenticated() || !user?.claims?.sub) {
-        ws.close(1008, "Unauthorized - Please log in");
-        return;
+      if ((req as any).isAuthenticated && (req as any).isAuthenticated() && user?.claims?.sub) {
+        userId = user.claims.sub;
       }
+    } catch {
+      // Session auth failed, will wait for auth message
+    }
 
-      const userId = user.claims.sub;
+    // If session auth failed, wait for auth message
+    if (!userId) {
+      // Set up temporary message handler for auth
+      const authTimeout = setTimeout(() => {
+        ws.close(1008, "Authentication timeout");
+      }, 10000); // 10 second timeout for auth message
+
+      ws.once("message", async (data) => {
+        clearTimeout(authTimeout);
+        try {
+          const message = JSON.parse(data.toString());
+          if (message.type === "auth" && message.userId) {
+            // Verify user exists in database
+            const [dbUser] = await db
+              .select()
+              .from(users)
+              .where(eq(users.id, message.userId))
+              .limit(1);
+            
+            if (dbUser) {
+              setupAuthenticatedConnection(ws, message.userId, dbUser);
+              ws.send(JSON.stringify({ type: "auth_success" }));
+            } else {
+              ws.close(1008, "Invalid user");
+            }
+          } else {
+            ws.close(1008, "Authentication required");
+          }
+        } catch {
+          ws.close(1008, "Invalid auth message");
+        }
+      });
+      return;
+    }
+
+    // Session auth successful, get user from DB and set up connection
+    const [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (dbUser) {
+      setupAuthenticatedConnection(ws, userId, dbUser);
+    } else {
+      ws.close(1008, "User not found");
+    }
+  });
+
+  // Helper function to set up authenticated WebSocket connection
+  async function setupAuthenticatedConnection(ws: WebSocket, userId: string, user: typeof users.$inferSelect) {
       
       // Close existing connection for this user
       const existingClient = clients.get(userId);
@@ -715,9 +786,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
                 ...newMessage,
                 sender: {
                   id: userId,
-                  firstName: (user as any).firstName,
-                  lastName: (user as any).lastName,
-                  profileImageUrl: (user as any).profileImageUrl,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImageUrl: user.profileImageUrl,
                 },
               },
               conversationId: conversation.id,
@@ -764,9 +835,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             
             // Create notification for receiver (if not online or in background)
             try {
-              const senderName = (user as any).firstName 
-                ? `${(user as any).firstName} ${(user as any).lastName || ''}`.trim()
-                : (user as any).username || 'Birisi';
+              const senderName = user.firstName 
+                ? `${user.firstName} ${user.lastName || ''}`.trim()
+                : user.username || 'Birisi';
               
               const [notification] = await db.insert(notifications).values({
                 userId: message.receiverId,
@@ -783,7 +854,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
                 notification: {
                   ...notification,
                   senderName,
-                  senderProfileImage: (user as any).profileImageUrl,
+                  senderProfileImage: user.profileImageUrl,
                 },
               });
             } catch (notifError) {
@@ -979,11 +1050,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         console.error(`WebSocket error for user ${userId}:`, error);
         ws.close(1011, "Internal error");
       });
-    } catch (error) {
-      console.error("WebSocket authentication error:", error);
-      ws.close(1008, "Authentication failed - Please log in");
-    }
-  });
+  }
 
   // ============ Auth Routes (Hybrid: Replit Auth + Email/Password) ============
   
@@ -4988,13 +5055,19 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             ? `${favUser.firstName} ${favUser.lastName || ''}`.trim() 
             : favUser.username || 'Birisi';
           
-          await db.insert(notifications).values({
+          const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: 'new_favorite',
             title: 'Yeni Favori',
             message: `${userName} "${listing.title}" ilanınızı favorilere ekledi`,
             link: `/ilanlar/${listing.id}`,
             relatedId: listing.id,
+          }).returning();
+          
+          // Emit WebSocket notification
+          notificationEmitter.emit('notification', {
+            userId: listing.sellerId,
+            notification,
           });
         }
       } catch (notifError) {
@@ -6038,22 +6111,32 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // Send notification to seller about moderation result
       try {
         if (status === 'active') {
-          await db.insert(notifications).values({
+          const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: 'listing_approved',
             title: 'İlan Onaylandı',
             message: `"${listing.title}" ilanınız onaylandı ve yayına girdi`,
             link: `/ilanlar/${listing.id}`,
             relatedId: listing.id,
+          }).returning();
+          
+          notificationEmitter.emit('notification', {
+            userId: listing.sellerId,
+            notification,
           });
         } else if (status === 'rejected') {
-          await db.insert(notifications).values({
+          const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: 'listing_rejected',
             title: 'İlan Reddedildi',
             message: `"${listing.title}" ilanınız reddedildi${reason ? `: ${reason}` : ''}`,
             link: `/ilanlar/${listing.id}`,
             relatedId: listing.id,
+          }).returning();
+          
+          notificationEmitter.emit('notification', {
+            userId: listing.sellerId,
+            notification,
           });
         }
       } catch (notifError) {
@@ -6182,22 +6265,32 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // Send notification to store owner
       try {
         if (status === 'approved') {
-          await db.insert(notifications).values({
+          const [notification] = await db.insert(notifications).values({
             userId: updatedStore.ownerId,
             type: 'system',
             title: 'Mağaza Onaylandı',
             message: `"${updatedStore.displayName}" mağazanız onaylandı`,
             link: `/magaza/${updatedStore.slug}`,
             relatedId: updatedStore.id,
+          }).returning();
+          
+          notificationEmitter.emit('notification', {
+            userId: updatedStore.ownerId,
+            notification,
           });
         } else if (status === 'rejected') {
-          await db.insert(notifications).values({
+          const [notification] = await db.insert(notifications).values({
             userId: updatedStore.ownerId,
             type: 'system',
             title: 'Mağaza Reddedildi',
             message: `"${updatedStore.displayName}" mağaza başvurunuz reddedildi`,
             link: `/panel/magaza`,
             relatedId: updatedStore.id,
+          }).returning();
+          
+          notificationEmitter.emit('notification', {
+            userId: updatedStore.ownerId,
+            notification,
           });
         }
       } catch (notifError) {
@@ -6700,13 +6793,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         
         const stars = "★".repeat(validationResult.data.rating) + "☆".repeat(5 - validationResult.data.rating);
         
-        await db.insert(notifications).values({
+        const [notification] = await db.insert(notifications).values({
           userId: store.ownerId,
           type: 'system',
           title: 'Yeni Değerlendirme',
           message: `${reviewerName} "${store.displayName}" mağazanıza ${stars} puan verdi`,
           link: `/magaza/${store.slug}`,
           relatedId: newReview.id,
+        }).returning();
+        
+        notificationEmitter.emit('notification', {
+          userId: store.ownerId,
+          notification,
         });
       } catch (notifError) {
         console.error("Failed to create store review notification:", notifError);
@@ -6932,13 +7030,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           ? `${follower.firstName} ${follower.lastName || ''}`.trim() 
           : follower.username || 'Birisi';
         
-        await db.insert(notifications).values({
+        const [notification] = await db.insert(notifications).values({
           userId: store.ownerId,
           type: 'system',
           title: 'Yeni Takipçi',
           message: `${followerName} "${store.displayName}" mağazanızı takip etmeye başladı`,
           link: `/magazam`,
           relatedId: storeId,
+        }).returning();
+        
+        notificationEmitter.emit('notification', {
+          userId: store.ownerId,
+          notification,
         });
       } catch (notifError) {
         console.error("Failed to create store follow notification:", notifError);

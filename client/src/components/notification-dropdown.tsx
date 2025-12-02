@@ -101,6 +101,7 @@ export function NotificationDropdown() {
       const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
       
       ws.onopen = () => {
+        // Send auth message to register this socket for notifications
         ws.send(JSON.stringify({ type: "auth", userId: user.id }));
       };
       
@@ -109,19 +110,24 @@ export function NotificationDropdown() {
           const data = JSON.parse(event.data);
           if (data.type === "notification") {
             handleWebSocketNotification(data.notification);
+          } else if (data.type === "auth_success") {
+            console.log("WebSocket authenticated for notifications");
           }
         } catch (e) {
           console.error("Failed to parse WebSocket message:", e);
         }
       };
       
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      ws.onerror = () => {
+        // WebSocket connection failed - will retry
       };
       
-      ws.onclose = () => {
+      ws.onclose = (event) => {
         wsRef.current = null;
-        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+        // Always try to reconnect after a delay (except intentional unmount)
+        if (event.code !== 1000 || event.reason !== "Component unmounted") {
+          reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+        }
       };
       
       wsRef.current = ws;
@@ -134,7 +140,7 @@ export function NotificationDropdown() {
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (wsRef.current) {
-        wsRef.current.close();
+        wsRef.current.close(1000, "Component unmounted");
       }
     };
   }, [user, handleWebSocketNotification]);
