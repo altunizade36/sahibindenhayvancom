@@ -59,6 +59,7 @@ No specific user preferences were provided in the original document.
 - **Blog**: `/api/blog` (public read-only), `/api/admin/blog` (admin-only CRUD)
 - **Favorites**: `/api/favorites`
 - **Saved Searches**: `/api/saved-searches` (GET list, POST create), `/api/saved-searches/:id` (PATCH update, DELETE remove) - kayıtlı aramalar ve bildirim ayarları
+- **Seller Analytics**: `/api/seller/analytics` (GET dashboard stats), `/api/seller/analytics/listing/:id` (GET individual listing performance)
 - **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management), `/api/admin/document-requirements` (belge gereksinimleri yönetimi), `/api/admin/listing-documents` (belge doğrulama)
 
 **WebSocket Events:**
