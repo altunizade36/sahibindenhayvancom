@@ -1,10 +1,12 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
-import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import {
@@ -21,6 +23,9 @@ import {
   Loader2,
   Trash2,
   ChevronLeft,
+  Filter,
+  Store,
+  ShoppingBag,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -125,36 +130,29 @@ export default function NotificationsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-12 text-center">
-          <Bell className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-muted-foreground" />
-          <h1 className="text-xl md:text-2xl font-bold mb-4">Giriş Yapın</h1>
-          <p className="text-muted-foreground mb-6 text-sm md:text-base">
-            Bildirimlerinizi görmek için giriş yapmanız gerekmektedir.
-          </p>
-          <Link href="/giris">
-            <Button className="w-full sm:w-auto" data-testid="button-login">Giriş Yap</Button>
-          </Link>
-        </div>
+      <div className="container mx-auto px-4 py-12 text-center">
+        <Bell className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-muted-foreground" />
+        <h1 className="text-xl md:text-2xl font-bold mb-4">Giriş Yapın</h1>
+        <p className="text-muted-foreground mb-6 text-sm md:text-base">
+          Bildirimlerinizi görmek için giriş yapmanız gerekmektedir.
+        </p>
+        <Link href="/giris">
+          <Button className="w-full sm:w-auto" data-testid="button-login">Giriş Yap</Button>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
         <div className="max-w-3xl mx-auto">
           {/* Header */}

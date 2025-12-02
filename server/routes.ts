@@ -6663,6 +6663,27 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         })
         .where(eq(stores.id, req.params.id));
       
+      // Send notification to store owner
+      try {
+        const reviewer = req.user as any;
+        const reviewerName = reviewer.firstName 
+          ? `${reviewer.firstName} ${reviewer.lastName || ''}`.trim() 
+          : reviewer.username || 'Birisi';
+        
+        const stars = "★".repeat(validationResult.data.rating) + "☆".repeat(5 - validationResult.data.rating);
+        
+        await db.insert(notifications).values({
+          userId: store.ownerId,
+          type: 'system',
+          title: 'Yeni Değerlendirme',
+          message: `${reviewerName} "${store.displayName}" mağazanıza ${stars} puan verdi`,
+          link: `/magaza/${store.slug}`,
+          relatedId: newReview.id,
+        });
+      } catch (notifError) {
+        console.error("Failed to create store review notification:", notifError);
+      }
+      
       res.status(201).json(newReview);
     } catch (error) {
       console.error("Error creating review:", error);
@@ -6875,6 +6896,25 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .update(stores)
         .set({ followerCount: sql`COALESCE(follower_count, 0) + 1` })
         .where(eq(stores.id, storeId));
+      
+      // Send notification to store owner
+      try {
+        const follower = req.user as any;
+        const followerName = follower.firstName 
+          ? `${follower.firstName} ${follower.lastName || ''}`.trim() 
+          : follower.username || 'Birisi';
+        
+        await db.insert(notifications).values({
+          userId: store.ownerId,
+          type: 'system',
+          title: 'Yeni Takipçi',
+          message: `${followerName} "${store.displayName}" mağazanızı takip etmeye başladı`,
+          link: `/magazam`,
+          relatedId: storeId,
+        });
+      } catch (notifError) {
+        console.error("Failed to create store follow notification:", notifError);
+      }
       
       res.status(201).json({ message: "Mağaza takip edildi", following: true });
     } catch (error) {
