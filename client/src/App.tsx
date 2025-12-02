@@ -40,9 +40,17 @@ const AuctionCreate = lazy(() => import("@/pages/auction-create"));
 const LiveStreamList = lazy(() => import("@/pages/live-stream-list"));
 const LiveStreamWatch = lazy(() => import("@/pages/live-stream-watch"));
 const LiveStreamCreate = lazy(() => import("@/pages/live-stream-create"));
-const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
-const AdminModeration = lazy(() => import("@/pages/admin-moderation"));
-const AdminBlog = lazy(() => import("@/pages/admin-blog"));
+const AdminDashboard = lazy(() => import("@/pages/admin/index"));
+const AdminUsers = lazy(() => import("@/pages/admin/users"));
+const AdminListings = lazy(() => import("@/pages/admin/listings"));
+const AdminStores = lazy(() => import("@/pages/admin/stores"));
+const AdminReports = lazy(() => import("@/pages/admin/reports"));
+const AdminDocuments = lazy(() => import("@/pages/admin/documents"));
+const AdminCategories = lazy(() => import("@/pages/admin/categories"));
+const AdminBlog = lazy(() => import("@/pages/admin/blog"));
+const AdminNotifications = lazy(() => import("@/pages/admin/notifications"));
+const AdminLogs = lazy(() => import("@/pages/admin/logs"));
+const AdminSettings = lazy(() => import("@/pages/admin/settings"));
 const VerifyEmail = lazy(() => import("@/pages/verify-email"));
 const StoresList = lazy(() => import("@/pages/stores-list"));
 const StoreDetail = lazy(() => import("@/pages/store-detail"));
@@ -103,10 +111,13 @@ function SidebarLayout() {
 
 // Routes without sidebar (auth pages + create listing + blog)
 function NoSidebarLayout() {
+  const [location] = useLocation();
+  const isAdminRoute = location.startsWith('/admin');
+  
   return (
     <div className="flex flex-col h-screen w-full">
-      <Navbar />
-      <main className="flex-1 overflow-auto">
+      {!isAdminRoute && <Navbar />}
+      <main className={`flex-1 overflow-auto ${isAdminRoute ? 'p-0' : ''}`}>
         <Switch>
           <Route path="/giris" component={Login} />
           <Route path="/login" component={Login} />
@@ -146,8 +157,16 @@ function NoSidebarLayout() {
           <Route path="/yayin-baslat">{() => <LazyRoute component={LiveStreamCreate} />}</Route>
           <Route path="/kategori/:slug" component={CategoryDetail} />
           <Route path="/admin">{() => <LazyRoute component={AdminDashboard} />}</Route>
-          <Route path="/admin/moderasyon">{() => <LazyRoute component={AdminModeration} />}</Route>
+          <Route path="/admin/kullanicilar">{() => <LazyRoute component={AdminUsers} />}</Route>
+          <Route path="/admin/ilanlar">{() => <LazyRoute component={AdminListings} />}</Route>
+          <Route path="/admin/magazalar">{() => <LazyRoute component={AdminStores} />}</Route>
+          <Route path="/admin/sikayetler">{() => <LazyRoute component={AdminReports} />}</Route>
+          <Route path="/admin/belgeler">{() => <LazyRoute component={AdminDocuments} />}</Route>
+          <Route path="/admin/kategoriler">{() => <LazyRoute component={AdminCategories} />}</Route>
           <Route path="/admin/blog">{() => <LazyRoute component={AdminBlog} />}</Route>
+          <Route path="/admin/bildirimler">{() => <LazyRoute component={AdminNotifications} />}</Route>
+          <Route path="/admin/loglar">{() => <LazyRoute component={AdminLogs} />}</Route>
+          <Route path="/admin/ayarlar">{() => <LazyRoute component={AdminSettings} />}</Route>
           <Route path="/kullanim-kosullari">{() => <LazyRoute component={KullanimKosullari} />}</Route>
           <Route path="/gizlilik-politikasi">{() => <LazyRoute component={GizlilikPolitikasi} />}</Route>
           <Route path="/cerez-politikasi">{() => <LazyRoute component={CerezPolitikasi} />}</Route>
