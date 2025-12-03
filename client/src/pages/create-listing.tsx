@@ -295,7 +295,7 @@ export default function CreateListing() {
   const publishMutation = useMutation({
     mutationFn: async () => {
       if (!draftId) throw new Error("No draft ID");
-      const recaptchaToken = await getRecaptchaToken('publish_listing');
+      const recaptchaToken = await getRecaptchaToken('PUBLISH_LISTING');
       return await apiRequest("POST", `/api/listings/${draftId}/publish`, { recaptchaToken });
     },
     onSuccess: (response: any) => {
@@ -317,7 +317,7 @@ export default function CreateListing() {
 
   const createListingMutation = useMutation({
     mutationFn: async (data: ListingFormData) => {
-      const recaptchaToken = await getRecaptchaToken('create_listing');
+      const recaptchaToken = await getRecaptchaToken('CREATE_LISTING');
       const orderedImages = uploadedImages.length > 0 
         ? [uploadedImages[coverIndex], ...uploadedImages.filter((_, i) => i !== coverIndex)]
         : [];

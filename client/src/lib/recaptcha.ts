@@ -1,5 +1,5 @@
 /**
- * reCAPTCHA v3 Frontend Helper
+ * reCAPTCHA Enterprise Frontend Helper
  * Handles token generation for form submissions
  * 
  * Note: reCAPTCHA is disabled when VITE_RECAPTCHA_SITE_KEY is not configured
@@ -8,28 +8,31 @@
 
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha: {
+      enterprise: {
+        ready: (callback: () => void) => void;
+        execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      };
+    };
   }
 }
 
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
 
-export async function getRecaptchaToken(_action: string): Promise<string | null> {
-  // Return null silently when not configured (no console warnings)
+export async function getRecaptchaToken(action: string): Promise<string | null> {
   if (!RECAPTCHA_SITE_KEY) {
     return null;
   }
 
-  // Wait for grecaptcha to load
-  if (!window.grecaptcha || !window.grecaptcha.ready) {
+  if (!window.grecaptcha?.enterprise?.ready) {
     return null;
   }
 
   try {
     return await new Promise((resolve) => {
-      window.grecaptcha.ready(async () => {
+      window.grecaptcha.enterprise.ready(async () => {
         try {
-          const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: _action });
+          const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action });
           resolve(token);
         } catch {
           resolve(null);
@@ -42,23 +45,30 @@ export async function getRecaptchaToken(_action: string): Promise<string | null>
 }
 
 export function loadRecaptchaScript(): Promise<void> {
-  // Don't load script if not configured (prevents CSP errors)
   if (!RECAPTCHA_SITE_KEY) {
     return Promise.resolve();
   }
 
   return new Promise((resolve) => {
-    if (window.grecaptcha) {
+    if (window.grecaptcha?.enterprise) {
       resolve();
       return;
     }
 
     const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`;
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => resolve(); // Resolve instead of reject to prevent console errors
+    script.onerror = () => resolve();
     document.head.appendChild(script);
   });
+}
+
+export function isRecaptchaEnabled(): boolean {
+  return !!RECAPTCHA_SITE_KEY;
+}
+
+export function getRecaptchaSiteKey(): string {
+  return RECAPTCHA_SITE_KEY;
 }

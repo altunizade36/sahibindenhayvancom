@@ -3198,7 +3198,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             errorCode: "RECAPTCHA_REQUIRED",
           });
         }
-        const isValid = await verifyRecaptcha(recaptchaToken);
+        const isValid = await verifyRecaptcha(recaptchaToken, "CREATE_LISTING");
         if (!isValid) {
           return res.status(400).json({
             message: "Bot koruması doğrulaması başarısız",
@@ -6081,23 +6081,47 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Guest Contact Requests (Misafir İletişim Formu) ============
 
-  // Verify reCAPTCHA token
-  async function verifyRecaptcha(token: string): Promise<{ success: boolean; score: number }> {
+  // Verify reCAPTCHA Enterprise token
+  async function verifyRecaptchaEnterprise(token: string, action: string = "CONTACT"): Promise<{ success: boolean; score: number }> {
     try {
-      const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-      if (!secretKey) {
-        console.warn("RECAPTCHA_SECRET_KEY not configured, skipping verification");
+      const apiKey = process.env.RECAPTCHA_SECRET_KEY;
+      if (!apiKey) {
+        console.warn("RECAPTCHA_SECRET_KEY (API Key) not configured, skipping verification");
         return { success: true, score: 1.0 };
       }
 
-      const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `secret=${secretKey}&response=${token}`,
-      });
+      const projectId = "sahibindenhayvan-55728";
+      const siteKey = "6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-";
 
-      const data = await response.json() as { success: boolean; score?: number };
-      return { success: data.success, score: data.score || 0 };
+      const response = await fetch(
+        `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: {
+              token: token,
+              expectedAction: action,
+              siteKey: siteKey,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("reCAPTCHA Enterprise API error:", response.status);
+        return { success: false, score: 0 };
+      }
+
+      const data = await response.json() as { 
+        tokenProperties?: { valid?: boolean };
+        riskAnalysis?: { score?: number };
+      };
+      
+      const isValid = data.tokenProperties?.valid ?? false;
+      const score = data.riskAnalysis?.score ?? 0;
+      
+      return { success: isValid, score: score };
     } catch (error) {
       console.error("reCAPTCHA verification failed:", error);
       return { success: false, score: 0 };
@@ -6125,10 +6149,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "İlan bulunamadı" });
       }
 
-      // Verify reCAPTCHA
+      // Verify reCAPTCHA Enterprise
       let recaptchaScore = 1.0;
       if (recaptchaToken) {
-        const recaptchaResult = await verifyRecaptcha(recaptchaToken);
+        const recaptchaResult = await verifyRecaptchaEnterprise(recaptchaToken, "CONTACT");
         recaptchaScore = recaptchaResult.score;
         
         // Block if score is too low (likely bot)
@@ -7425,7 +7449,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             errorCode: "RECAPTCHA_REQUIRED",
           });
         }
-        const isValid = await verifyRecaptcha(recaptchaToken);
+        const isValid = await verifyRecaptcha(recaptchaToken, "PUBLISH_LISTING");
         if (!isValid) {
           return res.status(400).json({
             message: "Bot koruması doğrulaması başarısız",

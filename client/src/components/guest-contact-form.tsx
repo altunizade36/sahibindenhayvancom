@@ -40,21 +40,21 @@ export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestC
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
 
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
 
   useEffect(() => {
-    if (recaptchaSiteKey && !window.grecaptcha) {
+    if (recaptchaSiteKey && !window.grecaptcha?.enterprise) {
       const script = document.createElement("script");
-      script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+      script.src = `https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
-        window.grecaptcha?.ready(() => {
+        window.grecaptcha?.enterprise?.ready(() => {
           setRecaptchaLoaded(true);
         });
       };
       document.head.appendChild(script);
-    } else if (window.grecaptcha) {
+    } else if (window.grecaptcha?.enterprise) {
       setRecaptchaLoaded(true);
     }
   }, [recaptchaSiteKey]);
@@ -73,11 +73,11 @@ export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestC
     mutationFn: async (data: ContactFormData) => {
       let recaptchaToken = "";
       
-      if (recaptchaSiteKey && window.grecaptcha) {
+      if (recaptchaSiteKey && window.grecaptcha?.enterprise) {
         try {
-          recaptchaToken = await window.grecaptcha.execute(recaptchaSiteKey, { action: "contact" });
+          recaptchaToken = await window.grecaptcha.enterprise.execute(recaptchaSiteKey, { action: "CONTACT" });
         } catch (error) {
-          console.error("reCAPTCHA error:", error);
+          console.error("reCAPTCHA Enterprise error:", error);
         }
       }
 

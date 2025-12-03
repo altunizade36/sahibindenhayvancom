@@ -1,82 +1,88 @@
-// Google reCAPTCHA v3 verification
-// https://developers.google.com/recaptcha/docs/verify
+// Google reCAPTCHA Enterprise verification
+// https://cloud.google.com/recaptcha-enterprise/docs/verify-token
 
-export interface RecaptchaVerifyResponse {
-  success: boolean;
-  score?: number;
-  action?: string;
-  challenge_ts?: string;
-  hostname?: string;
-  'error-codes'?: string[];
+export interface RecaptchaEnterpriseResponse {
+  tokenProperties: {
+    valid: boolean;
+    invalidReason?: string;
+    hostname?: string;
+    action?: string;
+    createTime?: string;
+  };
+  riskAnalysis: {
+    score: number;
+    reasons?: string[];
+  };
+  event: {
+    token: string;
+    siteKey: string;
+    expectedAction?: string;
+  };
+  name: string;
 }
 
-export async function verifyRecaptcha(token: string, minScore = 0.5): Promise<boolean> {
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+const RECAPTCHA_SITE_KEY = '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
+const PROJECT_ID = 'sahibindenhayvan-55728';
+
+export async function verifyRecaptcha(token: string, expectedAction: string, minScore = 0.5): Promise<boolean> {
+  const apiKey = process.env.RECAPTCHA_SECRET_KEY;
   
-  if (!secretKey) {
-    console.warn('⚠️  RECAPTCHA_SECRET_KEY not configured. Bypassing verification in development.');
-    return true; // Allow in dev mode without key
+  if (!apiKey) {
+    console.warn('⚠️  RECAPTCHA_SECRET_KEY (API Key) not configured. Bypassing verification in development.');
+    return true;
   }
 
   try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-      }),
-    });
+    const response = await fetch(
+      `https://recaptchaenterprise.googleapis.com/v1/projects/${PROJECT_ID}/assessments?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event: {
+            token: token,
+            expectedAction: expectedAction,
+            siteKey: RECAPTCHA_SITE_KEY,
+          },
+        }),
+      }
+    );
 
-    const data: RecaptchaVerifyResponse = await response.json();
-
-    if (!data.success) {
-      console.error('reCAPTCHA verification failed:', data['error-codes']);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('reCAPTCHA Enterprise API error:', response.status, errorText);
       return false;
     }
 
-    // reCAPTCHA v3 returns a score (0.0 - 1.0)
-    // 1.0 is very likely a good interaction, 0.0 is very likely a bot
-    if (data.score !== undefined && data.score < minScore) {
-      console.warn(`reCAPTCHA score too low: ${data.score} < ${minScore}`);
+    const data: RecaptchaEnterpriseResponse = await response.json();
+
+    if (!data.tokenProperties?.valid) {
+      console.error('reCAPTCHA token invalid:', data.tokenProperties?.invalidReason);
       return false;
     }
 
+    if (expectedAction && data.tokenProperties.action !== expectedAction) {
+      console.error(`reCAPTCHA action mismatch: expected ${expectedAction}, got ${data.tokenProperties.action}`);
+      return false;
+    }
+
+    const score = data.riskAnalysis?.score ?? 0;
+    if (score < minScore) {
+      console.warn(`reCAPTCHA score too low: ${score} < ${minScore}`, data.riskAnalysis?.reasons);
+      return false;
+    }
+
+    console.log(`✅ reCAPTCHA verified: action=${expectedAction}, score=${score}`);
     return true;
   } catch (error) {
     console.error('reCAPTCHA verification error:', error);
-    return false; // Fail closed in production
+    return false;
   }
 }
 
-// Production setup instructions:
-// 1. Get reCAPTCHA v3 keys from: https://www.google.com/recaptcha/admin
-// 2. Add site key to frontend: VITE_RECAPTCHA_SITE_KEY
-// 3. Add secret key to backend: RECAPTCHA_SECRET_KEY (as secret, not env var)
-// 4. Uncomment the reCAPTCHA validation in /api/auth/register route
-//
-// Frontend implementation (React):
-/*
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-
-function RegisterForm() {
-  const { executeRecaptcha } = useGoogleReCaptcha();
-
-  const handleSubmit = async (data) => {
-    if (!executeRecaptcha) {
-      console.error('Execute recaptcha not yet available');
-      return;
-    }
-
-    const token = await executeRecaptcha('register');
-    
-    // Send token with registration request
-    await apiRequest('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ ...data, recaptchaToken: token }),
-    });
-  };
+// Simplified verify function for backward compatibility
+export async function verifyRecaptchaSimple(token: string, minScore = 0.5): Promise<boolean> {
+  return verifyRecaptcha(token, '', minScore);
 }
-*/
