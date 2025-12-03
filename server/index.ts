@@ -39,22 +39,38 @@ if (isClusterPrimary) {
 
 // Track server readiness for health checks
 let isServerReady = false;
+let isFullyInitialized = false;
 
 async function runServer() {
   const app = express();
   
   // ============ CRITICAL: Health check FIRST - before ANY middleware ============
   // This MUST respond immediately for Replit deployment health checks
-  // No middleware, no async operations, just instant response
+  // No middleware, no async operations, just instant 200 response
+  // ALWAYS returns 200 regardless of Accept header for deployment health checks
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(), 
+      uptime: process.uptime(),
+      ready: isFullyInitialized
+    });
+  });
+  
+  // Root health check - ALWAYS returns 200 for ANY request type
+  // This ensures Replit deployment health checks pass immediately
   app.get("/", (req, res, next) => {
     const acceptHeader = req.headers.accept || '';
+    // For health checks (non-browser requests), always return 200 JSON immediately
     if (!acceptHeader.includes('text/html')) {
-      return res.status(200).json({ status: 'ok', uptime: process.uptime() });
+      return res.status(200).json({ 
+        status: 'ok', 
+        uptime: process.uptime(),
+        ready: isFullyInitialized
+      });
     }
+    // For browser requests, continue to serve the app
     next();
-  });
-  app.get("/health", (_req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
   });
 
   // Enable gzip compression for all responses (bandwidth optimization)
@@ -110,6 +126,7 @@ async function runServer() {
   
   // Start listening IMMEDIATELY - health checks will work right away
   const port = parseInt(process.env.PORT || '5000', 10);
+  
   httpServer.listen({
     port,
     host: "0.0.0.0",
@@ -117,50 +134,67 @@ async function runServer() {
   }, () => {
     log(`serving on port ${port}`);
     isServerReady = true;
+    
+    // ============ DEFERRED INITIALIZATION ============
+    // All expensive operations run AFTER server is listening
+    // This ensures health checks pass immediately during deployment
+    setImmediate(async () => {
+      try {
+        // Initialize Redis cache (non-blocking)
+        initializeRedis();
+        
+        // Register all other routes (includes setupAuth)
+        await registerRoutes(app, httpServer);
+
+        // Error handler middleware (must be after routes)
+        app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+          const status = err.status || err.statusCode || 500;
+          const message = err.message || "Internal Server Error";
+          res.status(status).json({ message });
+          console.error('Express error:', err);
+        });
+
+        // Setup Vite or static serving
+        if (app.get("env") === "development") {
+          await setupVite(app, httpServer);
+        } else {
+          serveStatic(app);
+        }
+        
+        // Mark as fully initialized
+        isFullyInitialized = true;
+        console.log('✅ Server fully initialized');
+
+        // ============ BACKGROUND TASKS (truly async, no await) ============
+        // Database seeding - only in development or if explicitly enabled
+        const shouldSeed = process.env.NODE_ENV === 'development' || process.env.ENABLE_AUTO_SEED === 'true';
+        if (shouldSeed) {
+          // Use setTimeout to further defer and not block other operations
+          setTimeout(() => {
+            seedDatabase()
+              .then(() => console.log('✅ Background database seeding complete'))
+              .catch(err => console.error('❌ Background seeding error:', err));
+          }, 100);
+        } else {
+          console.log('ℹ️  Database seeding skipped (production mode)');
+        }
+
+        // Start saved search notifier (background email notifications)
+        setTimeout(() => {
+          savedSearchNotifier.start().catch(err => {
+            console.error('❌ Saved search notifier failed to start:', err);
+          });
+        }, 200);
+        
+      } catch (error) {
+        console.error('❌ Deferred initialization error:', error);
+      }
+    });
   });
 
-  // Now do the slow async initialization in the background
-  // This won't block health checks since server is already listening
-  
-  // Initialize Redis cache
-  initializeRedis();
-  
-  // Register all other routes (includes setupAuth which is slow)
-  await registerRoutes(app, httpServer);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // Setup Vite or static serving
-  if (app.get("env") === "development") {
-    await setupVite(app, httpServer);
-  } else {
-    serveStatic(app);
-  }
-
-  // Database seeding in background (development only)
-  const shouldSeed = process.env.NODE_ENV === 'development' || process.env.ENABLE_AUTO_SEED === 'true';
-  if (shouldSeed) {
-    seedDatabase()
-      .then(() => console.log('✅ Background database seeding complete'))
-      .catch(err => console.error('❌ Background seeding error:', err));
-  } else {
-    console.log('ℹ️  Database seeding skipped (production mode)');
-  }
-
-  // Start saved search notifier (background email notifications)
-  savedSearchNotifier.start().catch(err => {
-    console.error('❌ Saved search notifier failed to start:', err);
-  });
-
-  // Setup graceful shutdown
+  // Setup graceful shutdown (can be set up immediately)
   setupGracefulShutdown(httpServer);
 }
 
 // Export for health checks
-export { isServerReady };
+export { isServerReady, isFullyInitialized };
