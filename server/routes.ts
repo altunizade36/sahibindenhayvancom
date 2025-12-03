@@ -3198,7 +3198,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             errorCode: "RECAPTCHA_REQUIRED",
           });
         }
-        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
+        const isValid = await verifyRecaptcha(recaptchaToken);
         if (!isValid) {
           return res.status(400).json({
             message: "Bot koruması doğrulaması başarısız",
@@ -5601,10 +5601,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // Create notification for seller
       await db.insert(notifications).values({
         userId: sellerId,
-        type: "review",
+        type: "system",
         title: "Yeni Değerlendirme",
-        content: `Bir alıcı size ${rating} yıldız verdi.`,
-        data: JSON.stringify({ reviewId: review.id, rating }),
+        message: `Bir alıcı size ${rating} yıldız verdi.`,
+        relatedId: review.id,
         isRead: false,
       });
 
@@ -6120,7 +6120,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       // Get the listing to find the seller
       const [listing] = await db
-        .select({ sellerId: listings.userId })
+        .select({ sellerId: listings.sellerId })
         .from(listings)
         .where(eq(listings.id, listingId))
         .limit(1);
@@ -6167,10 +6167,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (status !== "spam") {
         await db.insert(notifications).values({
           userId: listing.sellerId,
-          type: "message",
+          type: "new_message",
           title: "Yeni İletişim Talebi",
-          content: `${senderName} adlı ziyaretçi "${listingId}" ilanınız hakkında iletişime geçmek istiyor.`,
-          data: JSON.stringify({ contactRequestId: contactRequest.id, listingId }),
+          message: `${senderName} adlı ziyaretçi ilanınız hakkında iletişime geçmek istiyor.`,
+          relatedId: contactRequest.id,
           isRead: false,
         });
       }
@@ -7429,7 +7429,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             errorCode: "RECAPTCHA_REQUIRED",
           });
         }
-        const isValid = await verifyRecaptcha(recaptchaToken, 0.5);
+        const isValid = await verifyRecaptcha(recaptchaToken);
         if (!isValid) {
           return res.status(400).json({
             message: "Bot koruması doğrulaması başarısız",
