@@ -3460,12 +3460,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
               type: 'price_drop' as const,
               title: 'Fiyat Düştü!',
               message: `"${listing.title}" ilanının fiyatı %${discountPercent} düştü! Yeni fiyat: ₺${newPrice.toLocaleString('tr-TR')}`,
-              data: {
-                listingId: req.params.id,
-                oldPrice: oldPrice,
-                newPrice: newPrice,
-                discountPercent: discountPercent,
-              },
+              link: `/ilanlar/${req.params.id}`,
+              relatedId: req.params.id,
             }));
 
             await db.insert(notifications).values(notificationValues);
