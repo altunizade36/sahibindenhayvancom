@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, Phone, ArrowRight, Loader2, User, Link2 } from "lucide-react";
+import { Mail, Lock, Phone, Loader2, User, Link2 } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
@@ -269,18 +269,17 @@ export default function Login() {
 
           {/* Phone Login & Magic Link - Side by Side */}
           <div className="grid grid-cols-2 gap-3">
-            <Link href="/telefon-giris">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11 border-primary/30 hover:border-primary hover:bg-primary/5"
-                disabled={isLoading}
-                data-testid="button-phone-login"
-              >
-                <Phone className="w-5 h-5 mr-2 text-primary" />
-                <span className="text-sm">Telefon ile Giriş</span>
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 border-primary/30 hover:border-primary hover:bg-primary/5"
+              disabled={isLoading}
+              onClick={() => setLocation("/telefon-giris")}
+              data-testid="button-phone-login"
+            >
+              <Phone className="w-5 h-5 mr-2 text-primary" />
+              <span className="text-sm">Telefon ile Giriş</span>
+            </Button>
             
             <Button
               type="button"
@@ -435,10 +434,7 @@ export default function Login() {
                     Giriş Yapılıyor...
                   </>
                 ) : (
-                  <>
-                    Giriş Yap
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
+                  "Giriş Yap"
                 )}
               </Button>
             </form>
