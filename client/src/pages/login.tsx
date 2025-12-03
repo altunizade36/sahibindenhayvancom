@@ -3,8 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, Phone, ArrowRight, Loader2, User, Link2 } from "lucide-react";
-import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
-import { FaXTwitter } from "react-icons/fa6";
+import { SiGoogle } from "react-icons/si";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,9 +16,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   formatPhoneNumber, 
   signInWithGoogle, 
-  signInWithFacebook, 
-  signInWithTwitter, 
-  signInWithApple,
   handleRedirectResult,
   sendEmailSignInLink
 } from "@/lib/firebase";
@@ -167,45 +163,20 @@ export default function Login() {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'facebook' | 'twitter' | 'apple') => {
+  const handleSocialSignIn = async (provider: 'google') => {
     setSocialLoading(provider);
-    const providerNames: Record<string, string> = {
-      google: 'Google',
-      facebook: 'Facebook',
-      twitter: 'X (Twitter)',
-      apple: 'Apple'
-    };
-    const providerName = providerNames[provider];
     
     try {
-      let result;
+      const result = await signInWithGoogle();
       
-      switch (provider) {
-        case 'google':
-          result = await signInWithGoogle();
-          break;
-        case 'facebook':
-          result = await signInWithFacebook();
-          break;
-        case 'twitter':
-          result = await signInWithTwitter();
-          break;
-        case 'apple':
-          result = await signInWithApple();
-          break;
-      }
-      
-      // Check if we got a valid result
       if (!result || !result.idToken) {
         throw new Error('Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.');
       }
       
-      // For Apple/Twitter, email might be null - backend will handle this
       const email = result.user.email || null;
       const displayName = result.user.displayName || null;
       const photoURL = result.user.photoURL || null;
       
-      // Send to our backend to create/update session
       const res = await apiRequest("POST", "/api/auth/firebase/login", {
         idToken: result.idToken,
         email,
@@ -218,15 +189,14 @@ export default function Login() {
       
       toast({
         title: "Giriş Başarılı!",
-        description: response.message || `${providerName} ile giriş yapıldı.`,
+        description: response.message || "Google ile giriş yapıldı.",
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
-      let errorMessage = `${providerName} ile giriş yapılamadı.`;
+      let errorMessage = "Google ile giriş yapılamadı.";
       
-      // Handle specific Firebase errors
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Giriş penceresi kapatıldı. Lütfen tekrar deneyin.';
       } else if (error.code === 'auth/popup-blocked') {
@@ -278,84 +248,24 @@ export default function Login() {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {/* Social Login Buttons Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Google */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-11"
-              onClick={() => handleSocialSignIn('google')}
-              disabled={socialLoading !== null || isLoading}
-              data-testid="button-google-login"
-            >
-              {socialLoading === 'google' ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <SiGoogle className="w-5 h-5 mr-2 text-[#4285F4]" />
-                  <span className="text-sm">Google</span>
-                </>
-              )}
-            </Button>
-
-            {/* Facebook */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-11"
-              onClick={() => handleSocialSignIn('facebook')}
-              disabled={socialLoading !== null || isLoading}
-              data-testid="button-facebook-login"
-            >
-              {socialLoading === 'facebook' ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <SiFacebook className="w-5 h-5 mr-2 text-[#1877F2]" />
-                  <span className="text-sm">Facebook</span>
-                </>
-              )}
-            </Button>
-
-            {/* X (Twitter) */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-11"
-              onClick={() => handleSocialSignIn('twitter')}
-              disabled={socialLoading !== null || isLoading}
-              data-testid="button-twitter-login"
-            >
-              {socialLoading === 'twitter' ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <FaXTwitter className="w-5 h-5 mr-2" />
-                  <span className="text-sm">X</span>
-                </>
-              )}
-            </Button>
-
-            {/* Apple */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-11"
-              onClick={() => handleSocialSignIn('apple')}
-              disabled={socialLoading !== null || isLoading}
-              data-testid="button-apple-login"
-            >
-              {socialLoading === 'apple' ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <SiApple className="w-5 h-5 mr-2" />
-                  <span className="text-sm">Apple</span>
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Google Login - Full Width */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => handleSocialSignIn('google')}
+            disabled={socialLoading !== null || isLoading}
+            data-testid="button-google-login"
+          >
+            {socialLoading === 'google' ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <SiGoogle className="w-5 h-5 mr-2 text-[#4285F4]" />
+                <span className="text-sm">Google ile Giriş Yap</span>
+              </>
+            )}
+          </Button>
 
           {/* Phone Login & Magic Link - Side by Side */}
           <div className="grid grid-cols-2 gap-3">
@@ -368,7 +278,7 @@ export default function Login() {
                 data-testid="button-phone-login"
               >
                 <Phone className="w-5 h-5 mr-2 text-primary" />
-                <span className="text-sm">Telefon</span>
+                <span className="text-sm">Telefon ile Giriş</span>
               </Button>
             </Link>
             
@@ -381,7 +291,7 @@ export default function Login() {
               data-testid="button-magic-link-toggle"
             >
               <Link2 className="w-5 h-5 mr-2 text-secondary" />
-              <span className="text-sm">Şifresiz</span>
+              <span className="text-sm">Şifresiz Giriş</span>
             </Button>
           </div>
 
