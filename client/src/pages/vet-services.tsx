@@ -57,10 +57,11 @@ export default function VetServices() {
     queryKey: ["/api/vet-services"],
   });
 
-  // Also fetch veteriner listings from listings table
-  const { data: vetListings = [] } = useQuery<(Listing & { isExampleListing?: boolean })[]>({
-    queryKey: ["/api/listings", { category: "veterinerlik-hizmetler" }],
+  // Fetch veteriner listings from listings table (includes example listings)
+  const { data: vetListingsResponse } = useQuery<{ data: (Listing & { isExampleListing?: boolean })[] }>({
+    queryKey: ["/api/listings", { categoryId: "cat-veteriner-hizmetleri" }],
   });
+  const vetListings = vetListingsResponse?.data || [];
 
   const cities = [...new Set(vetServices?.map(v => v.city) || [])];
 
@@ -254,12 +255,59 @@ export default function VetServices() {
           </div>
         )}
 
+        {/* Display veteriner listings from main listings table */}
+        {vetListings.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Veteriner İlanları</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vetListings.map((listing) => (
+                <Link key={listing.id} href={`/ilan/${listing.id}`}>
+                  <Card 
+                    className="hover-elevate overflow-visible relative cursor-pointer"
+                    data-testid={`card-vet-listing-${listing.id}`}
+                  >
+                    {listing.isExampleListing && <ExampleListingBadge />}
+                    <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                      <img 
+                        src={listing.images?.[0] || '/placeholder-image.jpg'} 
+                        alt={listing.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardContent className="pt-4">
+                      <CardTitle className="text-base line-clamp-2 mb-2">
+                        {listing.title}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>{listing.district}, {listing.city}</span>
+                      </div>
+                      <div className="text-lg font-bold text-primary">
+                        {typeof listing.price === 'number' || typeof listing.price === 'string' 
+                          ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(listing.price))
+                          : 'Fiyat Belirtilmemiş'}
+                      </div>
+                      {listing.isExampleListing && (
+                        <Badge variant="outline" className="mt-2 text-xs text-yellow-600 border-yellow-400">
+                          Örnek İlan
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Card className="mt-8">
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
             <p>Veteriner olarak platformumuza katılmak ister misiniz?</p>
-            <Button variant="link" className="mt-2">
-              Veteriner Kaydı Oluştur
-            </Button>
+            <Link href="/ilan-ver?category=veteriner-hizmetleri">
+              <Button variant="link" className="mt-2">
+                Veteriner Kaydı Oluştur
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
