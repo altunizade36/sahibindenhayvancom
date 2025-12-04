@@ -1,173 +1,48 @@
 ### Overview
-sahibindenhayvan.com is a free Turkish animal classifieds platform offering comprehensive listing features with advanced search, filtering, and categorization for pets, livestock, birds, fish, horses, and beekeeping. The platform aims for user acquisition through free listings and plans future monetization via premium features, advertising, and sales commissions. It includes a robust professional stores system for verified sellers, a blog system for legal compliance and animal care information, and is production-ready, load-tested, and optimized for security and mobile responsiveness.
+sahibindenhayvan.com is a free Turkish animal classifieds platform providing extensive listing features for various animal types, including pets, livestock, and birds. Its primary goal is user acquisition through free listings, with future monetization plans including premium features, advertising, and sales commissions. The platform supports a professional stores system for verified sellers and a blog for legal information and animal care. It is designed to be production-ready, secure, load-tested, and mobile-responsive.
 
 ### User Preferences
 No specific user preferences were provided in the original document.
 
 ### System Architecture
 
-**Design Decisions:**
-- **UI/UX**: Modern, responsive design using Shadcn UI and Tailwind CSS, featuring a Turkish marketplace theme with Blue as primary, Gold/Yellow as secondary, and Inter, Poppins, Space Grotesk fonts. Layouts include responsive grids, a central search bar, and sticky header. Includes dedicated mobile responsiveness features like a hamburger menu and touch-friendly UI.
-- **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles with specific permissions.
-- **Free Platform Model**: All listing features are free to encourage user acquisition; payment infrastructure is removed.
-- **Full PostgreSQL Storage**: Complete migration to PostgreSQL (Neon serverless) with Drizzle ORM for all data (users, listings, messages, stores, blog).
-- **Security**: Triple authentication system (Replit Auth OAuth, Email/Password, Firebase Phone Auth with SMS), session-based authentication with PostgreSQL session store, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
-- **Turkish Legal Compliance (KVKK 2024)**:
-  - **5199 sayılı Hayvanları Koruma Kanunu**: Pet shop/mağaza kedi-köpek satış yasağı (14 Temmuz 2022, hayvan başına 5.043 TL ceza), mikroçip ve pasaport zorunluluğu
-  - **5996 sayılı Veteriner Hizmetleri Kanunu**: Büyükbaş/küçükbaş hayvanlar için TÜRKVET kaydı, kulak küpesi, nakil belgesi zorunluluğu
-  - **CITES Sözleşmesi (2709 sayılı Kanun)**: Korumalı türler için belge zorunluluğu (jako, kakadu, macaw vb.), 50.000-500.000 TL ceza + hapis
-  - **4915 sayılı Kara Avcılığı Kanunu**: DKMP (Doğa Koruma ve Milli Parklar) izin belgesi zorunluluğu
-  - **Yasak Hayvan Kategorileri Kaldırıldı**: Egzotik hayvanlar (tilki, fennec, lemur, maymun, serval, ocelot, rakun, sugar glider, prairie dog, piranha, keklik)
-- **Firebase Phone Authentication**: Production-ready SMS verification using Firebase Auth. Supports Turkish phone numbers (+90), invisible reCAPTCHA for bot protection, and automatic user creation/login. Firebase Admin SDK verifies tokens server-side.
-- **Complete Authentication System**:
-  - **Login Methods**: Google, Facebook, Twitter/X, Apple social login + Email/Password + Phone SMS OTP + Magic Link (passwordless email)
-  - **Security Features**: Redis-based rate limiting (atomic INCR), brute force protection (3 attempts/5min), login history tracking (IP, user agent, device)
-  - **Firebase Config**: Uses environment variables (VITE_FIREBASE_*) with fallback defaults
-  - **Pages**: /giris (login), /kayit (register), /telefon-giris (phone login), /sifremi-unuttum (forgot password), /email-dogrula (verify email)
-- **Professional Stores System**: Verified sellers can create branded storefronts with custom logos, banners, and color themes. Supports various store types like Petshop, Veterinary, etc., with a review system and admin approval workflow.
-- **Blog System**: Features 32 professional blog posts covering various animal types, including legal disclaimers and citations from Turkish veterinary organizations. Admin-only CRUD for blog management.
+**UI/UX Decisions**:
+The platform features a modern, responsive design leveraging Shadcn UI and Tailwind CSS, with a Turkish marketplace aesthetic. The color scheme uses blue as primary and gold/yellow as secondary, with Inter, Poppins, and Space Grotesk fonts. It includes responsive grids, a central search bar, sticky header, and mobile-specific features like a hamburger menu.
 
-**Technical Implementations:**
-- **Frontend**: React + TypeScript + Vite, with React Hook Form + Zod for forms, and TanStack Query for state management.
-- **Backend**: Node.js + Express.
-- **Real-time**: WebSocket for messaging with session-based authentication (uses Replit Auth session cookies).
+**System Design Choices**:
+- **Multi-Role System**: Supports Guest, Buyer, Seller, Veterinarian, Transporter, and Admin roles with distinct permissions.
+- **Free Platform Model**: All listing features are free to promote user growth.
+- **Full PostgreSQL Storage**: Utilizes PostgreSQL (Neon serverless) with Drizzle ORM for all data, including users, listings, messages, and blog content.
+- **Security**: Implements triple authentication (Replit Auth OAuth, Email/Password, Firebase Phone Auth), session-based authentication, role-based access control, Zod validation, manual listing moderation, spam filtering, reCAPTCHA v3, and IP tracking.
+- **Turkish Legal Compliance (KVKK 2024)**: Adheres to Turkish laws regarding animal protection, veterinary services, protected species (CITES), and hunting regulations. Prohibits pet shop/store sales of cats/dogs and requires microchips/passports, TÜRKVET registration for livestock, and permits for protected species.
+- **Professional Stores System**: Verified sellers can create branded storefronts with custom designs and a review system, subject to admin approval.
+- **Blog System**: Features 32 professional blog posts on animal care and legal aspects, managed by administrators.
+
+**Technical Implementations**:
+- **Frontend**: Built with React, TypeScript, and Vite, using React Hook Form + Zod for forms and TanStack Query for state management.
+- **Backend**: Powered by Node.js and Express.
+- **Real-time**: Implements WebSocket for messaging with session-based authentication.
 - **Core Functionality**:
-    - **Animal Listings**: Advanced search with 6 filters (price, location, breed, age, health), image galleries, document uploads, and moderation. 
-      - **Privacy**: Sensitive registration data (microchip, passport, ear tag, TÜRKVET numbers) are NOT stored or displayed - these remain private to sellers only
-      - **Price Handling**: Turkish locale format sanitization (12.500,00 → 12500.00), max 99,999,999.99 TL
-    - **Infinite Scroll + Pagination**: Home page uses hybrid browsing with infinite scroll (IntersectionObserver-based) and optional page numbers. /ilanlar uses traditional pagination with advanced filters for SEO.
-    - **Hierarchical Categories**: 549 categories across 13 main domains: Evcil Hayvanlar (Pets), Çiftlik Hayvanları (Farm Animals), Balıklar ve Su Ürünleri (Fish), Atlar ve Binicilik (Horses), Arıcılık (Beekeeping), Kümes ve Süs Kuşları (Birds), Sürüngenler ve Amfibiler (Reptiles), Kemirgenler ve Küçük Hayvanlar (Rodents), Yem/Mama/Tarım, Ekipmanlar, Veterinerlik, Kayıt/Belgeler, Mağazalar.
-    - **Advanced Messaging System**: Modern WhatsApp/Telegram-like real-time chat with:
-      - Message types: text, image, file, system, offer
-      - Read receipts with checkmark icons (✓ sent, ✓✓ delivered, blue ✓✓ read)
-      - Typing indicators with animated dots
-      - Online/offline status with last seen timestamps
-      - File/image sharing (images, PDFs, Word/Excel documents up to 10MB)
-      - Message search functionality
-      - Conversation actions: archive, pin, mute
-      - Date separators in message history
-      - Responsive design for mobile/desktop
-    - **Services**: Listings for veterinary and transportation services with profiles, reviews, and ratings.
-    - **User Panel System**: Modern dashboard at `/panel/` with dedicated pages for listings (`/panel/ilanlarim`), favorites (`/panel/favorilerim`), and account settings (`/panel/ayarlar`). Features include quick stats, status filters, profile management, password change, and security status overview.
-    - **Competitive Features (7 systems)**:
-      1. **Recently Viewed Listings**: Tracks user viewing history, carousel display on home page, stored in `viewed_listings` table
-      2. **Listing Comparison**: Compare up to 4 listings side-by-side at `/karsilastir`, uses CompareContext with localStorage
-      3. **Guest Contact Form**: reCAPTCHA v3 protected form for non-logged visitors, stored in `contact_requests` table
-      4. **Individual Seller Rating**: Star rating (1-5) system with review text, stored in `seller_reviews` table, displayed on listing detail
-      5. **Saved Search Email Notifications**: Background job (saved-search-notifier.ts) every 60 minutes, sends matching listings via Resend API
-      6. **Direct Video Upload**: Video upload to object storage, stored in `listing_videos` table with processing status tracking
-      7. **Advanced Statistics**: Category price statistics with avg/min/max/median prices, city distribution, price ranges, market overview
-
-**Key API Endpoints:**
-- **Authentication**: `/api/login` (OAuth login), `/api/logout`, `/api/callback` (OAuth callback), `/api/auth/user` (get current user), `/api/auth/profile` (PATCH - update profile), `/api/auth/firebase/verify` (Firebase phone auth token verification)
-- **Categories**: `/api/categories`, `/api/categories/tree`, `/api/categories/:slug`, `/api/categories/stats`, `/api/categories/:slug/document-requirements` (belge gereksinimleri)
-- **Listings**: `/api/listings` (CRUD, advanced search), `/api/listings/hot`, `/api/listings/:id/similar`, `/api/listings/:id/deactivate` (PATCH - pause listing), `/api/listings/:id/activate` (PATCH - reactivate listing)
-- **Messages**: `/api/messages/conversations`, `/api/messages/:userId`, `/api/messages`, `/api/messages/unread-count`, `/api/messages/search`, `/api/messages/upload`
-- **Conversations**: `/api/conversations/:id/archive` (PATCH), `/api/conversations/:id/pin` (PATCH), `/api/conversations/:id/mute` (PATCH), `/api/conversations/:id/read` (POST)
-- **Notifications**: `/api/notifications` (GET list, POST create), `/api/notifications/count` (unread count), `/api/notifications/:id/read` (PATCH mark read), `/api/notifications/read-all` (POST mark all read), `/api/notifications/:id` (DELETE)
-- **Reports**: `/api/reports` (POST create report), `/api/reports/my` (GET user's reports), `/api/admin/reports` (GET all, PATCH update status)
-- **Services**: `/api/vet-services`, `/api/transport-services`
-- **Blog**: `/api/blog` (public read-only), `/api/admin/blog` (admin-only CRUD)
-- **Favorites**: `/api/favorites`
-- **Saved Searches**: `/api/saved-searches` (GET list, POST create), `/api/saved-searches/:id` (PATCH update, DELETE remove) - kayıtlı aramalar ve bildirim ayarları
-- **Seller Analytics**: `/api/seller/analytics` (GET dashboard stats), `/api/seller/analytics/listing/:id` (GET individual listing performance)
-- **Recently Viewed**: `/api/viewed-listings` (GET user's history, POST add view, DELETE remove)
-- **Seller Reviews**: `/api/sellers/:sellerId/reviews` (GET reviews, POST add review)
-- **Contact Requests**: `/api/contact-requests` (POST submit guest form with reCAPTCHA)
-- **Video Upload**: `/api/listing-videos/upload` (POST), `/api/listing-videos/:listingId` (GET, DELETE)
-- **Category Statistics**: `/api/category-stats/:categorySlug` (GET real-time stats), `/api/market-stats` (GET overall market stats)
-- **Admin**: `/api/admin/stats`, `/api/admin/listings` (moderation), `/api/admin/listings/:id/status`, `/api/admin/reports` (report management), `/api/admin/document-requirements` (belge gereksinimleri yönetimi), `/api/admin/listing-documents` (belge doğrulama)
-
-**WebSocket Events:**
-- **Client → Server**: `chat`, `typing`, `read`, `presence`
-- **Server → Client**: `chat`, `chat_sent`, `typing`, `read`, `presence`, `status_update`
+    - **Animal Listings**: Advanced search with multiple filters, image galleries, document uploads, and moderation. Sensitive registration data is not stored publicly. Supports Turkish locale price formatting.
+    - **Infinite Scroll + Pagination**: Hybrid browsing on the homepage and traditional pagination with filters on listing pages.
+    - **Hierarchical Categories**: Features 658 categories across 17 main domains, including pets, farm animals, fish, horses, and beekeeping.
+    - **Advanced Messaging System**: Real-time chat with text, image, file, system, and offer message types, read receipts, typing indicators, online/offline status, file sharing, message search, and conversation management (archive, pin, mute).
+    - **User Panel System**: A modern dashboard for users to manage listings, favorites, and account settings.
+    - **Competitive Features**: Includes recently viewed listings, listing comparison, guest contact forms (reCAPTCHA protected), individual seller rating, saved search email notifications, direct video upload, and advanced category/market statistics.
+- **API Endpoints**: Comprehensive RESTful API for authentication, categories, listings, messages, notifications, reports, services, blog, favorites, saved searches, seller analytics, recently viewed items, seller reviews, contact requests, video uploads, category statistics, and admin functionalities.
+- **WebSocket Events**: Supports real-time client-to-server and server-to-client events for chat, typing, read receipts, and presence.
 
 ### External Dependencies
 - **Database**: PostgreSQL (Neon serverless) with connection pooling.
 - **Caching**: In-memory cache with Redis fallback.
-- **Email Service**: Resend (production), console logging (development).
+- **Email Service**: Resend (production) and console logging (development).
 - **UI Components**: Shadcn UI.
 - **Styling**: Tailwind CSS.
 - **Form Handling**: React Hook Form, Zod.
 - **State Management**: TanStack Query.
-- **Authentication**: Triple auth system - Replit Auth (OIDC-based OAuth), Email/Password with bcrypt, Firebase Phone Auth with SMS verification.
-- **Firebase**: Phone authentication with real SMS delivery (10,000 free SMS/month), Admin SDK for server-side token verification.
-- **Session Storage**: PostgreSQL (sessions table) with 7-day TTL.
-- **Image Storage**: Replit Object Storage with Sharp-based processing.
-  - **Image Processing System**: Server-side image processing with Sharp library
-    - Automatic WebP conversion for optimized file sizes
-    - Multiple size variants: thumbnail (320px), medium (800px), large (1600px)
-    - EXIF rotation handling
-    - Stored in `listing_images` table with variant URLs
-    - API endpoints: `/api/listing-images/upload`, `/api/listing-images/:listingId`, reorder and cover selection
-  - **Frontend Upload**: Drag-drop interface with progress indicators, image reordering, cover photo selection
-- **Bot Protection**: Google reCAPTCHA v3 for forms, Firebase invisible reCAPTCHA for phone auth.
-- **Monitoring**: Health checks, Prometheus metrics.
-
-### Performance & Scalability
-
-**Current Capacity**: ~200-500 concurrent users (Replit free tier limits)
-**With Upstash Pro**: ~3,000-5,000 concurrent users
-
-**Known Limitations**:
-- Upstash Redis free tier: 10,000 commands/day limit
-- Neon PostgreSQL: 2-5 connection pool limit
-- Single Node.js process for WebSocket
-- No load balancer or horizontal scaling
-
-**Database Optimizations**:
-- Neon PostgreSQL with connection pooling (maxUses: 7500)
-- Session store in PostgreSQL with 7-day TTL
-- Pool monitoring: /health endpoint shows pool.total, pool.idle, pool.waiting
-- Graceful shutdown with pool.end()
-
-**Caching System** (Upstash Redis with in-memory fallback):
-- Categories: 24h TTL
-- Hot listings: 3min TTL
-- Admin stats: 1min TTL
-- Blog posts: 1h TTL
-
-**WebSocket Scalability**:
-- Redis-based message broker for multi-instance deployments
-- Local EventEmitter fallback for single-instance
-- Channels: chat, auction, stream, presence, notifications
-
-**CDN-Ready Headers**:
-- Cache-Control: public, max-age=300, s-maxage=600
-- CDN-Cache-Control for edge caching
-- Vary: Accept-Encoding for compression
-
-**Rate Limiting**:
-- Global API: 100 requests/min per IP
-- Strict limiter: 3 attempts/5min for login/register
-
-**For 5,000+ Users - Upstash Pro Setup**:
-1. Go to console.upstash.com → Select your Redis database
-2. Upgrade to Pro plan (~$10/month)
-3. Copy the "Redis URL" (starts with `rediss://`)
-4. Add to Replit Secrets: `UPSTASH_REDIS_URL` = your Redis URL
-5. Restart the application - Real Pub/Sub will activate
-
-**Health Endpoint**: `/health` shows:
-- database.pool (total, idle, waiting)
-- pubsub.enabled (true when UPSTASH_REDIS_URL is set)
-- pubsub.type (redis-tcp, polling, or local)
-
-**Frontend Optimizations**:
-- React.lazy + Suspense for 30+ pages
-- ~60% initial bundle size reduction
-- Lazy loaded: Admin dashboard, Auctions, Live streams, Stores
-
-**Database Optimizations**:
-- Neon PostgreSQL with connection pooling (maxUses: 7500)
-- Session store in PostgreSQL with 7-day TTL
-
-**WebSocket Scalability**:
-- Redis-based message broker for multi-instance deployments
-- Local EventEmitter fallback for single-instance
-- Channels: chat, auction, stream, presence, notifications
-
-**CDN-Ready Headers**:
-- Cache-Control: public, max-age=300, s-maxage=600
-- CDN-Cache-Control for edge caching
-- Vary: Accept-Encoding for compression
+- **Authentication**: Replit Auth (OIDC-based OAuth), Email/Password (bcrypt), Firebase Phone Auth (SMS verification).
+- **Firebase**: Used for phone authentication with real SMS delivery and Admin SDK for server-side token verification.
+- **Session Storage**: PostgreSQL with a 7-day TTL.
+- **Image Storage**: Replit Object Storage with Sharp-based server-side processing for WebP conversion, multiple size variants, EXIF rotation, and frontend drag-drop upload.
+- **Bot Protection**: Google reCAPTCHA v3 for forms and Firebase invisible reCAPTCHA for phone authentication.
+- **Monitoring**: Health checks and Prometheus metrics.

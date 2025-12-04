@@ -43,6 +43,11 @@ const ekipmanlar = createCategory("Ekipmanlar ve Aksesuarlar", "ekipmanlar-akses
 const veterinerlik = createCategory("Veterinerlik & Hizmetler", "veterinerlik-hizmetler", "Stethoscope", 11);
 const kayitBelgeler = createCategory("Kayıt & Belgeler", "kayit-belgeler", "FileText", 12);
 const magazalar = createCategory("Mağazalar", "magazalar", "Store", 13);
+// NEW: 4 additional main categories
+const tarimEmlak = createCategory("Tarım & Kırsal Emlak", "tarim-kirsal-emlak", "Home", 14);
+const araclarNakliye = createCategory("Araçlar & Nakliye", "araclar-nakliye", "Truck", 15);
+const uretimTesisleri = createCategory("Üretim & İşleme Tesisleri", "uretim-isleme-tesisleri", "Factory", 16);
+const insaatYapi = createCategory("İnşaat & Yapı", "insaat-yapi", "Building", 17);
 
 categoriesHierarchy.push(
   evcilHayvanlar,
@@ -57,7 +62,11 @@ categoriesHierarchy.push(
   ekipmanlar,
   veterinerlik,
   kayitBelgeler,
-  magazalar
+  magazalar,
+  tarimEmlak,
+  araclarNakliye,
+  uretimTesisleri,
+  insaatYapi
 );
 
 // ========== 1. Evcil Hayvanlar (Pet Animals) ==========
@@ -676,6 +685,119 @@ categoriesHierarchy.push(diger);
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Rabbit", i, diger.id, 2, [kemirgenler.id, diger.id])
   );
+});
+
+// ========== 14. Tarım & Kırsal Emlak ==========
+const ciftlikSatisi = createCategory("Çiftlik Satışı", "ciftlik-satisi", "Home", 0, tarimEmlak.id, 1, [tarimEmlak.id]);
+const tarimArazisi = createCategory("Tarım Arazisi", "tarim-arazisi", "MapPin", 1, tarimEmlak.id, 1, [tarimEmlak.id]);
+const kirsalKonut = createCategory("Kırsal Konut & Arazi", "kirsal-konut-arazi", "House", 2, tarimEmlak.id, 1, [tarimEmlak.id]);
+const yatirimArazi = createCategory("Yatırım Amaçlı Arazi", "yatirim-amacli-arazi", "TrendingUp", 3, tarimEmlak.id, 1, [tarimEmlak.id]);
+const tesisliEmlak = createCategory("Özel Tesisli Emlak", "ozel-tesisli-emlak", "Building2", 4, tarimEmlak.id, 1, [tarimEmlak.id]);
+categoriesHierarchy.push(ciftlikSatisi, tarimArazisi, kirsalKonut, yatirimArazi, tesisliEmlak);
+
+["Büyükbaş Çiftliği", "Küçükbaş Çiftliği", "Kümes Çiftliği", "At & Binicilik Tesisi", "Balık Çiftliği / Havuz", "Arıcılık Tesisi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[& /]/g, "-"), "Home", i, ciftlikSatisi.id, 2, [tarimEmlak.id, ciftlikSatisi.id]));
+});
+["Sulu Tarla", "Susuz Tarla", "Bağ & Bahçe", "Meyve Bahçesi", "Yayla Arazisi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[& /]/g, "-"), "MapPin", i, tarimArazisi.id, 2, [tarimEmlak.id, tarimArazisi.id]));
+});
+["Bağ Evi", "Dağ Evi", "Köy Evi", "Yayla Evi", "Prefabrik Ev + Arazi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[& +/]/g, "-"), "House", i, kirsalKonut.id, 2, [tarimEmlak.id, kirsalKonut.id]));
+});
+["Hayvancılık Bölgesi Arazi", "Çiftlik Kurulumuna Uygun Arazi", "Tarımsal Yatırım Parseli"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "TrendingUp", i, yatirimArazi.id, 2, [tarimEmlak.id, yatirimArazi.id]));
+});
+["Sera Arazisi + Sistemli", "Ahır + Samanlık Arsa", "İçinde Kesim Tesisi Olan", "İçinde Sağım Merkezi Olan"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[+ /]/g, "-"), "Building", i, tesisliEmlak.id, 2, [tarimEmlak.id, tesisliEmlak.id]));
+});
+
+// ========== 15. Araçlar & Nakliye ==========
+const traktorler = createCategory("Traktörler", "traktorler", "Tractor", 0, araclarNakliye.id, 1, [araclarNakliye.id]);
+const hayvanTasima = createCategory("Hayvan Taşıma Araçları", "hayvan-tasima-araclari", "Truck", 1, araclarNakliye.id, 1, [araclarNakliye.id]);
+const tarimRomork = createCategory("Tarım Römorkları", "tarim-romorklari", "Container", 2, araclarNakliye.id, 1, [araclarNakliye.id]);
+const sutNakliye = createCategory("Süt Toplama & Nakliye", "sut-toplama-nakliye", "Milk", 3, araclarNakliye.id, 1, [araclarNakliye.id]);
+const tarimIsMakine = createCategory("Tarım İş Makineleri", "tarim-is-makineleri", "Settings", 4, araclarNakliye.id, 1, [araclarNakliye.id]);
+categoriesHierarchy.push(traktorler, hayvanTasima, tarimRomork, sutNakliye, tarimIsMakine);
+
+["Büyük Traktör", "Küçük Traktör", "Bahçe Traktörü"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Tractor", i, traktorler.id, 2, [araclarNakliye.id, traktorler.id]));
+});
+["Hayvan Taşıma Kamyonet", "Hayvan Taşıma Kamyon", "Hayvan Taşıma TIR"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Truck", i, hayvanTasima.id, 2, [araclarNakliye.id, hayvanTasima.id]));
+});
+["Yem Römorkları", "Gübre Römorkları", "Saman Römorkları"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Container", i, tarimRomork.id, 2, [araclarNakliye.id, tarimRomork.id]));
+});
+["Süt Toplama Araçları", "Soğutmalı Nakliye Araçları"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Milk", i, sutNakliye.id, 2, [araclarNakliye.id, sutNakliye.id]));
+});
+["Silaj Makinesi", "Biçme Makinesi", "Yem Karma Makinesi", "Kümes Yıkama / Dezenfekte Aracı"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[/ ]/g, "-"), "Settings", i, tarimIsMakine.id, 2, [araclarNakliye.id, tarimIsMakine.id]));
+});
+
+// ========== 16. Üretim & İşleme Tesisleri ==========
+const sutIsleme = createCategory("Süt İşleme Tesisleri", "sut-isleme-tesisleri", "Factory", 0, uretimTesisleri.id, 1, [uretimTesisleri.id]);
+const etIsleme = createCategory("Et İşleme Tesisleri", "et-isleme-tesisleri", "Factory", 1, uretimTesisleri.id, 1, [uretimTesisleri.id]);
+const aricilikUretim = createCategory("Arıcılık Üretim Tesisleri", "aricilik-uretim-tesisleri", "Honeycomb", 2, uretimTesisleri.id, 1, [uretimTesisleri.id]);
+const yumurtaUretim = createCategory("Yumurta İşleme Tesisleri", "yumurta-isleme-tesisleri", "Egg", 3, uretimTesisleri.id, 1, [uretimTesisleri.id]);
+categoriesHierarchy.push(sutIsleme, etIsleme, aricilikUretim, yumurtaUretim);
+
+["Süt İşleme Tesisi", "Peynir & Yoğurt Üretim Tesisi", "Süt Toplama Merkezi", "Süt Pastörizasyon Makinesi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[& /]/g, "-"), "Factory", i, sutIsleme.id, 2, [uretimTesisleri.id, sutIsleme.id]));
+});
+["Kesimhane", "Et Üretim Tesisi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Factory", i, etIsleme.id, 2, [uretimTesisleri.id, etIsleme.id]));
+});
+["Arıcılık Dolum Tesisi", "Bal Paketleme"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Honeycomb", i, aricilikUretim.id, 2, [uretimTesisleri.id, aricilikUretim.id]));
+});
+categoriesHierarchy.push(createCategory("Yumurta Paketleme Bandı", "yumurta-paketleme-bandi", "Egg", 0, yumurtaUretim.id, 2, [uretimTesisleri.id, yumurtaUretim.id]));
+
+// ========== 17. İnşaat & Yapı ==========
+const ahirYapimi = createCategory("Ahır Yapımı", "ahir-yapimi", "Warehouse", 0, insaatYapi.id, 1, [insaatYapi.id]);
+const kumesYapimi = createCategory("Kümes Yapımı", "kumes-yapimi", "Building", 1, insaatYapi.id, 1, [insaatYapi.id]);
+const siloKurulumu = createCategory("Silo Kurulumu", "silo-kurulumu", "Container", 2, insaatYapi.id, 1, [insaatYapi.id]);
+const citSistemleri = createCategory("Çit ve Tel Sistemleri", "cit-tel-sistemleri", "Grid", 3, insaatYapi.id, 1, [insaatYapi.id]);
+const gubreSistemleri = createCategory("Gübre Sistemi / EKBAN", "gubre-sistemi-ekban", "Recycle", 4, insaatYapi.id, 1, [insaatYapi.id]);
+const kantarMontaj = createCategory("Hayvan Tartı Kantarı Montaj", "hayvan-tarti-kantari-montaj", "Scale", 5, insaatYapi.id, 1, [insaatYapi.id]);
+categoriesHierarchy.push(ahirYapimi, kumesYapimi, siloKurulumu, citSistemleri, gubreSistemleri, kantarMontaj);
+
+["Prefabrik Ahır", "Çelik Ahır", "Beton Ahır"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Warehouse", i, ahirYapimi.id, 2, [insaatYapi.id, ahirYapimi.id]));
+});
+["Etlik Kümes Tesisi", "Yumurtacı Kümes Tesisi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Building", i, kumesYapimi.id, 2, [insaatYapi.id, kumesYapimi.id]));
+});
+["Yem Silosu", "Tahıl Silosu"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Container", i, siloKurulumu.id, 2, [insaatYapi.id, siloKurulumu.id]));
+});
+
+// ========== Ekipmanlar Altında: Tarım & Çiftlik Makineleri ==========
+const tarimCiftlikMakine = createCategory("Tarım & Çiftlik Makineleri", "tarim-ciftlik-makineleri", "Settings", 10, ekipmanlar.id, 1, [ekipmanlar.id]);
+categoriesHierarchy.push(tarimCiftlikMakine);
+["Sağım Makineleri", "Süt Tankı / Süt Soğutucu", "Gübre Sıyırma Sistemleri", "Yem Ezme / Kırma Makinesi", "Kuluçka Makinesi", "Yemleme Bandı", "Yumurtlama Kafes Sistemi"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[/ ]/g, "-"), "Settings", i, tarimCiftlikMakine.id, 2, [ekipmanlar.id, tarimCiftlikMakine.id]));
+});
+
+// ========== Veterinerlik Altında: Danışmanlık, Uzman Çağır, Laboratuvar ==========
+const danismanlik = createCategory("Danışmanlık Hizmetleri", "danismanlik-hizmetleri", "Users", 10, veterinerlik.id, 1, [veterinerlik.id]);
+const uzmanCagir = createCategory("Uzman Çağır", "uzman-cagir", "Phone", 11, veterinerlik.id, 1, [veterinerlik.id]);
+const laboratuvarSaglik = createCategory("Laboratuvar & Sağlık", "laboratuvar-saglik", "Microscope", 12, veterinerlik.id, 1, [veterinerlik.id]);
+categoriesHierarchy.push(danismanlik, uzmanCagir, laboratuvarSaglik);
+
+["Çiftlik Kurulum Danışmanlığı", "Yem Formül Danışmanlığı", "Hayvan Alım Danışmanlığı", "Süt Üretimi Optimizasyonu"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Users", i, danismanlik.id, 2, [veterinerlik.id, danismanlik.id]));
+});
+["Veteriner Çağır", "Nalbant Çağır", "Sürü Yönetimi Eğitmeni", "Süt Sağım Teknisyeni"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Phone", i, uzmanCagir.id, 2, [veterinerlik.id, uzmanCagir.id]));
+});
+["Süt Analiz Cihazları", "Hayvan Sağlığı Test Cihazları", "Veteriner Laboratuvarı Kurulumu", "Mikroskop", "Aşı Depolama Dolapları"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/ /g, "-"), "Microscope", i, laboratuvarSaglik.id, 2, [veterinerlik.id, laboratuvarSaglik.id]));
+});
+
+// ========== Mağazalar Altında: Yeni Mağaza Tipleri ==========
+["Yem Mağazaları", "Süt Ekipmanları Satıcıları", "Kuluçka & Kümes Sistemleri Satıcıları", "At & Binicilik Mağazası", "Arıcılık Mağazası", "Çiftlik Makine Bayileri", "Tarım Makine Bayileri", "İnşaat / Ahır Kurulum Firmaları"].forEach((type, i) => {
+  categoriesHierarchy.push(createCategory(type, type.toLowerCase().replace(/[& /]/g, "-"), "Store", 10 + i, magazalar.id, 1, [magazalar.id]));
 });
 
 console.log(`Generated ${categoriesHierarchy.length} categories`);
