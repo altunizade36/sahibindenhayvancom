@@ -26,7 +26,7 @@ export const exampleListings: ExampleListing[] = [
   // 1. Evcil Hayvanlar - Köpek
   {
     id: "ex-evcil-kopek-001",
-    mainCategory: "cat-evcil-hayvanlar",
+    mainCategory: "evcil-hayvanlar",
     categorySlug: "kopek-yavru",
     title: "Golden Retriever Yavrusu - Soy Belgeli, Aşılı",
     description: "3 aylık saf kan Golden Retriever yavrusu. FCI soy belgeli, tüm aşıları yapılmış, mikroçipli. Ebeveynler şampiyon soyundan gelme. Altın sarısı tüy rengi, mükemmel karakter yapısı. Çocuklarla harika uyum sağlar. Veteriner sağlık raporu ve aşı karnesi ile teslim. İstanbul içi ücretsiz teslimat.",
@@ -46,7 +46,7 @@ export const exampleListings: ExampleListing[] = [
   // 2. Evcil Hayvanlar - Kedi
   {
     id: "ex-evcil-kedi-001",
-    mainCategory: "cat-evcil-hayvanlar",
+    mainCategory: "evcil-hayvanlar",
     categorySlug: "kedi-yavru",
     title: "British Shorthair Yavrusu - Mavi Renk, TICA Kayıtlı",
     description: "3 aylık British Shorthair yavrusu, klasik mavi (gri) renk. TICA kayıtlı, bakır göz rengi. Tuvalet eğitimi tamamlanmış, son derece sakin ve sevecen mizaçlı. İlk aşıları ve iç-dış parazit tedavisi yapılmış. Anne-baba her ikisi de şampiyon soyundan. Veteriner kontrolünden geçmiştir.",
@@ -66,7 +66,7 @@ export const exampleListings: ExampleListing[] = [
   // 3. Çiftlik Hayvanları - Büyükbaş (İnek)
   {
     id: "ex-ciftlik-buyukbas-001",
-    mainCategory: "cat-ciftlik-hayvanlari",
+    mainCategory: "ciftlik-hayvanlari",
     categorySlug: "sut-inegi",
     title: "Holstein Süt İneği - Günlük 32 Litre, 2. Laktasyon",
     description: "4 yaşında Holstein inek, günlük ortalama 32 litre süt verimi. 2. laktasyonda, mastitis ve brucella testleri negatif. TÜRKVET kayıtlı, kulak küpesi mevcut. Suni tohumlama belgesi var. Sağlık karnesi düzenli tutulmuş. Ciddi alıcılara veteriner raporu ile teslim.",
@@ -85,7 +85,7 @@ export const exampleListings: ExampleListing[] = [
   // 4. Çiftlik Hayvanları - Küçükbaş (Koyun)
   {
     id: "ex-ciftlik-kucukbas-001",
-    mainCategory: "cat-ciftlik-hayvanlari",
+    mainCategory: "ciftlik-hayvanlari",
     categorySlug: "koyun",
     title: "Merinos Koyun Sürüsü - 25 Baş Gebe, Damızlık",
     description: "25 baş saf kan Merinos koyunu, tamamı gebe durumda. Yaşları 2-4 arasında. Aşıları ve ilaçlamaları eksiksiz yapılmış. Sürü halinde toptan satılık. Kulak küpeleri TÜRKVET kayıtlı. Yüksek yapağı verimi. Konya bölgesi damızlık birliğinden alınmıştır.",
@@ -104,7 +104,7 @@ export const exampleListings: ExampleListing[] = [
   // 5. Çiftlik Hayvanları - Küçükbaş (Keçi)
   {
     id: "ex-ciftlik-keci-001",
-    mainCategory: "cat-ciftlik-hayvanlari",
+    mainCategory: "ciftlik-hayvanlari",
     categorySlug: "keci",
     title: "Saanen Süt Keçisi - Günlük 4 Litre, Damızlık",
     description: "3 yaşında saf Saanen süt keçisi, günlük ortalama 4 litre süt verimi. Damızlık sertifikalı. 2 defa doğum yapmış, sağlıklı yavrular vermiş. Sakin mizaçlı, sağıma alışkın. Aşıları tam. Keçi peyniri üretimi veya damızlık için ideal.",
@@ -124,7 +124,7 @@ export const exampleListings: ExampleListing[] = [
   // 6. Kümes ve Süs Kuşları - Tavuk
   {
     id: "ex-kumes-tavuk-001",
-    mainCategory: "cat-kuslar",
+    mainCategory: "kuslar",
     categorySlug: "ciftlik-tavuk",
     title: "Lohmann Brown Yumurtacı Tavuk - 100 Adet, Verimde",
     description: "Lohmann Brown ırkı yumurtacı tavuk, 100 adet. 8 aylık, yumurta verimine yeni başlamış. Günlük %92 yumurta verimi. Kafes veya serbest gezen sistem için uygun. Tüm aşıları yapılmış. Toptan satış, fabrika çıkışı belgeli. Nakliye organizasyonu yapılabilir.",
@@ -143,7 +143,7 @@ export const exampleListings: ExampleListing[] = [
   // 7. Kümes ve Süs Kuşları - Kaz
   {
     id: "ex-kumes-kaz-001",
-    mainCategory: "cat-kuslar",
+    mainCategory: "kuslar",
     categorySlug: "ciftlik-kaz",
     title: "Toulouse Kazı Damızlık Takım - 2 Dişi + 1 Erkek",
     description: "Toulouse ırkı damızlık kaz takımı: 2 dişi + 1 erkek. 2 yaşında, verimli dönemde. Geçen yıl başarılı üreme yapmış. Yılda 40-50 yumurta. Kars bölgesi yetiştiricisinden. Civciv üretimi veya et üretimi için ideal. Kafes ve yuva kutusu dahil.",
@@ -162,7 +162,7 @@ export const exampleListings: ExampleListing[] = [
   // 8. Kümes ve Süs Kuşları - Muhabbet Kuşu
   {
     id: "ex-kus-muhabbet-001",
-    mainCategory: "cat-kuslar",
+    mainCategory: "kuslar",
     categorySlug: "muhabbet-kusu",
     title: "Muhabbet Kuşu - Konuşan Erkek, Mavi Renk",
     description: "1 yaşında konuşan muhabbet kuşu, mavi renk. 25+ kelime biliyor, şarkı söylüyor. Ele tamamen alışkın, omuzda duruyor. Çocuklarla harika uyum. Büyük kafes, oyuncaklar, yem stoku dahil. Sağlıklı ve aktif, veteriner kontrolünden geçmiş.",
@@ -180,7 +180,7 @@ export const exampleListings: ExampleListing[] = [
   // 9. Atlar ve Binicilik
   {
     id: "ex-at-001",
-    mainCategory: "cat-atlar-binicilik",
+    mainCategory: "atlar-binicilik",
     categorySlug: "arap-ati",
     title: "Safkan Arap Atı - TJK Tescilli, Yarış Geçmişli",
     description: "5 yaşında safkan Arap atı kısrak. TJK (Türkiye Jokey Kulübü) tescilli, yarış geçmişi mevcut. Soy ağacı 6 nesil kayıtlı. Damızlık veya spor biniciliği için uygun. Eğitimli, sakin mizaçlı. Veteriner raporu ve tüm belgeler mevcut. İstanbul çevresinde profesyonel binicilik tesisinde bakılmaktadır.",
@@ -200,7 +200,7 @@ export const exampleListings: ExampleListing[] = [
   // 10. Balıklar ve Su Ürünleri
   {
     id: "ex-balik-001",
-    mainCategory: "cat-baliklar-su-urunleri",
+    mainCategory: "baliklar-su-urunleri",
     categorySlug: "akvaryum-baligi",
     title: "Akvaryum Balığı Koleksiyonu - 15 Adet Tropikal",
     description: "Tropik akvaryum balığı koleksiyonu: Guppy, Platy, Molly, Tetra çeşitleri. Toplam 15 adet yetişkin balık. 6-12 aylık, sağlıklı ve aktif. Başlangıç akvaryumcular için ideal set. 100 litre akvaryum için uygun. Su parametreleri ve bakım bilgisi verilecek.",
@@ -217,7 +217,7 @@ export const exampleListings: ExampleListing[] = [
   // 11. Arıcılık
   {
     id: "ex-ari-001",
-    mainCategory: "cat-aricilik",
+    mainCategory: "aricilik",
     categorySlug: "arili-kovan",
     title: "Arılı Kovan - Kafkas Arısı, 10 Çerçeve Güçlü Koloni",
     description: "10 çerçeveli arılı kovan, Kafkas ana arı ile güçlü koloni. 8 çerçeve yavrulu, 2 çerçeve ballı. Varroa tedavisi yapılmış. Yeni arıcılığa başlayanlar için ideal. Langstroth tipi kovan, kaliteli ahşap malzeme. Arıcılık ekipmanı tavsiyeleri dahil. Muğla bölgesi çiçek balı verimi yüksek.",
@@ -233,7 +233,7 @@ export const exampleListings: ExampleListing[] = [
   // 12. Sürüngenler ve Amfibiler
   {
     id: "ex-surunegen-001",
-    mainCategory: "cat-surungenler-amfibiler",
+    mainCategory: "surungenler-amfibiler",
     categorySlug: "kaplumbaga",
     title: "Kara Kaplumbağası - 12 Yaşında, CITES Belgeli",
     description: "Akdeniz kara kaplumbağası (Testudo graeca), 12 yaşında, 16 cm kabuk. CITES belgeli, yasal edinim. Bahçe besleme için uygun, kış uykusuna yatar. Sağlıklı, aktif ve iyi beslenmiş. Bakım bilgisi ve kış uykusu rehberi verilecek. Akdeniz iklimine uygun.",
@@ -250,7 +250,7 @@ export const exampleListings: ExampleListing[] = [
   // 13. Kemirgenler ve Küçük Hayvanlar
   {
     id: "ex-kemirgen-001",
-    mainCategory: "cat-kemirgenler-kucuk-hayvanlar",
+    mainCategory: "kemirgenler-kucuk-hayvanlar",
     categorySlug: "tavsan",
     title: "Holland Lop Tavşan - Karamel Renk, Minyatür",
     description: "Holland Lop tavşanı, karamel renk. 5 aylık, tam yetişkin 1.6 kg olacak. Düşük kulakları ile çok sevimli görünüm. Apartman için ideal, sessiz ve temiz. Tuvalet eğitimi tamamlanmış. Kafes, su kabı, yemlik ve 1 ay yem stoku dahil.",
@@ -269,7 +269,7 @@ export const exampleListings: ExampleListing[] = [
   // 14. Yem, Mama ve Tarım Ürünleri
   {
     id: "ex-yem-001",
-    mainCategory: "cat-yem-mama-tarim",
+    mainCategory: "yem-mama-tarim",
     categorySlug: "besi-yemi",
     title: "Büyükbaş Besi Yemi - 1 Ton, Fabrika Çıkışı",
     description: "Fabrika çıkışı büyükbaş besi yemi, 1 ton (20 çuval x 50 kg). %16 ham protein, 2850 kcal/kg metabolik enerji. Besi danası ve genç sığırlar için formülize. TSE ve Tarım Bakanlığı onaylı. Raf ömrü 6 ay. Konya bölgesinden depo teslim veya nakliye organizasyonu.",
@@ -285,7 +285,7 @@ export const exampleListings: ExampleListing[] = [
   // 15. Araçlar ve Nakliye
   {
     id: "ex-arac-001",
-    mainCategory: "cat-araclar-nakliye",
+    mainCategory: "araclar-nakliye",
     categorySlug: "hayvan-tasima-araci",
     title: "Hayvan Nakliye Aracı - 3.5 Ton, Klimalı",
     description: "2020 model hayvan nakliye aracı, 3.5 ton kapasiteli. Büyükbaş için 4, küçükbaş için 20 hayvan kapasiteli. Havalandırmalı kasa, otomatik suluk sistemi. Klimalı kabin. 85.000 km, bakımları düzenli, muayenesi yeni. Hayvan nakil ruhsatı mevcut.",
@@ -295,13 +295,13 @@ export const exampleListings: ExampleListing[] = [
     breed: "Nakliye Aracı",
     healthStatus: "Bakımlı - Ruhsatlı",
     exampleSource: "Türkiye Nakliyeciler 2025",
-    imageFile: "livestock_transport__d946b672.jpg"
+    imageFile: "livestock_animal_tra_21cb87b6.jpg"
   },
 
   // 16. Tarım ve Kırsal Emlak
   {
     id: "ex-emlak-001",
-    mainCategory: "cat-tarim-kirsal-emlak",
+    mainCategory: "tarim-kirsal-emlak",
     categorySlug: "ciftlik-arazisi",
     title: "Çiftlik Arazisi - 50 Dönüm, Sulama İmkanlı",
     description: "50 dönüm tarım arazisi, çiftlik kurulumuna uygun. Sulama kanalı mevcut, elektrik bağlı. Köy yoluna cepheli, kolay ulaşım. Meyve bahçesi veya hayvancılık için ideal. Tapu temiz, hissesiz satılık. Yatırım fırsatı. Detaylı bilgi ve arazi gezisi için arayınız.",
@@ -317,7 +317,7 @@ export const exampleListings: ExampleListing[] = [
   // 17. Mağazalar (Pet Shop)
   {
     id: "ex-magaza-001",
-    mainCategory: "cat-magazalar",
+    mainCategory: "magazalar",
     categorySlug: "pet-shop",
     title: "Pet Shop Mağazası - Devren Satılık, Müşteri Portföylü",
     description: "10 yıllık köklü pet shop mağazası, devren satılık. 120 m² kapalı alan, merkezi lokasyon. Akvaryum, kuş, kemirgen, kedi-köpek aksesuar bölümleri. Düzenli müşteri portföyü, online satış altyapısı mevcut. Marka bilinirliği yüksek. Aylık ortalama ciro bilgisi verilecek. Ciddi alıcılara detaylı bilgi.",
@@ -333,8 +333,8 @@ export const exampleListings: ExampleListing[] = [
   // 18. Veterinerlik ve Hizmetler
   {
     id: "ex-veteriner-001",
-    mainCategory: "cat-veterinerlik-hizmetler",
-    categorySlug: "veteriner-klinigi",
+    mainCategory: "veterinerlik-hizmetler",
+    categorySlug: "veteriner-hizmetleri",
     title: "Veteriner Kliniği - Tam Donanımlı, Devren",
     description: "Tam donanımlı veteriner kliniği devren. Ameliyathane, röntgen, ultrason, laboratuvar ekipmanları mevcut. 150 m² kullanım alanı. 2 muayene odası. Düzenli müşteri portföyü ve SGK anlaşmalı. Tüm ruhsatlar güncel. Veteriner hekimlik diploması şartı ile devir yapılacaktır.",
     price: 1250000,
@@ -349,17 +349,65 @@ export const exampleListings: ExampleListing[] = [
   // 19. Ekipmanlar ve Aksesuarlar
   {
     id: "ex-ekipman-001",
-    mainCategory: "cat-ekipmanlar-aksesuarlar",
-    categorySlug: "kumes-ekipmani",
-    title: "Otomatik Tavuk Yemliği - 100 kg Kapasiteli",
-    description: "Galvaniz çelik otomatik tavuk yemliği, 100 kg kapasite. 200-250 tavuk için yeterli. Yem israfını %30 azaltır. Kolay dolum sistemi, ayarlanabilir yem çıkışı. Montaj malzemeleri ve kullanım kılavuzu dahil. 2 yıl garanti. Kargo ile Türkiye geneli gönderim.",
-    price: 3800,
-    city: "Bolu",
-    district: "Merkez",
-    breed: "Kümes Ekipmanı",
+    mainCategory: "ekipmanlar-aksesuarlar",
+    categorySlug: "evcil-hayvan-ekipmanlari",
+    title: "Kedi Köpek Aksesuar Seti - Tasma, Mama Kabı, Yatak",
+    description: "Kedi ve köpekler için komple aksesuar seti. Deri tasma ve kayış, paslanmaz çelik mama ve su kabı, yumuşak ortopedik yatak. Küçük ve orta ırk için uygun. Tüm ürünler sıfır ve garantili. Hediye kutulu, doğum günü veya yeni evcil hayvan sahipleri için ideal set.",
+    price: 1250,
+    city: "İstanbul",
+    district: "Bakırköy",
+    breed: "Pet Aksesuar Seti",
     healthStatus: "Sıfır - Garantili",
-    exampleSource: "Bolu Tarım Market 2025",
-    imageFile: "brown_chicken_hen_po_a794dde2.jpg"
+    exampleSource: "İstanbul Pet Market 2025",
+    imageFile: "pet_supplies_store_e_11050f3b.jpg"
+  },
+
+  // 20. Kayıt & Belgeler
+  {
+    id: "ex-kayit-001",
+    mainCategory: "kayit-belgeler",
+    categorySlug: "kupe-belgesi",
+    title: "Hayvan Kimlik ve Kayıt Hizmeti - Mikroçip Uygulaması",
+    description: "Veteriner onaylı hayvan kimlik ve kayıt hizmeti. ISO standartlarında mikroçip uygulaması, pet pasaportu düzenleme, TÜRKVET sistemi kaydı. Kedi, köpek ve diğer evcil hayvanlar için geçerli. Avrupa Birliği uyumlu uluslararası geçerli belgeler. Randevuyla hizmet verilmektedir.",
+    price: 850,
+    city: "Ankara",
+    district: "Çankaya",
+    breed: "Kayıt Hizmeti",
+    healthStatus: "Belgeli",
+    exampleSource: "Ankara Veteriner Odası 2025",
+    imageFile: "animal_registration__efa78743.jpg"
+  },
+
+  // 21. Üretim & İşleme Tesisleri
+  {
+    id: "ex-uretim-001",
+    mainCategory: "uretim-isleme-tesisleri",
+    categorySlug: "sut-isleme-tesisleri",
+    title: "Süt İşleme Tesisi - 5000 Lt/Gün Kapasiteli, Faal",
+    description: "Günlük 5000 litre süt işleme kapasiteli tesis. Pastörizasyon, peynir, yoğurt ve ayran üretim hatları mevcut. 800 m² kapalı alan, soğuk hava deposu, laboratuvar. Tüm makineler Alman malı, 2021 model. İşletme ruhsatı ve gıda üretim izinleri tam. Devir bedeline stok dahil.",
+    price: 8500000,
+    city: "Burdur",
+    district: "Merkez",
+    breed: "Süt İşleme",
+    healthStatus: "Faal - Ruhsatlı",
+    exampleSource: "Burdur Süt Birliği 2025",
+    imageFile: "dairy_processing_fac_3f9167cb.jpg"
+  },
+
+  // 22. İnşaat & Yapı
+  {
+    id: "ex-insaat-001",
+    mainCategory: "insaat-yapi",
+    categorySlug: "ahir-yapimi",
+    title: "Prefabrik Ahır Projesi - 50 Başlık, Anahtar Teslim",
+    description: "50 büyükbaş kapasiteli modern prefabrik ahır projesi. Çelik konstrüksiyon, sandviç panel kaplama. Otomatik suluk ve yemlik sistemleri, gübre sıyırıcı dahil. Havalandırma ve aydınlatma projeleri hazır. Temel dahil anahtar teslim. 1 yıl yapım garantisi. Türkiye geneli teslim.",
+    price: 2750000,
+    city: "Eskişehir",
+    district: "Merkez",
+    breed: "Ahır Yapımı",
+    healthStatus: "Proje Hazır",
+    exampleSource: "Eskişehir İnşaat 2025",
+    imageFile: "farm_barn_stable_con_d409495a.jpg"
   },
 ];
 
