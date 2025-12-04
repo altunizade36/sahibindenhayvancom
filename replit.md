@@ -36,7 +36,7 @@ No specific user preferences were provided in the original document.
       - **Privacy**: Sensitive registration data (microchip, passport, ear tag, TÜRKVET numbers) are NOT stored or displayed - these remain private to sellers only
       - **Price Handling**: Turkish locale format sanitization (12.500,00 → 12500.00), max 99,999,999.99 TL
     - **Infinite Scroll + Pagination**: Home page uses hybrid browsing with infinite scroll (IntersectionObserver-based) and optional page numbers. /ilanlar uses traditional pagination with advanced filters for SEO.
-    - **Hierarchical Categories**: 459 categories across 14 main domains (e.g., Pets, Farm Animals, Fish, Horses, Beekeeping).
+    - **Hierarchical Categories**: 549 categories across 13 main domains: Evcil Hayvanlar (Pets), Çiftlik Hayvanları (Farm Animals), Balıklar ve Su Ürünleri (Fish), Atlar ve Binicilik (Horses), Arıcılık (Beekeeping), Kümes ve Süs Kuşları (Birds), Sürüngenler ve Amfibiler (Reptiles), Kemirgenler ve Küçük Hayvanlar (Rodents), Yem/Mama/Tarım, Ekipmanlar, Veterinerlik, Kayıt/Belgeler, Mağazalar.
     - **Advanced Messaging System**: Modern WhatsApp/Telegram-like real-time chat with:
       - Message types: text, image, file, system, offer
       - Read receipts with checkmark icons (✓ sent, ✓✓ delivered, blue ✓✓ read)
