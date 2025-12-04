@@ -51,6 +51,7 @@ import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 import { verifyFirebaseToken, formatPhoneFromFirebase } from "./firebaseAdmin";
+import { registerAdvancedFeatureRoutes } from "./advancedFeatureRoutes";
 
 // SESSION_SECRET is now used for session management (not JWT)
 
@@ -9652,6 +9653,10 @@ Sitemap: https://sahibindenhayvan.com/sitemap.xml
       res.status(500).send("Sitemap could not be generated");
     }
   });
+
+  // ============ Register Advanced Feature Routes ============
+  // Market Prices, Vet Online, Transport, B2B, Wholesale, Farm TV
+  registerAdvancedFeatureRoutes(app);
 
   return httpServer;
 }

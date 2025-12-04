@@ -36,6 +36,9 @@ const Profile = lazy(() => import("@/pages/profile"));
 const Messages = lazy(() => import("@/pages/messages"));
 const VetServices = lazy(() => import("@/pages/vet-services"));
 const TransportServices = lazy(() => import("@/pages/transport-services"));
+const MarketPrices = lazy(() => import("@/pages/market-prices"));
+const B2BMarketplace = lazy(() => import("@/pages/b2b-marketplace"));
+const WholesaleDairy = lazy(() => import("@/pages/wholesale-dairy"));
 const AuctionList = lazy(() => import("@/pages/auction-list"));
 const AuctionDetail = lazy(() => import("@/pages/auction-detail"));
 const AuctionCreate = lazy(() => import("@/pages/auction-create"));
@@ -154,6 +157,9 @@ function NoSidebarLayout() {
           <Route path="/mesajlar">{() => <LazyRoute component={Messages} />}</Route>
           <Route path="/veterinerler">{() => <LazyRoute component={VetServices} />}</Route>
           <Route path="/tasima">{() => <LazyRoute component={TransportServices} />}</Route>
+          <Route path="/piyasa-fiyatlari">{() => <LazyRoute component={MarketPrices} />}</Route>
+          <Route path="/b2b-yem">{() => <LazyRoute component={B2BMarketplace} />}</Route>
+          <Route path="/toptan-sut">{() => <LazyRoute component={WholesaleDairy} />}</Route>
           <Route path="/blog">{() => <LazyRoute component={BlogList} />}</Route>
           <Route path="/blog/:slug">{() => <LazyRoute component={BlogDetail} />}</Route>
           <Route path="/magazalar">{() => <LazyRoute component={StoresList} />}</Route>
@@ -218,6 +224,9 @@ function Router() {
                            location.startsWith('/mesajlar') ||
                            location.startsWith('/veterinerler') ||
                            location.startsWith('/tasima') ||
+                           location.startsWith('/piyasa-fiyatlari') ||
+                           location.startsWith('/b2b-yem') ||
+                           location.startsWith('/toptan-sut') ||
                            location.startsWith('/acik-artirma') ||
                            location.startsWith('/canli-yayin') ||
                            location.startsWith('/yayin-baslat') ||

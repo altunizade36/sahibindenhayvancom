@@ -1665,3 +1665,427 @@ export const searchNotificationLogs = pgTable("search_notification_logs", {
 }));
 
 export type SearchNotificationLog = typeof searchNotificationLogs.$inferSelect;
+
+// ============ YENI ÖZELLİKLER ============
+
+// ============ 1. Piyasa Fiyatları (Canlı Hayvan Fiyat Takibi) ============
+export const marketPriceTypeEnum = pgEnum("market_price_type", [
+  "buyukbas",       // Büyükbaş hayvan
+  "kucukbas",       // Küçükbaş hayvan
+  "kanatli",        // Kanatlı hayvan
+  "yem",            // Yem fiyatları
+  "sut",            // Süt fiyatları
+  "et",             // Et fiyatları
+  "bal",            // Bal fiyatları
+  "yumurta"         // Yumurta fiyatları
+]);
+
+export const marketPrices = pgTable("market_prices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: marketPriceTypeEnum("type").notNull(),
+  category: varchar("category").notNull(), // Alt kategori (ör: dana, buzağı, koyun, kıl keçisi)
+  city: varchar("city").notNull(),
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  unit: varchar("unit").notNull(), // kg, adet, litre, ton
+  minPrice: decimal("min_price", { precision: 12, scale: 2 }),
+  maxPrice: decimal("max_price", { precision: 12, scale: 2 }),
+  changePercent: decimal("change_percent", { precision: 5, scale: 2 }), // Günlük değişim %
+  source: varchar("source"), // Kaynak (ör: hal, borsa, manuel)
+  date: timestamp("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  typeCityIdx: index("market_prices_type_city_idx").on(table.type, table.city),
+  dateIdx: index("market_prices_date_idx").on(table.date),
+  categoryIdx: index("market_prices_category_idx").on(table.category),
+}));
+
+export const insertMarketPriceSchema = createInsertSchema(marketPrices).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMarketPrice = z.infer<typeof insertMarketPriceSchema>;
+export type MarketPrice = typeof marketPrices.$inferSelect;
+
+// ============ 2. Veteriner Online Hizmetler ============
+export const vetServiceTypeEnum = pgEnum("vet_service_type", [
+  "video_call",      // Video görüşme
+  "photo_diagnosis", // Fotoğrafla teşhis
+  "chat",            // Yazılı danışma
+  "subscription"     // Abonelik paketi
+]);
+
+export const vetServiceStatusEnum = pgEnum("vet_service_status", [
+  "pending",         // Beklemede
+  "scheduled",       // Planlandı
+  "in_progress",     // Devam ediyor
+  "completed",       // Tamamlandı
+  "cancelled"        // İptal edildi
+]);
+
+export const vetOnlineServices = pgTable("vet_online_services", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vetId: varchar("vet_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: vetServiceTypeEnum("type").notNull(),
+  status: vetServiceStatusEnum("status").default("pending").notNull(),
+  animalType: varchar("animal_type"), // Hayvan türü
+  animalAge: varchar("animal_age"),
+  symptoms: text("symptoms"), // Belirtiler
+  images: jsonb("images").$type<string[]>().default([]), // Yüklenen fotoğraflar
+  diagnosis: text("diagnosis"), // Teşhis
+  prescription: text("prescription"), // Reçete
+  notes: text("notes"), // Notlar
+  scheduledAt: timestamp("scheduled_at"),
+  completedAt: timestamp("completed_at"),
+  price: decimal("price", { precision: 10, scale: 2 }),
+  isPaid: boolean("is_paid").default(false),
+  rating: integer("rating"), // 1-5
+  review: text("review"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  vetIdx: index("vet_services_vet_idx").on(table.vetId),
+  clientIdx: index("vet_services_client_idx").on(table.clientId),
+  statusIdx: index("vet_services_status_idx").on(table.status),
+  typeIdx: index("vet_services_type_idx").on(table.type),
+}));
+
+export const insertVetOnlineServiceSchema = createInsertSchema(vetOnlineServices).omit({
+  id: true,
+  status: true,
+  diagnosis: true,
+  prescription: true,
+  completedAt: true,
+  isPaid: true,
+  rating: true,
+  review: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVetOnlineService = z.infer<typeof insertVetOnlineServiceSchema>;
+export type VetOnlineService = typeof vetOnlineServices.$inferSelect;
+
+// Veteriner Abonelik Paketleri
+export const vetSubscriptions = pgTable("vet_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  vetId: varchar("vet_id").references(() => users.id, { onDelete: "set null" }),
+  planType: varchar("plan_type").notNull(), // basic, premium, enterprise
+  animalCount: integer("animal_count").default(1), // Takip edilen hayvan sayısı
+  monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }).notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  isActive: boolean("is_active").default(true),
+  autoRenew: boolean("auto_renew").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("vet_subs_user_idx").on(table.userId),
+  vetIdx: index("vet_subs_vet_idx").on(table.vetId),
+  activeIdx: index("vet_subs_active_idx").on(table.isActive),
+}));
+
+export type VetSubscription = typeof vetSubscriptions.$inferSelect;
+
+// ============ 3. Nakliye Eşleştirme (Uber-tarzı) ============
+export const transportRequestStatusEnum = pgEnum("transport_request_status", [
+  "pending",         // Talep oluşturuldu, teklif bekleniyor
+  "quoted",          // Teklifler geldi
+  "accepted",        // Teklif kabul edildi
+  "in_transit",      // Taşıma devam ediyor
+  "delivered",       // Teslim edildi
+  "completed",       // Tamamlandı ve ödendi
+  "cancelled"        // İptal edildi
+]);
+
+export const transportRequests = pgTable("transport_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  animalType: varchar("animal_type").notNull(), // Hayvan türü
+  animalCount: integer("animal_count").notNull(),
+  animalWeight: decimal("animal_weight", { precision: 10, scale: 2 }), // Toplam ağırlık (kg)
+  originCity: varchar("origin_city").notNull(),
+  originDistrict: varchar("origin_district"),
+  originAddress: text("origin_address"),
+  destinationCity: varchar("destination_city").notNull(),
+  destinationDistrict: varchar("destination_district"),
+  destinationAddress: text("destination_address"),
+  preferredDate: timestamp("preferred_date"),
+  flexibleDate: boolean("flexible_date").default(true),
+  specialRequirements: text("special_requirements"), // Özel gereksinimler
+  status: transportRequestStatusEnum("status").default("pending").notNull(),
+  acceptedQuoteId: varchar("accepted_quote_id"),
+  estimatedDistance: integer("estimated_distance"), // km
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("transport_req_user_idx").on(table.userId),
+  statusIdx: index("transport_req_status_idx").on(table.status),
+  originIdx: index("transport_req_origin_idx").on(table.originCity),
+  destIdx: index("transport_req_dest_idx").on(table.destinationCity),
+}));
+
+export const insertTransportRequestSchema = createInsertSchema(transportRequests).omit({
+  id: true,
+  status: true,
+  acceptedQuoteId: true,
+  estimatedDistance: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTransportRequest = z.infer<typeof insertTransportRequestSchema>;
+export type TransportRequest = typeof transportRequests.$inferSelect;
+
+// Nakliye Teklifleri
+export const transportQuotes = pgTable("transport_quotes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  requestId: varchar("request_id").notNull().references(() => transportRequests.id, { onDelete: "cascade" }),
+  transporterId: varchar("transporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  estimatedDuration: integer("estimated_duration"), // saat cinsinden
+  vehicleType: varchar("vehicle_type"), // Araç tipi
+  vehicleCapacity: varchar("vehicle_capacity"), // Kapasite
+  insuranceIncluded: boolean("insurance_included").default(false),
+  notes: text("notes"),
+  isAccepted: boolean("is_accepted").default(false),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  requestIdx: index("transport_quotes_request_idx").on(table.requestId),
+  transporterIdx: index("transport_quotes_transporter_idx").on(table.transporterId),
+}));
+
+export const insertTransportQuoteSchema = createInsertSchema(transportQuotes).omit({
+  id: true,
+  isAccepted: true,
+  createdAt: true,
+});
+
+export type InsertTransportQuote = z.infer<typeof insertTransportQuoteSchema>;
+export type TransportQuote = typeof transportQuotes.$inferSelect;
+
+// ============ 4. B2B Yem & Mama Pazaryeri ============
+export const b2bListingStatusEnum = pgEnum("b2b_listing_status", [
+  "active",
+  "sold_out",
+  "paused",
+  "expired"
+]);
+
+export const b2bListings = pgTable("b2b_listings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").references(() => stores.id, { onDelete: "set null" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // Karma yem, kanatlı yemi, balık yemi, arı keki vb.
+  brand: varchar("brand"),
+  unit: varchar("unit").notNull(), // kg, ton, çuval, paket
+  minQuantity: integer("min_quantity").notNull(), // Minimum sipariş miktarı
+  maxQuantity: integer("max_quantity"),
+  pricePerUnit: decimal("price_per_unit", { precision: 10, scale: 2 }).notNull(),
+  bulkDiscounts: jsonb("bulk_discounts").$type<{quantity: number, discount: number}[]>().default([]),
+  availableStock: integer("available_stock"),
+  images: jsonb("images").$type<string[]>().default([]),
+  specifications: jsonb("specifications").$type<Record<string, string>>().default({}),
+  deliveryOptions: jsonb("delivery_options").$type<string[]>().default([]),
+  status: b2bListingStatusEnum("status").default("active").notNull(),
+  viewCount: integer("view_count").default(0),
+  orderCount: integer("order_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  sellerIdx: index("b2b_listings_seller_idx").on(table.sellerId),
+  categoryIdx: index("b2b_listings_category_idx").on(table.category),
+  statusIdx: index("b2b_listings_status_idx").on(table.status),
+}));
+
+export const insertB2bListingSchema = createInsertSchema(b2bListings).omit({
+  id: true,
+  status: true,
+  viewCount: true,
+  orderCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertB2bListing = z.infer<typeof insertB2bListingSchema>;
+export type B2bListing = typeof b2bListings.$inferSelect;
+
+// B2B Siparişler
+export const b2bOrderStatusEnum = pgEnum("b2b_order_status", [
+  "pending",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled"
+]);
+
+export const b2bOrders = pgTable("b2b_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").notNull().references(() => b2bListings.id, { onDelete: "cascade" }),
+  buyerId: varchar("buyer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+  discountApplied: decimal("discount_applied", { precision: 10, scale: 2 }).default("0"),
+  deliveryAddress: text("delivery_address"),
+  deliveryCity: varchar("delivery_city"),
+  deliveryNotes: text("delivery_notes"),
+  status: b2bOrderStatusEnum("status").default("pending").notNull(),
+  estimatedDelivery: timestamp("estimated_delivery"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  buyerIdx: index("b2b_orders_buyer_idx").on(table.buyerId),
+  sellerIdx: index("b2b_orders_seller_idx").on(table.sellerId),
+  statusIdx: index("b2b_orders_status_idx").on(table.status),
+}));
+
+export type B2bOrder = typeof b2bOrders.$inferSelect;
+
+// ============ 5. Canlı Çiftlik TV (Altyapı - Aktif Değil) ============
+export const farmTvStreamStatusEnum = pgEnum("farm_tv_stream_status", [
+  "scheduled",
+  "live",
+  "ended",
+  "cancelled"
+]);
+
+export const farmTvStreams = pgTable("farm_tv_streams", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamerId: varchar("streamer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category"), // Çiftlik, arıcılık, kümes vb.
+  thumbnailUrl: text("thumbnail_url"),
+  streamKey: varchar("stream_key").unique(),
+  streamUrl: text("stream_url"),
+  status: farmTvStreamStatusEnum("status").default("scheduled").notNull(),
+  scheduledAt: timestamp("scheduled_at"),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  viewerCount: integer("viewer_count").default(0),
+  peakViewers: integer("peak_viewers").default(0),
+  totalViews: integer("total_views").default(0),
+  totalGifts: integer("total_gifts").default(0), // Hediye sayısı
+  totalEarnings: decimal("total_earnings", { precision: 12, scale: 2 }).default("0"),
+  isEnabled: boolean("is_enabled").default(false), // Platform seviyesinde aktif mi
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  streamerIdx: index("farm_tv_streamer_idx").on(table.streamerId),
+  statusIdx: index("farm_tv_status_idx").on(table.status),
+  scheduledIdx: index("farm_tv_scheduled_idx").on(table.scheduledAt),
+}));
+
+export type FarmTvStream = typeof farmTvStreams.$inferSelect;
+
+// Canlı Yayın Hediyeleri
+export const farmTvGifts = pgTable("farm_tv_gifts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamId: varchar("stream_id").notNull().references(() => farmTvStreams.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  giftType: varchar("gift_type").notNull(), // sticker, rozet, jeton
+  giftName: varchar("gift_name").notNull(),
+  quantity: integer("quantity").default(1),
+  tokenValue: integer("token_value").notNull(), // Jeton değeri
+  message: text("message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  streamIdx: index("farm_tv_gifts_stream_idx").on(table.streamId),
+  senderIdx: index("farm_tv_gifts_sender_idx").on(table.senderId),
+}));
+
+export type FarmTvGift = typeof farmTvGifts.$inferSelect;
+
+// ============ 6. Online Süt & Ürün Pazarı (Toptan Satış) ============
+export const wholesaleProductStatusEnum = pgEnum("wholesale_product_status", [
+  "active",
+  "out_of_stock",
+  "seasonal",
+  "discontinued"
+]);
+
+export const wholesaleProducts = pgTable("wholesale_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").references(() => stores.id, { onDelete: "set null" }),
+  productType: varchar("product_type").notNull(), // süt, yoğurt, peynir, bal, yumurta vb.
+  title: varchar("title").notNull(),
+  description: text("description"),
+  origin: varchar("origin"), // Menşei (çiftlik adı, bölge)
+  unit: varchar("unit").notNull(), // litre, kg, adet, koli
+  minOrder: integer("min_order").notNull(),
+  pricePerUnit: decimal("price_per_unit", { precision: 10, scale: 2 }).notNull(),
+  bulkPricing: jsonb("bulk_pricing").$type<{minQty: number, price: number}[]>().default([]),
+  availableQuantity: integer("available_quantity"),
+  images: jsonb("images").$type<string[]>().default([]),
+  certifications: jsonb("certifications").$type<string[]>().default([]), // Organik, çiftlik onaylı vb.
+  isCertified: boolean("is_certified").default(false), // "Çiftlik Onaylı Ürün" etiketi
+  deliveryZones: jsonb("delivery_zones").$type<string[]>().default([]), // Teslimat yapılan iller
+  status: wholesaleProductStatusEnum("status").default("active").notNull(),
+  orderCount: integer("order_count").default(0),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
+  reviewCount: integer("review_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  sellerIdx: index("wholesale_seller_idx").on(table.sellerId),
+  typeIdx: index("wholesale_type_idx").on(table.productType),
+  statusIdx: index("wholesale_status_idx").on(table.status),
+  certifiedIdx: index("wholesale_certified_idx").on(table.isCertified),
+}));
+
+export const insertWholesaleProductSchema = createInsertSchema(wholesaleProducts).omit({
+  id: true,
+  status: true,
+  orderCount: true,
+  rating: true,
+  reviewCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertWholesaleProduct = z.infer<typeof insertWholesaleProductSchema>;
+export type WholesaleProduct = typeof wholesaleProducts.$inferSelect;
+
+// Toptan Siparişler
+export const wholesaleOrderStatusEnum = pgEnum("wholesale_order_status", [
+  "pending",
+  "confirmed",
+  "preparing",
+  "in_delivery",
+  "delivered",
+  "cancelled"
+]);
+
+export const wholesaleOrders = pgTable("wholesale_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => wholesaleProducts.id, { onDelete: "cascade" }),
+  buyerId: varchar("buyer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sellerId: varchar("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+  deliveryAddress: text("delivery_address").notNull(),
+  deliveryCity: varchar("delivery_city").notNull(),
+  deliveryNotes: text("delivery_notes"),
+  status: wholesaleOrderStatusEnum("status").default("pending").notNull(),
+  estimatedDelivery: timestamp("estimated_delivery"),
+  deliveredAt: timestamp("delivered_at"),
+  buyerRating: integer("buyer_rating"),
+  buyerReview: text("buyer_review"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  buyerIdx: index("wholesale_orders_buyer_idx").on(table.buyerId),
+  sellerIdx: index("wholesale_orders_seller_idx").on(table.sellerId),
+  statusIdx: index("wholesale_orders_status_idx").on(table.status),
+}));
+
+export type WholesaleOrder = typeof wholesaleOrders.$inferSelect;

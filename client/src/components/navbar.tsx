@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2 } from "lucide-react";
+import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2, TrendingUp, Package, Milk, Truck, Stethoscope, ChevronDown } from "lucide-react";
 import { NotificationDropdown } from "@/components/notification-dropdown";
 import { Logo } from "@/components/logo";
 
@@ -123,6 +123,41 @@ export function Navbar() {
                     <Link href="/blog">
                       <Button variant={location === "/blog" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-blog">
                         Blog
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* Hizmetler */}
+                  <div className="border-t my-2 pt-2">
+                    <p className="px-3 py-1 text-xs font-medium text-muted-foreground">Hizmetler</p>
+                    <Link href="/piyasa-fiyatlari">
+                      <Button variant={location === "/piyasa-fiyatlari" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-market-prices">
+                        <TrendingUp className="w-4 h-4 mr-3" />
+                        Piyasa Fiyatları
+                      </Button>
+                    </Link>
+                    <Link href="/veterinerler">
+                      <Button variant={location === "/veterinerler" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-vets">
+                        <Stethoscope className="w-4 h-4 mr-3" />
+                        Veterinerler
+                      </Button>
+                    </Link>
+                    <Link href="/tasima">
+                      <Button variant={location === "/tasima" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-transport">
+                        <Truck className="w-4 h-4 mr-3" />
+                        Nakliye
+                      </Button>
+                    </Link>
+                    <Link href="/b2b-yem">
+                      <Button variant={location === "/b2b-yem" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-b2b">
+                        <Package className="w-4 h-4 mr-3" />
+                        Toptan Yem
+                      </Button>
+                    </Link>
+                    <Link href="/toptan-sut">
+                      <Button variant={location === "/toptan-sut" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-wholesale">
+                        <Milk className="w-4 h-4 mr-3" />
+                        Toptan Süt
                       </Button>
                     </Link>
                   </div>
@@ -250,6 +285,47 @@ export function Navbar() {
             <Link href="/blog" className={`text-sm hover:text-primary transition-colors ${location === "/blog" ? "text-primary font-medium" : ""}`} data-testid="link-blog">
               Blog
             </Link>
+            
+            {/* Hizmetler Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm hover:text-primary transition-colors outline-none" data-testid="link-services-dropdown">
+                Hizmetler
+                <ChevronDown className="w-3.5 h-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/piyasa-fiyatlari" className="flex items-center gap-2 cursor-pointer" data-testid="link-market-prices">
+                    <TrendingUp className="w-4 h-4" />
+                    Piyasa Fiyatları
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/veterinerler" className="flex items-center gap-2 cursor-pointer" data-testid="link-vets">
+                    <Stethoscope className="w-4 h-4" />
+                    Veterinerler
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/tasima" className="flex items-center gap-2 cursor-pointer" data-testid="link-transport">
+                    <Truck className="w-4 h-4" />
+                    Nakliye
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/b2b-yem" className="flex items-center gap-2 cursor-pointer" data-testid="link-b2b">
+                    <Package className="w-4 h-4" />
+                    Toptan Yem
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/toptan-sut" className="flex items-center gap-2 cursor-pointer" data-testid="link-wholesale">
+                    <Milk className="w-4 h-4" />
+                    Toptan Süt
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* Right: Actions */}
