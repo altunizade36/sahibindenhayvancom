@@ -56,6 +56,8 @@ type ListingWithDetails = Listing & {
   deliveryInfo?: string;
   warrantyInfo?: string;
   videoUrls?: string[];
+  isExampleListing?: boolean | null;
+  exampleSource?: string | null;
   documents?: Array<{
     id: string;
     documentType: string;
@@ -468,8 +470,20 @@ export default function ListingDetail() {
 
             {/* Mobile Quick Actions - Enhanced */}
             <div className="lg:hidden space-y-3">
-              {/* Primary Message Button - Full Width */}
-              {listing.sellerId !== user?.id && (
+              {/* Example Listing Warning */}
+              {listing.isExampleListing && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 text-center">
+                  <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border-yellow-400">
+                    ÖRNEK İLANDIR
+                  </Badge>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
+                    Bu bir örnek ilandır. Gerçek satıcıyla iletişim kurulamaz.
+                  </p>
+                </div>
+              )}
+              
+              {/* Primary Message Button - Full Width - Hidden for example listings */}
+              {listing.sellerId !== user?.id && !listing.isExampleListing && (
                 <Button
                   size="lg"
                   className="w-full h-14 text-base font-semibold shadow-lg"
@@ -486,6 +500,8 @@ export default function ListingDetail() {
                   <Badge variant="secondary" className="h-11 justify-center col-span-2">
                     Bu sizin ilanınız
                   </Badge>
+                ) : listing.isExampleListing ? (
+                  null
                 ) : (
                   <>
                     {/* Phone and WhatsApp buttons */}
@@ -827,8 +843,27 @@ export default function ListingDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
+            {/* Example Listing Warning (Desktop) */}
+            {listing.isExampleListing && (
+              <Card className="border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30">
+                <CardContent className="p-4 text-center">
+                  <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border-yellow-400 text-sm px-4 py-1">
+                    ÖRNEK İLANDIR
+                  </Badge>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-3">
+                    Bu bir örnek ilandır ve gerçek bir satışı temsil etmemektedir. Satıcıyla iletişim kurulamaz.
+                  </p>
+                  {listing.exampleSource && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                      Kaynak: {listing.exampleSource}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Primary Contact CTA - Big prominent message button or Guest Contact Form */}
-            {listing.sellerId !== user?.id && (
+            {listing.sellerId !== user?.id && !listing.isExampleListing && (
               <>
                 {isAuthenticated ? (
                   <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
@@ -892,70 +927,83 @@ export default function ListingDetail() {
                   <GuestContactForm
                     listingId={listing.id}
                     listingTitle={listing.title}
-                    sellerName={listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username : undefined}
+                    sellerName={listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || undefined : undefined}
                   />
                 )}
               </>
             )}
 
-            {/* Seller Info */}
+            {/* Seller Info - Modified for example listings */}
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base md:text-lg">Satıcı Bilgileri</CardTitle>
+                <CardTitle className="text-base md:text-lg">
+                  {listing.isExampleListing ? "Örnek İlan Bilgisi" : "Satıcı Bilgileri"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-2 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12 md:w-14 md:h-14 ring-2 ring-background shadow-md">
-                      <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                        {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Online indicator placeholder */}
-                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" title="Çevrimiçi" />
+                {listing.isExampleListing ? (
+                  <div className="text-sm text-muted-foreground">
+                    <p>Bu ilan, platformumuzun örnek içeriğidir.</p>
+                    <p className="mt-2">Gerçek satıcı bilgileri, gerçek ilanlar için görüntülenir.</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate text-base" data-testid="text-seller-name">
-                      {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12 md:w-14 md:h-14 ring-2 ring-background shadow-md">
+                          <AvatarImage src={listing.seller?.profileImageUrl || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                            {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Online indicator placeholder */}
+                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" title="Çevrimiçi" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate text-base" data-testid="text-seller-name">
+                          {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
+                        </div>
+                        <div className="text-xs text-green-600 font-medium">Çevrimiçi</div>
+                        <SellerRatingSummary sellerId={listing.sellerId} compact />
+                        {listing.seller?.phone && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Phone className="w-3 h-3" />
+                            {listing.seller?.phone}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs text-green-600 font-medium">Çevrimiçi</div>
-                    <SellerRatingSummary sellerId={listing.sellerId} compact />
-                    {listing.seller?.phone && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <Phone className="w-3 h-3" />
-                        {listing.seller?.phone}
+                    {(listing.seller as any)?.sellerLevel && (
+                      <div className="mt-2">
+                        <SellerLevelBadge 
+                          level={(listing.seller as any).sellerLevel} 
+                          score={(listing.seller as any).sellerScore}
+                          size="sm"
+                        />
                       </div>
                     )}
-                  </div>
-                </div>
-                {(listing.seller as any)?.sellerLevel && (
-                  <div className="mt-2">
-                    <SellerLevelBadge 
-                      level={(listing.seller as any).sellerLevel} 
-                      score={(listing.seller as any).sellerScore}
-                      size="sm"
-                    />
-                  </div>
-                )}
-                
-                {/* Compact Contact Buttons for own listing view */}
-                {listing.sellerId === user?.id && (
-                  <div className="pt-2">
-                    <Badge variant="secondary" className="w-full justify-center py-2">
-                      Bu sizin ilanınız
-                    </Badge>
-                  </div>
+                    
+                    {/* Compact Contact Buttons for own listing view */}
+                    {listing.sellerId === user?.id && (
+                      <div className="pt-2">
+                        <Badge variant="secondary" className="w-full justify-center py-2">
+                          Bu sizin ilanınız
+                        </Badge>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
 
-            {/* Seller Reviews */}
-            <SellerReviews
-              sellerId={listing.sellerId}
-              listingId={listing.id}
-              canReview={isAuthenticated && listing.sellerId !== user?.id}
-            />
+            {/* Seller Reviews - Hidden for example listings */}
+            {!listing.isExampleListing && (
+              <SellerReviews
+                sellerId={listing.sellerId}
+                listingId={listing.id}
+                canReview={isAuthenticated && listing.sellerId !== user?.id}
+              />
+            )}
 
             {/* Actions */}
             <Card>
@@ -971,7 +1019,7 @@ export default function ListingDetail() {
                     </Button>
                   </Link>
                 )}
-                {isAuthenticated && listing.sellerId !== user?.id && (listing as any).allowOffers && (
+                {isAuthenticated && listing.sellerId !== user?.id && (listing as any).allowOffers && !listing.isExampleListing && (
                   <Button
                     variant="secondary"
                     className="w-full h-10"
@@ -1082,8 +1130,8 @@ export default function ListingDetail() {
         />
       </div>
 
-      {/* Sticky Mobile Footer - Always visible contact bar */}
-      {listing.sellerId !== user?.id && (
+      {/* Sticky Mobile Footer - Always visible contact bar - Hidden for example listings */}
+      {listing.sellerId !== user?.id && !listing.isExampleListing && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-40 safe-area-pb">
           <div className="container mx-auto px-3 py-3">
             <div className="flex items-center gap-2">
@@ -1145,7 +1193,7 @@ export default function ListingDetail() {
       )}
       
       {/* Spacer for sticky footer on mobile */}
-      {listing.sellerId !== user?.id && (
+      {listing.sellerId !== user?.id && !listing.isExampleListing && (
         <div className="lg:hidden h-20" />
       )}
     </div>

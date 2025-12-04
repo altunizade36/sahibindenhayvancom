@@ -15,7 +15,7 @@ interface ListingCardProps {
     seller?: User; 
     isFavorite?: boolean;
     store?: { id: string; slug: string; displayName: string; logo?: string | null };
-    isExampleListing?: boolean;
+    isExampleListing?: boolean | null;
   };
   onFavoriteToggle?: () => void;
   variant?: "vertical" | "horizontal";

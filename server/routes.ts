@@ -4813,6 +4813,21 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Alıcı ve mesaj içeriği gereklidir" });
       }
       
+      // Check if this is an example listing - prevent messaging
+      if (listingId) {
+        const [listing] = await db
+          .select({ isExampleListing: listings.isExampleListing })
+          .from(listings)
+          .where(eq(listings.id, listingId))
+          .limit(1);
+        
+        if (listing?.isExampleListing) {
+          return res.status(403).json({ 
+            message: "Örnek ilanlara mesaj gönderilemez. Bu ilan sadece örnek amaçlıdır." 
+          });
+        }
+      }
+      
       // Get or create conversation
       const conversationId = [senderId, receiverId].sort().join('_');
       
@@ -6302,15 +6317,25 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Lütfen tüm gerekli alanları doldurun" });
       }
 
-      // Get the listing to find the seller
+      // Get the listing to find the seller and check if it's an example listing
       const [listing] = await db
-        .select({ sellerId: listings.sellerId })
+        .select({ 
+          sellerId: listings.sellerId,
+          isExampleListing: listings.isExampleListing 
+        })
         .from(listings)
         .where(eq(listings.id, listingId))
         .limit(1);
 
       if (!listing) {
         return res.status(404).json({ message: "İlan bulunamadı" });
+      }
+
+      // Block contact requests for example listings
+      if (listing.isExampleListing) {
+        return res.status(403).json({ 
+          message: "Örnek ilanlara iletişim talebi gönderilemez. Bu ilan sadece örnek amaçlıdır." 
+        });
       }
 
       // Verify reCAPTCHA Enterprise
@@ -6711,6 +6736,13 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       
       if (!listing.allowOffers) {
         return res.status(400).json({ message: "This listing does not accept offers" });
+      }
+      
+      // Prevent offers on example listings
+      if (listing.isExampleListing) {
+        return res.status(403).json({ 
+          message: "Örnek ilanlara teklif verilemez. Bu ilan sadece örnek amaçlıdır." 
+        });
       }
       
       // Check for existing pending offer
