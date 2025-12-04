@@ -63,7 +63,7 @@ export default function VetServices() {
   });
   const vetListings = vetListingsResponse?.data || [];
 
-  const cities = [...new Set(vetServices?.map(v => v.city) || [])];
+  const cities = Array.from(new Set(vetServices?.map(v => v.city) || []));
 
   const filteredServices = vetServices?.filter((service) => {
     const matchesSearch = searchQuery === "" ||
@@ -304,7 +304,7 @@ export default function VetServices() {
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
             <p>Veteriner olarak platformumuza katılmak ister misiniz?</p>
             <Link href="/ilan-ver?category=veteriner-hizmetleri">
-              <Button variant="link" className="mt-2">
+              <Button variant="ghost" className="mt-2 text-primary hover:text-primary/80">
                 Veteriner Kaydı Oluştur
               </Button>
             </Link>

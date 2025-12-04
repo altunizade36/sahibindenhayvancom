@@ -29,6 +29,24 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "wouter";
+import type { Listing } from "@shared/schema";
+
+// Yellow diagonal stripe component for example listings
+function ExampleListingBadge() {
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none z-10 overflow-hidden"
+      data-testid="example-listing-overlay"
+    >
+      <div 
+        className="absolute -right-8 top-4 rotate-45 bg-yellow-500 text-black text-[10px] font-bold py-0.5 px-8 shadow-md"
+        style={{ transform: 'rotate(45deg)', transformOrigin: 'center' }}
+      >
+        ÖRNEK İLAN
+      </div>
+    </div>
+  );
+}
 
 type B2BListing = {
   id: string;
@@ -256,6 +274,12 @@ export default function B2BMarketplacePage() {
   const { data: listings = [], isLoading } = useQuery<B2BListing[]>({
     queryKey: ['/api/b2b/listings', category, city],
   });
+
+  // Fetch B2B/feed listings from listings table (includes example listings)
+  const { data: b2bListingsResponse } = useQuery<{ data: (Listing & { isExampleListing?: boolean })[] }>({
+    queryKey: ["/api/listings", { categoryId: "cat-besi-yemi" }],
+  });
+  const b2bListings = b2bListingsResponse?.data || [];
   
   const filteredListings = listings.filter(l => {
     if (category && category !== "Tümü" && !l.category.toLowerCase().includes(category.toLowerCase())) return false;
@@ -370,6 +394,51 @@ export default function B2BMarketplacePage() {
         </div>
       )}
       
+      {/* Display B2B listings from main listings table */}
+      {b2bListings.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Yem & Yiyecek İlanları</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {b2bListings.map((listing) => (
+              <Link key={listing.id} href={`/ilan/${listing.id}`}>
+                <Card 
+                  className="hover-elevate overflow-visible relative cursor-pointer"
+                  data-testid={`card-b2b-listing-${listing.id}`}
+                >
+                  {listing.isExampleListing && <ExampleListingBadge />}
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                    <img 
+                      src={listing.images?.[0] || '/placeholder-image.jpg'} 
+                      alt={listing.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="pt-4">
+                    <CardTitle className="text-base line-clamp-2 mb-2">
+                      {listing.title}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>{listing.district}, {listing.city}</span>
+                    </div>
+                    <div className="text-lg font-bold text-primary">
+                      {typeof listing.price === 'number' || typeof listing.price === 'string' 
+                        ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(listing.price))
+                        : 'Fiyat Belirtilmemiş'}
+                    </div>
+                    {listing.isExampleListing && (
+                      <Badge variant="outline" className="mt-2 text-xs text-yellow-600 border-yellow-400">
+                        Örnek İlan
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Card className="mt-8">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
