@@ -22,8 +22,10 @@ import {
   Plus,
   ArrowRight,
   Package,
-  Clock
+  Clock,
+  Info
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type TransportRequest = {
   id: string;
@@ -333,6 +335,14 @@ export default function TransportServices() {
               </DialogContent>
             </Dialog>
           </div>
+          
+          {/* Info alert about example listings and services */}
+          <Alert className="mt-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
+            <Info className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-sm">
+              Sarı şeritli ilanlar örnek içeriktir. Nakliyeci olarak hizmet vermek için <strong>"Nakliye Talebi Oluştur"</strong> butonuna tıklayarak taşımacılık hizmeti sunabilirsiniz.
+            </AlertDescription>
+          </Alert>
         </div>
 
         <Card className="mb-6">

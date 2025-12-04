@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, Phone, Mail, Search, Clock, Shield, Stethoscope } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Star, MapPin, Phone, Mail, Search, Clock, Shield, Stethoscope, Plus, Info, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import type { Listing } from "@shared/schema";
 
 type VetService = {
   id: string;
@@ -27,12 +31,35 @@ type VetService = {
   createdAt: string;
 };
 
+// Yellow diagonal stripe component for example listings
+function ExampleListingBadge() {
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none z-10 overflow-hidden"
+      data-testid="example-listing-overlay"
+    >
+      <div 
+        className="absolute -right-8 top-4 rotate-45 bg-yellow-500 text-black text-[10px] font-bold py-0.5 px-8 shadow-md"
+        style={{ transform: 'rotate(45deg)', transformOrigin: 'center' }}
+      >
+        ÖRNEK İLAN
+      </div>
+    </div>
+  );
+}
+
 export default function VetServices() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const { user } = useAuth();
 
   const { data: vetServices, isLoading } = useQuery<VetService[]>({
     queryKey: ["/api/vet-services"],
+  });
+
+  // Also fetch veteriner listings from listings table
+  const { data: vetListings = [] } = useQuery<(Listing & { isExampleListing?: boolean })[]>({
+    queryKey: ["/api/listings", { category: "veterinerlik-hizmetler" }],
   });
 
   const cities = [...new Set(vetServices?.map(v => v.city) || [])];
@@ -65,17 +92,34 @@ export default function VetServices() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Stethoscope className="h-6 w-6 text-primary" />
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Stethoscope className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold" data-testid="text-page-title">Veteriner Hizmetleri</h1>
+                <p className="text-muted-foreground">
+                  Güvenilir veteriner klinikleri ve hekimler
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold" data-testid="text-page-title">Veteriner Hizmetleri</h1>
-              <p className="text-muted-foreground">
-                Güvenilir veteriner klinikleri ve hekimler
-              </p>
-            </div>
+            <Link href="/ilan-ver?category=veterinerlik-hizmetler">
+              <Button className="gap-2" data-testid="button-add-vet-listing">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Veteriner İlanı Ver</span>
+                <span className="sm:hidden">İlan Ver</span>
+              </Button>
+            </Link>
           </div>
+          
+          {/* Info alert about example listings */}
+          <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
+            <Info className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-sm">
+              Sarı şeritli ilanlar örnek içeriktir. Veteriner olarak hizmet vermek için <strong>"Veteriner İlanı Ver"</strong> butonuna tıklayarak kendi ilanınızı oluşturabilirsiniz.
+            </AlertDescription>
+          </Alert>
         </div>
 
         <Card className="mb-6">
