@@ -1308,6 +1308,119 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // Phone-based Registration (after Firebase SMS verification)
+  app.post('/api/auth/register-phone', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { phone, password, firstName, lastName } = req.body;
+
+      if (!phone || !password || !firstName || !lastName) {
+        return res.status(400).json({ message: "Tüm alanlar gereklidir" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
+      }
+
+      // Normalize phone number
+      const digits = phone.replace(/\D/g, '');
+      const normalizedPhone = digits.startsWith('90') ? `+${digits}` : `+90${digits.replace(/^0/, '')}`;
+
+      // Check if phone already exists
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.phone, normalizedPhone),
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user with verified phone
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          phone: normalizedPhone,
+          password: hashedPassword,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phoneVerified: true,
+          emailVerified: false,
+        })
+        .returning();
+
+      // Log user in
+      (req as any).login({ claims: { sub: newUser.id } }, async (err: any) => {
+        if (err) {
+          console.error("Session creation error:", err);
+          return res.status(500).json({ message: "Oturum oluşturulamadı" });
+        }
+
+        await recordLoginHistory(newUser.id, req, true, 'phone');
+        await registerDevice(newUser.id, req);
+
+        res.status(201).json({
+          message: "Kayıt başarılı! Hoş geldiniz.",
+          user: {
+            id: newUser.id,
+            phone: newUser.phone,
+            firstName: newUser.firstName,
+            lastName: newUser.lastName,
+            role: newUser.role,
+            phoneVerified: true,
+            emailVerified: false,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Phone registration error:", error);
+      res.status(500).json({ message: "Kayıt sırasında bir hata oluştu" });
+    }
+  });
+
+  // Phone-based Password Reset (after Firebase SMS verification)
+  app.post('/api/auth/reset-password-phone', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { phone, newPassword } = req.body;
+
+      if (!phone || !newPassword) {
+        return res.status(400).json({ message: "Telefon ve yeni şifre gereklidir" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
+      }
+
+      // Normalize phone number
+      const digits = phone.replace(/\D/g, '');
+      const normalizedPhone = digits.startsWith('90') ? `+${digits}` : `+90${digits.replace(/^0/, '')}`;
+
+      // Find user by phone
+      const user = await db.query.users.findFirst({
+        where: eq(users.phone, normalizedPhone),
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "Bu telefon numarasıyla kayıtlı kullanıcı bulunamadı" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, user.id));
+
+      res.json({ message: "Şifreniz başarıyla güncellendi" });
+    } catch (error) {
+      console.error("Phone password reset error:", error);
+      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  });
+
   // Verify Email
   app.get('/api/auth/verify-email', async (req: Request, res: Response) => {
     try {
@@ -1435,6 +1548,29 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // ============ Phone Authentication Routes ============
+
+  // Check if phone number is already registered
+  app.post('/api/auth/check-phone', createLimiter, async (req: Request, res: Response) => {
+    try {
+      const { phone } = req.body;
+
+      if (!phone) {
+        return res.status(400).json({ message: "Telefon numarası gereklidir" });
+      }
+
+      // Normalize phone number
+      const normalizedPhone = phone.startsWith('+90') ? phone : phone.replace(/^0/, '+90');
+
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.phone, normalizedPhone),
+      });
+
+      res.json({ exists: !!existingUser });
+    } catch (error) {
+      console.error("Check phone error:", error);
+      res.status(500).json({ message: "Bir hata oluştu" });
+    }
+  });
 
   // Send OTP to phone number (for login or registration)
   app.post('/api/auth/phone/send-otp', createLimiter, async (req: Request, res: Response) => {
@@ -1654,7 +1790,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // Firebase Phone Authentication - Verify Firebase ID Token and create/login user
   app.post('/api/auth/firebase/verify', createLimiter, async (req: Request, res: Response) => {
     try {
-      const { idToken, phone, firstName, lastName, purpose = 'login', userId } = req.body;
+      const { idToken, phone, firstName, lastName, email, purpose = 'login', userId } = req.body;
 
       if (!idToken) {
         return res.status(400).json({ message: "Firebase token gereklidir" });
@@ -1743,6 +1879,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin." });
         }
 
+        // Check if email is already used by another user
+        if (email) {
+          const emailUser = await db.query.users.findFirst({
+            where: eq(users.email, email),
+          });
+          if (emailUser) {
+            return res.status(400).json({ message: "Bu email adresi zaten kullanılıyor." });
+          }
+        }
+
         // Create new user
         const [newUser] = await db
           .insert(users)
@@ -1751,6 +1897,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             phoneVerified: true,
             firstName: firstName || null,
             lastName: lastName || null,
+            email: email || null,
             emailVerified: false,
             firebaseUid: decodedToken.uid,
           })

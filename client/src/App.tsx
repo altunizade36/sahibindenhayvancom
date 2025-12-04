@@ -27,7 +27,7 @@ import ListingDetail from "@/pages/listing-detail";
 import CategoryDetail from "@/pages/category-detail";
 
 // Lazy loaded pages - loaded on demand for better initial load time
-const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ForgotPassword = lazy(() => import("@/pages/sifremi-unuttum"));
 const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const CreateListing = lazy(() => import("@/pages/create-listing"));
 const BlogList = lazy(() => import("@/pages/blog-list"));
@@ -132,6 +132,7 @@ function NoSidebarLayout() {
           <Route path="/kayit" component={Register} />
           <Route path="/register" component={Register} />
           <Route path="/forgot-password">{() => <LazyRoute component={ForgotPassword} />}</Route>
+          <Route path="/sifremi-unuttum">{() => <LazyRoute component={ForgotPassword} />}</Route>
           <Route path="/reset-password">{() => <LazyRoute component={ResetPassword} />}</Route>
           <Route path="/verify-email">{() => <LazyRoute component={VerifyEmail} />}</Route>
           <Route path="/ilan-ver">{() => <LazyRoute component={CreateListing} />}</Route>

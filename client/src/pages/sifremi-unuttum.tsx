@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Phone, User, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff } from "lucide-react";
-import { SiGoogle } from "react-icons/si";
+import { Phone, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,13 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   formatPhoneNumber, 
-  signInWithGoogle,
   sendFirebaseOTP,
   verifyFirebaseOTP,
   setupRecaptcha,
@@ -30,41 +26,29 @@ const phoneSchema = z.object({
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
       return digits.length >= 10 && digits.length <= 12;
-    }, "Telefon numarası 10-12 rakam olmalı"),
+    }, "Geçerli bir telefon numarası girin"),
 });
 
-const profileSchema = z.object({
-  firstName: z.string().min(2, "Adınızı yazın (en az 2 harf)"),
-  lastName: z.string().min(2, "Soyadınızı yazın (en az 2 harf)"),
+const passwordSchema = z.object({
   password: z.string()
     .min(8, "Şifre en az 8 karakter olmalı")
     .refine((val) => /[a-zA-Z]/.test(val), "Şifrede en az bir harf olmalı")
     .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
   confirmPassword: z.string(),
-  acceptTerms: z.boolean().refine((val) => val === true, {
-    message: "Kullanım koşullarını kabul etmeniz gerekmektedir",
-  }),
-  acceptKvkk: z.boolean().refine((val) => val === true, {
-    message: "KVKK aydınlatma metnini okuduğunuzu onaylamanız gerekmektedir",
-  }),
-  isOver18: z.boolean().refine((val) => val === true, {
-    message: "18 yaşından büyük olduğunuzu onaylamanız gerekmektedir",
-  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Şifreler aynı değil",
   path: ["confirmPassword"],
 });
 
 type PhoneForm = z.infer<typeof phoneSchema>;
-type ProfileForm = z.infer<typeof profileSchema>;
-type Step = "phone" | "otp" | "profile" | "complete";
+type PasswordForm = z.infer<typeof passwordSchema>;
+type Step = "phone" | "otp" | "password" | "complete";
 
-export default function Register() {
+export default function ForgotPassword() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("phone");
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [countdown, setCountdown] = useState(0);
@@ -104,16 +88,11 @@ export default function Register() {
     defaultValues: { phone: "" },
   });
 
-  const profileForm = useForm<ProfileForm>({
-    resolver: zodResolver(profileSchema),
+  const passwordForm = useForm<PasswordForm>({
+    resolver: zodResolver(passwordSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       password: "",
       confirmPassword: "",
-      acceptTerms: false,
-      acceptKvkk: false,
-      isOver18: false,
     },
   });
 
@@ -128,7 +107,7 @@ export default function Register() {
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
-      // Check if phone already exists
+      // Check if phone exists
       const checkRes = await fetch('/api/auth/check-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,11 +116,11 @@ export default function Register() {
       
       if (checkRes.ok) {
         const checkData = await checkRes.json();
-        if (checkData.exists) {
+        if (!checkData.exists) {
           toast({
             variant: "destructive",
-            title: "Numara Kayıtlı",
-            description: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin.",
+            title: "Numara Bulunamadı",
+            description: "Bu telefon numarasıyla kayıtlı hesap bulunamadı.",
           });
           setIsLoading(false);
           return;
@@ -190,11 +169,11 @@ export default function Register() {
     setIsLoading(true);
     try {
       await verifyFirebaseOTP(otpCode);
-      setStep("profile");
+      setStep("password");
       
       toast({
         title: "Telefon Doğrulandı",
-        description: "Şimdi bilgilerinizi girin.",
+        description: "Şimdi yeni şifrenizi belirleyin.",
       });
     } catch (error: any) {
       toast({
@@ -207,34 +186,26 @@ export default function Register() {
     }
   };
 
-  // Step 3: Complete registration
-  const onProfileSubmit = async (data: ProfileForm) => {
+  // Step 3: Set new password
+  const onPasswordSubmit = async (data: PasswordForm) => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/register-phone", {
+      await apiRequest("POST", "/api/auth/reset-password-phone", {
         phone: formatPhoneNumber(phone),
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        newPassword: data.password,
       });
       
-      const response: any = await res.json();
       setStep("complete");
       
       toast({
-        title: "Kayıt Başarılı!",
-        description: "Hesabınız oluşturuldu.",
+        title: "Şifre Güncellendi",
+        description: "Yeni şifreniz kaydedildi.",
       });
-      
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        setLocation("/");
-      }, 2000);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Kayıt Başarısız",
-        description: error.message || "Bir hata oluştu.",
+        title: "Hata",
+        description: error.message || "Şifre güncellenemedi.",
       });
     } finally {
       setIsLoading(false);
@@ -271,67 +242,21 @@ export default function Register() {
     }
   };
 
-  const handleSocialSignUp = async (provider: 'google') => {
-    setSocialLoading(provider);
-    
-    try {
-      const result = await signInWithGoogle();
-      
-      if (!result || !result.idToken) {
-        throw new Error('Kimlik doğrulama başarısız oldu.');
-      }
-      
-      const res = await apiRequest("POST", "/api/auth/firebase/login", {
-        idToken: result.idToken,
-        email: result.user.email || null,
-        displayName: result.user.displayName || null,
-        photoURL: result.user.photoURL || null,
-        provider,
-      });
-      
-      const response: any = await res.json();
-      
-      toast({
-        title: "Kayıt Başarılı!",
-        description: "Google ile kayıt yapıldı.",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
-    } catch (error: any) {
-      let errorMessage = "Google ile kayıt yapılamadı.";
-      
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Kayıt penceresi kapatıldı.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        variant: "destructive",
-        title: "Kayıt Başarısız",
-        description: errorMessage,
-      });
-    } finally {
-      setSocialLoading(null);
-    }
-  };
-
   const getStepTitle = () => {
     switch (step) {
-      case "phone": return "Hesap Oluştur";
+      case "phone": return "Şifremi Unuttum";
       case "otp": return "Telefon Doğrulama";
-      case "profile": return "Bilgilerinizi Girin";
-      case "complete": return "Kayıt Tamamlandı";
+      case "password": return "Yeni Şifre";
+      case "complete": return "Şifre Güncellendi";
     }
   };
 
   const getStepDescription = () => {
     switch (step) {
-      case "phone": return <>sahibinden<span className="text-primary">hayvan</span>'a üye olun</>;
+      case "phone": return "Kayıtlı telefon numaranızı girin";
       case "otp": return "Telefonunuza gönderilen 6 haneli kodu girin";
-      case "profile": return "Son adım: Adınızı ve şifrenizi belirleyin";
-      case "complete": return "Hesabınız başarıyla oluşturuldu!";
+      case "password": return "Yeni şifrenizi belirleyin";
+      case "complete": return "Şifreniz başarıyla güncellendi!";
     }
   };
 
@@ -349,8 +274,8 @@ export default function Register() {
           {step !== "complete" && (
             <div className="flex justify-center gap-2 mb-4">
               <div className={`h-2 w-12 rounded-full ${step === "phone" ? "bg-primary" : "bg-primary/30"}`} />
-              <div className={`h-2 w-12 rounded-full ${step === "otp" ? "bg-primary" : step === "profile" ? "bg-primary" : "bg-muted"}`} />
-              <div className={`h-2 w-12 rounded-full ${step === "profile" ? "bg-primary" : "bg-muted"}`} />
+              <div className={`h-2 w-12 rounded-full ${step === "otp" ? "bg-primary" : step === "password" ? "bg-primary" : "bg-muted"}`} />
+              <div className={`h-2 w-12 rounded-full ${step === "password" ? "bg-primary" : "bg-muted"}`} />
             </div>
           )}
           
@@ -365,84 +290,66 @@ export default function Register() {
         <CardContent className="space-y-4">
           {/* Step 1: Phone */}
           {step === "phone" && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11"
-                onClick={() => handleSocialSignUp('google')}
-                disabled={socialLoading !== null || isLoading}
-                data-testid="button-google-signup"
-              >
-                {socialLoading === 'google' ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <SiGoogle className="w-5 h-5 mr-2 text-[#4285F4]" />
-                    <span className="text-sm">Google ile Kayıt Ol</span>
-                  </>
-                )}
-              </Button>
+            <Form {...phoneForm}>
+              <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4" data-testid="form-phone">
+                <FormField
+                  control={phoneForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefon Numarası</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            {...field}
+                            type="tel"
+                            placeholder="0532 123 45 67"
+                            className="pl-10 h-11 text-lg tracking-wide"
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d\s]/g, '');
+                              const digits = value.replace(/\s/g, '');
+                              if (digits.length <= 11) {
+                                field.onChange(formatPhoneDisplay(digits));
+                              }
+                            }}
+                            data-testid="input-phone"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-3 text-muted-foreground">veya telefon ile</span>
-                </div>
-              </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-11"
+                  data-testid="button-send-otp"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Doğrulama Kodu Gönder</span>
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
 
-              <Form {...phoneForm}>
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4" data-testid="form-phone">
-                  <FormField
-                    control={phoneForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefon Numarası</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              {...field}
-                              type="tel"
-                              placeholder="0532 123 45 67"
-                              className="pl-10 h-11 text-lg tracking-wide"
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/[^\d\s]/g, '');
-                                const digits = value.replace(/\s/g, '');
-                                if (digits.length <= 11) {
-                                  field.onChange(formatPhoneDisplay(digits));
-                                }
-                              }}
-                              data-testid="input-phone"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-11"
-                    data-testid="button-send-otp"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <span>Devam Et</span>
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setLocation("/giris")}
+                  data-testid="button-back-login"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Giriş Sayfasına Dön
+                </Button>
+              </form>
+            </Form>
           )}
 
           {/* Step 2: OTP Verification */}
@@ -522,49 +429,16 @@ export default function Register() {
             </>
           )}
 
-          {/* Step 3: Profile & Password */}
-          {step === "profile" && (
-            <Form {...profileForm}>
-              <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4" data-testid="form-profile">
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField
-                    control={profileForm.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ad</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input {...field} placeholder="Adınız" className="pl-10" data-testid="input-firstname" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={profileForm.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Soyad</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Soyadınız" data-testid="input-lastname" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
+          {/* Step 3: New Password */}
+          {step === "password" && (
+            <Form {...passwordForm}>
+              <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4" data-testid="form-password">
                 <FormField
-                  control={profileForm.control}
+                  control={passwordForm.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Şifre</FormLabel>
+                      <FormLabel>Yeni Şifre</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -593,7 +467,7 @@ export default function Register() {
                 />
 
                 <FormField
-                  control={profileForm.control}
+                  control={passwordForm.control}
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
@@ -625,66 +499,12 @@ export default function Register() {
                   )}
                 />
 
-                <div className="space-y-3 pt-2">
-                  <FormField
-                    control={profileForm.control}
-                    name="acceptTerms"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-terms" />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal cursor-pointer">
-                            <Link href="/kullanim-kosullari" className="text-primary hover:underline">Kullanım Koşulları</Link>'nı kabul ediyorum
-                          </FormLabel>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={profileForm.control}
-                    name="acceptKvkk"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-kvkk" />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal cursor-pointer">
-                            <Link href="/kvkk-aydinlatma-metni" className="text-primary hover:underline">KVKK Aydınlatma Metni</Link>'ni okudum
-                          </FormLabel>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={profileForm.control}
-                    name="isOver18"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-age" />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal cursor-pointer">18 yaşından büyüğüm</FormLabel>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button type="submit" disabled={isLoading} className="w-full h-11" data-testid="button-register">
+                <Button type="submit" disabled={isLoading} className="w-full h-11" data-testid="button-reset-password">
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <span>Kayıt Ol</span>
+                      <span>Şifreyi Güncelle</span>
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -699,23 +519,11 @@ export default function Register() {
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <p className="text-muted-foreground mb-4">Yönlendiriliyorsunuz...</p>
-              <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] }); setLocation("/"); }} data-testid="button-go-home">
-                Ana Sayfaya Git
+              <p className="text-muted-foreground mb-4">Şimdi yeni şifrenizle giriş yapabilirsiniz.</p>
+              <Button onClick={() => setLocation("/giris")} data-testid="button-go-login">
+                Giriş Yap
               </Button>
             </div>
-          )}
-
-          {step !== "complete" && (
-            <>
-              <Separator />
-              <p className="text-center text-sm text-muted-foreground">
-                Zaten hesabınız var mı?{" "}
-                <Link href="/giris" className="text-primary font-medium hover:underline" data-testid="link-login">
-                  Giriş Yap
-                </Link>
-              </p>
-            </>
           )}
         </CardContent>
       </Card>
