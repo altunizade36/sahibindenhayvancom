@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2, TrendingUp, Package, Milk, Truck, Stethoscope, ChevronDown } from "lucide-react";
 import { NotificationDropdown } from "@/components/notification-dropdown";
 import { Logo } from "@/components/logo";
+import { MarketTicker } from "@/components/market-ticker";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -54,6 +55,9 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background">
+      {/* Bloomberg-style Market Ticker */}
+      <MarketTicker />
+      
       <div className="container mx-auto px-3 md:px-4">
         <div className="flex items-center justify-between h-14 md:h-16 gap-2">
           {/* Left: Menu + Logo */}

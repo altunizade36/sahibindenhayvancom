@@ -306,3 +306,21 @@
   overflow: hidden !important;
   z-index: 9999 !important;
 }
+
+/* Bloomberg-style Market Ticker Animation */
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker linear infinite;
+}
+
+.animation-paused {
+  animation-play-state: paused;
+}
