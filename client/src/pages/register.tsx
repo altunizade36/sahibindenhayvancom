@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Phone, User, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ShieldCheck, Sparkles, ArrowLeft } from "lucide-react";
+import { Phone, User, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft, Check, X } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
@@ -26,32 +26,29 @@ import {
 
 const phoneSchema = z.object({
   phone: z.string()
-    .min(10, "Telefon numaranızı yazın")
+    .min(10, "Telefon numaranızı girin")
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
-      return digits.length >= 10 && digits.length <= 12;
+      return digits.length >= 10 && digits.length <= 11;
     }, "Geçerli telefon numarası girin"),
 });
 
 const profileSchema = z.object({
-  firstName: z.string().min(2, "Adınızı yazın (en az 2 harf)"),
-  lastName: z.string().min(2, "Soyadınızı yazın (en az 2 harf)"),
-  password: z.string()
-    .min(8, "Şifre en az 8 karakter olmalı")
-    .refine((val) => /[a-zA-Z]/.test(val), "Şifrede en az bir harf olmalı")
-    .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
+  firstName: z.string().min(2, "Adınızı girin"),
+  lastName: z.string().min(2, "Soyadınızı girin"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalı"),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine((val) => val === true, {
-    message: "Kullanım koşullarını kabul etmeniz gerekiyor",
+    message: "Kullanım koşullarını kabul etmelisiniz",
   }),
   acceptKvkk: z.boolean().refine((val) => val === true, {
-    message: "KVKK metnini onaylamanız gerekiyor",
+    message: "KVKK metnini onaylamalısınız",
   }),
   isOver18: z.boolean().refine((val) => val === true, {
     message: "18 yaşından büyük olmalısınız",
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor",
+  message: "Şifreler uyuşmuyor",
   path: ["confirmPassword"],
 });
 
@@ -115,6 +112,39 @@ export default function Register() {
     },
   });
 
+  const formatTurkishPhone = (value: string) => {
+    let digits = value.replace(/\D/g, '');
+    
+    if (digits.startsWith('90')) {
+      digits = digits.substring(2);
+    }
+    
+    if (digits.length > 11) {
+      digits = digits.slice(0, 11);
+    }
+    
+    if (digits.length === 0) return '';
+    
+    if (digits.startsWith('0')) {
+      if (digits.length <= 4) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+      if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+      return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+    } else {
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+      if (digits.length <= 8) return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+      return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
+    }
+  };
+
+  const password = profileForm.watch("password");
+  const passwordChecks = {
+    length: password.length >= 6,
+    hasLetter: /[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
@@ -130,7 +160,7 @@ export default function Register() {
           toast({
             variant: "destructive",
             title: "Numara Kayıtlı",
-            description: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin.",
+            description: "Bu numara zaten kayıtlı. Giriş yapmayı deneyin.",
           });
           setIsLoading(false);
           return;
@@ -157,7 +187,7 @@ export default function Register() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "SMS gönderilemedi. Lütfen tekrar deneyin.",
+        description: error.message || "SMS gönderilemedi. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -169,7 +199,7 @@ export default function Register() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen 6 haneli kodu eksiksiz girin.",
+        description: "6 haneli kodu eksiksiz girin.",
       });
       return;
     }
@@ -181,13 +211,13 @@ export default function Register() {
       
       toast({
         title: "Telefon Doğrulandı",
-        description: "Harika! Şimdi bilgilerinizi girin.",
+        description: "Şimdi bilgilerinizi girin.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Doğrulama Başarısız",
-        description: error.message || "Kod hatalı veya süresi dolmuş. Tekrar deneyin.",
+        title: "Kod Hatalı",
+        description: "Kod yanlış veya süresi dolmuş. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -209,7 +239,7 @@ export default function Register() {
       
       toast({
         title: "Kayıt Başarılı!",
-        description: "Hesabınız oluşturuldu. Hoş geldiniz!",
+        description: "Hesabınız oluşturuldu.",
       });
       
       setTimeout(() => {
@@ -220,7 +250,7 @@ export default function Register() {
       toast({
         variant: "destructive",
         title: "Kayıt Başarısız",
-        description: error.message || "Bir hata oluştu. Lütfen tekrar deneyin.",
+        description: error.message || "Bir hata oluştu. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -243,8 +273,8 @@ export default function Register() {
       setCountdown(60);
       setOtpCode("");
       toast({
-        title: "Kod Yeniden Gönderildi",
-        description: "Yeni doğrulama kodu telefonunuza gönderildi.",
+        title: "Kod Tekrar Gönderildi",
+        description: "Yeni kod telefonunuza gönderildi.",
       });
     } catch (error: any) {
       toast({
@@ -306,29 +336,13 @@ export default function Register() {
   const getStepInfo = () => {
     switch (step) {
       case "phone":
-        return { 
-          title: "Hesap Oluştur", 
-          description: "Telefon numaranızla hızlıca kayıt olun",
-          stepNumber: 1
-        };
+        return { title: "Hesap Oluştur", description: "Telefon numaranızla kayıt olun", stepNumber: 1 };
       case "otp":
-        return { 
-          title: "Telefon Doğrulama", 
-          description: `${phone} numarasına gönderilen 6 haneli kodu girin`,
-          stepNumber: 2
-        };
+        return { title: "Telefon Doğrulama", description: `${phone} numarasına gönderilen kodu girin`, stepNumber: 2 };
       case "profile":
-        return { 
-          title: "Bilgilerinizi Girin", 
-          description: "Son adım! Adınızı ve şifrenizi belirleyin",
-          stepNumber: 3
-        };
+        return { title: "Bilgilerinizi Girin", description: "Son adım! Adınızı ve şifrenizi belirleyin", stepNumber: 3 };
       case "complete":
-        return { 
-          title: "Tebrikler!", 
-          description: "Hesabınız başarıyla oluşturuldu",
-          stepNumber: 4
-        };
+        return { title: "Tebrikler!", description: "Hesabınız başarıyla oluşturuldu", stepNumber: 4 };
     }
   };
 
@@ -338,12 +352,11 @@ export default function Register() {
     <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-primary/5">
       <div id="recaptcha-container" className="fixed top-0 left-0 z-50"></div>
       
-      {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent items-center justify-center p-12">
         <div className="max-w-md text-center space-y-8">
           <div className="flex justify-center">
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
-              <Sparkles className="w-12 h-12 text-primary" />
+              <User className="w-12 h-12 text-primary" />
             </div>
           </div>
           <div>
@@ -355,20 +368,9 @@ export default function Register() {
               Ücretsiz kayıt olun, binlerce ilan arasından size en uygun evcil dostunuzu bulun.
             </p>
           </div>
-          <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-green-500" />
-              <span>%100 Ücretsiz</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="w-5 h-5 text-primary" />
-              <span>Güvenli Kayıt</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Right side - Registration Form */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-4 pb-2">
@@ -385,7 +387,7 @@ export default function Register() {
                       s < stepInfo.stepNumber 
                         ? "bg-primary" 
                         : s === stepInfo.stepNumber 
-                          ? "bg-primary animate-pulse" 
+                          ? "bg-primary" 
                           : "bg-muted"
                     }`}
                   />
@@ -404,7 +406,6 @@ export default function Register() {
           </CardHeader>
           
           <CardContent className="space-y-5 pt-4">
-            {/* Step 1: Phone */}
             {step === "phone" && (
               <>
                 <Form {...phoneForm}>
@@ -416,31 +417,22 @@ export default function Register() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Telefon Numarası</FormLabel>
                           <FormControl>
-                            <div className="relative group">
-                              <div className="absolute left-0 top-0 bottom-0 w-16 bg-muted/50 rounded-l-md flex items-center justify-center border-r">
-                                <span className="text-sm font-medium text-muted-foreground">+90</span>
-                              </div>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                               <Input
                                 {...field}
                                 type="tel"
-                                placeholder="532 123 45 67"
-                                className="pl-20 h-12 text-base tracking-wide transition-all focus:ring-2 focus:ring-primary/20"
+                                placeholder="0533 123 45 67 veya 533 123 45 67"
+                                className="pl-11 h-12 text-base"
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/[^\d\s]/g, '');
-                                  const digits = value.replace(/\s/g, '');
-                                  if (digits.length <= 10) {
-                                    const formatted = digits.length <= 3 
-                                      ? digits 
-                                      : digits.length <= 6 
-                                        ? `${digits.slice(0, 3)} ${digits.slice(3)}`
-                                        : `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
-                                    field.onChange(formatted);
-                                  }
+                                  const formatted = formatTurkishPhone(e.target.value);
+                                  field.onChange(formatted);
                                 }}
                                 data-testid="input-phone"
                               />
                             </div>
                           </FormControl>
+                          <p className="text-xs text-muted-foreground">Başında 0 olsa da olmasa da yazabilirsiniz</p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -449,7 +441,7 @@ export default function Register() {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                      className="w-full h-12 text-base font-semibold"
                       data-testid="button-send-otp"
                     >
                       {isLoading ? (
@@ -469,16 +461,14 @@ export default function Register() {
                     <Separator className="w-full" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-card px-4 text-xs uppercase text-muted-foreground tracking-wider">
-                      veya
-                    </span>
+                    <span className="bg-card px-4 text-xs uppercase text-muted-foreground">veya</span>
                   </div>
                 </div>
 
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-12 gap-3 hover:bg-muted/50 transition-all"
+                  className="w-full h-12 gap-3"
                   onClick={() => handleSocialSignUp('google')}
                   disabled={socialLoading !== null || isLoading}
                   data-testid="button-google-signup"
@@ -495,7 +485,6 @@ export default function Register() {
               </>
             )}
 
-            {/* Step 2: OTP Verification */}
             {step === "otp" && (
               <>
                 <div className="flex justify-center py-4">
@@ -509,7 +498,6 @@ export default function Register() {
                     maxLength={6}
                     value={otpCode}
                     onChange={setOtpCode}
-                    className="gap-2"
                     data-testid="input-otp"
                   >
                     <InputOTPGroup className="gap-2">
@@ -517,7 +505,7 @@ export default function Register() {
                         <InputOTPSlot 
                           key={index} 
                           index={index} 
-                          className="w-12 h-14 text-xl font-bold border-2 rounded-lg"
+                          className="w-11 h-13 text-xl font-bold border-2 rounded-lg"
                         />
                       ))}
                     </InputOTPGroup>
@@ -527,14 +515,14 @@ export default function Register() {
                 <Button
                   onClick={verifyOtp}
                   disabled={isLoading || otpCode.length !== 6}
-                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  className="w-full h-12 text-base font-semibold"
                   data-testid="button-verify-otp"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <span>Doğrula ve Devam Et</span>
+                      <span>Doğrula</span>
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -544,10 +532,7 @@ export default function Register() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      setStep("phone");
-                      setOtpCode("");
-                    }}
+                    onClick={() => { setStep("phone"); setOtpCode(""); }}
                     className="gap-1"
                     data-testid="button-back"
                   >
@@ -564,7 +549,7 @@ export default function Register() {
                     data-testid="button-resend-otp"
                   >
                     {countdown > 0 ? (
-                      <span className="text-muted-foreground font-mono">{countdown}s bekleyin</span>
+                      <span className="text-muted-foreground">{countdown}s</span>
                     ) : (
                       <>
                         <RefreshCw className="w-3 h-3" />
@@ -576,7 +561,6 @@ export default function Register() {
               </>
             )}
 
-            {/* Step 3: Profile & Password */}
             {step === "profile" && (
               <Form {...profileForm}>
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4" data-testid="form-profile">
@@ -586,17 +570,9 @@ export default function Register() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Ad</FormLabel>
+                          <FormLabel>Adınız</FormLabel>
                           <FormControl>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input 
-                                {...field} 
-                                placeholder="Adınız" 
-                                className="pl-10 h-11" 
-                                data-testid="input-firstname" 
-                              />
-                            </div>
+                            <Input {...field} placeholder="Adınız" className="h-11" data-testid="input-firstname" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -608,14 +584,9 @@ export default function Register() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Soyad</FormLabel>
+                          <FormLabel>Soyadınız</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Soyadınız" 
-                              className="h-11" 
-                              data-testid="input-lastname" 
-                            />
+                            <Input {...field} placeholder="Soyadınız" className="h-11" data-testid="input-lastname" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -628,29 +599,41 @@ export default function Register() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium">Şifre</FormLabel>
+                        <FormLabel>Şifre</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
                               {...field}
                               type={showPassword ? "text" : "password"}
-                              placeholder="En az 8 karakter, 1 harf, 1 rakam"
-                              className="pl-10 pr-10 h-11"
+                              placeholder="En az 6 karakter"
+                              className="pl-11 pr-11 h-11"
                               data-testid="input-password"
                             />
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                               onClick={() => setShowPassword(!showPassword)}
                               tabIndex={-1}
                             >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
+                              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
                           </div>
                         </FormControl>
+                        <div className="flex gap-3 text-xs mt-1">
+                          <span className={`flex items-center gap-1 ${passwordChecks.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {passwordChecks.length ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            6+ karakter
+                          </span>
+                          <span className={`flex items-center gap-1 ${passwordChecks.hasLetter ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {passwordChecks.hasLetter ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            Harf
+                          </span>
+                          <span className={`flex items-center gap-1 ${passwordChecks.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {passwordChecks.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            Rakam
+                          </span>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -661,27 +644,25 @@ export default function Register() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium">Şifre Tekrar</FormLabel>
+                        <FormLabel>Şifre Tekrar</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
                               {...field}
                               type={showConfirmPassword ? "text" : "password"}
                               placeholder="Şifrenizi tekrar girin"
-                              className="pl-10 pr-10 h-11"
+                              className="pl-11 pr-11 h-11"
                               data-testid="input-confirm-password"
                             />
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                               tabIndex={-1}
                             >
-                              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
+                              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -696,14 +677,9 @@ export default function Register() {
                       render={({ field }) => (
                         <FormItem className="flex items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox 
-                              checked={field.value} 
-                              onCheckedChange={field.onChange} 
-                              className="mt-0.5"
-                              data-testid="checkbox-terms" 
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-terms" />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
+                          <div className="leading-none">
                             <FormLabel className="text-sm font-normal cursor-pointer">
                               <Link href="/kullanim-kosullari" className="text-primary hover:underline">Kullanım Koşulları</Link>'nı kabul ediyorum
                             </FormLabel>
@@ -719,14 +695,9 @@ export default function Register() {
                       render={({ field }) => (
                         <FormItem className="flex items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox 
-                              checked={field.value} 
-                              onCheckedChange={field.onChange} 
-                              className="mt-0.5"
-                              data-testid="checkbox-kvkk" 
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-kvkk" />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
+                          <div className="leading-none">
                             <FormLabel className="text-sm font-normal cursor-pointer">
                               <Link href="/kvkk-aydinlatma-metni" className="text-primary hover:underline">KVKK Aydınlatma Metni</Link>'ni okudum
                             </FormLabel>
@@ -742,14 +713,9 @@ export default function Register() {
                       render={({ field }) => (
                         <FormItem className="flex items-start space-x-3 space-y-0">
                           <FormControl>
-                            <Checkbox 
-                              checked={field.value} 
-                              onCheckedChange={field.onChange} 
-                              className="mt-0.5"
-                              data-testid="checkbox-age" 
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-age" />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
+                          <div className="leading-none">
                             <FormLabel className="text-sm font-normal cursor-pointer">18 yaşından büyüğüm</FormLabel>
                             <FormMessage />
                           </div>
@@ -761,7 +727,7 @@ export default function Register() {
                   <Button 
                     type="submit" 
                     disabled={isLoading} 
-                    className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                    className="w-full h-12 text-base font-semibold" 
                     data-testid="button-register"
                   >
                     {isLoading ? (
@@ -777,23 +743,17 @@ export default function Register() {
               </Form>
             )}
 
-            {/* Step 4: Complete */}
             {step === "complete" && (
               <div className="text-center py-8">
-                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Hoş Geldiniz!</h3>
                 <p className="text-muted-foreground mb-6">Ana sayfaya yönlendiriliyorsunuz...</p>
                 <Button 
-                  onClick={() => { 
-                    queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] }); 
-                    setLocation("/"); 
-                  }} 
-                  className="shadow-lg"
+                  onClick={() => { queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] }); setLocation("/"); }} 
                   data-testid="button-go-home"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
                   İlanlara Göz At
                 </Button>
               </div>

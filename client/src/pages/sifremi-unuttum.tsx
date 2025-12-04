@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Phone, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
+import { Phone, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft, KeyRound, Check, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,21 +22,18 @@ import {
 
 const phoneSchema = z.object({
   phone: z.string()
-    .min(10, "Telefon numaranızı yazın")
+    .min(10, "Telefon numaranızı girin")
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
-      return digits.length >= 10 && digits.length <= 12;
+      return digits.length >= 10 && digits.length <= 11;
     }, "Geçerli bir telefon numarası girin"),
 });
 
 const passwordSchema = z.object({
-  password: z.string()
-    .min(8, "Şifre en az 8 karakter olmalı")
-    .refine((val) => /[a-zA-Z]/.test(val), "Şifrede en az bir harf olmalı")
-    .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalı"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor",
+  message: "Şifreler uyuşmuyor",
   path: ["confirmPassword"],
 });
 
@@ -94,13 +91,48 @@ export default function ForgotPassword() {
     },
   });
 
+  const formatTurkishPhone = (value: string) => {
+    let digits = value.replace(/\D/g, '');
+    
+    if (digits.startsWith('90')) {
+      digits = digits.substring(2);
+    }
+    
+    if (digits.length > 11) {
+      digits = digits.slice(0, 11);
+    }
+    
+    if (digits.length === 0) return '';
+    
+    if (digits.startsWith('0')) {
+      if (digits.length <= 4) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+      if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+      return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+    } else {
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+      if (digits.length <= 8) return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+      return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
+    }
+  };
+
+  const password = passwordForm.watch("password");
+  const passwordChecks = {
+    length: password.length >= 6,
+    hasLetter: /[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
+      const formattedPhone = formatPhoneNumber(data.phone);
+      
       const checkRes = await fetch('/api/auth/check-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formatPhoneNumber(data.phone) }),
+        body: JSON.stringify({ phone: formattedPhone }),
       });
       
       if (checkRes.ok) {
@@ -136,7 +168,7 @@ export default function ForgotPassword() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "SMS gönderilemedi. Lütfen tekrar deneyin.",
+        description: error.message || "SMS gönderilemedi. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -148,7 +180,7 @@ export default function ForgotPassword() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen 6 haneli kodu eksiksiz girin.",
+        description: "6 haneli kodu eksiksiz girin.",
       });
       return;
     }
@@ -165,8 +197,8 @@ export default function ForgotPassword() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Doğrulama Başarısız",
-        description: error.message || "Kod hatalı veya süresi dolmuş. Tekrar deneyin.",
+        title: "Kod Hatalı",
+        description: "Kod yanlış veya süresi dolmuş. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -185,13 +217,13 @@ export default function ForgotPassword() {
       
       toast({
         title: "Şifre Güncellendi",
-        description: "Yeni şifreniz başarıyla kaydedildi.",
+        description: "Yeni şifreniz kaydedildi.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "Şifre güncellenemedi. Lütfen tekrar deneyin.",
+        description: error.message || "Şifre güncellenemedi. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -214,8 +246,8 @@ export default function ForgotPassword() {
       setCountdown(60);
       setOtpCode("");
       toast({
-        title: "Kod Yeniden Gönderildi",
-        description: "Yeni doğrulama kodu telefonunuza gönderildi.",
+        title: "Kod Tekrar Gönderildi",
+        description: "Yeni kod telefonunuza gönderildi.",
       });
     } catch (error: any) {
       toast({
@@ -231,29 +263,13 @@ export default function ForgotPassword() {
   const getStepInfo = () => {
     switch (step) {
       case "phone":
-        return { 
-          title: "Şifremi Unuttum", 
-          description: "Kayıtlı telefon numaranızı girin",
-          stepNumber: 1
-        };
+        return { title: "Şifremi Unuttum", description: "Kayıtlı telefon numaranızı girin", stepNumber: 1 };
       case "otp":
-        return { 
-          title: "Telefon Doğrulama", 
-          description: `${phone} numarasına gönderilen kodu girin`,
-          stepNumber: 2
-        };
+        return { title: "Telefon Doğrulama", description: `${phone} numarasına gönderilen kodu girin`, stepNumber: 2 };
       case "password":
-        return { 
-          title: "Yeni Şifre", 
-          description: "Yeni şifrenizi belirleyin",
-          stepNumber: 3
-        };
+        return { title: "Yeni Şifre", description: "Yeni şifrenizi belirleyin", stepNumber: 3 };
       case "complete":
-        return { 
-          title: "Şifre Güncellendi", 
-          description: "Yeni şifrenizle giriş yapabilirsiniz",
-          stepNumber: 4
-        };
+        return { title: "Şifre Güncellendi", description: "Yeni şifrenizle giriş yapabilirsiniz", stepNumber: 4 };
     }
   };
 
@@ -278,7 +294,7 @@ export default function ForgotPassword() {
                     s < stepInfo.stepNumber 
                       ? "bg-primary" 
                       : s === stepInfo.stepNumber 
-                        ? "bg-primary animate-pulse" 
+                        ? "bg-primary" 
                         : "bg-muted"
                   }`}
                 />
@@ -297,7 +313,6 @@ export default function ForgotPassword() {
         </CardHeader>
         
         <CardContent className="space-y-5 pt-4">
-          {/* Step 1: Phone */}
           {step === "phone" && (
             <Form {...phoneForm}>
               <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4" data-testid="form-phone">
@@ -314,31 +329,22 @@ export default function ForgotPassword() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium">Telefon Numarası</FormLabel>
                       <FormControl>
-                        <div className="relative group">
-                          <div className="absolute left-0 top-0 bottom-0 w-16 bg-muted/50 rounded-l-md flex items-center justify-center border-r">
-                            <span className="text-sm font-medium text-muted-foreground">+90</span>
-                          </div>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             {...field}
                             type="tel"
-                            placeholder="532 123 45 67"
-                            className="pl-20 h-12 text-base tracking-wide transition-all focus:ring-2 focus:ring-primary/20"
+                            placeholder="0533 123 45 67 veya 533 123 45 67"
+                            className="pl-11 h-12 text-base"
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^\d\s]/g, '');
-                              const digits = value.replace(/\s/g, '');
-                              if (digits.length <= 10) {
-                                const formatted = digits.length <= 3 
-                                  ? digits 
-                                  : digits.length <= 6 
-                                    ? `${digits.slice(0, 3)} ${digits.slice(3)}`
-                                    : `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
-                                field.onChange(formatted);
-                              }
+                              const formatted = formatTurkishPhone(e.target.value);
+                              field.onChange(formatted);
                             }}
                             data-testid="input-phone"
                           />
                         </div>
                       </FormControl>
+                      <p className="text-xs text-muted-foreground">Başında 0 olsa da olmasa da yazabilirsiniz</p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -347,7 +353,7 @@ export default function ForgotPassword() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  className="w-full h-12 text-base font-semibold"
                   data-testid="button-send-otp"
                 >
                   {isLoading ? (
@@ -374,7 +380,6 @@ export default function ForgotPassword() {
             </Form>
           )}
 
-          {/* Step 2: OTP Verification */}
           {step === "otp" && (
             <>
               <div className="flex justify-center py-4">
@@ -388,7 +393,6 @@ export default function ForgotPassword() {
                   maxLength={6}
                   value={otpCode}
                   onChange={setOtpCode}
-                  className="gap-2"
                   data-testid="input-otp"
                 >
                   <InputOTPGroup className="gap-2">
@@ -396,7 +400,7 @@ export default function ForgotPassword() {
                       <InputOTPSlot 
                         key={index} 
                         index={index} 
-                        className="w-12 h-14 text-xl font-bold border-2 rounded-lg"
+                        className="w-11 h-13 text-xl font-bold border-2 rounded-lg"
                       />
                     ))}
                   </InputOTPGroup>
@@ -406,14 +410,14 @@ export default function ForgotPassword() {
               <Button
                 onClick={verifyOtp}
                 disabled={isLoading || otpCode.length !== 6}
-                className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                className="w-full h-12 text-base font-semibold"
                 data-testid="button-verify-otp"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <span>Doğrula ve Devam Et</span>
+                    <span>Doğrula</span>
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -423,10 +427,7 @@ export default function ForgotPassword() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setStep("phone");
-                    setOtpCode("");
-                  }}
+                  onClick={() => { setStep("phone"); setOtpCode(""); }}
                   className="gap-1"
                   data-testid="button-back"
                 >
@@ -443,7 +444,7 @@ export default function ForgotPassword() {
                   data-testid="button-resend-otp"
                 >
                   {countdown > 0 ? (
-                    <span className="text-muted-foreground font-mono">{countdown}s bekleyin</span>
+                    <span className="text-muted-foreground">{countdown}s</span>
                   ) : (
                     <>
                       <RefreshCw className="w-3 h-3" />
@@ -455,7 +456,6 @@ export default function ForgotPassword() {
             </>
           )}
 
-          {/* Step 3: New Password */}
           {step === "password" && (
             <Form {...passwordForm}>
               <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4" data-testid="form-password">
@@ -473,26 +473,38 @@ export default function ForgotPassword() {
                       <FormLabel className="text-sm font-medium">Yeni Şifre</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             {...field}
                             type={showPassword ? "text" : "password"}
-                            placeholder="En az 8 karakter, 1 harf, 1 rakam"
-                            className="pl-10 pr-10 h-12"
+                            placeholder="En az 6 karakter"
+                            className="pl-11 pr-11 h-12"
                             data-testid="input-password"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             onClick={() => setShowPassword(!showPassword)}
                             tabIndex={-1}
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
                         </div>
                       </FormControl>
+                      <div className="flex gap-3 text-xs mt-1">
+                        <span className={`flex items-center gap-1 ${passwordChecks.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {passwordChecks.length ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                          6+ karakter
+                        </span>
+                        <span className={`flex items-center gap-1 ${passwordChecks.hasLetter ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {passwordChecks.hasLetter ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                          Harf
+                        </span>
+                        <span className={`flex items-center gap-1 ${passwordChecks.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {passwordChecks.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                          Rakam
+                        </span>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -506,24 +518,22 @@ export default function ForgotPassword() {
                       <FormLabel className="text-sm font-medium">Şifre Tekrar</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             {...field}
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Şifrenizi tekrar girin"
-                            className="pl-10 pr-10 h-12"
+                            className="pl-11 pr-11 h-12"
                             data-testid="input-confirm-password"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             tabIndex={-1}
                           >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
+                            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -534,7 +544,7 @@ export default function ForgotPassword() {
                 <Button 
                   type="submit" 
                   disabled={isLoading} 
-                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                  className="w-full h-12 text-base font-semibold" 
                   data-testid="button-reset-password"
                 >
                   {isLoading ? (
@@ -550,17 +560,15 @@ export default function ForgotPassword() {
             </Form>
           )}
 
-          {/* Step 4: Complete */}
           {step === "complete" && (
             <div className="text-center py-8">
-              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
               <h3 className="text-xl font-bold mb-2">Şifreniz Güncellendi!</h3>
               <p className="text-muted-foreground mb-6">Yeni şifrenizle giriş yapabilirsiniz.</p>
               <Button 
                 onClick={() => setLocation("/giris")} 
-                className="shadow-lg"
                 data-testid="button-go-login"
               >
                 <ArrowRight className="w-4 h-4 mr-2" />

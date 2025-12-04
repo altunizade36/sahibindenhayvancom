@@ -17,12 +17,12 @@ import { formatPhoneNumber, signInWithGoogle, handleRedirectResult } from "@/lib
 
 const loginSchema = z.object({
   phone: z.string()
-    .min(10, "Telefon numaranızı yazın")
+    .min(10, "Telefon numaranızı girin")
     .refine((val) => {
       const digits = val.replace(/\D/g, '');
-      return digits.length >= 10 && digits.length <= 12;
+      return digits.length >= 10 && digits.length <= 11;
     }, "Geçerli bir telefon numarası girin"),
-  password: z.string().min(1, "Şifrenizi yazın"),
+  password: z.string().min(1, "Şifrenizi girin"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -69,11 +69,30 @@ export default function Login() {
     },
   });
 
-  const formatPhoneDisplay = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 4) return digits;
-    if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
-    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+  const formatTurkishPhone = (value: string) => {
+    let digits = value.replace(/\D/g, '');
+    
+    if (digits.startsWith('90')) {
+      digits = digits.substring(2);
+    }
+    
+    if (digits.length > 11) {
+      digits = digits.slice(0, 11);
+    }
+    
+    if (digits.length === 0) return '';
+    
+    if (digits.startsWith('0')) {
+      if (digits.length <= 4) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+      if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+      return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+    } else {
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+      if (digits.length <= 8) return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+      return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
+    }
   };
 
   const onSubmit = async (data: LoginForm) => {
@@ -163,7 +182,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent items-center justify-center p-12">
         <div className="max-w-md text-center space-y-8">
           <div className="flex justify-center">
@@ -194,7 +212,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-4 pb-2">
@@ -221,26 +238,16 @@ export default function Login() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium">Telefon Numarası</FormLabel>
                       <FormControl>
-                        <div className="relative group">
-                          <div className="absolute left-0 top-0 bottom-0 w-16 bg-muted/50 rounded-l-md flex items-center justify-center border-r">
-                            <span className="text-sm font-medium text-muted-foreground">+90</span>
-                          </div>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             {...field}
                             type="tel"
-                            placeholder="532 123 45 67"
-                            className="pl-20 h-12 text-base tracking-wide transition-all focus:ring-2 focus:ring-primary/20"
+                            placeholder="0533 123 45 67 veya 533 123 45 67"
+                            className="pl-11 h-12 text-base"
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^\d\s]/g, '');
-                              const digits = value.replace(/\s/g, '');
-                              if (digits.length <= 10) {
-                                const formatted = digits.length <= 3 
-                                  ? digits 
-                                  : digits.length <= 6 
-                                    ? `${digits.slice(0, 3)} ${digits.slice(3)}`
-                                    : `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
-                                field.onChange(formatted);
-                              }
+                              const formatted = formatTurkishPhone(e.target.value);
+                              field.onChange(formatted);
                             }}
                             data-testid="input-phone"
                           />
@@ -268,28 +275,26 @@ export default function Login() {
                       </div>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             {...field}
                             type={showPassword ? "text" : "password"}
                             placeholder="Şifrenizi girin"
-                            className="pl-10 pr-10 h-12 transition-all focus:ring-2 focus:ring-primary/20"
+                            className="pl-11 pr-11 h-12"
                             data-testid="input-password"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setShowPassword(!showPassword)}
                             tabIndex={-1}
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              <EyeOff className="h-5 w-5" />
                             ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <Eye className="h-5 w-5" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -300,7 +305,7 @@ export default function Login() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  className="w-full h-12 text-base font-semibold"
                   data-testid="button-login"
                 >
                   {isLoading ? (
@@ -329,7 +334,7 @@ export default function Login() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 gap-3 hover:bg-muted/50 transition-all"
+              className="w-full h-12 gap-3"
               onClick={() => handleSocialSignIn('google')}
               disabled={socialLoading !== null || isLoading}
               data-testid="button-google-login"
