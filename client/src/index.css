@@ -286,3 +286,30 @@
     inset: -1px;
   }
 }
+
+/* Hide reCAPTCHA badge (Privacy - Terms text in corner) */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide Firebase reCAPTCHA container completely */
+#recaptcha-container {
+  visibility: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide any reCAPTCHA error dialogs */
+.grecaptcha-logo,
+.grecaptcha-error,
+iframe[src*="recaptcha"] {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
