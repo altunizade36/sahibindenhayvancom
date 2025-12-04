@@ -287,29 +287,22 @@
   }
 }
 
-/* Hide reCAPTCHA badge (Privacy - Terms text in corner) */
+/* Hide reCAPTCHA badge (Privacy - Terms text in corner) - but keep it functional */
 .grecaptcha-badge {
-  visibility: hidden !important;
   opacity: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  left: -9999px !important;
-}
-
-/* Hide Firebase reCAPTCHA container completely */
-#recaptcha-container {
-  visibility: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
   width: 0 !important;
   height: 0 !important;
   overflow: hidden !important;
 }
 
-/* Hide any reCAPTCHA error dialogs */
-.grecaptcha-logo,
-.grecaptcha-error,
-iframe[src*="recaptcha"] {
-  visibility: hidden !important;
+/* Position Firebase reCAPTCHA container off-screen but keep it functional */
+#recaptcha-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
   opacity: 0 !important;
+  overflow: hidden !important;
+  z-index: 9999 !important;
 }
