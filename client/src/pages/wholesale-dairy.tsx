@@ -23,8 +23,10 @@ import {
   Search,
   Filter,
   Plus,
-  Truck
+  Truck,
+  Info
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "wouter";
 
 type WholesaleProduct = {
@@ -270,19 +272,36 @@ export default function WholesaleDairyPage() {
   return (
     <div className="container mx-auto py-6 px-4 max-w-7xl">
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Milk className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Milk className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">
+                Toptan Süt & Mandıra Pazaryeri
+              </h1>
+              <p className="text-muted-foreground">
+                Üreticiden doğrudan toptan süt ve süt ürünleri
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">
-              Toptan Süt & Mandıra Pazaryeri
-            </h1>
-            <p className="text-muted-foreground">
-              Üreticiden doğrudan toptan süt ve süt ürünleri
-            </p>
-          </div>
+          <Link href="/ilan-ver?category=sut-mandira">
+            <Button className="gap-2" data-testid="button-add-dairy-listing">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Süt İlanı Ver</span>
+              <span className="sm:hidden">İlan Ver</span>
+            </Button>
+          </Link>
         </div>
+        
+        {/* Info alert about example listings */}
+        <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
+          <Info className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-sm">
+            Sarı şeritli ilanlar örnek içeriktir. Üretici olarak süt ve süt ürünleri satmak için <strong>"Süt İlanı Ver"</strong> butonuna tıklayarak kendi ilanınızı oluşturabilirsiniz.
+          </AlertDescription>
+        </Alert>
       </div>
       
       <Card className="mb-6">
