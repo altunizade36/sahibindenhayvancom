@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useLocation } from "wouter";
-import { Building2, Edit, Eye, Upload, X, Users, Eye as EyeIcon, Star, Calendar, Image, Palette, Loader2, Trash2, MapPin, ExternalLink } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Building2, Edit, Eye, Upload, X, Users, Star, Calendar, Image, Palette, Loader2, Trash2, MapPin, ExternalLink, Check, ArrowRight, ArrowLeft, AlertCircle, Phone, Mail, Globe, MapPinned, Info, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +26,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 interface StoreCategory {
@@ -39,16 +40,16 @@ interface StoreCategory {
 }
 
 const storeFormSchema = z.object({
-  slug: z.string().min(3, "Slug en az 3 karakter olmalı").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire"),
-  displayName: z.string().min(3, "Mağaza adı en az 3 karakter olmalı"),
-  storeType: z.string(),
+  slug: z.string().min(3, "En az 3 karakter").max(50, "En fazla 50 karakter").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire (-)"),
+  displayName: z.string().min(3, "En az 3 karakter").max(100, "En fazla 100 karakter"),
+  storeType: z.string().min(1, "Mağaza tipi seçin"),
   categoryId: z.string().optional(),
-  summary: z.string().optional(),
-  description: z.string().optional(),
+  summary: z.string().max(200, "En fazla 200 karakter").optional(),
+  description: z.string().max(2000, "En fazla 2000 karakter").optional(),
   phone: z.string().optional(),
-  email: z.string().email("Geçerli bir email girin").optional().or(z.literal("")),
-  website: z.string().url("Geçerli bir URL girin").optional().or(z.literal("")),
-  address: z.string().optional(),
+  email: z.string().email("Geçerli email girin").optional().or(z.literal("")),
+  website: z.string().url("Geçerli URL girin").optional().or(z.literal("")),
+  address: z.string().max(500, "En fazla 500 karakter").optional(),
   city: z.string().optional(),
   district: z.string().optional(),
   primaryColor: z.string().default("#0066CC"),
@@ -58,16 +59,16 @@ const storeFormSchema = z.object({
 type StoreFormValues = z.infer<typeof storeFormSchema>;
 
 const storeTypeOptions = [
-  { value: "petshop", label: "Pet Shop" },
-  { value: "feed_producer", label: "Yem & Mama Üreticisi" },
-  { value: "farm_equipment", label: "Çiftlik Ekipmanı" },
-  { value: "veterinary", label: "Veteriner Kliniği" },
-  { value: "transport", label: "Nakliye & Lojistik" },
-  { value: "beekeeping", label: "Arıcılık Malzemeleri" },
-  { value: "horse_riding", label: "At & Binicilik" },
-  { value: "exotic", label: "Egzotik Hayvanlar" },
-  { value: "grooming", label: "Pet Kuaförü" },
-  { value: "other", label: "Diğer" },
+  { value: "petshop", label: "Pet Shop", description: "Evcil hayvan ürünleri satışı" },
+  { value: "feed_producer", label: "Yem & Mama Üreticisi", description: "Hayvan yemi ve mama üretimi" },
+  { value: "farm_equipment", label: "Çiftlik Ekipmanı", description: "Tarım ve çiftlik malzemeleri" },
+  { value: "veterinary", label: "Veteriner Kliniği", description: "Veterinerlik hizmetleri" },
+  { value: "transport", label: "Nakliye & Lojistik", description: "Hayvan taşımacılığı" },
+  { value: "beekeeping", label: "Arıcılık Malzemeleri", description: "Arıcılık ürünleri" },
+  { value: "horse_riding", label: "At & Binicilik", description: "At malzemeleri ve binicilik" },
+  { value: "grooming", label: "Pet Kuaförü", description: "Evcil hayvan bakımı" },
+  { value: "breeding", label: "Yetiştiricilik", description: "Profesyonel hayvan yetiştiriciliği" },
+  { value: "other", label: "Diğer", description: "Diğer hayvan ürün/hizmetleri" },
 ];
 
 const bannerTemplates = [
@@ -77,6 +78,12 @@ const bannerTemplates = [
   { id: "gradient-dark", name: "Koyu Gradient", preview: "linear-gradient(135deg, #232526 0%, #414345 100%)" },
   { id: "gradient-sunset", name: "Günbatımı", preview: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
   { id: "gradient-ocean", name: "Okyanus", preview: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)" },
+];
+
+const WIZARD_STEPS = [
+  { id: 1, title: "Temel Bilgiler", description: "Mağaza adı ve tipi" },
+  { id: 2, title: "Görsel Kimlik", description: "Logo ve kapak görseli" },
+  { id: 3, title: "İletişim", description: "Konum ve iletişim bilgileri" },
 ];
 
 function StoreImageUploader({ 
@@ -89,6 +96,7 @@ function StoreImageUploader({
   storeId,
   imageType,
   onRemove,
+  disabled = false,
 }: {
   label: string;
   currentImage?: string | null;
@@ -99,6 +107,7 @@ function StoreImageUploader({
   storeId?: string | null;
   imageType: 'logo' | 'banner';
   onRemove?: () => void;
+  disabled?: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
@@ -112,9 +121,11 @@ function StoreImageUploader({
 
   const recommendations = imageType === 'logo' 
     ? { size: '400x400px', format: 'PNG/JPG', tip: 'Kare format önerilir' }
-    : { size: '1600x533px', format: 'PNG/JPG', tip: 'Geniş format önerilir' };
+    : { size: '1600x400px', format: 'PNG/JPG', tip: '4:1 geniş format önerilir' };
 
   const processFile = async (file: File) => {
+    if (disabled) return;
+    
     if (!file.type.startsWith('image/')) {
       toast({ title: "Hata", description: "Sadece resim dosyaları yüklenebilir", variant: "destructive" });
       return;
@@ -178,6 +189,7 @@ function StoreImageUploader({
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
     } else if (e.type === "dragleave") {
@@ -189,6 +201,7 @@ function StoreImageUploader({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    if (disabled) return;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       processFile(e.dataTransfer.files[0]);
     }
@@ -202,13 +215,13 @@ function StoreImageUploader({
 
   return (
     <div className={className}>
-      <Label className="text-sm font-medium mb-1.5 block">{label}</Label>
+      <Label className="text-sm font-medium mb-2 block">{label}</Label>
       <div 
-        className={`relative border-2 border-dashed rounded-lg overflow-hidden cursor-pointer transition-all ${
-          dragActive ? 'border-primary bg-primary/10' : 'hover-elevate'
-        }`}
+        className={`relative border-2 border-dashed rounded-lg overflow-hidden transition-all ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        } ${dragActive ? 'border-primary bg-primary/10' : 'hover-elevate border-muted-foreground/25'}`}
         style={{ aspectRatio }}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => !disabled && fileInputRef.current?.click()}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -218,7 +231,7 @@ function StoreImageUploader({
         {preview ? (
           <>
             <img src={preview} alt={label} className="w-full h-full object-cover" />
-            {onRemove && !uploading && (
+            {onRemove && !uploading && !disabled && (
               <button
                 type="button"
                 onClick={handleRemove}
@@ -230,12 +243,10 @@ function StoreImageUploader({
             )}
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30 p-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30 p-4">
             <Upload className="w-8 h-8 mb-2" />
             <span className="text-sm font-medium text-center">{placeholder || "Resim yükle"}</span>
-            <span className="text-xs text-center mt-1 opacity-70">
-              veya sürükleyip bırakın
-            </span>
+            <span className="text-xs text-center mt-1 opacity-70">veya sürükleyip bırakın</span>
           </div>
         )}
         {uploading && (
@@ -254,35 +265,45 @@ function StoreImageUploader({
         accept="image/*"
         className="hidden"
         onChange={handleFileSelect}
+        disabled={disabled}
         data-testid={`input-file-${imageType}`}
       />
     </div>
   );
 }
 
-export default function MyStore() {
+function StoreCreationWizard({ 
+  categories, 
+  onSuccess 
+}: { 
+  categories: StoreCategory[];
+  onSuccess: () => void;
+}) {
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-
-  const { data: myStore, isLoading } = useQuery<any>({
-    queryKey: ["/api/store/my/dashboard"],
-  });
-
-  const { data: categories = [] } = useQuery<StoreCategory[]>({
-    queryKey: ["/api/store-categories"],
-  });
-
-  const hasStore = !!myStore && !('message' in myStore);
-
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+  
   const form = useForm<StoreFormValues>({
     resolver: zodResolver(storeFormSchema),
     defaultValues: {
+      displayName: "",
+      slug: "",
+      storeType: "",
+      categoryId: undefined,
+      summary: "",
+      description: "",
+      phone: "",
+      email: "",
+      website: "",
+      address: "",
+      city: "",
+      district: "",
       primaryColor: "#0066CC",
       secondaryColor: "#FFA500",
-      storeType: "petshop",
     },
   });
 
@@ -294,53 +315,79 @@ export default function MyStore() {
   };
   const flatCategories = flattenCategories(categories);
 
-  useEffect(() => {
-    if (hasStore && myStore) {
-      form.reset({
-        slug: myStore.slug,
-        displayName: myStore.displayName,
-        storeType: myStore.storeType,
-        categoryId: myStore.categoryId || undefined,
-        summary: myStore.summary || "",
-        description: myStore.description || "",
-        phone: myStore.phone || "",
-        email: myStore.email || "",
-        website: myStore.website || "",
-        address: myStore.address || "",
-        city: myStore.city || "",
-        district: myStore.district || "",
-        primaryColor: myStore.primaryColor || "#0066CC",
-        secondaryColor: myStore.secondaryColor || "#FFA500",
-      });
-      setLogoUrl(myStore.logo || null);
-      setBannerUrl(myStore.banner || null);
-      setSelectedTemplate(myStore.bannerTemplate || null);
+  const checkSlugAvailability = useCallback(async (slug: string) => {
+    if (slug.length < 3) {
+      setSlugAvailable(null);
+      return;
     }
-  }, [hasStore, myStore, form]);
+    
+    setCheckingSlug(true);
+    try {
+      const response = await fetch(`/api/store/check-slug/${encodeURIComponent(slug)}`);
+      const data = await response.json();
+      setSlugAvailable(data.available);
+    } catch {
+      setSlugAvailable(null);
+    } finally {
+      setCheckingSlug(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const slug = form.watch("slug");
+    const timer = setTimeout(() => {
+      if (slug && slug.length >= 3) {
+        checkSlugAvailability(slug);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.watch("slug"), checkSlugAvailability]);
+
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/ğ/g, 'g')
+      .replace(/ü/g, 'u')
+      .replace(/ş/g, 's')
+      .replace(/ı/g, 'i')
+      .replace(/ö/g, 'o')
+      .replace(/ç/g, 'c')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    form.setValue("displayName", name);
+    if (!form.getValues("slug") || form.getValues("slug") === generateSlug(form.getValues("displayName").slice(0, -1))) {
+      form.setValue("slug", generateSlug(name));
+    }
+  };
 
   const uploadMediaMutation = useMutation({
     mutationFn: async ({ storeId, mediaType, url }: { storeId: string; mediaType: string; url: string }) => {
       return apiRequest("POST", `/api/store/${storeId}/media`, { mediaType, url });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
-    },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: StoreFormValues) => {
-      return apiRequest("POST", "/api/store", data);
+      return apiRequest("POST", "/api/store", {
+        ...data,
+        bannerTemplate: selectedTemplate,
+      });
     },
-    onSuccess: (newStore: any) => {
+    onSuccess: async (newStore: any) => {
       if (logoUrl && newStore.id) {
-        uploadMediaMutation.mutate({ storeId: newStore.id, mediaType: "logo", url: logoUrl });
+        await uploadMediaMutation.mutateAsync({ storeId: newStore.id, mediaType: "logo", url: logoUrl });
       }
       if (bannerUrl && newStore.id) {
-        uploadMediaMutation.mutate({ storeId: newStore.id, mediaType: "banner", url: bannerUrl });
+        await uploadMediaMutation.mutateAsync({ storeId: newStore.id, mediaType: "banner", url: bannerUrl });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
-      toast({ title: "Mağaza oluşturuldu!" });
-      setIsEditing(false);
+      toast({ title: "Mağaza oluşturuldu!", description: "Mağazanız başarıyla oluşturuldu." });
+      onSuccess();
     },
     onError: (error: any) => {
       toast({
@@ -351,149 +398,112 @@ export default function MyStore() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: StoreFormValues) => {
-      return apiRequest("PATCH", `/api/store/${myStore.id}`, {
-        ...data,
-        bannerTemplate: selectedTemplate,
-      });
-    },
-    onSuccess: () => {
-      if (logoUrl && myStore.id) {
-        uploadMediaMutation.mutate({ storeId: myStore.id, mediaType: "logo", url: logoUrl });
-      }
-      if (bannerUrl && myStore.id) {
-        uploadMediaMutation.mutate({ storeId: myStore.id, mediaType: "banner", url: bannerUrl });
-      }
-      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
-      toast({ title: "Mağaza güncellendi!" });
-      setIsEditing(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Hata",
-        description: error.message || "Mağaza güncellenemedi",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const [, navigate] = useLocation();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!myStore?.id) throw new Error("Mağaza bulunamadı");
-      return apiRequest("DELETE", `/api/store/${myStore.id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
-      toast({ title: "Mağaza silindi", description: "Mağazanız başarıyla silindi" });
-      navigate("/panel");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Hata",
-        description: error.message || "Mağaza silinemedi",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getBannerStyle = () => {
-    if (myStore?.banner) {
-      return {
-        backgroundImage: `url(${myStore.banner})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      };
+  const validateStep = (step: number): boolean => {
+    const values = form.getValues();
+    switch (step) {
+      case 1:
+        if (!values.displayName || values.displayName.length < 3) {
+          toast({ title: "Hata", description: "Mağaza adı en az 3 karakter olmalı", variant: "destructive" });
+          return false;
+        }
+        if (!values.slug || values.slug.length < 3) {
+          toast({ title: "Hata", description: "URL slug en az 3 karakter olmalı", variant: "destructive" });
+          return false;
+        }
+        if (slugAvailable === false) {
+          toast({ title: "Hata", description: "Bu URL zaten kullanılıyor", variant: "destructive" });
+          return false;
+        }
+        if (!values.storeType) {
+          toast({ title: "Hata", description: "Mağaza tipi seçin", variant: "destructive" });
+          return false;
+        }
+        return true;
+      case 2:
+        return true;
+      case 3:
+        return true;
+      default:
+        return true;
     }
-    if (myStore?.bannerTemplate) {
-      const template = bannerTemplates.find(t => t.id === myStore.bannerTemplate);
-      if (template) {
-        return { background: template.preview };
-      }
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 3));
     }
-    return { backgroundColor: myStore?.primaryColor || '#0066CC' };
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
   const onSubmit = (data: StoreFormValues) => {
-    if (hasStore) {
-      updateMutation.mutate(data);
-    } else {
-      createMutation.mutate(data);
-    }
+    if (!validateStep(3)) return;
+    createMutation.mutate(data);
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-muted rounded" />
-          <div className="h-64 bg-muted rounded" />
+  const progress = (currentStep / 3) * 100;
+
+  return (
+    <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Building2 className="w-8 h-8 text-primary" />
         </div>
+        <h1 className="text-2xl font-bold mb-2">Mağazanızı Açın</h1>
+        <p className="text-muted-foreground text-sm max-w-md mx-auto">
+          3 adımda profesyonel mağaza profilinizi oluşturun
+        </p>
       </div>
-    );
-  }
 
-  if (!hasStore) {
-    return (
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Building2 className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Mağazanızı Açın</h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Profesyonel bir mağaza profili oluşturarak binlerce potansiyel alıcıya ulaşın. 
-            Mağazanız onaylandıktan sonra ilanlarınızı mağazanız altında yayınlayabilirsiniz.
-          </p>
-        </div>
-        
-        <Card>
-          <CardHeader className="px-4 py-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
-              Mağaza Bilgileri
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Aşağıdaki formu doldurarak mağazanızı oluşturun
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <StoreImageUploader
-                  label="Mağaza Logosu"
-                  currentImage={logoUrl}
-                  onUpload={setLogoUrl}
-                  onRemove={() => setLogoUrl(null)}
-                  aspectRatio="1/1"
-                  placeholder="Logo yükle"
-                  storeId={null}
-                  imageType="logo"
-                />
-                <StoreImageUploader
-                  label="Kapak Görseli"
-                  currentImage={bannerUrl}
-                  onUpload={setBannerUrl}
-                  onRemove={() => setBannerUrl(null)}
-                  aspectRatio="3/1"
-                  placeholder="Banner yükle"
-                  storeId={null}
-                  imageType="banner"
-                />
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          {WIZARD_STEPS.map((step, index) => (
+            <div 
+              key={step.id} 
+              className={`flex items-center ${index < WIZARD_STEPS.length - 1 ? 'flex-1' : ''}`}
+            >
+              <div className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                  currentStep > step.id 
+                    ? 'bg-primary text-primary-foreground' 
+                    : currentStep === step.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                }`}>
+                  {currentStep > step.id ? <Check className="w-5 h-5" /> : step.id}
+                </div>
+                <span className={`text-xs mt-1 hidden sm:block ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  {step.title}
+                </span>
               </div>
+              {index < WIZARD_STEPS.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 ${currentStep > step.id ? 'bg-primary' : 'bg-muted'}`} />
+              )}
+            </div>
+          ))}
+        </div>
+        <Progress value={progress} className="h-1" />
+      </div>
 
-              <Separator />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">{WIZARD_STEPS[currentStep - 1].title}</CardTitle>
+          <CardDescription>{WIZARD_STEPS[currentStep - 1].description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {currentStep === 1 && (
+              <div className="space-y-6">
                 <div>
                   <Label htmlFor="displayName">Mağaza Adı *</Label>
                   <Input
                     id="displayName"
-                    {...form.register("displayName")}
-                    placeholder="Örn: PetShop İstanbul"
+                    value={form.watch("displayName")}
+                    onChange={handleNameChange}
+                    placeholder="Örn: Pet Shop İstanbul"
+                    className="mt-1.5"
                     data-testid="input-store-name"
                   />
                   {form.formState.errors.displayName && (
@@ -502,608 +512,715 @@ export default function MyStore() {
                 </div>
 
                 <div>
-                  <Label htmlFor="slug">URL (Slug) *</Label>
-                  <Input
-                    id="slug"
-                    {...form.register("slug")}
-                    placeholder="petshop-istanbul"
-                    data-testid="input-store-slug"
-                  />
+                  <Label htmlFor="slug">Mağaza URL'si *</Label>
+                  <div className="flex items-center mt-1.5">
+                    <span className="text-sm text-muted-foreground mr-1">sahibindenhayvan.com/magaza/</span>
+                    <div className="relative flex-1">
+                      <Input
+                        id="slug"
+                        {...form.register("slug")}
+                        placeholder="petshop-istanbul"
+                        className="pr-10"
+                        data-testid="input-store-slug"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {checkingSlug && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                        {!checkingSlug && slugAvailable === true && <CheckCircle className="w-4 h-4 text-green-500" />}
+                        {!checkingSlug && slugAvailable === false && <AlertCircle className="w-4 h-4 text-destructive" />}
+                      </div>
+                    </div>
+                  </div>
+                  {slugAvailable === false && (
+                    <p className="text-sm text-destructive mt-1">Bu URL zaten kullanılıyor</p>
+                  )}
+                  {slugAvailable === true && (
+                    <p className="text-sm text-green-600 mt-1">Bu URL kullanılabilir</p>
+                  )}
                   {form.formState.errors.slug && (
                     <p className="text-sm text-destructive mt-1">{form.formState.errors.slug.message}</p>
                   )}
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="storeType">Mağaza Tipi *</Label>
-                <Select
-                  value={form.watch("storeType")}
-                  onValueChange={(value) => form.setValue("storeType", value)}
-                >
-                  <SelectTrigger data-testid="select-store-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+                <div>
+                  <Label>Mağaza Tipi *</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     {storeTypeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => form.setValue("storeType", option.value)}
+                        className={`p-3 rounded-lg border-2 text-left transition-all hover-elevate ${
+                          form.watch("storeType") === option.value
+                            ? 'border-primary bg-primary/5'
+                            : 'border-muted hover:border-primary/50'
+                        }`}
+                        data-testid={`button-store-type-${option.value}`}
+                      >
+                        <span className="font-medium text-sm block">{option.label}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  </div>
+                </div>
 
-              <div>
-                <Label htmlFor="categoryId">Mağaza Kategorisi</Label>
-                <Select
-                  value={form.watch("categoryId") || "none"}
-                  onValueChange={(value) => form.setValue("categoryId", value === "none" ? undefined : value)}
-                >
-                  <SelectTrigger data-testid="select-store-category">
-                    <SelectValue placeholder="Kategori seçin..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Kategori Yok</SelectItem>
-                    {flatCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {'  '.repeat(cat.depth)}
-                        {cat.depth > 0 ? '└ ' : ''}
-                        {cat.name}
-                      </SelectItem>
+                <div>
+                  <Label htmlFor="categoryId">Mağaza Kategorisi (Opsiyonel)</Label>
+                  <Select
+                    value={form.watch("categoryId") || "none"}
+                    onValueChange={(value) => form.setValue("categoryId", value === "none" ? undefined : value)}
+                  >
+                    <SelectTrigger className="mt-1.5" data-testid="select-store-category">
+                      <SelectValue placeholder="Kategori seçin..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Kategori Yok</SelectItem>
+                      {flatCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {'  '.repeat(cat.depth)}{cat.depth > 0 ? '└ ' : ''}{cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="summary">Kısa Tanıtım</Label>
+                  <Textarea
+                    id="summary"
+                    {...form.register("summary")}
+                    placeholder="Mağazanızı kısaca tanıtın (max 200 karakter)"
+                    rows={2}
+                    className="mt-1.5"
+                    data-testid="input-store-summary"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {form.watch("summary")?.length || 0}/200 karakter
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <StoreImageUploader
+                    label="Mağaza Logosu"
+                    currentImage={logoUrl}
+                    onUpload={setLogoUrl}
+                    onRemove={() => setLogoUrl(null)}
+                    aspectRatio="1/1"
+                    placeholder="Logo yükle (kare)"
+                    storeId={null}
+                    imageType="logo"
+                  />
+                  <div>
+                    <StoreImageUploader
+                      label="Kapak Görseli"
+                      currentImage={bannerUrl}
+                      onUpload={(url) => {
+                        setBannerUrl(url);
+                        setSelectedTemplate(null);
+                      }}
+                      onRemove={() => setBannerUrl(null)}
+                      aspectRatio="4/1"
+                      placeholder="Banner yükle (geniş)"
+                      storeId={null}
+                      imageType="banner"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">veya Hazır Şablon Seçin</Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {bannerTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTemplate(template.id);
+                          setBannerUrl(null);
+                        }}
+                        className={`h-16 rounded-lg border-2 transition-all ${
+                          selectedTemplate === template.id ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-primary/50'
+                        }`}
+                        style={{ background: template.preview }}
+                        title={template.name}
+                        data-testid={`button-template-${template.id}`}
+                      />
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="summary">Kısa Açıklama</Label>
-                <Textarea
-                  id="summary"
-                  {...form.register("summary")}
-                  placeholder="Mağazanızı kısaca tanıtın..."
-                  rows={2}
-                  data-testid="input-store-summary"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Detaylı Açıklama</Label>
-                <Textarea
-                  id="description"
-                  {...form.register("description")}
-                  placeholder="Mağazanız hakkında detaylı bilgi..."
-                  rows={4}
-                  data-testid="input-store-description"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">Şehir</Label>
-                  <Input id="city" {...form.register("city")} placeholder="İstanbul" data-testid="input-store-city" />
+                  </div>
                 </div>
+
+                <Separator />
+
                 <div>
-                  <Label htmlFor="district">İlçe</Label>
-                  <Input id="district" {...form.register("district")} placeholder="Kadıköy" data-testid="input-store-district" />
+                  <Label className="flex items-center gap-2 mb-3">
+                    <Palette className="w-4 h-4" />
+                    Marka Renkleri
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Ana Renk</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input 
+                          type="color" 
+                          {...form.register("primaryColor")} 
+                          className="w-12 h-10 p-1 cursor-pointer"
+                          data-testid="input-primary-color"
+                        />
+                        <Input 
+                          value={form.watch("primaryColor")} 
+                          onChange={(e) => form.setValue("primaryColor", e.target.value)}
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">İkincil Renk</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input 
+                          type="color" 
+                          {...form.register("secondaryColor")} 
+                          className="w-12 h-10 p-1 cursor-pointer"
+                          data-testid="input-secondary-color"
+                        />
+                        <Input 
+                          value={form.watch("secondaryColor")} 
+                          onChange={(e) => form.setValue("secondaryColor", e.target.value)}
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input id="phone" {...form.register("phone")} placeholder="0555 123 4567" data-testid="input-store-phone" />
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="city">
+                      <MapPin className="w-4 h-4 inline mr-1" />
+                      Şehir
+                    </Label>
+                    <Input id="city" {...form.register("city")} placeholder="İstanbul" className="mt-1.5" data-testid="input-store-city" />
+                  </div>
+                  <div>
+                    <Label htmlFor="district">İlçe</Label>
+                    <Input id="district" {...form.register("district")} placeholder="Kadıköy" className="mt-1.5" data-testid="input-store-district" />
+                  </div>
                 </div>
+
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...form.register("email")} placeholder="info@magaza.com" data-testid="input-store-email" />
-                  {form.formState.errors.email && (
-                    <p className="text-sm text-destructive mt-1">{form.formState.errors.email.message}</p>
+                  <Label htmlFor="address">
+                    <MapPinned className="w-4 h-4 inline mr-1" />
+                    Açık Adres
+                  </Label>
+                  <Textarea id="address" {...form.register("address")} placeholder="Tam adresiniz..." rows={2} className="mt-1.5" data-testid="input-store-address" />
+                </div>
+
+                <Separator />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone">
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      Telefon
+                    </Label>
+                    <Input id="phone" {...form.register("phone")} placeholder="0555 123 4567" className="mt-1.5" data-testid="input-store-phone" />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">
+                      <Mail className="w-4 h-4 inline mr-1" />
+                      Email
+                    </Label>
+                    <Input id="email" type="email" {...form.register("email")} placeholder="info@magaza.com" className="mt-1.5" data-testid="input-store-email" />
+                    {form.formState.errors.email && (
+                      <p className="text-sm text-destructive mt-1">{form.formState.errors.email.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="website">
+                    <Globe className="w-4 h-4 inline mr-1" />
+                    Website
+                  </Label>
+                  <Input id="website" {...form.register("website")} placeholder="https://magaza.com" className="mt-1.5" data-testid="input-store-website" />
+                  {form.formState.errors.website && (
+                    <p className="text-sm text-destructive mt-1">{form.formState.errors.website.message}</p>
                   )}
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="website">Website</Label>
-                <Input id="website" {...form.register("website")} placeholder="https://magaza.com" data-testid="input-store-website" />
-                {form.formState.errors.website && (
-                  <p className="text-sm text-destructive mt-1">{form.formState.errors.website.message}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="address">Adres</Label>
-                <Textarea id="address" {...form.register("address")} placeholder="Tam adres..." rows={2} data-testid="input-store-address" />
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label className="flex items-center gap-2 mb-3">
-                  <Palette className="w-4 h-4" />
-                  Marka Renkleri
-                </Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="primaryColor" className="text-xs text-muted-foreground">Ana Renk</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input 
-                        id="primaryColor" 
-                        type="color" 
-                        {...form.register("primaryColor")} 
-                        className="w-12 h-10 p-1 cursor-pointer"
-                        data-testid="input-primary-color"
-                      />
-                      <Input 
-                        value={form.watch("primaryColor")} 
-                        onChange={(e) => form.setValue("primaryColor", e.target.value)}
-                        className="flex-1 font-mono text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="secondaryColor" className="text-xs text-muted-foreground">İkincil Renk</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input 
-                        id="secondaryColor" 
-                        type="color" 
-                        {...form.register("secondaryColor")} 
-                        className="w-12 h-10 p-1 cursor-pointer"
-                        data-testid="input-secondary-color"
-                      />
-                      <Input 
-                        value={form.watch("secondaryColor")} 
-                        onChange={(e) => form.setValue("secondaryColor", e.target.value)}
-                        className="flex-1 font-mono text-sm"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <Label htmlFor="description">Detaylı Açıklama</Label>
+                  <Textarea
+                    id="description"
+                    {...form.register("description")}
+                    placeholder="Mağazanız hakkında detaylı bilgi..."
+                    rows={4}
+                    className="mt-1.5"
+                    data-testid="input-store-description"
+                  />
                 </div>
               </div>
+            )}
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-between pt-4 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+            data-testid="button-prev-step"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Geri
+          </Button>
+          
+          {currentStep < 3 ? (
+            <Button type="button" onClick={nextStep} data-testid="button-next-step">
+              İleri
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button 
+              type="button"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={createMutation.isPending}
+              data-testid="button-create-store"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Oluşturuluyor...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Mağazayı Oluştur
+                </>
+              )}
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
 
-              <Button 
-                type="submit" 
-                disabled={createMutation.isPending} 
-                className="w-full"
-                data-testid="button-create-store"
-              >
-                {createMutation.isPending ? "Oluşturuluyor..." : "Mağazayı Oluştur"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+function StoreDashboard({ store, categories }: { store: any; categories: StoreCategory[] }) {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(store.logo || null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(store.banner || null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(store.bannerTemplate || null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [, navigate] = useLocation();
+
+  const form = useForm<StoreFormValues>({
+    resolver: zodResolver(storeFormSchema),
+    defaultValues: {
+      slug: store.slug,
+      displayName: store.displayName,
+      storeType: store.storeType,
+      categoryId: store.categoryId || undefined,
+      summary: store.summary || "",
+      description: store.description || "",
+      phone: store.phone || "",
+      email: store.email || "",
+      website: store.website || "",
+      address: store.address || "",
+      city: store.city || "",
+      district: store.district || "",
+      primaryColor: store.primaryColor || "#0066CC",
+      secondaryColor: store.secondaryColor || "#FFA500",
+    },
+  });
+
+  const flattenCategories = (cats: StoreCategory[]): StoreCategory[] => {
+    return cats.flatMap(cat => [cat, ...(cat.children ? flattenCategories(cat.children) : [])]);
+  };
+  const flatCategories = flattenCategories(categories);
+
+  const uploadMediaMutation = useMutation({
+    mutationFn: async ({ storeId, mediaType, url }: { storeId: string; mediaType: string; url: string }) => {
+      return apiRequest("POST", `/api/store/${storeId}/media`, { mediaType, url });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: StoreFormValues) => {
+      return apiRequest("PATCH", `/api/store/${store.id}`, { ...data, bannerTemplate: selectedTemplate });
+    },
+    onSuccess: async () => {
+      if (logoUrl && store.id) {
+        await uploadMediaMutation.mutateAsync({ storeId: store.id, mediaType: "logo", url: logoUrl });
+      }
+      if (bannerUrl && store.id) {
+        await uploadMediaMutation.mutateAsync({ storeId: store.id, mediaType: "banner", url: bannerUrl });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
+      toast({ title: "Güncellendi", description: "Mağaza bilgileri güncellendi" });
+      setIsEditing(false);
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message || "Güncelleme başarısız", variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/store/${store.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
+      toast({ title: "Silindi", description: "Mağazanız silindi" });
+      navigate("/panel");
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message || "Silme başarısız", variant: "destructive" });
+    },
+  });
+
+  const getBannerStyle = () => {
+    if (store.banner) return { backgroundImage: `url(${store.banner})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    if (store.bannerTemplate) {
+      const template = bannerTemplates.find(t => t.id === store.bannerTemplate);
+      if (template) return { background: template.preview };
+    }
+    return { backgroundColor: store.primaryColor || '#0066CC' };
+  };
+
+  const storeTypeLabel = storeTypeOptions.find(t => t.value === store.storeType)?.label || store.storeType;
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-          <Building2 className="w-6 h-6 sm:w-8 sm:h-8" />
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Building2 className="w-6 h-6" />
           Mağazam
         </h1>
         <div className="flex gap-2 flex-wrap">
-          <Link href={`/magaza/${myStore.slug}`}>
+          <Link href={`/magaza/${store.slug}`}>
             <Button variant="outline" size="sm" data-testid="button-view-store">
               <Eye className="w-4 h-4 mr-2" />
               Görüntüle
             </Button>
           </Link>
-          {!isEditing && (
-            <Button onClick={() => setIsEditing(true)} size="sm" data-testid="button-edit-store">
-              <Edit className="w-4 h-4 mr-2" />
-              Düzenle
-            </Button>
-          )}
+          <Button 
+            onClick={() => setIsEditing(!isEditing)} 
+            variant={isEditing ? "secondary" : "default"}
+            size="sm" 
+            data-testid="button-edit-store"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            {isEditing ? "İptal" : "Düzenle"}
+          </Button>
         </div>
       </div>
 
-      {isEditing ? (
+      {!isEditing && (
+        <>
+          <Card className="overflow-hidden mb-6">
+            <div className="relative h-32 sm:h-40" style={getBannerStyle()}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 flex items-end gap-4">
+                <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-background shadow-lg">
+                  <AvatarImage src={store.logo || undefined} />
+                  <AvatarFallback className="text-2xl" style={{ backgroundColor: store.primaryColor }}>
+                    {store.displayName?.[0] || 'M'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-white pb-1">
+                  <h2 className="text-xl sm:text-2xl font-bold">{store.displayName}</h2>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="secondary" className="text-xs">{storeTypeLabel}</Badge>
+                    {store.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{store.city}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <Card className="p-4 text-center">
+              <Users className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <p className="text-2xl font-bold">{store.followerCount || 0}</p>
+              <p className="text-xs text-muted-foreground">Takipçi</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Eye className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <p className="text-2xl font-bold">{store.viewCount || 0}</p>
+              <p className="text-xs text-muted-foreground">Görüntülenme</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+              <p className="text-2xl font-bold">{store.rating ? parseFloat(store.rating).toFixed(1) : '-'}</p>
+              <p className="text-xs text-muted-foreground">Puan</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Calendar className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <p className="text-2xl font-bold">{store.totalListings || 0}</p>
+              <p className="text-xs text-muted-foreground">İlan</p>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Mağaza Bilgileri</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {store.summary && (
+                <div>
+                  <Label className="text-muted-foreground text-sm">Özet</Label>
+                  <p className="mt-1">{store.summary}</p>
+                </div>
+              )}
+              {store.description && (
+                <div>
+                  <Label className="text-muted-foreground text-sm">Açıklama</Label>
+                  <p className="mt-1 whitespace-pre-wrap">{store.description}</p>
+                </div>
+              )}
+              <Separator />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {store.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <span>{store.phone}</span>
+                  </div>
+                )}
+                {store.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span>{store.email}</span>
+                  </div>
+                )}
+                {store.website && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {store.website}
+                    </a>
+                  </div>
+                )}
+                {store.address && (
+                  <div className="flex items-start gap-2 col-span-full">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                    <span>{store.address}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6 border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-lg text-destructive">Tehlikeli Bölge</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">Mağazanızı silmek geri alınamaz bir işlemdir. Tüm ilanlarınız mağaza bağlantısını kaybedecektir.</p>
+              <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  data-testid="button-delete-store"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Mağazayı Sil
+                </Button>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Mağazayı Sil?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Bu işlem geri alınamaz. Mağazanız kalıcı olarak silinecektir.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>İptal</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate()}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deleteMutation.isPending ? "Siliniyor..." : "Evet, Sil"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {isEditing && (
         <Card>
-          <CardHeader className="px-4 py-4 sm:px-6">
+          <CardHeader>
             <CardTitle className="text-lg">Mağaza Bilgilerini Düzenle</CardTitle>
           </CardHeader>
-          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CardContent>
+            <form onSubmit={form.handleSubmit((data) => updateMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StoreImageUploader
-                  label="Mağaza Logosu"
+                  label="Logo"
                   currentImage={logoUrl}
-                  onUpload={(url) => setLogoUrl(url)}
+                  onUpload={setLogoUrl}
                   onRemove={() => setLogoUrl(null)}
                   aspectRatio="1/1"
                   placeholder="Logo yükle"
-                  storeId={myStore?.id}
+                  storeId={store.id}
                   imageType="logo"
                 />
                 <div>
                   <StoreImageUploader
                     label="Kapak Görseli"
                     currentImage={bannerUrl}
-                    onUpload={(url) => {
-                      setBannerUrl(url);
-                      setSelectedTemplate(null);
-                    }}
-                    onRemove={() => {
-                      setBannerUrl(null);
-                    }}
-                    aspectRatio="3/1"
+                    onUpload={(url) => { setBannerUrl(url); setSelectedTemplate(null); }}
+                    onRemove={() => setBannerUrl(null)}
+                    aspectRatio="4/1"
                     placeholder="Banner yükle"
-                    storeId={myStore?.id}
+                    storeId={store.id}
                     imageType="banner"
                   />
-                  <div className="mt-3">
-                    <Label className="text-xs text-muted-foreground mb-2 block">veya hazır şablon seçin:</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {bannerTemplates.map((template) => (
-                        <button
-                          key={template.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedTemplate(template.id);
-                            setBannerUrl(null);
-                          }}
-                          className={`h-8 rounded border-2 transition-all ${selectedTemplate === template.id ? 'border-primary' : 'border-transparent'}`}
-                          style={{ background: template.preview }}
-                          title={template.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="displayName">Mağaza Adı *</Label>
-                  <Input id="displayName" {...form.register("displayName")} data-testid="input-edit-store-name" />
-                  {form.formState.errors.displayName && (
-                    <p className="text-sm text-destructive mt-1">{form.formState.errors.displayName.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="slug">URL (Slug) *</Label>
-                  <Input id="slug" {...form.register("slug")} data-testid="input-edit-store-slug" />
-                  {form.formState.errors.slug && (
-                    <p className="text-sm text-destructive mt-1">{form.formState.errors.slug.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="storeType">Mağaza Tipi *</Label>
-                <Select
-                  value={form.watch("storeType")}
-                  onValueChange={(value) => form.setValue("storeType", value)}
-                >
-                  <SelectTrigger data-testid="select-edit-store-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {storeTypeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    {bannerTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => { setSelectedTemplate(template.id); setBannerUrl(null); }}
+                        className={`h-10 rounded border-2 transition-all ${selectedTemplate === template.id ? 'border-primary' : 'border-transparent'}`}
+                        style={{ background: template.preview }}
+                      />
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="categoryId">Mağaza Kategorisi</Label>
-                <Select
-                  value={form.watch("categoryId") || "none"}
-                  onValueChange={(value) => form.setValue("categoryId", value === "none" ? undefined : value)}
-                >
-                  <SelectTrigger data-testid="select-edit-store-category">
-                    <SelectValue placeholder="Kategori seçin..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Kategori Yok</SelectItem>
-                    {flatCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {'  '.repeat(cat.depth)}
-                        {cat.depth > 0 ? '└ ' : ''}
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="summary">Kısa Açıklama</Label>
-                <Textarea id="summary" {...form.register("summary")} rows={2} data-testid="input-edit-store-summary" />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Detaylı Açıklama</Label>
-                <Textarea id="description" {...form.register("description")} rows={4} data-testid="input-edit-store-description" />
+                  </div>
+                </div>
               </div>
 
               <Separator />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="city">Şehir</Label>
-                  <Input id="city" {...form.register("city")} data-testid="input-edit-city" />
+                  <Label>Mağaza Adı *</Label>
+                  <Input {...form.register("displayName")} className="mt-1.5" data-testid="input-edit-store-name" />
                 </div>
                 <div>
-                  <Label htmlFor="district">İlçe</Label>
-                  <Input id="district" {...form.register("district")} data-testid="input-edit-district" />
+                  <Label>URL Slug *</Label>
+                  <Input {...form.register("slug")} className="mt-1.5" data-testid="input-edit-store-slug" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input id="phone" {...form.register("phone")} data-testid="input-edit-phone" />
+                  <Label>Mağaza Tipi</Label>
+                  <Select value={form.watch("storeType")} onValueChange={(v) => form.setValue("storeType", v)}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {storeTypeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...form.register("email")} data-testid="input-edit-email" />
-                  {form.formState.errors.email && (
-                    <p className="text-sm text-destructive mt-1">{form.formState.errors.email.message}</p>
-                  )}
+                  <Label>Kategori</Label>
+                  <Select value={form.watch("categoryId") || "none"} onValueChange={(v) => form.setValue("categoryId", v === "none" ? undefined : v)}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Yok</SelectItem>
+                      {flatCategories.map(c => <SelectItem key={c.id} value={c.id}>{'  '.repeat(c.depth)}{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="website">Website</Label>
-                <Input id="website" {...form.register("website")} data-testid="input-edit-website" />
-                {form.formState.errors.website && (
-                  <p className="text-sm text-destructive mt-1">{form.formState.errors.website.message}</p>
-                )}
+                <Label>Özet</Label>
+                <Textarea {...form.register("summary")} rows={2} className="mt-1.5" />
               </div>
 
               <div>
-                <Label htmlFor="address">Adres</Label>
-                <Textarea id="address" {...form.register("address")} rows={2} data-testid="input-edit-address" />
+                <Label>Açıklama</Label>
+                <Textarea {...form.register("description")} rows={4} className="mt-1.5" />
               </div>
 
               <Separator />
 
-              <div>
-                <Label className="flex items-center gap-2 mb-3">
-                  <Palette className="w-4 h-4" />
-                  Marka Renkleri
-                </Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="primaryColor" className="text-xs text-muted-foreground">Ana Renk</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input 
-                        id="primaryColor" 
-                        type="color" 
-                        {...form.register("primaryColor")} 
-                        className="w-12 h-10 p-1 cursor-pointer"
-                      />
-                      <Input 
-                        value={form.watch("primaryColor")} 
-                        onChange={(e) => form.setValue("primaryColor", e.target.value)}
-                        className="flex-1 font-mono text-sm"
-                      />
-                    </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><Label>Şehir</Label><Input {...form.register("city")} className="mt-1.5" /></div>
+                <div><Label>İlçe</Label><Input {...form.register("district")} className="mt-1.5" /></div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><Label>Telefon</Label><Input {...form.register("phone")} className="mt-1.5" /></div>
+                <div><Label>Email</Label><Input {...form.register("email")} type="email" className="mt-1.5" /></div>
+              </div>
+
+              <div><Label>Website</Label><Input {...form.register("website")} className="mt-1.5" /></div>
+              <div><Label>Adres</Label><Textarea {...form.register("address")} rows={2} className="mt-1.5" /></div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Ana Renk</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input type="color" {...form.register("primaryColor")} className="w-12 h-10 p-1" />
+                    <Input value={form.watch("primaryColor")} onChange={(e) => form.setValue("primaryColor", e.target.value)} className="flex-1 font-mono text-sm" />
                   </div>
-                  <div>
-                    <Label htmlFor="secondaryColor" className="text-xs text-muted-foreground">İkincil Renk</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input 
-                        id="secondaryColor" 
-                        type="color" 
-                        {...form.register("secondaryColor")} 
-                        className="w-12 h-10 p-1 cursor-pointer"
-                      />
-                      <Input 
-                        value={form.watch("secondaryColor")} 
-                        onChange={(e) => form.setValue("secondaryColor", e.target.value)}
-                        className="flex-1 font-mono text-sm"
-                      />
-                    </div>
+                </div>
+                <div>
+                  <Label className="text-xs">İkincil Renk</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input type="color" {...form.register("secondaryColor")} className="w-12 h-10 p-1" />
+                    <Input value={form.watch("secondaryColor")} onChange={(e) => form.setValue("secondaryColor", e.target.value)} className="flex-1 font-mono text-sm" />
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button type="submit" disabled={updateMutation.isPending} data-testid="button-save-store">
-                  {updateMutation.isPending ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                  İptal
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)} className="flex-1">İptal</Button>
+                <Button type="submit" disabled={updateMutation.isPending} className="flex-1" data-testid="button-save-store">
+                  {updateMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Kaydediliyor...</> : "Kaydet"}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Banner and Profile Header - Trendyol/Instagram Style */}
-          <Card className="overflow-hidden">
-            {/* Banner */}
-            <div 
-              className="h-32 sm:h-48 relative"
-              style={getBannerStyle()}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            </div>
-            
-            {/* Profile Section */}
-            <div className="px-4 sm:px-6 pb-4 sm:pb-6 -mt-12 sm:-mt-16 relative">
-              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                {/* Logo */}
-                <div className="flex-shrink-0">
-                  {myStore.logo ? (
-                    <img 
-                      src={myStore.logo} 
-                      alt={myStore.displayName} 
-                      className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-4 border-background shadow-lg"
-                      data-testid="img-store-logo"
-                    />
-                  ) : (
-                    <div 
-                      className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl flex items-center justify-center border-4 border-background shadow-lg"
-                      style={{ backgroundColor: myStore.primaryColor }}
-                    >
-                      <Building2 className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Store Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="min-w-0">
-                      <h2 className="text-xl sm:text-2xl font-bold truncate" data-testid="text-my-store-name">
-                        {myStore.displayName}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">@{myStore.slug}</p>
-                    </div>
-                    <Badge variant={myStore.status === "active" ? "default" : "secondary"} className="w-fit">
-                      {myStore.status === "active" ? "Aktif" : myStore.status === "pending" ? "Beklemede" : myStore.status}
-                    </Badge>
-                  </div>
-                  
-                  {myStore.city && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{myStore.city}{myStore.district ? `, ${myStore.district}` : ""}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Stats Row */}
-              <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold">{myStore.stats?.totalListings || 0}</p>
-                  <p className="text-xs text-muted-foreground">İlan</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold">{myStore.followerCount || 0}</p>
-                  <p className="text-xs text-muted-foreground">Takipçi</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold">{myStore.viewCount || 0}</p>
-                  <p className="text-xs text-muted-foreground">Görüntülenme</p>
-                </div>
-                {parseFloat(myStore.rating || "0") > 0 && (
-                  <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      {parseFloat(myStore.rating || "0").toFixed(1)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{myStore.reviewCount || 0} Değerlendirme</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Store Details Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Store Info Card */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="px-4 py-4 sm:px-6">
-                <CardTitle className="text-base sm:text-lg">Mağaza Bilgileri</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Mağaza Tipi</p>
-                    <p className="text-sm mt-1">{storeTypeOptions.find(t => t.value === myStore.storeType)?.label || myStore.storeType}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Marka Renkleri</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: myStore.primaryColor }} />
-                      <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: myStore.secondaryColor }} />
-                    </div>
-                  </div>
-                </div>
-
-                {myStore.summary && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Kısa Açıklama</p>
-                    <p className="text-sm mt-1">{myStore.summary}</p>
-                  </div>
-                )}
-
-                {myStore.description && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Detaylı Açıklama</p>
-                    <p className="text-sm mt-1 whitespace-pre-wrap">{myStore.description}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Actions Card */}
-            <Card>
-              <CardHeader className="px-4 py-4 sm:px-6">
-                <CardTitle className="text-base sm:text-lg">İşlemler</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-3">
-                <Link href={`/magaza/${myStore.slug}`}>
-                  <Button variant="outline" className="w-full" data-testid="button-view-public-store">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Mağazayı Görüntüle
-                  </Button>
-                </Link>
-                
-                <Button 
-                  onClick={() => setIsEditing(true)} 
-                  className="w-full"
-                  data-testid="button-edit-store"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Düzenle
-                </Button>
-
-                <Separator />
-
-                <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive" 
-                      className="w-full"
-                      data-testid="button-delete-store"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Mağazayı Sil
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Mağazayı Silmek İstediğinize Emin Misiniz?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Bu işlem geri alınamaz. Mağazanız, tüm medya dosyaları ve takipçileriniz silinecek. 
-                        İlanlarınız silinmeyecek ancak mağazanızla bağlantıları kaldırılacak.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel data-testid="button-cancel-delete">İptal</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => deleteMutation.mutate()}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={deleteMutation.isPending}
-                        data-testid="button-confirm-delete"
-                      >
-                        {deleteMutation.isPending ? "Siliniyor..." : "Evet, Sil"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       )}
     </div>
   );
+}
+
+export default function MyStore() {
+  const { data: myStore, isLoading } = useQuery<any>({
+    queryKey: ["/api/store/my/dashboard"],
+  });
+
+  const { data: categories = [] } = useQuery<StoreCategory[]>({
+    queryKey: ["/api/store-categories"],
+  });
+
+  const hasStore = !!myStore && !('message' in myStore);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4 max-w-3xl mx-auto">
+          <div className="h-8 w-48 bg-muted rounded mx-auto" />
+          <div className="h-4 w-64 bg-muted rounded mx-auto" />
+          <div className="h-64 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasStore) {
+    return <StoreCreationWizard categories={categories} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] })} />;
+  }
+
+  return <StoreDashboard store={myStore} categories={categories} />;
 }

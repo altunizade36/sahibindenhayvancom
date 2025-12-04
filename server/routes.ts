@@ -8660,6 +8660,29 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // Check slug availability (MUST be before :slug route)
+  app.get("/api/store/check-slug/:slug", async (req: Request, res: Response) => {
+    try {
+      const { slug } = req.params;
+      
+      if (!slug || slug.length < 3) {
+        return res.json({ available: false, message: "Slug en az 3 karakter olmalı" });
+      }
+      
+      const existingStore = await db.query.stores.findFirst({
+        where: eq(stores.slug, slug.toLowerCase()),
+      });
+      
+      res.json({ 
+        available: !existingStore,
+        message: existingStore ? "Bu URL zaten kullanılıyor" : "Bu URL kullanılabilir"
+      });
+    } catch (error) {
+      console.error("Error checking slug:", error);
+      res.status(500).json({ available: false, message: "Kontrol edilemedi" });
+    }
+  });
+
   // Get single store by slug (public)
   app.get("/api/store/:slug", async (req: Request, res: Response) => {
     try {

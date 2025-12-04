@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { Building2, MapPin, Star, Phone, Mail, Globe, BadgeCheck, MessageCircle, Users, Eye, Calendar, Shield, Zap, Award, Crown, Clock, Heart, HeartOff } from "lucide-react";
+import { Building2, MapPin, Star, Phone, Mail, Globe, BadgeCheck, MessageCircle, Users, Eye, Calendar, Shield, Zap, Award, Crown, Clock, Heart, HeartOff, ExternalLink, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-user";
@@ -23,6 +24,7 @@ const storeTypeLabels: Record<string, string> = {
   horse_riding: "At & Binicilik",
   exotic: "Egzotik Hayvanlar",
   grooming: "Pet Kuaförü",
+  breeding: "Yetiştiricilik",
   other: "Diğer",
 };
 
@@ -34,6 +36,152 @@ const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; colo
   trusted: { icon: Shield, label: "Güvenilir Satıcı", color: "bg-teal-500" },
   premium: { icon: Crown, label: "Premium Satıcı", color: "bg-amber-500" },
 };
+
+function StoreHero({ store }: { store: any }) {
+  const bannerStyle = store.banner 
+    ? { backgroundImage: `url(${store.banner})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : store.bannerTemplate 
+      ? { background: getBannerTemplateStyle(store.bannerTemplate) }
+      : { backgroundColor: store.primaryColor || '#0066CC' };
+
+  return (
+    <div className="relative">
+      <div className="h-32 sm:h-40 md:h-48 lg:h-56 w-full" style={bannerStyle}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+      </div>
+      
+      <div className="container mx-auto px-4">
+        <div className="relative -mt-12 sm:-mt-16 md:-mt-20 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div className="flex-shrink-0">
+              <Avatar className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border-4 border-background shadow-xl bg-background">
+                <AvatarImage src={store.logo || undefined} alt={store.displayName} />
+                <AvatarFallback 
+                  className="text-3xl sm:text-4xl font-bold"
+                  style={{ backgroundColor: store.primaryColor || '#0066CC', color: '#fff' }}
+                >
+                  {store.displayName?.[0]?.toUpperCase() || 'M'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            
+            <div className="flex-1 min-w-0 sm:pb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate" data-testid="text-store-name">
+                  {store.displayName}
+                </h1>
+                {store.verifiedAt && (
+                  <Badge className="bg-primary text-primary-foreground flex-shrink-0">
+                    <BadgeCheck className="w-3.5 h-3.5 mr-1" />
+                    Onaylı
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant="secondary" className="flex-shrink-0">
+                  {storeTypeLabels[store.storeType] || store.storeType}
+                </Badge>
+                {store.city && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="truncate">{store.city}{store.district ? `, ${store.district}` : ''}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getBannerTemplateStyle(templateId: string): string {
+  const templates: Record<string, string> = {
+    'gradient-blue': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'gradient-green': 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    'gradient-orange': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'gradient-dark': 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+    'gradient-sunset': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'gradient-ocean': 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)',
+  };
+  return templates[templateId] || templates['gradient-blue'];
+}
+
+function StoreStats({ store, memberDays }: { store: any; memberDays: number }) {
+  return (
+    <div className="flex flex-wrap gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-md">
+        <Users className="w-4 h-4 text-primary flex-shrink-0" />
+        <span className="font-semibold" data-testid="text-follower-count">{store.followerCount || 0}</span>
+        <span className="text-muted-foreground text-sm hidden sm:inline">Takipçi</span>
+      </div>
+      
+      <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-md">
+        <Eye className="w-4 h-4 text-primary flex-shrink-0" />
+        <span className="font-semibold">{store.viewCount || 0}</span>
+        <span className="text-muted-foreground text-sm hidden sm:inline">Görüntülenme</span>
+      </div>
+      
+      {parseFloat(store.rating) > 0 && (
+        <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-md">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+          <span className="font-semibold">{parseFloat(store.rating).toFixed(1)}</span>
+          <span className="text-muted-foreground text-sm hidden sm:inline">({store.reviewCount})</span>
+        </div>
+      )}
+      
+      {memberDays > 0 && (
+        <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-md">
+          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+          <span className="font-semibold">{memberDays}</span>
+          <span className="text-muted-foreground text-sm hidden sm:inline">gün</span>
+        </div>
+      )}
+
+      <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-md">
+        <Package className="w-4 h-4 text-primary flex-shrink-0" />
+        <span className="font-semibold">{store.listings?.length || store.totalListings || 0}</span>
+        <span className="text-muted-foreground text-sm hidden sm:inline">İlan</span>
+      </div>
+    </div>
+  );
+}
+
+function ListingCard({ listing }: { listing: any }) {
+  const imageUrl = listing.images?.[0] || null;
+  
+  return (
+    <Link href={`/ilan/${listing.id}`}>
+      <Card className="hover-elevate active-elevate-2 cursor-pointer h-full overflow-hidden">
+        <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={listing.title} 
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="w-12 h-12 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        <CardContent className="p-3 sm:p-4">
+          <h3 className="font-semibold mb-2 line-clamp-2 text-sm sm:text-base min-h-[2.5rem]">{listing.title}</h3>
+          <p className="text-lg sm:text-xl font-bold text-primary mb-1">
+            {parseFloat(listing.price).toLocaleString('tr-TR')} ₺
+          </p>
+          <p className="text-xs text-muted-foreground truncate">
+            {listing.city}{listing.district ? `, ${listing.district}` : ''}
+          </p>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export default function StoreDetail() {
   const [, params] = useRoute("/magaza/:slug");
@@ -79,11 +227,7 @@ export default function StoreDetail() {
       toast({ title: "Mağaza takip edildi" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Hata", 
-        description: error.message || "Takip edilemedi",
-        variant: "destructive" 
-      });
+      toast({ title: "Hata", description: error.message || "Takip edilemedi", variant: "destructive" });
     },
   });
 
@@ -97,11 +241,7 @@ export default function StoreDetail() {
       toast({ title: "Takipten çıkıldı" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Hata", 
-        description: error.message || "Takipten çıkılamadı",
-        variant: "destructive" 
-      });
+      toast({ title: "Hata", description: error.message || "Takipten çıkılamadı", variant: "destructive" });
     },
   });
 
@@ -116,21 +256,22 @@ export default function StoreDetail() {
       setRating(5);
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Hata", 
-        description: error.message || "Değerlendirme gönderilemedi",
-        variant: "destructive" 
-      });
+      toast({ title: "Hata", description: error.message || "Değerlendirme gönderilemedi", variant: "destructive" });
     },
   });
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Skeleton className="h-64 w-full" />
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-1/3 mb-4" />
-          <Skeleton className="h-4 w-2/3 mb-8" />
+        <Skeleton className="h-40 sm:h-48 w-full" />
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex gap-4 mb-6">
+            <Skeleton className="w-28 h-28 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-8 w-1/3" />
+              <Skeleton className="h-4 w-1/4" />
+            </div>
+          </div>
           <Skeleton className="h-64 w-full" />
         </div>
       </div>
@@ -140,9 +281,12 @@ export default function StoreDetail() {
   if (!store) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Building2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+        <div className="text-center p-6">
+          <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Building2 className="w-10 h-10 text-muted-foreground" />
+          </div>
           <h2 className="text-2xl font-bold mb-2">Mağaza bulunamadı</h2>
+          <p className="text-muted-foreground mb-6">Bu mağaza mevcut değil veya kaldırılmış olabilir.</p>
           <Link href="/magazalar">
             <Button data-testid="button-back-stores">Mağazalara Dön</Button>
           </Link>
@@ -158,89 +302,13 @@ export default function StoreDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div 
-        className="h-48 sm:h-64 relative"
-        style={{ 
-          backgroundColor: store.banner ? undefined : store.primaryColor,
-          backgroundImage: store.banner ? `url(${store.banner})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        
-        <div className="absolute bottom-0 left-0 right-0">
-          <div className="container mx-auto px-3 sm:px-4 pb-4 sm:pb-6">
-            <div className="flex items-end gap-3 sm:gap-6">
-              <div 
-                className="w-20 h-20 sm:w-32 sm:h-32 flex-shrink-0 rounded-lg bg-white dark:bg-gray-800 border-4 border-white dark:border-gray-800 flex items-center justify-center shadow-xl"
-              >
-                {store.logo ? (
-                  <img src={store.logo} alt={store.displayName} className="w-full h-full object-cover rounded-lg" />
-                ) : (
-                  <Building2 className="w-10 h-10 sm:w-16 sm:h-16" style={{ color: store.primaryColor }} />
-                )}
-              </div>
+      <StoreHero store={store} />
 
-              <div className="flex-1 text-white min-w-0 mb-2 sm:mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1 sm:mb-2">
-                  <h1 className="text-xl sm:text-3xl font-bold truncate" data-testid="text-store-name">{store.displayName}</h1>
-                  {store.verifiedAt && (
-                    <Badge className="bg-white/90 text-primary w-fit">
-                      <BadgeCheck className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                      Onaylı
-                    </Badge>
-                  )}
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                  <Badge variant="secondary" className="text-xs">{storeTypeLabels[store.storeType]}</Badge>
-                  {store.city && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="truncate">{store.city}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6 text-sm">
-          <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1.5 rounded-md">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="font-medium" data-testid="text-follower-count">{store.followerCount || 0}</span>
-            <span className="text-muted-foreground">Takipçi</span>
-          </div>
-          
-          <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1.5 rounded-md">
-            <Eye className="w-4 h-4 text-primary" />
-            <span className="font-medium">{store.viewCount || 0}</span>
-            <span className="text-muted-foreground">Görüntülenme</span>
-          </div>
-          
-          {parseFloat(store.rating) > 0 && (
-            <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1.5 rounded-md">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{parseFloat(store.rating).toFixed(1)}</span>
-              <span className="text-muted-foreground">({store.reviewCount} değerlendirme)</span>
-            </div>
-          )}
-          
-          {memberDays > 0 && (
-            <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1.5 rounded-md">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="font-medium">{memberDays}</span>
-              <span className="text-muted-foreground">gündür üye</span>
-            </div>
-          )}
-        </div>
+      <div className="container mx-auto px-4 py-4 sm:py-6">
+        <StoreStats store={store} memberDays={memberDays} />
 
         {storeBadges.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+          <div className="flex flex-wrap gap-2 mt-4">
             {storeBadges.map((badge: string) => {
               const config = badgeConfig[badge];
               if (!config) return null;
@@ -256,14 +324,13 @@ export default function StoreDetail() {
         )}
 
         {!isOwner && user && (
-          <div className="mb-4 sm:mb-6">
+          <div className="mt-4">
             {isFollowing?.following ? (
               <Button
                 variant="outline"
                 onClick={() => unfollowMutation.mutate()}
                 disabled={unfollowMutation.isPending}
                 data-testid="button-unfollow"
-                className="w-full sm:w-auto"
               >
                 <HeartOff className="w-4 h-4 mr-2" />
                 {unfollowMutation.isPending ? "İşleniyor..." : "Takipten Çık"}
@@ -273,7 +340,6 @@ export default function StoreDetail() {
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
                 data-testid="button-follow"
-                className="w-full sm:w-auto"
               >
                 <Heart className="w-4 h-4 mr-2" />
                 {followMutation.isPending ? "İşleniyor..." : "Takip Et"}
@@ -282,43 +348,43 @@ export default function StoreDetail() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           <div className="lg:col-span-2">
             <Tabs defaultValue="about">
-              <TabsList className="w-full">
-                <TabsTrigger value="about" className="flex-1 text-xs sm:text-sm" data-testid="tab-about">Hakkında</TabsTrigger>
-                <TabsTrigger value="listings" className="flex-1 text-xs sm:text-sm" data-testid="tab-listings">
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="about" className="text-xs sm:text-sm" data-testid="tab-about">Hakkında</TabsTrigger>
+                <TabsTrigger value="listings" className="text-xs sm:text-sm" data-testid="tab-listings">
                   İlanlar ({store.listings?.length || 0})
                 </TabsTrigger>
-                <TabsTrigger value="reviews" className="flex-1 text-xs sm:text-sm" data-testid="tab-reviews">
-                  Değerlendirmeler ({store.reviewCount})
+                <TabsTrigger value="reviews" className="text-xs sm:text-sm" data-testid="tab-reviews">
+                  Yorumlar ({store.reviewCount || 0})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="about" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+              <TabsContent value="about" className="space-y-4 mt-4">
                 <Card>
-                  <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                    <CardTitle className="text-base sm:text-lg">Mağaza Hakkında</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Mağaza Hakkında</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-                    <p className="text-sm sm:text-base whitespace-pre-wrap">
+                  <CardContent>
+                    <p className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed">
                       {store.description || store.summary || "Henüz açıklama eklenmemiş."}
                     </p>
                   </CardContent>
                 </Card>
 
-                {store.storeType === "veterinary" && store.workingHours && (
+                {store.storeType === "veterinary" && store.workingHours && Array.isArray(store.workingHours) && store.workingHours.length > 0 && (
                   <Card>
-                    <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         Çalışma Saatleri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+                    <CardContent>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {(store.workingHours as any[]).map((hours: any, idx: number) => (
-                          <div key={idx} className="flex justify-between text-sm py-1 border-b last:border-0">
+                        {store.workingHours.map((hours: any, idx: number) => (
+                          <div key={idx} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                             <span className="font-medium">{hours.day}</span>
                             <span className="text-muted-foreground">{hours.open} - {hours.close}</span>
                           </div>
@@ -328,14 +394,14 @@ export default function StoreDetail() {
                   </Card>
                 )}
 
-                {store.services && (store.services as string[]).length > 0 && (
+                {store.services && Array.isArray(store.services) && store.services.length > 0 && (
                   <Card>
-                    <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                      <CardTitle className="text-base sm:text-lg">Sunulan Hizmetler</CardTitle>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Sunulan Hizmetler</CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+                    <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {(store.services as string[]).map((service: string, idx: number) => (
+                        {store.services.map((service: string, idx: number) => (
                           <Badge key={idx} variant="outline">{service}</Badge>
                         ))}
                       </div>
@@ -343,14 +409,14 @@ export default function StoreDetail() {
                   </Card>
                 )}
 
-                {store.specializations && (store.specializations as string[]).length > 0 && (
+                {store.specializations && Array.isArray(store.specializations) && store.specializations.length > 0 && (
                   <Card>
-                    <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                      <CardTitle className="text-base sm:text-lg">Uzmanlık Alanları</CardTitle>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Uzmanlık Alanları</CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+                    <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {(store.specializations as string[]).map((spec: string, idx: number) => (
+                        {store.specializations.map((spec: string, idx: number) => (
                           <Badge key={idx} variant="secondary">{spec}</Badge>
                         ))}
                       </div>
@@ -359,53 +425,40 @@ export default function StoreDetail() {
                 )}
               </TabsContent>
 
-              <TabsContent value="listings" className="mt-4 sm:mt-6">
+              <TabsContent value="listings" className="mt-4">
                 {store.listings && store.listings.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {store.listings.map((listing: any) => (
-                      <Link key={listing.id} href={`/ilan/${listing.id}`}>
-                        <Card className="hover-elevate active-elevate-2 cursor-pointer">
-                          <CardContent className="p-3 sm:p-4">
-                            <h3 className="font-semibold mb-2 line-clamp-2 text-sm sm:text-base">{listing.title}</h3>
-                            <p className="text-lg sm:text-2xl font-bold text-primary mb-2">
-                              {parseFloat(listing.price).toLocaleString('tr-TR')} ₺
-                            </p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              {listing.city}, {listing.district}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                      <ListingCard key={listing.id} listing={listing} />
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    Bu mağazada henüz ilan yok
-                  </div>
+                  <Card className="p-8 text-center">
+                    <Package className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
+                    <p className="text-muted-foreground">Bu mağazada henüz ilan yok</p>
+                  </Card>
                 )}
               </TabsContent>
 
-              <TabsContent value="reviews" className="mt-4 sm:mt-6 space-y-4">
+              <TabsContent value="reviews" className="mt-4 space-y-4">
                 {user && !isOwner && (
                   <Card>
-                    <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                      <CardTitle className="text-base sm:text-lg">Değerlendirme Yaz</CardTitle>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Değerlendirme Yaz</CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
+                    <CardContent className="space-y-4">
                       <div>
                         <Label className="text-sm">Puanlama</Label>
-                        <div className="flex gap-1.5 sm:gap-2 mt-2">
+                        <div className="flex gap-1.5 mt-2">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
                               type="button"
                               onClick={() => setRating(star)}
-                              className="focus:outline-none"
+                              className="focus:outline-none hover:scale-110 transition-transform"
                               data-testid={`button-rating-${star}`}
                             >
-                              <Star 
-                                className={`w-6 h-6 sm:w-8 sm:h-8 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                              />
+                              <Star className={`w-7 h-7 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} />
                             </button>
                           ))}
                         </div>
@@ -417,6 +470,7 @@ export default function StoreDetail() {
                           value={comment}
                           onChange={(e) => setComment(e.target.value)}
                           rows={4}
+                          className="mt-1.5"
                           data-testid="input-review-comment"
                         />
                       </div>
@@ -424,7 +478,6 @@ export default function StoreDetail() {
                         onClick={() => reviewMutation.mutate({ rating, comment })}
                         disabled={reviewMutation.isPending || !comment.trim()}
                         data-testid="button-submit-review"
-                        className="w-full sm:w-auto"
                       >
                         {reviewMutation.isPending ? "Gönderiliyor..." : "Değerlendirme Gönder"}
                       </Button>
@@ -435,24 +488,31 @@ export default function StoreDetail() {
                 {store.reviews && store.reviews.length > 0 ? (
                   store.reviews.map((review: any) => (
                     <Card key={review.id}>
-                      <CardContent className="p-3 sm:p-4">
+                      <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <p className="font-semibold text-sm sm:text-base">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            <AvatarImage src={review.reviewerProfileImage} />
+                            <AvatarFallback>{(review.reviewerFirstName?.[0] || 'A').toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-sm">
                                 {review.reviewerFirstName || review.reviewerLastName 
                                   ? `${review.reviewerFirstName || ''} ${review.reviewerLastName || ''}`.trim() 
                                   : "Anonim"}
                               </p>
                               <div className="flex">
-                                {[...Array(review.rating)].map((_, i) => (
-                                  <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                                  />
                                 ))}
                               </div>
                             </div>
-                            {review.comment && <p className="text-xs sm:text-sm">{review.comment}</p>}
+                            {review.comment && <p className="text-sm mt-2 leading-relaxed">{review.comment}</p>}
                             <p className="text-xs text-muted-foreground mt-2">
-                              {new Date(review.createdAt).toLocaleDateString('tr-TR')}
+                              {new Date(review.createdAt).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </p>
                           </div>
                         </div>
@@ -460,73 +520,78 @@ export default function StoreDetail() {
                     </Card>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    Henüz değerlendirme yok
-                  </div>
+                  <Card className="p-8 text-center">
+                    <Star className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
+                    <p className="text-muted-foreground">Henüz değerlendirme yok</p>
+                  </Card>
                 )}
               </TabsContent>
             </Tabs>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4">
             <Card>
-              <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                <CardTitle className="text-base sm:text-lg">İletişim Bilgileri</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">İletişim Bilgileri</CardTitle>
               </CardHeader>
-              <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-3">
+              <CardContent className="space-y-3">
                 {store.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <a href={`tel:${store.phone}`} className="hover:underline truncate" data-testid="link-phone">{store.phone}</a>
-                  </div>
+                  <a href={`tel:${store.phone}`} className="flex items-center gap-3 p-2 rounded-md hover-elevate">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm truncate" data-testid="link-phone">{store.phone}</span>
+                  </a>
                 )}
                 {store.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <a href={`mailto:${store.email}`} className="hover:underline truncate" data-testid="link-email">{store.email}</a>
-                  </div>
+                  <a href={`mailto:${store.email}`} className="flex items-center gap-3 p-2 rounded-md hover-elevate">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm truncate" data-testid="link-email">{store.email}</span>
+                  </a>
                 )}
                 {store.website && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate" data-testid="link-website">
-                      Website
-                    </a>
-                  </div>
+                  <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 rounded-md hover-elevate">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm truncate" data-testid="link-website">Website</span>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto flex-shrink-0" />
+                  </a>
                 )}
                 {store.address && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <p>{store.address}</p>
+                  <div className="flex items-start gap-3 p-2">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="text-sm">{store.address}</p>
                   </div>
                 )}
                 {!store.phone && !store.email && !store.website && !store.address && (
-                  <p className="text-sm text-muted-foreground">İletişim bilgisi eklenmemiş</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">İletişim bilgisi eklenmemiş</p>
                 )}
               </CardContent>
             </Card>
 
             {store.owner && (
               <Card>
-                <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
-                  <CardTitle className="text-base sm:text-lg">Mağaza Sahibi</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Mağaza Sahibi</CardTitle>
                 </CardHeader>
-                <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {store.owner.profileImageUrl ? (
-                        <img src={store.owner.profileImageUrl} alt="" className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <span className="text-base sm:text-lg font-bold text-primary">
-                          {(store.owner.firstName?.[0] || store.owner.username?.[0] || 'M').toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm sm:text-base truncate" data-testid="text-owner-name">
+                <CardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={store.owner.profileImageUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {(store.owner.firstName?.[0] || store.owner.username?.[0] || 'M').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate" data-testid="text-owner-name">
                         {`${store.owner.firstName || ''} ${store.owner.lastName || ''}`.trim() || store.owner.username || 'Mağaza Sahibi'}
                       </p>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">@{store.owner.username}</p>
+                      <p className="text-sm text-muted-foreground truncate">@{store.owner.username}</p>
                     </div>
                   </div>
                   {!isOwner && user && (
