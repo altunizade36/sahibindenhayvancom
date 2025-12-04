@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2 } from "lucide-react";
+import { Plus, User, LogOut, Settings, Heart, MessageSquare, Menu, Bell, Search, X, Store, Shield, Building2 } from "lucide-react";
 import { NotificationDropdown } from "@/components/notification-dropdown";
 import { Logo } from "@/components/logo";
 
