@@ -102,18 +102,6 @@ export function Navbar() {
                         İlanlar
                       </Button>
                     </Link>
-                    <Link href="/acik-artirmalar">
-                      <Button variant={location.startsWith("/acik-artirma") ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-auctions">
-                        <Gavel className="w-4 h-4 mr-3" />
-                        Açık Artırma
-                      </Button>
-                    </Link>
-                    <Link href="/canli-yayinlar">
-                      <Button variant={location.startsWith("/canli-yayin") ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-streams">
-                        <Radio className="w-4 h-4 mr-3" />
-                        Canlı Yayın
-                      </Button>
-                    </Link>
                     <Link href="/magazalar">
                       <Button variant={location.startsWith("/magaza") ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-stores">
                         <Store className="w-4 h-4 mr-3" />
@@ -234,14 +222,6 @@ export function Navbar() {
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
             <Link href="/ilanlar" className={`text-sm hover:text-primary transition-colors ${location === "/ilanlar" ? "text-primary font-medium" : ""}`} data-testid="link-listings">
               İlanlar
-            </Link>
-            <Link href="/acik-artirmalar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/acik-artirma") ? "text-primary font-medium" : ""}`} data-testid="link-auctions">
-              <Gavel className="w-3.5 h-3.5" />
-              Açık Artırma
-            </Link>
-            <Link href="/canli-yayinlar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/canli-yayin") ? "text-primary font-medium" : ""}`} data-testid="link-streams">
-              <Radio className="w-3.5 h-3.5" />
-              Canlı Yayın
             </Link>
             <Link href="/magazalar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/magaza") ? "text-primary font-medium" : ""}`} data-testid="link-stores">
               <Store className="w-3.5 h-3.5" />

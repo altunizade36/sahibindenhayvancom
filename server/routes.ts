@@ -6484,6 +6484,48 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  // General contact form (public)
+  app.post("/api/contact", async (req: Request, res: Response) => {
+    try {
+      const { name, email, phone, subject, message } = req.body;
+
+      // Validate required fields
+      if (!name || !email || !subject || !message) {
+        return res.status(400).json({ message: "Lütfen tüm gerekli alanları doldurun" });
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Geçerli bir e-posta adresi girin" });
+      }
+
+      // Log the contact form submission (in production, you'd store in DB or send email)
+      console.log("📧 Contact form submission:", {
+        name,
+        email,
+        phone: phone || "N/A",
+        subject,
+        message: message.substring(0, 100) + "...",
+        timestamp: new Date().toISOString(),
+        ip: req.ip || req.socket.remoteAddress
+      });
+
+      // In a real app, you'd want to:
+      // 1. Store in database
+      // 2. Send email notification to admin
+      // For now, just log and respond success
+
+      res.status(201).json({ 
+        message: "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
+        success: true
+      });
+    } catch (error) {
+      console.error("Failed to process contact form:", error);
+      res.status(500).json({ message: "Mesaj gönderilemedi. Lütfen tekrar deneyin." });
+    }
+  });
+
   // ============ Offer Routes (Make Offer feature) ============
 
   // Get offers for a listing (seller view only)

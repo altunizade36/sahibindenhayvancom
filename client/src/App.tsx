@@ -73,6 +73,8 @@ const GizlilikPolitikasi = lazy(() => import("@/pages/legal/gizlilik-politikasi"
 const CerezPolitikasi = lazy(() => import("@/pages/legal/cerez-politikasi"));
 const IlanKurallari = lazy(() => import("@/pages/legal/ilan-kurallari"));
 const KVKK = lazy(() => import("@/pages/legal/kvkk"));
+const Yardim = lazy(() => import("@/pages/yardim"));
+const Iletisim = lazy(() => import("@/pages/iletisim"));
 
 // Loading fallback component
 function PageLoader() {
@@ -183,6 +185,8 @@ function NoSidebarLayout() {
           <Route path="/cerez-politikasi">{() => <LazyRoute component={CerezPolitikasi} />}</Route>
           <Route path="/ilan-kurallari">{() => <LazyRoute component={IlanKurallari} />}</Route>
           <Route path="/kvkk">{() => <LazyRoute component={KVKK} />}</Route>
+          <Route path="/yardim">{() => <LazyRoute component={Yardim} />}</Route>
+          <Route path="/iletisim">{() => <LazyRoute component={Iletisim} />}</Route>
         </Switch>
       </main>
     </div>
@@ -224,7 +228,9 @@ function Router() {
                            location.startsWith('/gizlilik-politikasi') ||
                            location.startsWith('/cerez-politikasi') ||
                            location.startsWith('/ilan-kurallari') ||
-                           location.startsWith('/kvkk');
+                           location.startsWith('/kvkk') ||
+                           location.startsWith('/yardim') ||
+                           location.startsWith('/iletisim');
   
   // Mobilde sidebar kapalı, desktop'ta açık olsun
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
