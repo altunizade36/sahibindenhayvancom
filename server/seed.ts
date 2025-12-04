@@ -37,7 +37,11 @@ export async function seedDatabase() {
       return true;
     });
     
-    console.log(`  📁 Unique categories from hierarchy: ${uniqueCategories.length}`);
+    // Sort categories by depth to ensure parents are inserted before children
+    // This prevents foreign key constraint violations
+    const sortedCategories = [...uniqueCategories].sort((a, b) => a.depth - b.depth);
+    
+    console.log(`  📁 Unique categories from hierarchy: ${uniqueCategories.length} (sorted by depth)`);
     
     // Create a map of valid category IDs from hierarchy
     const validCategoryIds = new Set(uniqueCategories.map(c => c.id));
@@ -62,12 +66,12 @@ export async function seedDatabase() {
       }
     }
     
-    // Insert/Update categories one by one
+    // Insert/Update categories one by one (sorted by depth to avoid FK issues)
     let inserted = 0;
     let updated = 0;
     const existingDbSlugs = new Set(allDbCategories.map(c => c.slug));
     
-    for (const cat of uniqueCategories) {
+    for (const cat of sortedCategories) {
       const isUpdate = existingDbSlugs.has(cat.slug);
       try {
         await db
@@ -96,10 +100,10 @@ export async function seedDatabase() {
       }
       
       if ((inserted + updated) % 100 === 0) {
-        console.log(`  - Processed ${inserted + updated} / ${uniqueCategories.length}`);
+        console.log(`  - Processed ${inserted + updated} / ${sortedCategories.length}`);
       }
     }
-    console.log(`  - Processed ${inserted + updated} / ${uniqueCategories.length} (${inserted} new, ${updated} updated)`);
+    console.log(`  - Processed ${inserted + updated} / ${sortedCategories.length} (${inserted} new, ${updated} updated)`);
     
     // Count by depth for stats
     const depth0 = categoriesHierarchy.filter(c => c.depth === 0).length;
