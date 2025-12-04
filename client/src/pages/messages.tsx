@@ -259,7 +259,6 @@ const EMOJI_KEYWORDS: Record<string, string[]> = {
   "🐔": ["tavuk", "chicken"],
   "🐦": ["kuş", "bird"],
   "🐴": ["at", "horse"],
-  "🐶": ["köpek", "dog"],
   "💔": ["kırık kalp", "üzgün", "broken heart"],
   "💕": ["kalpler", "sevgi", "hearts"],
   "🧡": ["turuncu kalp", "orange heart"],
@@ -314,7 +313,7 @@ function EmojiPicker({ onSelect, isOpen, onOpenChange }: EmojiPickerProps) {
     
     const searchLower = emojiSearch.toLowerCase().trim();
     const allEmojis = Object.values(EMOJI_CATEGORIES).flatMap(cat => cat.emojis);
-    const uniqueEmojis = [...new Set(allEmojis)];
+    const uniqueEmojis = Array.from(new Set(allEmojis));
     
     return uniqueEmojis.filter(emoji => {
       const keywords = EMOJI_KEYWORDS[emoji];
