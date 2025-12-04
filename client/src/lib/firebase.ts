@@ -106,11 +106,18 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       return null;
     }
 
-    // Reuse existing verifier if available
+    // Clear any existing verifier first to avoid conflicts
     if (window.recaptchaVerifier) {
-      console.log('Reusing existing reCAPTCHA verifier');
-      return window.recaptchaVerifier;
+      try {
+        window.recaptchaVerifier.clear();
+      } catch {
+        // Silent cleanup
+      }
+      window.recaptchaVerifier = undefined;
     }
+
+    // Clear the container content
+    container.innerHTML = '';
 
     const verifier = new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
@@ -119,6 +126,10 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       },
       'expired-callback': () => {
         console.log('reCAPTCHA expired');
+        window.recaptchaVerifier = undefined;
+      },
+      'error-callback': (error: any) => {
+        console.error('reCAPTCHA error:', error);
         window.recaptchaVerifier = undefined;
       }
     });
