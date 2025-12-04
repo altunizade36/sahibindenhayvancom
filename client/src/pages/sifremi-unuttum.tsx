@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Phone, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Phone, Lock, Loader2, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +36,7 @@ const passwordSchema = z.object({
     .refine((val) => /[0-9]/.test(val), "Şifrede en az bir rakam olmalı"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler aynı değil",
+  message: "Şifreler eşleşmiyor",
   path: ["confirmPassword"],
 });
 
@@ -56,7 +56,6 @@ export default function ForgotPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const recaptchaInitialized = useRef(false);
 
-  // Setup Firebase reCAPTCHA
   useEffect(() => {
     const initRecaptcha = () => {
       const container = document.getElementById('recaptcha-container');
@@ -75,7 +74,6 @@ export default function ForgotPassword() {
     };
   }, []);
 
-  // Countdown timer
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -96,18 +94,9 @@ export default function ForgotPassword() {
     },
   });
 
-  const formatPhoneDisplay = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 4) return digits;
-    if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
-    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
-  };
-
-  // Step 1: Send OTP
   const onPhoneSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     try {
-      // Check if phone exists
       const checkRes = await fetch('/api/auth/check-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,7 +116,6 @@ export default function ForgotPassword() {
         }
       }
 
-      // Reinitialize reCAPTCHA
       cleanupRecaptcha();
       recaptchaInitialized.current = false;
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -148,20 +136,19 @@ export default function ForgotPassword() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "SMS gönderilemedi.",
+        description: error.message || "SMS gönderilemedi. Lütfen tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Step 2: Verify OTP
   const verifyOtp = async () => {
     if (otpCode.length !== 6) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen 6 haneli kodu girin.",
+        description: "Lütfen 6 haneli kodu eksiksiz girin.",
       });
       return;
     }
@@ -179,14 +166,13 @@ export default function ForgotPassword() {
       toast({
         variant: "destructive",
         title: "Doğrulama Başarısız",
-        description: error.message || "Kod hatalı veya süresi dolmuş.",
+        description: error.message || "Kod hatalı veya süresi dolmuş. Tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Step 3: Set new password
   const onPasswordSubmit = async (data: PasswordForm) => {
     setIsLoading(true);
     try {
@@ -199,13 +185,13 @@ export default function ForgotPassword() {
       
       toast({
         title: "Şifre Güncellendi",
-        description: "Yeni şifreniz kaydedildi.",
+        description: "Yeni şifreniz başarıyla kaydedildi.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "Şifre güncellenemedi.",
+        description: error.message || "Şifre güncellenemedi. Lütfen tekrar deneyin.",
       });
     } finally {
       setIsLoading(false);
@@ -229,7 +215,7 @@ export default function ForgotPassword() {
       setOtpCode("");
       toast({
         title: "Kod Yeniden Gönderildi",
-        description: "Yeni doğrulama kodu gönderildi.",
+        description: "Yeni doğrulama kodu telefonunuza gönderildi.",
       });
     } catch (error: any) {
       toast({
@@ -242,75 +228,111 @@ export default function ForgotPassword() {
     }
   };
 
-  const getStepTitle = () => {
+  const getStepInfo = () => {
     switch (step) {
-      case "phone": return "Şifremi Unuttum";
-      case "otp": return "Telefon Doğrulama";
-      case "password": return "Yeni Şifre";
-      case "complete": return "Şifre Güncellendi";
+      case "phone":
+        return { 
+          title: "Şifremi Unuttum", 
+          description: "Kayıtlı telefon numaranızı girin",
+          stepNumber: 1
+        };
+      case "otp":
+        return { 
+          title: "Telefon Doğrulama", 
+          description: `${phone} numarasına gönderilen kodu girin`,
+          stepNumber: 2
+        };
+      case "password":
+        return { 
+          title: "Yeni Şifre", 
+          description: "Yeni şifrenizi belirleyin",
+          stepNumber: 3
+        };
+      case "complete":
+        return { 
+          title: "Şifre Güncellendi", 
+          description: "Yeni şifrenizle giriş yapabilirsiniz",
+          stepNumber: 4
+        };
     }
   };
 
-  const getStepDescription = () => {
-    switch (step) {
-      case "phone": return "Kayıtlı telefon numaranızı girin";
-      case "otp": return "Telefonunuza gönderilen 6 haneli kodu girin";
-      case "password": return "Yeni şifrenizi belirleyin";
-      case "complete": return "Şifreniz başarıyla güncellendi!";
-    }
-  };
+  const stepInfo = getStepInfo();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div id="recaptcha-container" className="fixed top-0 left-0"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <div id="recaptcha-container" className="fixed top-0 left-0 z-50"></div>
       
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+      <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="text-center space-y-4 pb-2">
+          <div className="flex justify-center">
             <LogoFull />
           </div>
           
-          {/* Progress Steps */}
           {step !== "complete" && (
-            <div className="flex justify-center gap-2 mb-4">
-              <div className={`h-2 w-12 rounded-full ${step === "phone" ? "bg-primary" : "bg-primary/30"}`} />
-              <div className={`h-2 w-12 rounded-full ${step === "otp" ? "bg-primary" : step === "password" ? "bg-primary" : "bg-muted"}`} />
-              <div className={`h-2 w-12 rounded-full ${step === "password" ? "bg-primary" : "bg-muted"}`} />
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3].map((s) => (
+                <div
+                  key={s}
+                  className={`h-2 w-16 rounded-full transition-all duration-300 ${
+                    s < stepInfo.stepNumber 
+                      ? "bg-primary" 
+                      : s === stepInfo.stepNumber 
+                        ? "bg-primary animate-pulse" 
+                        : "bg-muted"
+                  }`}
+                />
+              ))}
             </div>
           )}
           
-          <CardTitle className="text-3xl font-bold" data-testid="text-title">
-            {getStepTitle()}
-          </CardTitle>
-          <CardDescription className="text-base mt-2" data-testid="text-description">
-            {getStepDescription()}
-          </CardDescription>
+          <div>
+            <CardTitle className="text-2xl font-bold" data-testid="text-title">
+              {stepInfo.title}
+            </CardTitle>
+            <CardDescription className="text-base mt-2" data-testid="text-description">
+              {stepInfo.description}
+            </CardDescription>
+          </div>
         </CardHeader>
         
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 pt-4">
           {/* Step 1: Phone */}
           {step === "phone" && (
             <Form {...phoneForm}>
               <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4" data-testid="form-phone">
+                <div className="flex justify-center py-4">
+                  <div className="bg-primary/10 rounded-full p-4">
+                    <KeyRound className="w-8 h-8 text-primary" />
+                  </div>
+                </div>
+
                 <FormField
                   control={phoneForm.control}
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefon Numarası</FormLabel>
+                      <FormLabel className="text-sm font-medium">Telefon Numarası</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <div className="relative group">
+                          <div className="absolute left-0 top-0 bottom-0 w-16 bg-muted/50 rounded-l-md flex items-center justify-center border-r">
+                            <span className="text-sm font-medium text-muted-foreground">+90</span>
+                          </div>
                           <Input
                             {...field}
                             type="tel"
-                            placeholder="0532 123 45 67"
-                            className="pl-10 h-11 text-lg tracking-wide"
+                            placeholder="532 123 45 67"
+                            className="pl-20 h-12 text-base tracking-wide transition-all focus:ring-2 focus:ring-primary/20"
                             onChange={(e) => {
                               const value = e.target.value.replace(/[^\d\s]/g, '');
                               const digits = value.replace(/\s/g, '');
-                              if (digits.length <= 11) {
-                                field.onChange(formatPhoneDisplay(digits));
+                              if (digits.length <= 10) {
+                                const formatted = digits.length <= 3 
+                                  ? digits 
+                                  : digits.length <= 6 
+                                    ? `${digits.slice(0, 3)} ${digits.slice(3)}`
+                                    : `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
+                                field.onChange(formatted);
                               }
                             }}
                             data-testid="input-phone"
@@ -325,7 +347,7 @@ export default function ForgotPassword() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-11"
+                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                   data-testid="button-send-otp"
                 >
                   {isLoading ? (
@@ -341,11 +363,11 @@ export default function ForgotPassword() {
                 <Button
                   type="button"
                   variant="ghost"
-                  className="w-full"
+                  className="w-full gap-2"
                   onClick={() => setLocation("/giris")}
                   data-testid="button-back-login"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-4 h-4" />
                   Giriş Sayfasına Dön
                 </Button>
               </form>
@@ -355,11 +377,10 @@ export default function ForgotPassword() {
           {/* Step 2: OTP Verification */}
           {step === "otp" && (
             <>
-              <div className="text-center mb-4 p-3 bg-muted/50 rounded-lg">
-                <Phone className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{phone}</span> numarasına kod gönderildi
-                </p>
+              <div className="flex justify-center py-4">
+                <div className="bg-primary/10 rounded-full p-4">
+                  <Phone className="w-8 h-8 text-primary" />
+                </div>
               </div>
 
               <div className="flex justify-center">
@@ -367,15 +388,17 @@ export default function ForgotPassword() {
                   maxLength={6}
                   value={otpCode}
                   onChange={setOtpCode}
+                  className="gap-2"
                   data-testid="input-otp"
                 >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
+                  <InputOTPGroup className="gap-2">
+                    {[0, 1, 2, 3, 4, 5].map((index) => (
+                      <InputOTPSlot 
+                        key={index} 
+                        index={index} 
+                        className="w-12 h-14 text-xl font-bold border-2 rounded-lg"
+                      />
+                    ))}
                   </InputOTPGroup>
                 </InputOTP>
               </div>
@@ -383,20 +406,20 @@ export default function ForgotPassword() {
               <Button
                 onClick={verifyOtp}
                 disabled={isLoading || otpCode.length !== 6}
-                className="w-full h-11"
+                className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                 data-testid="button-verify-otp"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <span>Doğrula</span>
+                    <span>Doğrula ve Devam Et</span>
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
               </Button>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between pt-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -404,8 +427,10 @@ export default function ForgotPassword() {
                     setStep("phone");
                     setOtpCode("");
                   }}
+                  className="gap-1"
                   data-testid="button-back"
                 >
+                  <ArrowLeft className="w-4 h-4" />
                   Geri
                 </Button>
                 
@@ -414,13 +439,14 @@ export default function ForgotPassword() {
                   size="sm"
                   onClick={resendOtp}
                   disabled={countdown > 0 || isLoading}
+                  className="gap-1"
                   data-testid="button-resend-otp"
                 >
                   {countdown > 0 ? (
-                    <span className="text-muted-foreground">{countdown}s</span>
+                    <span className="text-muted-foreground font-mono">{countdown}s bekleyin</span>
                   ) : (
                     <>
-                      <RefreshCw className="w-3 h-3 mr-1" />
+                      <RefreshCw className="w-3 h-3" />
                       <span>Tekrar Gönder</span>
                     </>
                   )}
@@ -433,27 +459,33 @@ export default function ForgotPassword() {
           {step === "password" && (
             <Form {...passwordForm}>
               <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4" data-testid="form-password">
+                <div className="flex justify-center py-4">
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-4">
+                    <Lock className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+
                 <FormField
                   control={passwordForm.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Yeni Şifre</FormLabel>
+                      <FormLabel className="text-sm font-medium">Yeni Şifre</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             {...field}
                             type={showPassword ? "text" : "password"}
-                            placeholder="En az 8 karakter"
-                            className="pl-10 pr-10"
+                            placeholder="En az 8 karakter, 1 harf, 1 rakam"
+                            className="pl-10 pr-10 h-12"
                             data-testid="input-password"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
                             onClick={() => setShowPassword(!showPassword)}
                             tabIndex={-1}
                           >
@@ -471,7 +503,7 @@ export default function ForgotPassword() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Şifre Tekrar</FormLabel>
+                      <FormLabel className="text-sm font-medium">Şifre Tekrar</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -479,14 +511,14 @@ export default function ForgotPassword() {
                             {...field}
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Şifrenizi tekrar girin"
-                            className="pl-10 pr-10"
+                            className="pl-10 pr-10 h-12"
                             data-testid="input-confirm-password"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-transparent"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             tabIndex={-1}
                           >
@@ -499,7 +531,12 @@ export default function ForgotPassword() {
                   )}
                 />
 
-                <Button type="submit" disabled={isLoading} className="w-full h-11" data-testid="button-reset-password">
+                <Button 
+                  type="submit" 
+                  disabled={isLoading} 
+                  className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                  data-testid="button-reset-password"
+                >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
@@ -516,11 +553,17 @@ export default function ForgotPassword() {
           {/* Step 4: Complete */}
           {step === "complete" && (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
-              <p className="text-muted-foreground mb-4">Şimdi yeni şifrenizle giriş yapabilirsiniz.</p>
-              <Button onClick={() => setLocation("/giris")} data-testid="button-go-login">
+              <h3 className="text-xl font-bold mb-2">Şifreniz Güncellendi!</h3>
+              <p className="text-muted-foreground mb-6">Yeni şifrenizle giriş yapabilirsiniz.</p>
+              <Button 
+                onClick={() => setLocation("/giris")} 
+                className="shadow-lg"
+                data-testid="button-go-login"
+              >
+                <ArrowRight className="w-4 h-4 mr-2" />
                 Giriş Yap
               </Button>
             </div>
