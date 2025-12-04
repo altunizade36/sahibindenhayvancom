@@ -462,6 +462,8 @@ export const listings = pgTable("listings", {
   favoriteCount: integer("favorite_count").default(0),
   shareCount: integer("share_count").default(0),
   allowOffers: boolean("allow_offers").default(true), // Allow "Make Offer" on this listing
+  isExampleListing: boolean("is_example_listing").default(false), // Mark as example/demo listing
+  exampleSource: text("example_source"), // Source URL for price verification
   moderationReason: text("moderation_reason"),
   moderatedBy: varchar("moderated_by").references(() => users.id),
   moderatedAt: timestamp("moderated_at"),

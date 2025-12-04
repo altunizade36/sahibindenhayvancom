@@ -15,9 +15,30 @@ interface ListingCardProps {
     seller?: User; 
     isFavorite?: boolean;
     store?: { id: string; slug: string; displayName: string; logo?: string | null };
+    isExampleListing?: boolean;
   };
   onFavoriteToggle?: () => void;
   variant?: "vertical" | "horizontal";
+}
+
+// Yellow diagonal stripe component for example listings
+function ExampleListingBadge() {
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none z-10 overflow-hidden"
+      data-testid="example-listing-overlay"
+    >
+      <div 
+        className="absolute -right-8 top-4 rotate-45 bg-yellow-500 text-black text-[10px] font-bold py-0.5 px-8 shadow-md"
+        style={{ 
+          transform: 'rotate(45deg)',
+          transformOrigin: 'center'
+        }}
+      >
+        ÖRNEK İLAN
+      </div>
+    </div>
+  );
 }
 
 export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }: ListingCardProps) {
@@ -45,7 +66,8 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
   // Horizontal/List View
   if (variant === "horizontal") {
     return (
-      <Card className="hover-elevate overflow-hidden w-full">
+      <Card className="hover-elevate overflow-hidden w-full relative">
+        {listing.isExampleListing && <ExampleListingBadge />}
         <Link href={`/ilan/${listing.id}`}>
           <div className="flex flex-row relative w-full">
             {/* Image - smaller on very small screens */}
@@ -153,7 +175,8 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
 
   // Vertical/Grid View (Default)
   return (
-    <Card className="hover-elevate overflow-hidden">
+    <Card className="hover-elevate overflow-hidden relative">
+      {listing.isExampleListing && <ExampleListingBadge />}
       <Link href={`/ilan/${listing.id}`}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
