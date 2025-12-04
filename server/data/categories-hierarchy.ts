@@ -623,37 +623,33 @@ categoriesHierarchy.push(susKuslari);
 });
 
 // ========== 7. Sürüngenler ve Amfibiler (Ana Kategori) ==========
-const yilanlar = createCategory("Yılanlar", "ana-yilanlar", "Bug", 0, surungenler.id, 1, [surungenler.id]);
-categoriesHierarchy.push(yilanlar);
+// NOT: Türkiye'de yasaklı/tehlikeli türler (yılanlar, zehirli hayvanlar vb.) kaldırıldı
 
-["Python", "Boa", "Mısır Yılanı", "Kral Yılanı", "Anaconda", "Boa Constrictor"].forEach((type, i) => {
-  categoriesHierarchy.push(
-    createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, yilanlar.id, 2, [surungenler.id, yilanlar.id])
-  );
-});
-
-const kaplumbagalar = createCategory("Kaplumbağalar", "ana-kaplumbagalar", "Turtle", 1, surungenler.id, 1, [surungenler.id]);
+const kaplumbagalar = createCategory("Kaplumbağalar", "ana-kaplumbagalar", "Turtle", 0, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(kaplumbagalar);
 
-["Kara Kaplumbağası", "Su Kaplumbağası", "Hermann Kaplumbağası", "İbrikçi Kaplumbağası", "Rus Kaplumbağası", "Leopar Kaplumbağası"].forEach((type, i) => {
+// Sadece yasal, evcil kaplumbağa türleri
+["Kara Kaplumbağası", "Su Kaplumbağası", "Misk Kaplumbağası"].forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Turtle", i, kaplumbagalar.id, 2, [surungenler.id, kaplumbagalar.id])
   );
 });
 
-const kertenkeleler = createCategory("Kertenkeleler", "ana-kertenkeleler", "Bug", 2, surungenler.id, 1, [surungenler.id]);
+const kertenkeleler = createCategory("Kertenkeleler", "ana-kertenkeleler", "Bug", 1, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(kertenkeleler);
 
-["İguana", "Geko", "Bukalemun", "Kertenkele", "Bearded Dragon", "Tegu", "Skink", "Ejder Kertenkele"].forEach((type, i) => {
+// Sadece yasal evcil türler (İguana, Tegu gibi büyük/egzotik türler kaldırıldı)
+["Geko", "Leopar Gekko", "Bearded Dragon"].forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Bug", i, kertenkeleler.id, 2, [surungenler.id, kertenkeleler.id])
   );
 });
 
-const amfibiAna = createCategory("Amfibiler", "ana-amfibi", "Fish", 3, surungenler.id, 1, [surungenler.id]);
+const amfibiAna = createCategory("Amfibiler", "ana-amfibi", "Fish", 2, surungenler.id, 1, [surungenler.id]);
 categoriesHierarchy.push(amfibiAna);
 
-["Kurbağa", "Aksolotl", "Semender", "Triton", "Ağaç Kurbağası", "Zehirli Ok Kurbağası"].forEach((type, i) => {
+// Zehirli ve egzotik türler kaldırıldı
+["Aksolotl", "Semender"].forEach((type, i) => {
   categoriesHierarchy.push(
     createCategory(type, `ana-${type.toLowerCase().replace(/ /g, "-")}`, "Fish", i, amfibiAna.id, 2, [surungenler.id, amfibiAna.id])
   );

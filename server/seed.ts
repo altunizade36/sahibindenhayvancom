@@ -17,69 +17,101 @@ export async function seedDatabase() {
     const existingBlogPosts = await db.query.blogPosts.findMany({ limit: 1 });
     
     // Seed categories from hierarchical structure (force re-seed to update)
-    const categoryCount = await db.query.categories.findMany({});
-    console.log(`📁 Current categories in DB: ${categoryCount.length}, will seed ${categoriesHierarchy.length} categories`);
+    const allDbCategories = await db.query.categories.findMany({});
+    console.log(`📁 Current categories in DB: ${allDbCategories.length}, will sync with ${categoriesHierarchy.length} categories`);
     
-    // Force re-seed to ensure all categories are loaded
-    if (categoryCount.length < categoriesHierarchy.length) {
-      console.log(`📁 Seeding/updating categories (${categoriesHierarchy.length} total)...`);
+    // Always sync categories to ensure:
+    // 1. New categories are added
+    // 2. Wrong parent relationships are fixed (e.g., Kıl Keçisi in wrong category)
+    // 3. Orphaned categories from old hierarchy are removed
+    console.log(`📁 Syncing categories (${categoriesHierarchy.length} total)...`);
+    
+    // Deduplicate categories by slug (keep first occurrence)
+    const seenSlugs = new Set<string>();
+    const uniqueCategories = categoriesHierarchy.filter(cat => {
+      if (seenSlugs.has(cat.slug)) {
+        console.log(`  ⚠️ Duplicate slug skipped: ${cat.slug}`);
+        return false;
+      }
+      seenSlugs.add(cat.slug);
+      return true;
+    });
+    
+    console.log(`  📁 Unique categories from hierarchy: ${uniqueCategories.length}`);
+    
+    // Create a map of valid category IDs from hierarchy
+    const validCategoryIds = new Set(uniqueCategories.map(c => c.id));
+    const validCategorySlugs = new Set(uniqueCategories.map(c => c.slug));
+    
+    // Find orphaned categories (in DB but not in hierarchy file)
+    const orphanedCategories = allDbCategories.filter(dbCat => !validCategorySlugs.has(dbCat.slug));
+    
+    if (orphanedCategories.length > 0) {
+      console.log(`  🗑️ Found ${orphanedCategories.length} orphaned categories to remove:`);
+      orphanedCategories.forEach(c => console.log(`     - ${c.name} (${c.slug})`));
       
-      // Deduplicate categories by slug (keep first occurrence)
-      const seenSlugs = new Set<string>();
-      const uniqueCategories = categoriesHierarchy.filter(cat => {
-        if (seenSlugs.has(cat.slug)) {
-          console.log(`  ⚠️ Duplicate slug skipped: ${cat.slug}`);
-          return false;
-        }
-        seenSlugs.add(cat.slug);
-        return true;
-      });
-      
-      console.log(`  📁 Unique categories: ${uniqueCategories.length}`);
-      
-      // Insert categories one by one to avoid batch conflict issues
-      let inserted = 0;
-      for (const cat of uniqueCategories) {
+      // First, check if any listings use these categories
+      for (const orphan of orphanedCategories) {
         try {
-          await db
-            .insert(categories)
-            .values(cat)
-            .onConflictDoUpdate({
-              target: categories.slug,
-              set: {
-                name: cat.name,
-                description: cat.description,
-                icon: cat.icon,
-                order: cat.order,
-                parentId: cat.parentId,
-                depth: cat.depth,
-                path: cat.path,
-              },
-            })
-            .execute();
-          inserted++;
+          // Delete orphaned category (listings should cascade or be handled separately)
+          await db.delete(categories).where(eq(categories.id, orphan.id)).execute();
+          console.log(`  ✅ Removed: ${orphan.name}`);
         } catch (err: any) {
-          console.log(`  ⚠️ Error inserting ${cat.slug}: ${err.message}`);
-        }
-        
-        if (inserted % 100 === 0) {
-          console.log(`  - Inserted ${inserted} / ${uniqueCategories.length}`);
+          console.log(`  ⚠️ Could not remove ${orphan.name}: ${err.message}`);
         }
       }
-      console.log(`  - Inserted ${inserted} / ${uniqueCategories.length}`);
-      
-      // Count by depth for stats
-      const depth0 = categoriesHierarchy.filter(c => c.depth === 0).length;
-      const depth1 = categoriesHierarchy.filter(c => c.depth === 1).length;
-      const depth2 = categoriesHierarchy.filter(c => c.depth === 2).length;
-      const depth3 = categoriesHierarchy.filter(c => c.depth === 3).length;
-      
-      console.log(`✅ Categories seeded: ${categoriesHierarchy.length} total`);
-      console.log(`   - Depth 0 (Main): ${depth0}`);
-      console.log(`   - Depth 1: ${depth1}`);
-      console.log(`   - Depth 2: ${depth2}`);
-      console.log(`   - Depth 3: ${depth3}`);
     }
+    
+    // Insert/Update categories one by one
+    let inserted = 0;
+    let updated = 0;
+    const existingDbSlugs = new Set(allDbCategories.map(c => c.slug));
+    
+    for (const cat of uniqueCategories) {
+      const isUpdate = existingDbSlugs.has(cat.slug);
+      try {
+        await db
+          .insert(categories)
+          .values(cat)
+          .onConflictDoUpdate({
+            target: categories.slug,
+            set: {
+              name: cat.name,
+              description: cat.description,
+              icon: cat.icon,
+              order: cat.order,
+              parentId: cat.parentId,
+              depth: cat.depth,
+              path: cat.path,
+            },
+          })
+          .execute();
+        if (isUpdate) {
+          updated++;
+        } else {
+          inserted++;
+        }
+      } catch (err: any) {
+        console.log(`  ⚠️ Error syncing ${cat.slug}: ${err.message}`);
+      }
+      
+      if ((inserted + updated) % 100 === 0) {
+        console.log(`  - Processed ${inserted + updated} / ${uniqueCategories.length}`);
+      }
+    }
+    console.log(`  - Processed ${inserted + updated} / ${uniqueCategories.length} (${inserted} new, ${updated} updated)`);
+    
+    // Count by depth for stats
+    const depth0 = categoriesHierarchy.filter(c => c.depth === 0).length;
+    const depth1 = categoriesHierarchy.filter(c => c.depth === 1).length;
+    const depth2 = categoriesHierarchy.filter(c => c.depth === 2).length;
+    const depth3 = categoriesHierarchy.filter(c => c.depth === 3).length;
+    
+    console.log(`✅ Categories synced: ${uniqueCategories.length} total`);
+    console.log(`   - Depth 0 (Main): ${depth0}`);
+    console.log(`   - Depth 1: ${depth1}`);
+    console.log(`   - Depth 2: ${depth2}`);
+    console.log(`   - Depth 3: ${depth3}`);
     
     // Seed locations (51k+ locations)
     if (existingLocations.length === 0) {
