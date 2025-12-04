@@ -295,7 +295,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Nakliye Aracı",
     healthStatus: "Bakımlı - Ruhsatlı",
     exampleSource: "Türkiye Nakliyeciler 2025",
-    imageFile: "livestock_animal_tra_21cb87b6.jpg"
+    imageFile: "livestock_cattle_tru_4e1f9d72.jpg"
   },
 
   // 16. Tarım ve Kırsal Emlak
@@ -311,7 +311,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Tarım Arazisi",
     healthStatus: "Tapulu - Temiz",
     exampleSource: "Afyon Emlak 2025",
-    imageFile: "farm_land_rural_coun_6074db06.jpg"
+    imageFile: "farmland_rural_agric_c57bff69.jpg"
   },
 
   // 17. Mağazalar (Pet Shop)
@@ -327,7 +327,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Pet Shop",
     healthStatus: "Faal - Ruhsatlı",
     exampleSource: "İzmir Ticaret 2025",
-    imageFile: "pet_shop_store_inter_ea45cc01.jpg"
+    imageFile: "pet_shop_store_with__7fd52f17.jpg"
   },
 
   // 18. Veterinerlik ve Hizmetler
@@ -343,7 +343,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Veteriner Kliniği",
     healthStatus: "Faal - Ruhsatlı",
     exampleSource: "İstanbul Veteriner Odası 2025",
-    imageFile: "veterinary_clinic_do_855b1ed8.jpg"
+    imageFile: "veterinarian_doctor__25a4a5e2.jpg"
   },
 
   // 19. Ekipmanlar ve Aksesuarlar
@@ -359,7 +359,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Pet Aksesuar Seti",
     healthStatus: "Sıfır - Garantili",
     exampleSource: "İstanbul Pet Market 2025",
-    imageFile: "pet_supplies_store_e_11050f3b.jpg"
+    imageFile: "pet_accessories_coll_cc4ab29a.jpg"
   },
 
   // 20. Kayıt & Belgeler
@@ -375,7 +375,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Kayıt Hizmeti",
     healthStatus: "Belgeli",
     exampleSource: "Ankara Veteriner Odası 2025",
-    imageFile: "animal_registration__efa78743.jpg"
+    imageFile: "pet_microchip_scanne_0fa1bd5e.jpg"
   },
 
   // 21. Üretim & İşleme Tesisleri
@@ -391,7 +391,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Süt İşleme",
     healthStatus: "Faal - Ruhsatlı",
     exampleSource: "Burdur Süt Birliği 2025",
-    imageFile: "dairy_processing_fac_3f9167cb.jpg"
+    imageFile: "dairy_milk_processin_8ab3b1da.jpg"
   },
 
   // 22. İnşaat & Yapı
@@ -407,7 +407,7 @@ export const exampleListings: ExampleListing[] = [
     breed: "Ahır Yapımı",
     healthStatus: "Proje Hazır",
     exampleSource: "Eskişehir İnşaat 2025",
-    imageFile: "farm_barn_stable_con_d409495a.jpg"
+    imageFile: "modern_cattle_barn_f_b06bede3.jpg"
   },
 ];
 
