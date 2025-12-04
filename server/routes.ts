@@ -2563,6 +2563,22 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // ============ Category Routes ============
+  // Get main categories (depth=0) for homepage
+  app.get("/api/categories/main", async (_req: Request, res: Response) => {
+    try {
+      const mainCategories = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.depth, 0))
+        .orderBy(categories.order);
+      
+      res.json(mainCategories);
+    } catch (error) {
+      console.error("Error fetching main categories:", error);
+      res.status(500).json({ message: "Failed to fetch main categories" });
+    }
+  });
+
   // Get category statistics (listing count per category) - BEFORE parametric routes
   app.get("/api/categories/stats", async (_req: Request, res: Response) => {
     try {
