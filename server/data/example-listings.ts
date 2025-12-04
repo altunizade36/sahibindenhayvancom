@@ -1,9 +1,10 @@
-// 50+ Gerçekçi Türk Hayvan İlanları - 2024-2025 Güncel Piyasa Fiyatları
-// Kaynak: TÜSEDAD, ESK, İl Tarım Müdürlükleri, Hayvan Borsaları
+// 17 Ana Kategori için Gerçekçi Türk Hayvan İlanları - 2025 Güncel Piyasa Fiyatları
+// Kaynak: TÜSEDAD, ESK, İl Tarım Müdürlükleri, Hayvan Borsaları, Sahibinden.com
 
 export interface ExampleListing {
   id: string;
-  categoryId: string;
+  mainCategory: string;
+  categorySlug: string;
   title: string;
   description: string;
   price: number;
@@ -17,45 +18,58 @@ export interface ExampleListing {
   neutered?: boolean;
   pedigree?: boolean;
   exampleSource?: string;
+  imageFile: string;
 }
 
+// 17 Ana Kategori için Örnek İlanlar - Her Kategoriden 1 Adet
 export const exampleListings: ExampleListing[] = [
-  // ==================== BÜYÜKBAŞ HAYVANLAR ====================
+  // 1. Evcil Hayvanlar - Köpek
   {
-    id: "ex-buyukbas-001",
-    categoryId: "cat-dana",
-    title: "Simental Besi Danası - 380 kg Canlı Ağırlık",
-    description: "Saf kan Simental besi danası. 14 aylık, sağlık karnesi mevcut. Günlük 1.4 kg canlı ağırlık artışı. Konya Organize Sanayi bölgesindeki çiftliğimizden. Veteriner kontrolünden geçmiştir. TÜRKVET kayıtlı.",
-    price: 140000,
-    city: "Konya",
-    district: "Selçuklu",
-    breed: "Simental",
-    age: "14 ay",
+    id: "ex-evcil-kopek-001",
+    mainCategory: "cat-evcil-hayvanlar",
+    categorySlug: "kopek-yavru",
+    title: "Golden Retriever Yavrusu - Soy Belgeli, Aşılı",
+    description: "3 aylık saf kan Golden Retriever yavrusu. FCI soy belgeli, tüm aşıları yapılmış, mikroçipli. Ebeveynler şampiyon soyundan gelme. Altın sarısı tüy rengi, mükemmel karakter yapısı. Çocuklarla harika uyum sağlar. Veteriner sağlık raporu ve aşı karnesi ile teslim. İstanbul içi ücretsiz teslimat.",
+    price: 35000,
+    city: "İstanbul",
+    district: "Beşiktaş",
+    breed: "Golden Retriever",
+    age: "3 ay",
     gender: "Erkek",
-    healthStatus: "Sağlıklı",
+    healthStatus: "Aşılı - Sağlıklı",
     vaccinated: true,
-    exampleSource: "Konya Hayvan Borsası"
+    pedigree: true,
+    exampleSource: "KIF Türkiye 2025",
+    imageFile: "golden_retriever_pup_dc119287.jpg"
   },
+  
+  // 2. Evcil Hayvanlar - Kedi
   {
-    id: "ex-buyukbas-002",
-    categoryId: "cat-duve",
-    title: "Gebe Holstein Düve - 5 Aylık Gebe",
-    description: "Saf kan Holstein düve, 5 aylık gebe. Süt verimi yüksek soydan. Anne günlük 35 litre süt verimine sahip. Aşıları tam, sağlık karnesi mevcut. Suni tohumlama belgesi var.",
-    price: 165000,
-    city: "Balıkesir",
-    district: "Bandırma",
-    breed: "Holstein",
-    age: "26 ay",
+    id: "ex-evcil-kedi-001",
+    mainCategory: "cat-evcil-hayvanlar",
+    categorySlug: "kedi-yavru",
+    title: "British Shorthair Yavrusu - Mavi Renk, TICA Kayıtlı",
+    description: "3 aylık British Shorthair yavrusu, klasik mavi (gri) renk. TICA kayıtlı, bakır göz rengi. Tuvalet eğitimi tamamlanmış, son derece sakin ve sevecen mizaçlı. İlk aşıları ve iç-dış parazit tedavisi yapılmış. Anne-baba her ikisi de şampiyon soyundan. Veteriner kontrolünden geçmiştir.",
+    price: 28000,
+    city: "Ankara",
+    district: "Çankaya",
+    breed: "British Shorthair",
+    age: "3 ay",
     gender: "Dişi",
-    healthStatus: "Gebe - 5 ay",
+    healthStatus: "Aşılı - Sağlıklı",
     vaccinated: true,
-    exampleSource: "Balıkesir Tarım İl Müdürlüğü"
+    pedigree: true,
+    exampleSource: "TICA Türkiye 2025",
+    imageFile: "british_shorthair_gr_08fde7cf.jpg"
   },
+
+  // 3. Çiftlik Hayvanları - Büyükbaş (İnek)
   {
-    id: "ex-buyukbas-003",
-    categoryId: "cat-inek",
-    title: "Süt İneği - Günlük 32 Litre Süt Verimi",
-    description: "4 yaşında Holstein inek. Günlük ortalama 32 litre süt verimi. 2. laktasyonda. Mastitis ve brucella testleri negatif. TÜRKVET kayıtlı, kulak küpesi mevcut.",
+    id: "ex-ciftlik-buyukbas-001",
+    mainCategory: "cat-ciftlik-hayvanlari",
+    categorySlug: "sut-inegi",
+    title: "Holstein Süt İneği - Günlük 32 Litre, 2. Laktasyon",
+    description: "4 yaşında Holstein inek, günlük ortalama 32 litre süt verimi. 2. laktasyonda, mastitis ve brucella testleri negatif. TÜRKVET kayıtlı, kulak küpesi mevcut. Suni tohumlama belgesi var. Sağlık karnesi düzenli tutulmuş. Ciddi alıcılara veteriner raporu ile teslim.",
     price: 195000,
     city: "Bursa",
     district: "Karacabey",
@@ -64,748 +78,331 @@ export const exampleListings: ExampleListing[] = [
     gender: "Dişi",
     healthStatus: "Sağlıklı - Sağımda",
     vaccinated: true,
-    exampleSource: "Bursa Hayvan Borsası"
-  },
-  {
-    id: "ex-buyukbas-004",
-    categoryId: "cat-boga",
-    title: "Damızlık Simental Boğa - Sertifikalı",
-    description: "Sertifikalı damızlık Simental boğa. 3 yaşında, 850 kg canlı ağırlık. Sperm kalitesi test edilmiş. Bakanlık onaylı damızlık belgesi mevcut. Soy ağacı kayıtlı.",
-    price: 320000,
-    city: "Ankara",
-    district: "Polatlı",
-    breed: "Simental",
-    age: "3 yıl",
-    gender: "Erkek",
-    healthStatus: "Damızlık Sertifikalı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Ankara Damızlık Sığır Yetiştiricileri Birliği"
+    exampleSource: "Bursa Hayvan Borsası 2025",
+    imageFile: "holstein_dairy_cow_c_cf1f7e48.jpg"
   },
 
-  // ==================== KÜÇÜKBAŞ HAYVANLAR ====================
+  // 4. Çiftlik Hayvanları - Küçükbaş (Koyun)
   {
-    id: "ex-kucukbas-001",
-    categoryId: "cat-koyun",
-    title: "Merinos Koyun Sürüsü - 50 Baş",
-    description: "50 baş saf kan Merinos koyunu. Yaşları 2-4 arasında. Tamamı gebe durumda. Aşıları ve ilaçlamaları tam. Sürü halinde toptan satılık. Kulak küpeleri kayıtlı.",
-    price: 625000,
+    id: "ex-ciftlik-kucukbas-001",
+    mainCategory: "cat-ciftlik-hayvanlari",
+    categorySlug: "koyun",
+    title: "Merinos Koyun Sürüsü - 25 Baş Gebe, Damızlık",
+    description: "25 baş saf kan Merinos koyunu, tamamı gebe durumda. Yaşları 2-4 arasında. Aşıları ve ilaçlamaları eksiksiz yapılmış. Sürü halinde toptan satılık. Kulak küpeleri TÜRKVET kayıtlı. Yüksek yapağı verimi. Konya bölgesi damızlık birliğinden alınmıştır.",
+    price: 312500,
     city: "Konya",
     district: "Çumra",
     breed: "Merinos",
     age: "2-4 yaş",
     gender: "Dişi",
-    healthStatus: "Gebe",
+    healthStatus: "Gebe - Sağlıklı",
     vaccinated: true,
-    exampleSource: "Konya Koyun Keçi Yetiştiricileri Birliği"
+    exampleSource: "Konya Koyun Keçi Yetiştiricileri Birliği 2025",
+    imageFile: "merino_sheep_flock_f_3d6bd948.jpg"
   },
+
+  // 5. Çiftlik Hayvanları - Küçükbaş (Keçi)
   {
-    id: "ex-kucukbas-002",
-    categoryId: "cat-koyun",
-    title: "İvesi Koyun - Süt Verimi Yüksek",
-    description: "İvesi ırkı koyun, günlük 2 litre süt verimi. 3 yaşında, doğum yapmış. Hem süt hem et için ideal. Koç katımına hazır durumda.",
-    price: 14500,
-    city: "Şanlıurfa",
-    district: "Merkez",
-    breed: "İvesi",
-    age: "3 yıl",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "Şanlıurfa Hayvan Pazarı"
-  },
-  {
-    id: "ex-kucukbas-003",
-    categoryId: "cat-keci",
-    title: "Saanen Keçi Sürüsü - 30 Baş Süt Keçisi",
-    description: "30 baş saf Saanen süt keçisi. Günlük ortalama 3-4 litre süt verimi. Tamamı 2-4 yaş arası. Aşıları tam, sağlık karneleri mevcut. Sürü halinde satılık.",
-    price: 315000,
+    id: "ex-ciftlik-keci-001",
+    mainCategory: "cat-ciftlik-hayvanlari",
+    categorySlug: "keci",
+    title: "Saanen Süt Keçisi - Günlük 4 Litre, Damızlık",
+    description: "3 yaşında saf Saanen süt keçisi, günlük ortalama 4 litre süt verimi. Damızlık sertifikalı. 2 defa doğum yapmış, sağlıklı yavrular vermiş. Sakin mizaçlı, sağıma alışkın. Aşıları tam. Keçi peyniri üretimi veya damızlık için ideal.",
+    price: 11500,
     city: "Muğla",
     district: "Milas",
     breed: "Saanen",
-    age: "2-4 yaş",
+    age: "3 yıl",
     gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "Ege Bölgesi Keçi Yetiştiricileri Birliği"
-  },
-  {
-    id: "ex-kucukbas-004",
-    categoryId: "cat-keci",
-    title: "Ankara (Tiftik) Keçisi - Damızlık",
-    description: "Sertifikalı Ankara tiftik keçisi. 2 yaşında, yılda 4-5 kg tiftik verimi. Damızlık belgeli, soy ağacı kayıtlı. Tiftik kalitesi yüksek.",
-    price: 12000,
-    city: "Ankara",
-    district: "Beypazarı",
-    breed: "Ankara Keçisi",
-    age: "2 yıl",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
+    healthStatus: "Sağlıklı - Sağımda",
     vaccinated: true,
     pedigree: true,
-    exampleSource: "Ankara Tiftik Keçisi Yetiştiricileri Birliği"
-  },
-  {
-    id: "ex-kucukbas-005",
-    categoryId: "cat-kuzu",
-    title: "Besi Kuzusu - 35 kg Canlı",
-    description: "Akkaraman x Merinos melezi besi kuzusu. 4 aylık, 35 kg canlı ağırlık. Günlük 350 gram ağırlık artışı. Toptan alıma uygun, minimum 10 adet.",
-    price: 7500,
-    city: "Afyonkarahisar",
-    district: "Merkez",
-    breed: "Akkaraman x Merinos",
-    age: "4 ay",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "Afyon Hayvan Borsası"
+    exampleSource: "Ege Keçi Yetiştiricileri Birliği 2025",
+    imageFile: "saanen_goat_white_fa_1ccff657.jpg"
   },
 
-  // ==================== KANATLI HAYVANLAR ====================
+  // 6. Kümes ve Süs Kuşları - Tavuk
   {
-    id: "ex-kanatli-001",
-    categoryId: "cat-ciftlik-tavuk",
-    title: "Yumurtacı Tavuk - Lohmann Brown 100 Adet",
-    description: "Lohmann Brown ırkı yumurtacı tavuk. 6 aylık, yumurta verimine yeni başlamış. Günlük %95 yumurta verimi. Kafes sistemi için uygun. Aşıları tam.",
-    price: 22000,
+    id: "ex-kumes-tavuk-001",
+    mainCategory: "cat-kuslar",
+    categorySlug: "ciftlik-tavuk",
+    title: "Lohmann Brown Yumurtacı Tavuk - 100 Adet, Verimde",
+    description: "Lohmann Brown ırkı yumurtacı tavuk, 100 adet. 8 aylık, yumurta verimine yeni başlamış. Günlük %92 yumurta verimi. Kafes veya serbest gezen sistem için uygun. Tüm aşıları yapılmış. Toptan satış, fabrika çıkışı belgeli. Nakliye organizasyonu yapılabilir.",
+    price: 25000,
     city: "Bolu",
     district: "Merkez",
     breed: "Lohmann Brown",
-    age: "6 ay",
+    age: "8 ay",
     gender: "Dişi",
-    healthStatus: "Sağlıklı - Verimde",
+    healthStatus: "Verimde - Sağlıklı",
     vaccinated: true,
-    exampleSource: "Bolu Yumurta Üreticileri Birliği"
+    exampleSource: "Bolu Yumurta Üreticileri Birliği 2025",
+    imageFile: "brown_chicken_hen_po_a794dde2.jpg"
   },
+
+  // 7. Kümes ve Süs Kuşları - Kaz
   {
-    id: "ex-kanatli-002",
-    categoryId: "cat-ciftlik-tavuk",
-    title: "Köy Tavuğu - Organik Yetiştirme",
-    description: "Serbest gezen köy tavuğu. Organik besleme ile büyütülmüş. Hormon ve antibiyotik kullanılmamış. Yumurta ve damızlık için uygun. 20 adet dişi + 2 horoz.",
-    price: 5500,
-    city: "Kastamonu",
-    district: "Taşköprü",
-    breed: "Köy Tavuğu",
-    age: "1 yıl",
-    gender: "Karışık",
-    healthStatus: "Organik Sertifikalı",
-    vaccinated: true,
-    exampleSource: "Kastamonu Organik Üreticiler"
-  },
-  {
-    id: "ex-kanatli-003",
-    categoryId: "cat-ciftlik-kaz",
-    title: "Toulouse Kazı - Damızlık Takım",
-    description: "Toulouse ırkı damızlık kaz takımı. 2 dişi + 1 erkek. 2 yaşında, verimli dönemde. Yılda 40-50 yumurta. Civciv üretimi için ideal.",
-    price: 6500,
+    id: "ex-kumes-kaz-001",
+    mainCategory: "cat-kuslar",
+    categorySlug: "ciftlik-kaz",
+    title: "Toulouse Kazı Damızlık Takım - 2 Dişi + 1 Erkek",
+    description: "Toulouse ırkı damızlık kaz takımı: 2 dişi + 1 erkek. 2 yaşında, verimli dönemde. Geçen yıl başarılı üreme yapmış. Yılda 40-50 yumurta. Kars bölgesi yetiştiricisinden. Civciv üretimi veya et üretimi için ideal. Kafes ve yuva kutusu dahil.",
+    price: 7500,
     city: "Kars",
     district: "Merkez",
     breed: "Toulouse",
     age: "2 yıl",
     gender: "Karışık",
-    healthStatus: "Sağlıklı",
+    healthStatus: "Sağlıklı - Üreme Döneminde",
     vaccinated: true,
-    exampleSource: "Kars Kümes Hayvancılığı Birliği"
-  },
-  {
-    id: "ex-kanatli-004",
-    categoryId: "cat-ciftlik-hindi",
-    title: "Bronz Hindi - Kasaplık 15 kg",
-    description: "Amerikan Bronz hindisi. 8 aylık, 15 kg canlı ağırlık. Doğal besleme ile büyütülmüş. Yılbaşı ve bayram siparişleri için ideal.",
-    price: 3500,
-    city: "Denizli",
-    district: "Merkez",
-    breed: "Bronz Hindi",
-    age: "8 ay",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "Denizli Hindi Yetiştiricileri"
-  },
-  {
-    id: "ex-kanatli-005",
-    categoryId: "cat-ciftlik-ordek",
-    title: "Pekin Ördeği - 50 Adet Yetişkin",
-    description: "Pekin ırkı yetişkin ördek. 6 aylık, ortalama 3.5 kg. Et ve yumurta için uygun. Toptan satış, minimum 50 adet.",
-    price: 7500,
-    city: "Edirne",
-    district: "Keşan",
-    breed: "Pekin",
-    age: "6 ay",
-    gender: "Karışık",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "Trakya Kümes Hayvancılığı"
+    exampleSource: "Kars Kümes Hayvancılığı Birliği 2025",
+    imageFile: "white_goose_farm_pou_148365d1.jpg"
   },
 
-  // ==================== ATLAR VE BİNİCİLİK ====================
+  // 8. Kümes ve Süs Kuşları - Muhabbet Kuşu
   {
-    id: "ex-at-001",
-    categoryId: "cat-ana-arap-ati",
-    title: "Safkan Arap Atı - Yarış Tescilli",
-    description: "Safkan Arap atı, 4 yaşında kısrak. TJK tescilli, yarış geçmişi mevcut. Soy ağacı 5 nesil kayıtlı. Damızlık veya spor biniciliği için uygun.",
-    price: 850000,
-    city: "İstanbul",
-    district: "Şile",
-    breed: "Safkan Arap",
-    age: "4 yıl",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Türkiye Jokey Kulübü"
-  },
-  {
-    id: "ex-at-002",
-    categoryId: "cat-ana-ingiliz-ati",
-    title: "İngiliz Atı - Engel Atlama Eğitimli",
-    description: "6 yaşında İngiliz atı. Profesyonel engel atlama eğitimi almış. 1.20m engel geçmekte. Binicilik kulübü veya yarışmacı için ideal.",
-    price: 420000,
-    city: "Ankara",
-    district: "Gölbaşı",
-    breed: "İngiliz Atı",
-    age: "6 yıl",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Ankara Binicilik Kulübü"
-  },
-  {
-    id: "ex-at-003",
-    categoryId: "cat-at-tay",
-    title: "Haflinger Tay - 8 Aylık",
-    description: "Haflinger ırkı tay, 8 aylık. Sakin mizaçlı, çocuk biniciliği için ideal. Anne-baba her ikisi de sertifikalı damızlık. Temel terbiye eğitimi başlamış.",
-    price: 125000,
-    city: "Bursa",
-    district: "Nilüfer",
-    breed: "Haflinger",
-    age: "8 ay",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Bursa At Yetiştiricileri Derneği"
-  },
-
-  // ==================== KÖPEKLER ====================
-  {
-    id: "ex-kopek-001",
-    categoryId: "cat-kopek-yavru",
-    title: "Golden Retriever Yavrusu - Soy Ağaçlı",
-    description: "Saf kan Golden Retriever yavrusu, 3 aylık. FCI soy belgeli. Karma aşısı ve iç-dış parazit yapılmış. Mikroçipli. Ebeveynler şampiyon soyundan.",
-    price: 35000,
-    city: "İstanbul",
-    district: "Beşiktaş",
-    breed: "Golden Retriever",
-    age: "3 ay",
-    gender: "Erkek",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "KIF Türkiye"
-  },
-  {
-    id: "ex-kopek-002",
-    categoryId: "cat-kopek-yavru",
-    title: "Alman Çoban Köpeği Yavrusu",
-    description: "Alman Çoban Köpeği yavrusu, 2.5 aylık. Çalışma hattı soyundan. Güçlü kemik yapısı, siyah-kızıl renk. Ev, koruma veya K9 eğitimi için uygun.",
-    price: 28000,
-    city: "Ankara",
-    district: "Çankaya",
-    breed: "Alman Çoban Köpeği",
-    age: "2.5 ay",
-    gender: "Erkek",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Ankara Köpek Severler Derneği"
-  },
-  {
-    id: "ex-kopek-003",
-    categoryId: "cat-kopek-yavru",
-    title: "Labrador Retriever - Çikolata Renk",
-    description: "Çikolata renk Labrador Retriever yavrusu. 2.5 aylık, son derece sosyal ve oyuncu. Aile köpeği olarak ideal. Tam aşılı, veteriner kontrollü.",
-    price: 22000,
+    id: "ex-kus-muhabbet-001",
+    mainCategory: "cat-kuslar",
+    categorySlug: "muhabbet-kusu",
+    title: "Muhabbet Kuşu - Konuşan Erkek, Mavi Renk",
+    description: "1 yaşında konuşan muhabbet kuşu, mavi renk. 25+ kelime biliyor, şarkı söylüyor. Ele tamamen alışkın, omuzda duruyor. Çocuklarla harika uyum. Büyük kafes, oyuncaklar, yem stoku dahil. Sağlıklı ve aktif, veteriner kontrolünden geçmiş.",
+    price: 1500,
     city: "İzmir",
     district: "Bornova",
-    breed: "Labrador Retriever",
-    age: "2.5 ay",
-    gender: "Dişi",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    exampleSource: "İzmir Köpek Kulübü"
-  },
-  {
-    id: "ex-kopek-004",
-    categoryId: "cat-kopek-yetiskin",
-    title: "Kangal Köpeği - Sertifikalı Damızlık",
-    description: "Saf kan Sivas Kangal köpeği. 3 yaşında, 80 kg. Damızlık sertifikası mevcut. Çoban köpeği olarak çalışmış. Sürü koruma içgüdüsü güçlü.",
-    price: 75000,
-    city: "Sivas",
-    district: "Kangal",
-    breed: "Kangal",
-    age: "3 yıl",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Sivas Kangal Köpeği Yetiştirici Birliği"
-  },
-  {
-    id: "ex-kopek-005",
-    categoryId: "cat-kopek-yavru",
-    title: "French Bulldog Yavrusu - Mavi Renk",
-    description: "Nadir mavi renk French Bulldog yavrusu. 3 aylık, kompakt vücut yapısı. Aile ortamında büyümüş, çocuklarla uyumlu. Solunum kontrolü yapılmış.",
-    price: 65000,
-    city: "İstanbul",
-    district: "Kadıköy",
-    breed: "French Bulldog",
-    age: "3 ay",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "İstanbul Bulldog Kulübü"
-  },
-
-  // ==================== KEDİLER ====================
-  {
-    id: "ex-kedi-001",
-    categoryId: "cat-kedi-yavru",
-    title: "British Shorthair Yavrusu - Gri",
-    description: "British Shorthair yavrusu, mavi (gri) renk. 3 aylık, TICA kayıtlı. Bakır göz rengi. Tuvalet eğitimi tamamlanmış. Son derece sakin mizaçlı.",
-    price: 25000,
-    city: "İstanbul",
-    district: "Sarıyer",
-    breed: "British Shorthair",
-    age: "3 ay",
-    gender: "Erkek",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "TICA Türkiye"
-  },
-  {
-    id: "ex-kedi-002",
-    categoryId: "cat-kedi-yavru",
-    title: "Scottish Fold Yavrusu - Krem Tabby",
-    description: "Scottish Fold yavrusu, krem tabby desenli. 2.5 aylık. Karakteristik katlı kulaklar. Son derece sevecen ve oyuncu. Veteriner kontrollü.",
-    price: 30000,
-    city: "Ankara",
-    district: "Etimesgut",
-    breed: "Scottish Fold",
-    age: "2.5 ay",
-    gender: "Dişi",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Ankara Kedi Severler"
-  },
-  {
-    id: "ex-kedi-003",
-    categoryId: "cat-kedi-yavru",
-    title: "Van Kedisi Yavrusu - Tek Göz Mavi",
-    description: "Saf Van kedisi yavrusu, klasik beyaz. Bir gözü mavi, bir gözü kehribar (odd-eye). 4 aylık, yüzme yeteneği var. Yüzey Bakanlığı sertifikalı.",
-    price: 18000,
-    city: "Van",
-    district: "Merkez",
-    breed: "Van Kedisi",
-    age: "4 ay",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Van Kedisi Araştırma Merkezi"
-  },
-  {
-    id: "ex-kedi-004",
-    categoryId: "cat-kedi-yavru",
-    title: "Maine Coon Yavrusu - Kahverengi Tabby",
-    description: "Maine Coon yavrusu, klasik kahverengi tabby. 3.5 aylık, büyük kemik yapısı. Kedilerin köpeği olarak bilinen uysal mizaç. WCF kayıtlı.",
-    price: 45000,
-    city: "İzmir",
-    district: "Karşıyaka",
-    breed: "Maine Coon",
-    age: "3.5 ay",
-    gender: "Erkek",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "WCF Türkiye"
-  },
-  {
-    id: "ex-kedi-005",
-    categoryId: "cat-ankara-kedisi",
-    title: "Ankara Kedisi - Sertifikalı Damızlık",
-    description: "Saf Ankara kedisi, beyaz, çift mavi göz. 2 yaşında, damızlık sertifikalı. Uzun ve ipeksi tüy yapısı. Bakanlık koruması altındaki ırk.",
-    price: 22000,
-    city: "Ankara",
-    district: "Keçiören",
-    breed: "Ankara Kedisi",
-    age: "2 yıl",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "Ankara Kedisi Koruma Derneği"
-  },
-
-  // ==================== KUŞLAR ====================
-  {
-    id: "ex-kus-001",
-    categoryId: "cat-muhabbet-kusu",
-    title: "Muhabbet Kuşu - Konuşan Erkek",
-    description: "1 yaşında konuşan muhabbet kuşu. 20+ kelime biliyor. Mavi renk, ele alışkın. Kafes ve yem dahil. Çocuklar için ideal.",
-    price: 1200,
-    city: "İstanbul",
-    district: "Üsküdar",
     breed: "Muhabbet Kuşu",
     age: "1 yıl",
     gender: "Erkek",
     healthStatus: "Sağlıklı",
-    exampleSource: "İstanbul Kuş Pazarı"
+    exampleSource: "İzmir Kuş Pazarı 2025",
+    imageFile: "budgerigar_parakeet__0e375a89.jpg"
   },
+
+  // 9. Atlar ve Binicilik
   {
-    id: "ex-kus-002",
-    categoryId: "cat-sultan-papagani",
-    title: "Sultan Papağanı Çifti - Yetişkin Üreme",
-    description: "Sultan papağanı çifti, 3 yaşında. Daha önce başarılı üreme yapmış. Kafes ve yuva kutusu dahil. Çift halinde satılık.",
-    price: 4500,
-    city: "Ankara",
-    district: "Yenimahalle",
-    breed: "Sultan Papağanı",
-    age: "3 yıl",
-    gender: "Çift",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Ankara Kanarya ve Muhabbet Kuşu Derneği"
-  },
-  {
-    id: "ex-kus-003",
-    categoryId: "cat-kanarya",
-    title: "Ötücü Kanarya - Şampiyon Soyundan",
-    description: "Malinois kanarya, ötücü yarışma şampiyonunun yavrusu. 8 aylık erkek, güçlü ses. Halka numarası kayıtlı. Yarışma için uygun.",
-    price: 2500,
-    city: "Bursa",
-    district: "Osmangazi",
-    breed: "Malinois Kanarya",
-    age: "8 ay",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Bursa Kanarya Sevenler Derneği"
-  },
-  {
-    id: "ex-kus-004",
-    categoryId: "cat-gri-papagan",
-    title: "Afrika Gri Papağanı - Konuşan",
-    description: "Afrika Gri Papağanı, 5 yaşında. 100+ kelime konuşuyor, cümle kuruyor. CITES belgeli, yasal ithalat. Kafes ve aksesuar dahil.",
-    price: 85000,
+    id: "ex-at-001",
+    mainCategory: "cat-atlar-binicilik",
+    categorySlug: "arap-ati",
+    title: "Safkan Arap Atı - TJK Tescilli, Yarış Geçmişli",
+    description: "5 yaşında safkan Arap atı kısrak. TJK (Türkiye Jokey Kulübü) tescilli, yarış geçmişi mevcut. Soy ağacı 6 nesil kayıtlı. Damızlık veya spor biniciliği için uygun. Eğitimli, sakin mizaçlı. Veteriner raporu ve tüm belgeler mevcut. İstanbul çevresinde profesyonel binicilik tesisinde bakılmaktadır.",
+    price: 950000,
     city: "İstanbul",
-    district: "Beykoz",
-    breed: "Afrika Gri Papağanı",
+    district: "Şile",
+    breed: "Safkan Arap",
     age: "5 yıl",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Egzotik Kuş Derneği"
-  },
-
-  // ==================== BALIKLAR ====================
-  {
-    id: "ex-balik-001",
-    categoryId: "cat-akvaryum-balik",
-    title: "Japon Balığı Koleksiyonu - 10 Adet",
-    description: "Çeşitli renklerde Japon balığı. Oranda, Fantail, Ryukin türleri. 2-3 yaşında, 8-12 cm boyutlarında. Akvaryum balıkçılığına yeni başlayanlar için ideal.",
-    price: 850,
-    city: "İstanbul",
-    district: "Fatih",
-    breed: "Japon Balığı Karışık",
-    age: "2-3 yıl",
-    healthStatus: "Sağlıklı",
-    exampleSource: "İstanbul Akvaryum Market"
-  },
-  {
-    id: "ex-balik-002",
-    categoryId: "cat-koi",
-    title: "Koi Balığı - Kohaku 35 cm",
-    description: "Japon Kohaku Koi balığı, 35 cm. 2 yaşında, kırmızı-beyaz desen. Havuz balıkçılığı için ideal. Sağlık garantili teslimat.",
-    price: 4500,
-    city: "Antalya",
-    district: "Kemer",
-    breed: "Kohaku Koi",
-    age: "2 yıl",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Antalya Koi Farm"
-  },
-
-  // ==================== SÜRÜNGENLER ====================
-  {
-    id: "ex-suruengen-001",
-    categoryId: "cat-ana-kaplumbaga",
-    title: "Kara Kaplumbağası - 15 Yaşında",
-    description: "Akdeniz kara kaplumbağası (Testudo graeca). 15 yaşında, 18 cm kabuk. CITES belgeli. Bahçe besleme için uygun. Kış uykusuna yatar.",
-    price: 3500,
-    city: "İzmir",
-    district: "Çeşme",
-    breed: "Testudo Graeca",
-    age: "15 yıl",
-    healthStatus: "Sağlıklı",
-    exampleSource: "İzmir Sürüngen Severler"
-  },
-  {
-    id: "ex-suruengen-002",
-    categoryId: "cat-ana-geko",
-    title: "Leopar Gekko - Normal Morph",
-    description: "Leopar gekko, normal morph. 1 yaşında, 20 cm. Ele alışkın, sakin mizaçlı. Başlangıç egzotik hayvan için ideal. Teraryum kurulumu tavsiyeleri dahil.",
-    price: 1800,
-    city: "Ankara",
-    district: "Çankaya",
-    breed: "Leopar Gekko",
-    age: "1 yıl",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Ankara Egzotik Hayvan Merkezi"
-  },
-
-  // ==================== KEMİRGENLER ====================
-  {
-    id: "ex-kemirgen-001",
-    categoryId: "cat-tavsan",
-    title: "Holland Lop Tavşan - Minyatür",
-    description: "Holland Lop tavşanı, karamel renk. 4 aylık, tam yetişkin 1.8 kg. Düşük kulakları ile sevimli görünüm. Apartman için ideal.",
-    price: 1500,
-    city: "İstanbul",
-    district: "Kadıköy",
-    breed: "Holland Lop",
-    age: "4 ay",
     gender: "Dişi",
     healthStatus: "Sağlıklı",
     vaccinated: true,
-    exampleSource: "İstanbul Tavşan Severler"
-  },
-  {
-    id: "ex-kemirgen-002",
-    categoryId: "cat-hamster",
-    title: "Suriye Hamster - Altın Renk",
-    description: "Suriye hamsterı, altın (sarı) renk. 2 aylık, ele alışkın. Kafes, tekerlek ve aksesuar dahil. Çocuklar için ilk evcil hayvan.",
-    price: 350,
-    city: "Bursa",
-    district: "Nilüfer",
-    breed: "Suriye Hamster",
-    age: "2 ay",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Bursa Pet Shop"
-  },
-  {
-    id: "ex-kemirgen-003",
-    categoryId: "cat-gine-domuzu",
-    title: "Gine Domuzu Çifti - Teddy",
-    description: "Teddy Gine domuzu çifti. 6 aylık, kısa kıvırcık tüy. Çok sosyal ve ses çıkaran. Kafes ve aksesuar dahil.",
-    price: 900,
-    city: "İzmir",
-    district: "Bornova",
-    breed: "Teddy Guinea Pig",
-    age: "6 ay",
-    gender: "Çift",
-    healthStatus: "Sağlıklı",
-    exampleSource: "İzmir Kemirgen Severler"
+    pedigree: true,
+    exampleSource: "Türkiye Jokey Kulübü 2025",
+    imageFile: "arabian_horse_brown__6a938217.jpg"
   },
 
-  // ==================== ARICILIK ====================
+  // 10. Balıklar ve Su Ürünleri
+  {
+    id: "ex-balik-001",
+    mainCategory: "cat-baliklar-su-urunleri",
+    categorySlug: "akvaryum-baligi",
+    title: "Akvaryum Balığı Koleksiyonu - 15 Adet Tropikal",
+    description: "Tropik akvaryum balığı koleksiyonu: Guppy, Platy, Molly, Tetra çeşitleri. Toplam 15 adet yetişkin balık. 6-12 aylık, sağlıklı ve aktif. Başlangıç akvaryumcular için ideal set. 100 litre akvaryum için uygun. Su parametreleri ve bakım bilgisi verilecek.",
+    price: 950,
+    city: "İstanbul",
+    district: "Fatih",
+    breed: "Karışık Tropikal",
+    age: "6-12 ay",
+    healthStatus: "Sağlıklı",
+    exampleSource: "İstanbul Akvaryum Market 2025",
+    imageFile: "aquarium_tropical_fi_8406679e.jpg"
+  },
+
+  // 11. Arıcılık
   {
     id: "ex-ari-001",
-    categoryId: "cat-arili-kovan",
-    title: "Arılı Kovan - Kafkas Arısı 10 Çerçeve",
-    description: "10 çerçeveli arılı kovan, Kafkas ana arı. Güçlü koloni, 8 çerçeve yavrulu. Verimli bal üretimi. Yeni arıcılığa başlayanlar için ideal.",
-    price: 7500,
+    mainCategory: "cat-aricilik",
+    categorySlug: "arili-kovan",
+    title: "Arılı Kovan - Kafkas Arısı, 10 Çerçeve Güçlü Koloni",
+    description: "10 çerçeveli arılı kovan, Kafkas ana arı ile güçlü koloni. 8 çerçeve yavrulu, 2 çerçeve ballı. Varroa tedavisi yapılmış. Yeni arıcılığa başlayanlar için ideal. Langstroth tipi kovan, kaliteli ahşap malzeme. Arıcılık ekipmanı tavsiyeleri dahil. Muğla bölgesi çiçek balı verimi yüksek.",
+    price: 8500,
     city: "Muğla",
     district: "Fethiye",
     breed: "Kafkas Arısı",
-    healthStatus: "Varroa Tedavili",
-    exampleSource: "Muğla Arıcılar Birliği"
-  },
-  {
-    id: "ex-ari-002",
-    categoryId: "cat-ana-ari",
-    title: "Damızlık Ana Arı - Carnica",
-    description: "Sertifikalı Carnica damızlık ana arısı. Sakin mizaç, yüksek bal verimi genetiği. Çiftleşmiş, yumurtlama garantili.",
-    price: 1200,
-    city: "Artvin",
-    district: "Merkez",
-    breed: "Carnica",
-    healthStatus: "Sertifikalı",
-    exampleSource: "Artvin Ana Arı Üretim Merkezi"
+    healthStatus: "Varroa Tedavili - Sağlıklı",
+    exampleSource: "Muğla Arıcılar Birliği 2025",
+    imageFile: "beehive_honeybee_api_356132e5.jpg"
   },
 
-  // ==================== YEM VE MAMA ====================
+  // 12. Sürüngenler ve Amfibiler
+  {
+    id: "ex-surunegen-001",
+    mainCategory: "cat-surungenler-amfibiler",
+    categorySlug: "kaplumbaga",
+    title: "Kara Kaplumbağası - 12 Yaşında, CITES Belgeli",
+    description: "Akdeniz kara kaplumbağası (Testudo graeca), 12 yaşında, 16 cm kabuk. CITES belgeli, yasal edinim. Bahçe besleme için uygun, kış uykusuna yatar. Sağlıklı, aktif ve iyi beslenmiş. Bakım bilgisi ve kış uykusu rehberi verilecek. Akdeniz iklimine uygun.",
+    price: 4500,
+    city: "Antalya",
+    district: "Kemer",
+    breed: "Testudo Graeca",
+    age: "12 yıl",
+    healthStatus: "Sağlıklı",
+    exampleSource: "Antalya Egzotik Hayvan Merkezi 2025",
+    imageFile: "land_turtle_tortoise_31034b5a.jpg"
+  },
+
+  // 13. Kemirgenler ve Küçük Hayvanlar
+  {
+    id: "ex-kemirgen-001",
+    mainCategory: "cat-kemirgenler-kucuk-hayvanlar",
+    categorySlug: "tavsan",
+    title: "Holland Lop Tavşan - Karamel Renk, Minyatür",
+    description: "Holland Lop tavşanı, karamel renk. 5 aylık, tam yetişkin 1.6 kg olacak. Düşük kulakları ile çok sevimli görünüm. Apartman için ideal, sessiz ve temiz. Tuvalet eğitimi tamamlanmış. Kafes, su kabı, yemlik ve 1 ay yem stoku dahil.",
+    price: 1800,
+    city: "Ankara",
+    district: "Keçiören",
+    breed: "Holland Lop",
+    age: "5 ay",
+    gender: "Dişi",
+    healthStatus: "Sağlıklı",
+    vaccinated: true,
+    exampleSource: "Ankara Tavşan Severler 2025",
+    imageFile: "holland_lop_bunny_ra_bcbdccfc.jpg"
+  },
+
+  // 14. Yem, Mama ve Tarım Ürünleri
   {
     id: "ex-yem-001",
-    categoryId: "cat-besi-yemi",
-    title: "Büyükbaş Besi Yemi - 1 Ton",
-    description: "Fabrika çıkışı büyükbaş besi yemi. %16 protein, 2800 kcal/kg enerji. Besi danası ve genç sığırlar için formülize. Toptan fiyat.",
-    price: 18500,
+    mainCategory: "cat-yem-mama-tarim",
+    categorySlug: "besi-yemi",
+    title: "Büyükbaş Besi Yemi - 1 Ton, Fabrika Çıkışı",
+    description: "Fabrika çıkışı büyükbaş besi yemi, 1 ton (20 çuval x 50 kg). %16 ham protein, 2850 kcal/kg metabolik enerji. Besi danası ve genç sığırlar için formülize. TSE ve Tarım Bakanlığı onaylı. Raf ömrü 6 ay. Konya bölgesinden depo teslim veya nakliye organizasyonu.",
+    price: 21500,
     city: "Konya",
     district: "Selçuklu",
-    breed: "Konsantre Yem",
+    breed: "Konsantre Besi Yemi",
     healthStatus: "TSE Sertifikalı",
-    exampleSource: "Konya Yem Sanayi"
-  },
-  {
-    id: "ex-yem-002",
-    categoryId: "cat-kopek-mamasi",
-    title: "Premium Köpek Maması - 15 kg",
-    description: "Yetişkin köpekler için premium kuru mama. Kuzu etli, pirinçli formül. Hassas sindirim için uygun. Türkiye üretimi.",
-    price: 1850,
-    city: "İstanbul",
-    district: "Kartal",
-    breed: "Yetişkin Köpek",
-    healthStatus: "Veteriner Onaylı",
-    exampleSource: "Türk Pet Food"
+    exampleSource: "Konya Yem Sanayi 2025",
+    imageFile: "animal_feed_pellets__c4b5990c.jpg"
   },
 
-  // ==================== EKİPMAN ====================
+  // 15. Araçlar ve Nakliye
   {
-    id: "ex-ekip-001",
-    categoryId: "cat-kumes-ekipman",
-    title: "Otomatik Tavuk Yemliği - 50 kg",
-    description: "Galvaniz çelik otomatik yemlik. 50 kg kapasiteli, 100 tavuk için yeterli. Yem israfını önler. Montaj malzemesi dahil.",
-    price: 2800,
-    city: "Bolu",
-    district: "Merkez",
-    healthStatus: "Yeni",
-    exampleSource: "Bolu Tarım Market"
-  },
-  {
-    id: "ex-ekip-002",
-    categoryId: "cat-akvaryum-malz",
-    title: "Akvaryum Seti - 200 Litre Komple",
-    description: "200 litre cam akvaryum seti. Dış filtre, ısıtıcı, LED aydınlatma, kum ve dekor dahil. Kuruluma hazır paket.",
-    price: 8500,
-    city: "İstanbul",
-    district: "Fatih",
-    healthStatus: "Sıfır",
-    exampleSource: "İstanbul Akvaryum Market"
+    id: "ex-arac-001",
+    mainCategory: "cat-araclar-nakliye",
+    categorySlug: "hayvan-tasima-araci",
+    title: "Hayvan Nakliye Aracı - 3.5 Ton, Klimalı",
+    description: "2020 model hayvan nakliye aracı, 3.5 ton kapasiteli. Büyükbaş için 4, küçükbaş için 20 hayvan kapasiteli. Havalandırmalı kasa, otomatik suluk sistemi. Klimalı kabin. 85.000 km, bakımları düzenli, muayenesi yeni. Hayvan nakil ruhsatı mevcut.",
+    price: 750000,
+    city: "Ankara",
+    district: "Polatlı",
+    breed: "Nakliye Aracı",
+    healthStatus: "Bakımlı - Ruhsatlı",
+    exampleSource: "Türkiye Nakliyeciler 2025",
+    imageFile: "livestock_transport__d946b672.jpg"
   },
 
-  // ==================== EK İLANLAR ====================
+  // 16. Tarım ve Kırsal Emlak
   {
-    id: "ex-buyukbas-005",
-    categoryId: "cat-manda",
-    title: "Anadolu Mandası - Süt Verimi Yüksek",
-    description: "Anadolu mandası, 5 yaşında. Günlük 8 litre süt verimi. Manda kaymağı üretimi için ideal. Afyon bölgesi yetiştiricisinden.",
-    price: 145000,
-    city: "Afyonkarahisar",
-    district: "Merkez",
-    breed: "Anadolu Mandası",
-    age: "5 yıl",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı - Sağımda",
-    vaccinated: true,
-    exampleSource: "Afyon Manda Yetiştiricileri"
-  },
-  {
-    id: "ex-kucukbas-006",
-    categoryId: "cat-oglak",
-    title: "Saanen Oğlak - 3 Aylık",
-    description: "Saanen ırkı oğlak, 3 aylık dişi. Süt soyundan, annesi günlük 4 litre. Damızlık veya süt üretimi için yetiştirilecek.",
-    price: 5500,
-    city: "İzmir",
-    district: "Ödemiş",
-    breed: "Saanen",
-    age: "3 ay",
-    gender: "Dişi",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "İzmir Keçi Yetiştiricileri"
-  },
-  {
-    id: "ex-kopek-006",
-    categoryId: "cat-kopek-yavru",
-    title: "Akbaş Çoban Köpeği - Yavru",
-    description: "Saf Akbaş çoban köpeği yavrusu. 3 aylık, beyaz tüylü. Sürü koruma içgüdüsü güçlü. Çiftlik ve kırsal alan için ideal.",
-    price: 15000,
+    id: "ex-emlak-001",
+    mainCategory: "cat-tarim-kirsal-emlak",
+    categorySlug: "ciftlik-arazisi",
+    title: "Çiftlik Arazisi - 50 Dönüm, Sulama İmkanlı",
+    description: "50 dönüm tarım arazisi, çiftlik kurulumuna uygun. Sulama kanalı mevcut, elektrik bağlı. Köy yoluna cepheli, kolay ulaşım. Meyve bahçesi veya hayvancılık için ideal. Tapu temiz, hissesiz satılık. Yatırım fırsatı. Detaylı bilgi ve arazi gezisi için arayınız.",
+    price: 4500000,
     city: "Afyonkarahisar",
     district: "Sandıklı",
-    breed: "Akbaş",
-    age: "3 ay",
-    gender: "Erkek",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    exampleSource: "Akbaş Köpeği Yetiştirici Birliği"
+    breed: "Tarım Arazisi",
+    healthStatus: "Tapulu - Temiz",
+    exampleSource: "Afyon Emlak 2025",
+    imageFile: "farm_land_rural_coun_6074db06.jpg"
   },
+
+  // 17. Mağazalar (Pet Shop)
   {
-    id: "ex-kedi-006",
-    categoryId: "cat-kedi-yavru",
-    title: "Ragdoll Kedi Yavrusu - Blue Point",
-    description: "Ragdoll kedisi, blue point renk. 3 aylık, kucak kedisi karakteri. TICA kayıtlı. Mavi gözlü, ipeksi tüy yapısı.",
-    price: 38000,
+    id: "ex-magaza-001",
+    mainCategory: "cat-magazalar",
+    categorySlug: "pet-shop",
+    title: "Pet Shop Mağazası - Devren Satılık, Müşteri Portföylü",
+    description: "10 yıllık köklü pet shop mağazası, devren satılık. 120 m² kapalı alan, merkezi lokasyon. Akvaryum, kuş, kemirgen, kedi-köpek aksesuar bölümleri. Düzenli müşteri portföyü, online satış altyapısı mevcut. Marka bilinirliği yüksek. Aylık ortalama ciro bilgisi verilecek. Ciddi alıcılara detaylı bilgi.",
+    price: 850000,
+    city: "İzmir",
+    district: "Karşıyaka",
+    breed: "Pet Shop",
+    healthStatus: "Faal - Ruhsatlı",
+    exampleSource: "İzmir Ticaret 2025",
+    imageFile: "pet_shop_store_inter_ea45cc01.jpg"
+  },
+
+  // 18. Veterinerlik ve Hizmetler
+  {
+    id: "ex-veteriner-001",
+    mainCategory: "cat-veterinerlik-hizmetler",
+    categorySlug: "veteriner-klinigi",
+    title: "Veteriner Kliniği - Tam Donanımlı, Devren",
+    description: "Tam donanımlı veteriner kliniği devren. Ameliyathane, röntgen, ultrason, laboratuvar ekipmanları mevcut. 150 m² kullanım alanı. 2 muayene odası. Düzenli müşteri portföyü ve SGK anlaşmalı. Tüm ruhsatlar güncel. Veteriner hekimlik diploması şartı ile devir yapılacaktır.",
+    price: 1250000,
     city: "İstanbul",
-    district: "Bakırköy",
-    breed: "Ragdoll",
-    age: "3 ay",
-    gender: "Dişi",
-    healthStatus: "Aşılı",
-    vaccinated: true,
-    pedigree: true,
-    exampleSource: "TICA Türkiye"
+    district: "Kadıköy",
+    breed: "Veteriner Kliniği",
+    healthStatus: "Faal - Ruhsatlı",
+    exampleSource: "İstanbul Veteriner Odası 2025",
+    imageFile: "veterinary_clinic_do_855b1ed8.jpg"
   },
+
+  // 19. Ekipmanlar ve Aksesuarlar
   {
-    id: "ex-at-004",
-    categoryId: "cat-at-pony",
-    title: "Shetland Pony - Çocuk Biniciliği",
-    description: "Shetland pony, 7 yaşında. 95 cm yükseklik. Çok sakin, çocuk biniciliği için eğitimli. Terapi merkezi veya çocuk parkı için uygun.",
-    price: 85000,
-    city: "İstanbul",
-    district: "Beykoz",
-    breed: "Shetland Pony",
-    age: "7 yıl",
-    gender: "Erkek",
-    healthStatus: "Sağlıklı",
-    vaccinated: true,
-    exampleSource: "İstanbul Pony Kulübü"
-  },
-  {
-    id: "ex-kus-005",
-    categoryId: "cat-ana-guvercin",
-    title: "Takla Güvercini - Şampiyon Soyundan",
-    description: "Adana taklacı güvercin çifti. Yarışma şampiyonunun yavruları. 6 aylık, uçuş eğitimi tamamlanmış. Halkalı ve kayıtlı.",
-    price: 3500,
-    city: "Adana",
-    district: "Seyhan",
-    breed: "Adana Taklacı",
-    age: "6 ay",
-    gender: "Çift",
-    healthStatus: "Sağlıklı",
-    exampleSource: "Adana Güvercin Sevenler Derneği"
+    id: "ex-ekipman-001",
+    mainCategory: "cat-ekipmanlar-aksesuarlar",
+    categorySlug: "kumes-ekipmani",
+    title: "Otomatik Tavuk Yemliği - 100 kg Kapasiteli",
+    description: "Galvaniz çelik otomatik tavuk yemliği, 100 kg kapasite. 200-250 tavuk için yeterli. Yem israfını %30 azaltır. Kolay dolum sistemi, ayarlanabilir yem çıkışı. Montaj malzemeleri ve kullanım kılavuzu dahil. 2 yıl garanti. Kargo ile Türkiye geneli gönderim.",
+    price: 3800,
+    city: "Bolu",
+    district: "Merkez",
+    breed: "Kümes Ekipmanı",
+    healthStatus: "Sıfır - Garantili",
+    exampleSource: "Bolu Tarım Market 2025",
+    imageFile: "brown_chicken_hen_po_a794dde2.jpg"
   },
 ];
 
-// Güncel piyasa fiyatları - 2024-2025
-export const currentMarketPrices = [
-  // Büyükbaş
-  { type: "buyukbas", category: "Besi Danası (kg canlı)", minPrice: 340, maxPrice: 380, unit: "kg", cities: ["İstanbul", "Ankara", "Konya", "Bursa"] },
-  { type: "buyukbas", category: "Düve (gebe)", minPrice: 150000, maxPrice: 180000, unit: "baş", cities: ["Balıkesir", "Konya", "Afyon"] },
-  { type: "buyukbas", category: "Süt İneği", minPrice: 180000, maxPrice: 220000, unit: "baş", cities: ["Bursa", "Balıkesir", "Sakarya"] },
-  { type: "buyukbas", category: "Damızlık Boğa", minPrice: 280000, maxPrice: 350000, unit: "baş", cities: ["Ankara", "Konya"] },
-  
-  // Küçükbaş
-  { type: "kucukbas", category: "Merinos Koyun", minPrice: 11000, maxPrice: 14000, unit: "baş", cities: ["Konya", "Afyon", "Aksaray"] },
-  { type: "kucukbas", category: "İvesi Koyun", minPrice: 12000, maxPrice: 16000, unit: "baş", cities: ["Şanlıurfa", "Diyarbakır"] },
-  { type: "kucukbas", category: "Saanen Keçi", minPrice: 9000, maxPrice: 12000, unit: "baş", cities: ["Muğla", "İzmir", "Aydın"] },
-  { type: "kucukbas", category: "Besi Kuzusu (35-40kg)", minPrice: 6500, maxPrice: 8000, unit: "baş", cities: ["Afyon", "Konya", "Bolu"] },
-  
-  // Kanatlı
-  { type: "kanatli", category: "Yumurtacı Tavuk", minPrice: 180, maxPrice: 250, unit: "adet", cities: ["Bolu", "Afyon", "Manisa"] },
-  { type: "kanatli", category: "Köy Tavuğu", minPrice: 200, maxPrice: 350, unit: "adet", cities: ["Kastamonu", "Çorum"] },
-  { type: "kanatli", category: "Kasaplık Hindi", minPrice: 200, maxPrice: 280, unit: "kg", cities: ["Denizli", "Aydın"] },
-  { type: "kanatli", category: "Damızlık Kaz", minPrice: 1800, maxPrice: 2500, unit: "çift", cities: ["Kars", "Erzurum"] },
-  
-  // At
-  { type: "at", category: "Safkan Arap Atı", minPrice: 700000, maxPrice: 1200000, unit: "baş", cities: ["İstanbul", "Ankara"] },
-  { type: "at", category: "İngiliz Atı (spor)", minPrice: 350000, maxPrice: 500000, unit: "baş", cities: ["Ankara", "İstanbul"] },
-  { type: "at", category: "Pony", minPrice: 60000, maxPrice: 100000, unit: "baş", cities: ["İstanbul", "Bursa"] },
-  
-  // Arıcılık
-  { type: "aricilik", category: "Arılı Kovan (10 çerçeve)", minPrice: 6500, maxPrice: 8500, unit: "adet", cities: ["Muğla", "Artvin", "Ordu"] },
-  { type: "aricilik", category: "Ana Arı (damızlık)", minPrice: 800, maxPrice: 1500, unit: "adet", cities: ["Artvin", "Muğla"] },
-];
+// 2025 Güncel Piyasa Fiyatları - Türkiye Hayvan Pazarları
+export const currentMarketPrices2025 = {
+  buyukbas: {
+    "Besi Danası (kg canlı)": { min: 360, max: 410, unit: "₺/kg" },
+    "Holstein Düve (gebe)": { min: 165000, max: 195000, unit: "₺/baş" },
+    "Simental Düve (gebe)": { min: 175000, max: 210000, unit: "₺/baş" },
+    "Süt İneği (sağımda)": { min: 185000, max: 230000, unit: "₺/baş" },
+    "Damızlık Boğa": { min: 300000, max: 380000, unit: "₺/baş" },
+  },
+  kucukbas: {
+    "Merinos Koyun": { min: 12000, max: 15000, unit: "₺/baş" },
+    "İvesi Koyun": { min: 13000, max: 17000, unit: "₺/baş" },
+    "Saanen Keçi": { min: 10000, max: 13000, unit: "₺/baş" },
+    "Besi Kuzusu (35-40kg)": { min: 7000, max: 9000, unit: "₺/baş" },
+  },
+  kanatli: {
+    "Yumurtacı Tavuk": { min: 200, max: 280, unit: "₺/adet" },
+    "Köy Tavuğu": { min: 250, max: 400, unit: "₺/adet" },
+    "Kasaplık Hindi (kg)": { min: 220, max: 300, unit: "₺/kg" },
+    "Damızlık Kaz (çift)": { min: 2000, max: 3000, unit: "₺/çift" },
+  },
+  at: {
+    "Safkan Arap Atı": { min: 800000, max: 1500000, unit: "₺/baş" },
+    "İngiliz Atı (spor)": { min: 400000, max: 600000, unit: "₺/baş" },
+    "Shetland Pony": { min: 80000, max: 120000, unit: "₺/baş" },
+  },
+  kopek: {
+    "Golden Retriever (yavru)": { min: 25000, max: 40000, unit: "₺/yavru" },
+    "Alman Çoban (yavru)": { min: 20000, max: 35000, unit: "₺/yavru" },
+    "Kangal (yetişkin)": { min: 60000, max: 90000, unit: "₺/baş" },
+    "French Bulldog (yavru)": { min: 55000, max: 85000, unit: "₺/yavru" },
+  },
+  kedi: {
+    "British Shorthair (yavru)": { min: 22000, max: 35000, unit: "₺/yavru" },
+    "Scottish Fold (yavru)": { min: 28000, max: 45000, unit: "₺/yavru" },
+    "Van Kedisi (yavru)": { min: 15000, max: 22000, unit: "₺/yavru" },
+    "Maine Coon (yavru)": { min: 40000, max: 60000, unit: "₺/yavru" },
+  },
+  aricilik: {
+    "Arılı Kovan (10 çerçeve)": { min: 7500, max: 10000, unit: "₺/kovan" },
+    "Ana Arı (damızlık)": { min: 900, max: 1800, unit: "₺/adet" },
+  },
+};
