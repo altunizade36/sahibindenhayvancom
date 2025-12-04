@@ -1,10 +1,11 @@
 import { db } from "./db";
-import { categories, locations, blogPosts, storeCategories, users, categoryDocumentRequirements } from "@shared/schema";
+import { categories, locations, blogPosts, storeCategories, users, categoryDocumentRequirements, marketPrices } from "@shared/schema";
 import { sql, eq, isNull } from "drizzle-orm";
 import { turkeyLocations } from "./data/locations-turkey-full";
 import { blogPosts as blogPostsData } from "./data/blog-posts";
 import { categoriesHierarchy } from "./data/categories-hierarchy";
 import { storeCategories as storeCategoriesData } from "./data/store-categories";
+import { marketPricesSeed } from "./data/market-prices-seed";
 import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
@@ -518,6 +519,37 @@ export async function seedDatabase() {
       }
       
       console.log(`✅ Category document requirements seeded: ${documentRequirementsData.length} requirements`);
+    }
+    
+    // Seed market prices
+    const existingMarketPrices = await db.query.marketPrices.findMany({ limit: 1 });
+    if (existingMarketPrices.length === 0) {
+      console.log("💰 Seeding market prices...");
+      const now = new Date();
+      
+      for (const priceData of marketPricesSeed) {
+        try {
+          await db
+            .insert(marketPrices)
+            .values({
+              type: priceData.type as any,
+              category: priceData.category,
+              city: priceData.city,
+              price: priceData.price.toString(),
+              unit: priceData.unit,
+              changePercent: priceData.changePercent?.toString() || null,
+              source: priceData.source || null,
+              date: now,
+            })
+            .execute();
+        } catch (err: any) {
+          console.log(`  ⚠️ Error inserting price ${priceData.category}: ${err.message}`);
+        }
+      }
+      
+      console.log(`✅ Market prices seeded: ${marketPricesSeed.length} prices`);
+    } else {
+      console.log("💰 Market prices already exist, skipping seed");
     }
     
     console.log("✅ Database seeded successfully");

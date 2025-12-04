@@ -1,39 +1,77 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, TrendingDown, Minus, DollarSign, Euro, Beef, Milk } from "lucide-react";
 import { GiCow, GiSheep, GiChicken, GiWheat } from "react-icons/gi";
 import { cn } from "@/lib/utils";
 
-interface MarketPrice {
+interface MarketPriceData {
   id: string;
-  name: string;
-  nameShort: string;
-  price: number;
+  type: string;
+  category: string;
+  city: string;
+  price: string;
   unit: string;
-  change: number;
-  changePercent: number;
-  icon: "cattle" | "sheep" | "chicken" | "beef" | "dairy" | "feed" | "usd" | "eur";
-  category: "livestock" | "meat" | "dairy" | "currency" | "feed";
+  min_price?: string;
+  max_price?: string;
+  change_percent?: string;
+  source?: string;
+  date: string;
 }
 
-const marketData: MarketPrice[] = [
-  { id: "buyukbas", name: "Büyükbaş (Canlı)", nameShort: "Büyükbaş", price: 300.38, unit: "₺/kg", change: 52.38, changePercent: 21.0, icon: "cattle", category: "livestock" },
-  { id: "kucukbas", name: "Küçükbaş (Canlı)", nameShort: "Küçükbaş", price: 307.52, unit: "₺/kg", change: 63.52, changePercent: 25.9, icon: "sheep", category: "livestock" },
-  { id: "tavuk-canli", name: "Tavuk (Canlı)", nameShort: "Tavuk", price: 92.50, unit: "₺/kg", change: 12.50, changePercent: 15.6, icon: "chicken", category: "livestock" },
-  { id: "dana-karkas", name: "Dana Karkas", nameShort: "Dana", price: 425.00, unit: "₺/kg", change: 45.00, changePercent: 11.8, icon: "beef", category: "meat" },
-  { id: "dana-kiyma", name: "Dana Kıyma", nameShort: "Kıyma", price: 675.00, unit: "₺/kg", change: 55.00, changePercent: 8.9, icon: "beef", category: "meat" },
-  { id: "kuzu-karkas", name: "Kuzu Karkas", nameShort: "Kuzu", price: 525.00, unit: "₺/kg", change: 75.00, changePercent: 16.7, icon: "sheep", category: "meat" },
-  { id: "tavuk-butun", name: "Bütün Tavuk", nameShort: "B.Tavuk", price: 92.50, unit: "₺/kg", change: 8.50, changePercent: 10.1, icon: "chicken", category: "meat" },
-  { id: "cig-sut", name: "Çiğ Süt", nameShort: "Süt", price: 23.52, unit: "₺/lt", change: 0.42, changePercent: 1.8, icon: "dairy", category: "dairy" },
-  { id: "tereyagi", name: "Tereyağı", nameShort: "Tereyağı", price: 435.00, unit: "₺/kg", change: 86.00, changePercent: 24.6, icon: "dairy", category: "dairy" },
-  { id: "beyaz-peynir", name: "Beyaz Peynir", nameShort: "Peynir", price: 285.00, unit: "₺/kg", change: 31.50, changePercent: 12.4, icon: "dairy", category: "dairy" },
-  { id: "arpa", name: "Arpa", nameShort: "Arpa", price: 12.50, unit: "₺/kg", change: 1.20, changePercent: 10.6, icon: "feed", category: "feed" },
-  { id: "misir", name: "Mısır", nameShort: "Mısır", price: 13.80, unit: "₺/kg", change: 0.95, changePercent: 7.4, icon: "feed", category: "feed" },
-  { id: "soya", name: "Soya Küspesi", nameShort: "Soya", price: 22.40, unit: "₺/kg", change: 2.10, changePercent: 10.3, icon: "feed", category: "feed" },
-  { id: "usd-try", name: "USD/TRY", nameShort: "USD", price: 42.43, unit: "₺", change: 0.18, changePercent: 0.43, icon: "usd", category: "currency" },
-  { id: "eur-try", name: "EUR/TRY", nameShort: "EUR", price: 49.66, unit: "₺", change: 0.24, changePercent: 0.49, icon: "eur", category: "currency" },
+interface TickerItem {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+  changePercent: number;
+  icon: "cattle" | "sheep" | "chicken" | "beef" | "dairy" | "feed" | "usd" | "eur" | "egg" | "honey";
+  category: "livestock" | "meat" | "dairy" | "currency" | "feed" | "other";
+}
+
+const currencyRates: TickerItem[] = [
+  { id: "usd-try", name: "USD", price: 42.43, unit: "₺", changePercent: 0.43, icon: "usd", category: "currency" },
+  { id: "eur-try", name: "EUR", price: 49.66, unit: "₺", changePercent: 0.49, icon: "eur", category: "currency" },
 ];
 
-function PriceIcon({ icon, className }: { icon: MarketPrice["icon"]; className?: string }) {
+function mapPriceToTicker(price: MarketPriceData): TickerItem {
+  const getIcon = (type: string, category: string): TickerItem["icon"] => {
+    if (type === "buyukbas") return "cattle";
+    if (type === "kucukbas") return "sheep";
+    if (type === "kanatli") return "chicken";
+    if (type === "et") return "beef";
+    if (type === "sut") return "dairy";
+    if (type === "yem") return "feed";
+    if (type === "yumurta") return "egg";
+    if (type === "bal") return "honey";
+    return "beef";
+  };
+
+  const getCategory = (type: string): TickerItem["category"] => {
+    if (type === "buyukbas" || type === "kucukbas" || type === "kanatli") return "livestock";
+    if (type === "et") return "meat";
+    if (type === "sut") return "dairy";
+    if (type === "yem") return "feed";
+    return "other";
+  };
+
+  const shortName = price.category
+    .replace("Canlı", "")
+    .replace("(30'lu)", "")
+    .replace("Organik ", "Org.")
+    .trim();
+
+  return {
+    id: price.id,
+    name: shortName,
+    price: parseFloat(price.price),
+    unit: price.unit,
+    changePercent: price.change_percent ? parseFloat(price.change_percent) : 0,
+    icon: getIcon(price.type, price.category),
+    category: getCategory(price.type),
+  };
+}
+
+function PriceIcon({ icon, className }: { icon: TickerItem["icon"]; className?: string }) {
   const iconClass = cn("w-4 h-4", className);
   
   switch (icon) {
@@ -42,12 +80,14 @@ function PriceIcon({ icon, className }: { icon: MarketPrice["icon"]; className?:
     case "sheep":
       return <GiSheep className={iconClass} />;
     case "chicken":
+    case "egg":
       return <GiChicken className={iconClass} />;
     case "beef":
       return <Beef className={iconClass} />;
     case "dairy":
       return <Milk className={iconClass} />;
     case "feed":
+    case "honey":
       return <GiWheat className={iconClass} />;
     case "usd":
       return <DollarSign className={iconClass} />;
@@ -58,9 +98,9 @@ function PriceIcon({ icon, className }: { icon: MarketPrice["icon"]; className?:
   }
 }
 
-function ChangeIndicator({ change, changePercent }: { change: number; changePercent: number }) {
-  const isPositive = change > 0;
-  const isNeutral = change === 0;
+function ChangeIndicator({ changePercent }: { changePercent: number }) {
+  const isPositive = changePercent > 0;
+  const isNeutral = changePercent === 0;
   
   if (isNeutral) {
     return (
@@ -88,8 +128,8 @@ function ChangeIndicator({ change, changePercent }: { change: number; changePerc
   );
 }
 
-function PriceItem({ item }: { item: MarketPrice }) {
-  const getCategoryColor = (category: MarketPrice["category"]) => {
+function PriceItem({ item }: { item: TickerItem }) {
+  const getCategoryColor = (category: TickerItem["category"]) => {
     switch (category) {
       case "livestock":
         return "text-amber-400";
@@ -102,7 +142,7 @@ function PriceItem({ item }: { item: MarketPrice }) {
       case "currency":
         return "text-violet-400";
       default:
-        return "text-blue-400";
+        return "text-orange-400";
     }
   };
 
@@ -112,12 +152,12 @@ function PriceItem({ item }: { item: MarketPrice }) {
       data-testid={`ticker-item-${item.id}`}
     >
       <PriceIcon icon={item.icon} className={getCategoryColor(item.category)} />
-      <span className="text-sm font-medium text-slate-200">{item.nameShort}</span>
+      <span className="text-sm font-medium text-slate-200">{item.name}</span>
       <span className="text-sm font-bold text-white">
         {item.price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         <span className="text-xs text-slate-400 ml-1">{item.unit}</span>
       </span>
-      <ChangeIndicator change={item.change} changePercent={item.changePercent} />
+      <ChangeIndicator changePercent={item.changePercent} />
       <span className="text-slate-600 mx-2">|</span>
     </div>
   );
@@ -126,7 +166,32 @@ function PriceItem({ item }: { item: MarketPrice }) {
 export function MarketTicker() {
   const [isPaused, setIsPaused] = useState(false);
   
-  const duplicatedData = [...marketData, ...marketData, ...marketData];
+  const { data: marketPrices = [] } = useQuery<MarketPriceData[]>({
+    queryKey: ["/api/market-prices"],
+    refetchInterval: 300000,
+  });
+
+  const tickerItems: TickerItem[] = [
+    ...marketPrices.map(mapPriceToTicker),
+    ...currencyRates,
+  ];
+
+  const duplicatedData = tickerItems.length > 0 
+    ? [...tickerItems, ...tickerItems, ...tickerItems]
+    : [];
+  
+  if (tickerItems.length === 0) {
+    return (
+      <div 
+        className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 h-8"
+        data-testid="market-ticker"
+      >
+        <div className="flex items-center justify-center h-full">
+          <span className="text-xs text-slate-500">Piyasa verileri yükleniyor...</span>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div 
@@ -160,23 +225,38 @@ export function MarketTicker() {
 export function MarketTickerCompact() {
   const [currentIndex, setCurrentIndex] = useState(0);
   
+  const { data: marketPrices = [] } = useQuery<MarketPriceData[]>({
+    queryKey: ["/api/market-prices"],
+    refetchInterval: 300000,
+  });
+
+  const tickerItems: TickerItem[] = [
+    ...marketPrices.map(mapPriceToTicker),
+    ...currencyRates,
+  ];
+  
   useEffect(() => {
+    if (tickerItems.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % marketData.length);
+      setCurrentIndex((prev) => (prev + 1) % tickerItems.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tickerItems.length]);
   
-  const currentItem = marketData[currentIndex];
+  if (tickerItems.length === 0) {
+    return null;
+  }
   
-  const getCategoryColor = (category: MarketPrice["category"]) => {
+  const currentItem = tickerItems[currentIndex] || tickerItems[0];
+  
+  const getCategoryColor = (category: TickerItem["category"]) => {
     switch (category) {
       case "livestock": return "text-amber-400";
       case "meat": return "text-red-400";
       case "dairy": return "text-cyan-400";
       case "feed": return "text-emerald-400";
       case "currency": return "text-violet-400";
-      default: return "text-blue-400";
+      default: return "text-orange-400";
     }
   };
   
@@ -186,12 +266,12 @@ export function MarketTickerCompact() {
       data-testid="market-ticker-compact"
     >
       <PriceIcon icon={currentItem.icon} className={getCategoryColor(currentItem.category)} />
-      <span className="font-medium text-slate-200">{currentItem.nameShort}</span>
+      <span className="font-medium text-slate-200">{currentItem.name}</span>
       <span className="font-bold text-white">
         {currentItem.price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         <span className="text-xs text-slate-400 ml-1">{currentItem.unit}</span>
       </span>
-      <ChangeIndicator change={currentItem.change} changePercent={currentItem.changePercent} />
+      <ChangeIndicator changePercent={currentItem.changePercent} />
     </div>
   );
 }

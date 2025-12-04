@@ -134,12 +134,6 @@ export function Navbar() {
                   {/* Hizmetler */}
                   <div className="border-t my-2 pt-2">
                     <p className="px-3 py-1 text-xs font-medium text-muted-foreground">Hizmetler</p>
-                    <Link href="/piyasa-fiyatlari">
-                      <Button variant={location === "/piyasa-fiyatlari" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-market-prices">
-                        <TrendingUp className="w-4 h-4 mr-3" />
-                        Piyasa Fiyatları
-                      </Button>
-                    </Link>
                     <Link href="/veterinerler">
                       <Button variant={location === "/veterinerler" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-vets">
                         <Stethoscope className="w-4 h-4 mr-3" />
@@ -297,12 +291,6 @@ export function Navbar() {
                 <ChevronDown className="w-3.5 h-3.5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/piyasa-fiyatlari" className="flex items-center gap-2 cursor-pointer" data-testid="link-market-prices">
-                    <TrendingUp className="w-4 h-4" />
-                    Piyasa Fiyatları
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/veterinerler" className="flex items-center gap-2 cursor-pointer" data-testid="link-vets">
                     <Stethoscope className="w-4 h-4" />
