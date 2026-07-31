@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { GiUnicorn } from "react-icons/gi";
+import { PawPrint } from "lucide-react";
 
 interface LogoProps {
   className?: string;
@@ -33,14 +33,14 @@ export function Logo({ className, size = "md", showText = true, iconOnly = false
   if (iconOnly) {
     return (
       <div className={cn("flex items-center justify-center", className)} data-testid="logo-icon">
-        <GiUnicorn className={cn(iconSizeClasses[size], "text-primary")} />
+        <PawPrint className={cn(iconSizeClasses[size], "text-primary")} />
       </div>
     );
   }
 
   return (
     <div className={cn("flex items-center gap-2", sizeClasses[size], className)} data-testid="logo">
-      <GiUnicorn className={cn(iconSizeClasses[size], "text-primary shrink-0")} />
+      <PawPrint className={cn(iconSizeClasses[size], "text-primary shrink-0")} />
       {showText && (
         <span className={cn("font-bold tracking-tight", textSizeClasses[size])} data-testid="logo-text">
           <span className="text-foreground">sahibinden</span>
@@ -55,7 +55,7 @@ export function LogoFull({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2 sm:gap-3", className)} data-testid="logo-full">
       <div className="relative flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-primary/10 shrink-0">
-        <GiUnicorn className="w-6 h-6 sm:w-9 sm:h-9 text-primary" />
+        <PawPrint className="w-6 h-6 sm:w-9 sm:h-9 text-primary" />
       </div>
       <div className="flex flex-col min-w-0">
         <span className="text-base sm:text-2xl font-bold tracking-tight leading-none">

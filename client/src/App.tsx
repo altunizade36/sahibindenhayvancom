@@ -212,6 +212,7 @@ function Router() {
                            location.startsWith('/kayit') || 
                            location.startsWith('/register') || 
                            location.startsWith('/forgot-password') || 
+                           location.startsWith('/sifremi-unuttum') || 
                            location.startsWith('/reset-password') || 
                            location.startsWith('/verify-email') || 
                            location.startsWith('/ilan-ver') ||

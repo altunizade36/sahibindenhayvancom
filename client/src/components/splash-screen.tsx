@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { GiUnicorn } from "react-icons/gi";
+import { PawPrint, ArrowRight, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UserPlus } from "lucide-react";
 
 const SPLASH_KEY = "sahibindenhayvan-onboarded";
 
@@ -48,14 +47,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   if (!isVisible) return null;
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 z-[100] bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800 flex flex-col items-center justify-center transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       data-testid="splash-screen"
     >
       <div className="text-center px-6 max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="relative mb-6">
           <div className="w-28 h-28 mx-auto rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-            <GiUnicorn className="w-16 h-16 text-white" />
+            <PawPrint className="w-14 h-14 text-white" />
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
             %100 ÜCRETSİZ
@@ -65,11 +64,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-3" data-testid="text-splash-title">
           Hoş Geldiniz!
         </h1>
-        
+
         <p className="text-lg md:text-xl text-white/90 mb-2" data-testid="text-splash-subtitle">
           sahibinden<span className="text-yellow-300">hayvan</span>.com
         </p>
-        
+
         <p className="text-white/70 mb-8 text-sm md:text-base">
           Türkiye'nin güvenilir hayvan ilanları platformu
         </p>
@@ -84,7 +83,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             Siteye Gir
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
-          
+
           <Button
             size="lg"
             variant="outline"
@@ -98,12 +97,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
 
         <div className="w-48 h-1.5 mx-auto bg-white/20 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-white/80 rounded-full transition-all duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>
-        
+
         <p className="text-white/50 text-xs mt-3">
           Otomatik devam ediliyor...
         </p>

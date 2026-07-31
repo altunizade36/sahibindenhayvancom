@@ -23,7 +23,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -52,6 +52,7 @@ import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 import { verifyFirebaseToken, formatPhoneFromFirebase } from "./firebaseAdmin";
 import { registerAdvancedFeatureRoutes } from "./advancedFeatureRoutes";
+import { getTCMBRates, formatCurrencyForTicker } from "./marketDataService";
 
 // SESSION_SECRET is now used for session management (not JWT)
 
@@ -1082,9 +1083,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     try {
       const { email, phone, password, firstName, lastName } = req.body;
 
-      // Validation - require both email and phone
-      if (!email || !phone || !password) {
-        return res.status(400).json({ message: "Email, telefon ve şifre gereklidir" });
+      // Validation - only email is required (phone is optional)
+      if (!email || !password) {
+        return res.status(400).json({ message: "E-posta ve şifre gereklidir" });
       }
 
       if (password.length < 8) {
@@ -6050,6 +6051,54 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     } catch (error) {
       console.error("Failed to fetch category trends:", error);
       res.status(500).json({ message: "Trend verileri yüklenemedi" });
+    }
+  });
+
+  // ─── Canlı piyasa verileri (TCMB döviz + DB hayvancılık) ───────────────────
+  app.get("/api/market-prices/live", async (req: Request, res: Response) => {
+    try {
+      // 1) TCMB döviz kurları (gerçek zamanlı)
+      let currencyItems: ReturnType<typeof formatCurrencyForTicker> = [];
+      let tcmbDate = "";
+      try {
+        const tcmb = await getTCMBRates();
+        currencyItems = formatCurrencyForTicker(tcmb);
+        tcmbDate = tcmb.date;
+      } catch (e) {
+        console.warn("TCMB fetch failed, skipping currencies:", e);
+      }
+
+      // 2) Hayvancılık fiyatları (DB'den en güncel kayıt)
+      const livestockItems = await db
+        .select()
+        .from(marketPrices)
+        .orderBy(desc(marketPrices.date))
+        .limit(50);
+
+      const allItems = [
+        ...livestockItems.map((p) => ({
+          id: p.id,
+          type: p.type,
+          category: p.category,
+          city: p.city,
+          price: p.price,
+          unit: p.unit,
+          change_percent: p.changePercent,
+          source: p.source,
+          isLive: false,
+          date: p.date?.toISOString() ?? new Date().toISOString(),
+        })),
+        ...currencyItems,
+      ];
+
+      res.json({
+        items: allItems,
+        tcmbDate,
+        fetchedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("market-prices/live error:", error);
+      res.status(500).json({ message: "Piyasa verileri alınamadı" });
     }
   });
 

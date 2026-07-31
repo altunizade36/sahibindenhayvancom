@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Lock } from "lucide-react";
-import { GiUnicorn } from "react-icons/gi";
+import { Lock, KeyRound, XCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,8 +87,8 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="relative p-4 rounded-full bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 shadow-sm">
-                <GiUnicorn className="w-16 h-16 text-red-600 dark:text-red-400" data-testid="icon-logo" />
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" data-testid="icon-logo" />
               </div>
             </div>
             <CardTitle className="text-2xl text-destructive font-bold" data-testid="text-error">
@@ -126,8 +125,8 @@ export default function ResetPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative p-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 shadow-sm">
-              <GiUnicorn className="w-16 h-16 text-blue-600 dark:text-blue-400" data-testid="icon-logo" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <KeyRound className="w-8 h-8 text-primary" data-testid="icon-logo" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold" data-testid="text-title">
