@@ -25,7 +25,7 @@ export type NotificationEvent = {
 };
 import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
-import { eq, and, isNull, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
+import { eq, and, isNull, asc, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
@@ -2971,7 +2971,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         vaccinated,
         neutered,
         pedigree,
-        characterTraits
+        characterTraits,
+        // Sorting
+        sortBy,
+        sortOrder,
       } = req.query;
       
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
@@ -3151,6 +3154,29 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .from(listings)
         .where(validConditions.length > 0 ? and(...validConditions) : undefined);
       
+      // Build sort order — strict allowlist to prevent injection
+      type SortColumn = 'createdAt' | 'price' | 'views';
+      const ALLOWED_SORT_COLUMNS: Record<string, SortColumn> = {
+        createdAt: 'createdAt',
+        price: 'price',
+        views: 'views',
+      };
+      const ALLOWED_SORT_ORDERS = new Set(['asc', 'desc']);
+
+      const sortCol: SortColumn = (typeof sortBy === 'string' && ALLOWED_SORT_COLUMNS[sortBy])
+        ? ALLOWED_SORT_COLUMNS[sortBy]
+        : 'createdAt';
+      const sortDir = (typeof sortOrder === 'string' && ALLOWED_SORT_ORDERS.has(sortOrder))
+        ? sortOrder
+        : 'desc';
+
+      const sortExpression =
+        sortCol === 'price'
+          ? (sortDir === 'asc' ? asc(listings.price) : desc(listings.price))
+          : sortCol === 'views'
+          ? (sortDir === 'asc' ? asc(listings.views) : desc(listings.views))
+          : (sortDir === 'asc' ? asc(listings.createdAt) : desc(listings.createdAt));
+
       // Get paginated listings
       const listingsData = await db
         .select({
@@ -3165,7 +3191,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .from(listings)
         .leftJoin(stores, eq(listings.storeId, stores.id))
         .where(validConditions.length > 0 ? and(...validConditions) : undefined)
-        .orderBy(desc(listings.createdAt))
+        .orderBy(sortExpression)
         .limit(limitNum)
         .offset(offset);
       
@@ -9809,4 +9835,3 @@ Sitemap: https://sahibindenhayvan.com/sitemap.xml
 
   return httpServer;
 }
-

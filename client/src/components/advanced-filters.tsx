@@ -49,6 +49,8 @@ import { useToast } from "@/hooks/use-toast";
 interface AdvancedFiltersProps {
   onFilterChange: (filters: FilterValues) => void;
   currentFilters: FilterValues;
+  /** When true, hides the sheet trigger button on lg+ screens (use alongside FilterSidebar) */
+  hideTriggerOnDesktop?: boolean;
 }
 
 export interface FilterValues {
@@ -109,7 +111,7 @@ interface SavedSearch {
   createdAt: string;
 }
 
-export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFiltersProps) {
+export function AdvancedFilters({ onFilterChange, currentFilters, hideTriggerOnDesktop }: AdvancedFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<FilterValues>(currentFilters);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -610,12 +612,12 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
             </SelectContent>
           </Select>
 
-          {/* Filter Button - Opens Sheet on Mobile, Collapsible on Desktop */}
+          {/* Filter Button - Opens Sheet on Mobile, hidden on Desktop when sidebar is used */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-9 shrink-0"
+                className={`h-9 shrink-0${hideTriggerOnDesktop ? " lg:hidden" : ""}`}
                 data-testid="button-open-filters"
               >
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
@@ -820,7 +822,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
         </div>
       </div>
 
-      {/* Active Filters Display */}
+      {/* Active Filters Display - only on mobile when sidebar is used */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground">Aktif:</span>
@@ -949,5 +951,410 @@ export function AdvancedFilters({ onFilterChange, currentFilters }: AdvancedFilt
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Desktop Sidebar Filter ───────────────────────────────────────────────────
+
+interface FilterSidebarProps {
+  onFilterChange: (filters: FilterValues) => void;
+  currentFilters: FilterValues;
+}
+
+export function FilterSidebar({ onFilterChange, currentFilters }: FilterSidebarProps) {
+  const [localFilters, setLocalFilters] = useState<FilterValues>(currentFilters);
+
+  // Keep local state in sync when URL back/forward changes currentFilters
+  useEffect(() => {
+    setLocalFilters(currentFilters);
+  }, [currentFilters]);
+
+  const { data: cities = [] } = useQuery<Location[]>({
+    queryKey: ["/api/locations", { type: "il" }],
+    staleTime: 1000 * 60 * 60,
+  });
+
+  const selectedCityData = cities.find(c => c.name === localFilters.city);
+  const { data: districts = [] } = useQuery<Location[]>({
+    queryKey: ["/api/locations", { type: "ilce", parent: selectedCityData?.id }],
+    enabled: !!selectedCityData?.id,
+    staleTime: 1000 * 60 * 60,
+  });
+
+  const activeFilterCount = Object.keys(localFilters).filter(key => {
+    const value = localFilters[key as keyof FilterValues];
+    if (key === 'sortBy' || key === 'sortOrder') return false;
+    if (key === 'characterTraits') return Array.isArray(value) && value.length > 0;
+    return value !== undefined && value !== '';
+  }).length;
+
+  const currentSort = localFilters.sortBy && localFilters.sortOrder
+    ? `${localFilters.sortBy}_${localFilters.sortOrder}`
+    : "createdAt_desc";
+
+  const handleApply = () => {
+    onFilterChange(localFilters);
+  };
+
+  const handleReset = () => {
+    const empty: FilterValues = {};
+    setLocalFilters(empty);
+    onFilterChange(empty);
+  };
+
+  const handleSortChange = (sortValue: string) => {
+    const [sortBy, sortOrder] = sortValue.split("_");
+    const newFilters = { ...localFilters, sortBy, sortOrder };
+    setLocalFilters(newFilters);
+    onFilterChange(newFilters); // Sort applies immediately
+  };
+
+  return (
+    <Card className="sticky top-4" data-testid="filter-sidebar">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Filtreler
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </h3>
+          {activeFilterCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              className="h-7 text-xs text-muted-foreground px-2"
+              data-testid="sidebar-button-reset"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Temizle
+            </Button>
+          )}
+        </div>
+
+        <ScrollArea className="max-h-[calc(100vh-220px)]">
+          <div className="p-4 space-y-1">
+            {/* Sort */}
+            <div className="pb-3 border-b mb-1">
+              <Label className="text-xs text-muted-foreground mb-2 block">Sıralama</Label>
+              <Select value={currentSort} onValueChange={handleSortChange}>
+                <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-sort">
+                  <ArrowUpDown className="w-3.5 h-3.5 mr-2 shrink-0" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Accordion type="multiple" defaultValue={["price", "location", "animal", "traits"]} className="w-full">
+              {/* Price Filter */}
+              <AccordionItem value="price">
+                <AccordionTrigger className="text-sm font-medium py-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4" />
+                    Fiyat Aralığı
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3 pt-1">
+                    <div className="flex flex-wrap gap-1">
+                      {pricePresets.map((preset) => {
+                        const isSelected = !localFilters.minPrice && localFilters.maxPrice === String(preset.max);
+                        return (
+                          <Badge
+                            key={preset.max}
+                            variant={isSelected ? "default" : "outline"}
+                            className="cursor-pointer text-xs"
+                            onClick={() => setLocalFilters({
+                              ...localFilters,
+                              minPrice: undefined,
+                              maxPrice: isSelected ? undefined : String(preset.max),
+                            })}
+                          >
+                            {preset.label}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{localFilters.minPrice ? `₺${Number(localFilters.minPrice).toLocaleString('tr-TR')}` : '₺0'}</span>
+                        <span>{localFilters.maxPrice ? `₺${Number(localFilters.maxPrice).toLocaleString('tr-TR')}` : '₺1.000.000+'}</span>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={1000000}
+                        step={1000}
+                        value={[Number(localFilters.minPrice) || 0, Number(localFilters.maxPrice) || 1000000]}
+                        onValueChange={([min, max]) => setLocalFilters({
+                          ...localFilters,
+                          minPrice: min > 0 ? String(min) : undefined,
+                          maxPrice: max < 1000000 ? String(max) : undefined,
+                        })}
+                        className="cursor-pointer"
+                        data-testid="sidebar-slider-price"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Min (₺)</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={localFilters.minPrice || ''}
+                          onChange={(e) => setLocalFilters({ ...localFilters, minPrice: e.target.value || undefined })}
+                          className="h-9 text-sm"
+                          data-testid="sidebar-input-min-price"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Max (₺)</Label>
+                        <Input
+                          type="number"
+                          placeholder="∞"
+                          value={localFilters.maxPrice || ''}
+                          onChange={(e) => setLocalFilters({ ...localFilters, maxPrice: e.target.value || undefined })}
+                          className="h-9 text-sm"
+                          data-testid="sidebar-input-max-price"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Location Filter */}
+              <AccordionItem value="location">
+                <AccordionTrigger className="text-sm font-medium py-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Konum
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2 pt-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">İl</Label>
+                      <Select
+                        value={localFilters.city || 'all'}
+                        onValueChange={(value) => setLocalFilters({
+                          ...localFilters,
+                          city: value === 'all' ? undefined : value,
+                          district: undefined,
+                        })}
+                      >
+                        <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-city">
+                          <SelectValue placeholder="İl Seçin" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          <SelectItem value="all">Tüm İller</SelectItem>
+                          {cities.map((city) => (
+                            <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {localFilters.city && districts.length > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">İlçe</Label>
+                        <Select
+                          value={localFilters.district || 'all'}
+                          onValueChange={(value) => setLocalFilters({
+                            ...localFilters,
+                            district: value === 'all' ? undefined : value,
+                          })}
+                        >
+                          <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-district">
+                            <SelectValue placeholder="İlçe Seçin" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            <SelectItem value="all">Tüm İlçeler</SelectItem>
+                            {districts.map((district) => (
+                              <SelectItem key={district.id} value={district.name}>{district.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Animal Details */}
+              <AccordionItem value="animal">
+                <AccordionTrigger className="text-sm font-medium py-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
+                    Hayvan Özellikleri
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2 pt-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Cinsiyet</Label>
+                      <Select
+                        value={localFilters.gender || 'all'}
+                        onValueChange={(value) => setLocalFilters({ ...localFilters, gender: value === 'all' ? undefined : value })}
+                      >
+                        <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-gender">
+                          <SelectValue placeholder="Tümü" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tümü</SelectItem>
+                          {GENDER_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Yaş Kategorisi</Label>
+                      <Select
+                        value={localFilters.ageCategory || 'all'}
+                        onValueChange={(value) => setLocalFilters({ ...localFilters, ageCategory: value === 'all' ? undefined : value })}
+                      >
+                        <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-age">
+                          <SelectValue placeholder="Tümü" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tümü</SelectItem>
+                          {AGE_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Irk</Label>
+                      <Input
+                        type="text"
+                        placeholder="Irk ara..."
+                        value={localFilters.breed || ''}
+                        onChange={(e) => setLocalFilters({ ...localFilters, breed: e.target.value || undefined })}
+                        className="h-9 text-sm"
+                        data-testid="sidebar-input-breed"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Sağlık Durumu</Label>
+                      <Select
+                        value={localFilters.healthStatus || 'all'}
+                        onValueChange={(value) => setLocalFilters({ ...localFilters, healthStatus: value === 'all' ? undefined : value })}
+                      >
+                        <SelectTrigger className="h-9 hover:bg-accent/50 text-sm" data-testid="sidebar-select-health">
+                          <SelectValue placeholder="Tümü" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tümü</SelectItem>
+                          {HEALTH_STATUS_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="sidebar-vaccinated" className="text-xs cursor-pointer flex items-center gap-2">
+                          <Syringe className="w-3.5 h-3.5" />
+                          Aşılı
+                        </Label>
+                        <Switch
+                          id="sidebar-vaccinated"
+                          checked={localFilters.vaccinated === 'true'}
+                          onCheckedChange={(checked) => setLocalFilters({ ...localFilters, vaccinated: checked ? 'true' : undefined })}
+                          data-testid="sidebar-switch-vaccinated"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="sidebar-neutered" className="text-xs cursor-pointer flex items-center gap-2">
+                          <Scissors className="w-3.5 h-3.5" />
+                          Kısırlaştırılmış
+                        </Label>
+                        <Switch
+                          id="sidebar-neutered"
+                          checked={localFilters.neutered === 'true'}
+                          onCheckedChange={(checked) => setLocalFilters({ ...localFilters, neutered: checked ? 'true' : undefined })}
+                          data-testid="sidebar-switch-neutered"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="sidebar-pedigree" className="text-xs cursor-pointer flex items-center gap-2">
+                          <Award className="w-3.5 h-3.5" />
+                          Pedigree Belgeli
+                        </Label>
+                        <Switch
+                          id="sidebar-pedigree"
+                          checked={localFilters.pedigree === 'true'}
+                          onCheckedChange={(checked) => setLocalFilters({ ...localFilters, pedigree: checked ? 'true' : undefined })}
+                          data-testid="sidebar-switch-pedigree"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Character Traits */}
+              <AccordionItem value="traits" className="border-b-0">
+                <AccordionTrigger className="text-sm font-medium py-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
+                    Karakter Özellikleri
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {CHARACTER_TRAITS.map((trait) => {
+                      const isSelected = localFilters.characterTraits?.includes(trait.value);
+                      return (
+                        <Badge
+                          key={trait.value}
+                          variant={isSelected ? "default" : "outline"}
+                          className="cursor-pointer text-xs"
+                          onClick={() => {
+                            const current = localFilters.characterTraits || [];
+                            const newTraits = isSelected
+                              ? current.filter(t => t !== trait.value)
+                              : [...current, trait.value];
+                            setLocalFilters({ ...localFilters, characterTraits: newTraits.length > 0 ? newTraits : undefined });
+                          }}
+                          data-testid={`sidebar-trait-${trait.value}`}
+                        >
+                          {isSelected && <Check className="w-3 h-3 mr-1" />}
+                          {trait.label}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </ScrollArea>
+
+        {/* Apply Button */}
+        <div className="px-4 py-3 border-t">
+          <Button
+            onClick={handleApply}
+            className="w-full h-10"
+            data-testid="sidebar-button-apply"
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Uygula {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
