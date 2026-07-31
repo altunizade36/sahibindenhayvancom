@@ -17,12 +17,16 @@
 *.cer
 id_rsa*
 id_ed25519*
-# Firebase / Google servis hesabı JSON'ları
+# Google / Firebase servis hesabı ve OAuth istemci dosyaları
 **/serviceAccount*.json
 **/service-account*.json
 **/firebase-adminsdk*.json
 **/*credentials*.json
+**/client_secret*.json
+**/client_secret*
 gha-creds-*.json
+*.secret
+*.secrets
 
 # ═══════════════════════════════════════════════════════════
 #  Bağımlılıklar ve derleme çıktısı
