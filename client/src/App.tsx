@@ -70,6 +70,8 @@ const PanelFavorilerim = lazy(() => import("@/pages/panel/favorilerim"));
 const PanelAyarlar = lazy(() => import("@/pages/panel/ayarlar"));
 const PanelAnalizler = lazy(() => import("@/pages/panel/analizler"));
 const PanelSonGoruntuleneler = lazy(() => import("@/pages/panel/son-goruntuleneler"));
+const PanelDogrulama = lazy(() => import("@/pages/panel/dogrulama"));
+const AdminVerifications = lazy(() => import("@/pages/admin/verifications"));
 const ComparePage = lazy(() => import("@/pages/compare"));
 const KullanimKosullari = lazy(() => import("@/pages/legal/kullanim-kosullari"));
 const GizlilikPolitikasi = lazy(() => import("@/pages/legal/gizlilik-politikasi"));
@@ -151,6 +153,7 @@ function NoSidebarLayout() {
           <Route path="/panel/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
           <Route path="/panel/analizler">{() => <LazyRoute component={PanelAnalizler} />}</Route>
           <Route path="/panel/son-goruntuleneler">{() => <LazyRoute component={PanelSonGoruntuleneler} />}</Route>
+          <Route path="/panel/dogrulama">{() => <LazyRoute component={PanelDogrulama} />}</Route>
           <Route path="/ayarlar">{() => <LazyRoute component={PanelAyarlar} />}</Route>
           <Route path="/favoriler">{() => <LazyRoute component={PanelFavorilerim} />}</Route>
           <Route path="/bildirimler">{() => <LazyRoute component={NotificationsPage} />}</Route>
@@ -185,6 +188,7 @@ function NoSidebarLayout() {
           <Route path="/admin/blog">{() => <LazyRoute component={AdminBlog} />}</Route>
           <Route path="/admin/bildirimler">{() => <LazyRoute component={AdminNotifications} />}</Route>
           <Route path="/admin/loglar">{() => <LazyRoute component={AdminLogs} />}</Route>
+          <Route path="/admin/dogrulamalar">{() => <LazyRoute component={AdminVerifications} />}</Route>
           <Route path="/admin/ayarlar">{() => <LazyRoute component={AdminSettings} />}</Route>
           <Route path="/kullanim-kosullari">{() => <LazyRoute component={KullanimKosullari} />}</Route>
           <Route path="/gizlilik-politikasi">{() => <LazyRoute component={GizlilikPolitikasi} />}</Route>

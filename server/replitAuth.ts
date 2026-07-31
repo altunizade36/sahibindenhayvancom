@@ -76,6 +76,12 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Replit OIDC is only available when running on Replit (REPL_ID must be set)
+  if (!process.env.REPL_ID) {
+    console.log("ℹ️  Replit Auth skipped (REPL_ID not set) — using email/phone auth only");
+    return;
+  }
+
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (

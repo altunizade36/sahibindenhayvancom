@@ -1,10 +1,22 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
 import { randomUUID } from "crypto";
+import { isSupabaseStorageConfigured, supabaseStorage } from "./supabaseStorage";
+
+// ── Storage provider selection ──────────────────────────────────────────────
+// If SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are set, we use Supabase Storage.
+// Otherwise we fall back to Replit Object Storage (Google Cloud Storage sidecar).
+export const useSupabaseStorage = isSupabaseStorageConfigured();
+if (useSupabaseStorage) {
+  console.log("☁️  Using Supabase Storage provider");
+} else {
+  console.log("☁️  Using Replit Object Storage provider");
+}
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
-export const objectStorageClient = new Storage({
+// objectStorageClient is only used when NOT on Supabase
+export const objectStorageClient = useSupabaseStorage ? null as unknown as Storage : new Storage({
   credentials: {
     audience: "replit",
     subject_token_type: "access_token",
@@ -79,16 +91,23 @@ export class ObjectStorageService {
     return null;
   }
 
-  async downloadObject(file: File, res: Response, cacheTtlSec: number = 3600) {
+  async downloadObject(file: File | string, res: Response, cacheTtlSec: number = 3600) {
+    // Supabase: file is a path string
+    if (useSupabaseStorage && typeof file === 'string') {
+      return supabaseStorage.downloadObject(file, res, cacheTtlSec);
+    }
+
+    // Replit: file is a Google Cloud Storage File object
     try {
-      const [metadata] = await file.getMetadata();
+      const gcsFile = file as File;
+      const [metadata] = await gcsFile.getMetadata();
       res.set({
         "Content-Type": metadata.contentType || "application/octet-stream",
         "Content-Length": metadata.size,
         "Cache-Control": `public, max-age=${cacheTtlSec}`,
       });
 
-      const stream = file.createReadStream();
+      const stream = gcsFile.createReadStream();
       stream.on("error", (err) => {
         console.error("Stream error:", err);
         if (!res.headersSent) {
@@ -106,6 +125,10 @@ export class ObjectStorageService {
   }
 
   async getObjectEntityUploadURL(): Promise<string> {
+    if (useSupabaseStorage) {
+      return supabaseStorage.getObjectEntityUploadURL();
+    }
+
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error("PRIVATE_OBJECT_DIR not set");
@@ -171,6 +194,11 @@ export class ObjectStorageService {
   }
 
   async uploadFileBuffer(buffer: Buffer, contentType: string = 'image/jpeg'): Promise<string> {
+    // Supabase storage path
+    if (useSupabaseStorage) {
+      return supabaseStorage.uploadFileBuffer(buffer, contentType);
+    }
+
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error("PRIVATE_OBJECT_DIR not set");

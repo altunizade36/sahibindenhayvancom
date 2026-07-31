@@ -1124,6 +1124,160 @@ export function registerFarmTVRoutes(app: Express) {
   });
 }
 
+// ============ PROFESSIONAL VERIFICATION API ============
+export function registerVerificationRoutes(app: Express) {
+  // Submit a verification request
+  app.post("/api/verify/request", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      if (!userId) return res.status(401).json({ message: "Giriş yapmalısınız" });
+
+      const { professionalType, documentType, documentNumber, issuingAuthority, documentUrl, documentKey, notes } = req.body;
+
+      if (!professionalType || !documentType) {
+        return res.status(400).json({ message: "Meslek türü ve belge türü zorunludur" });
+      }
+
+      // Check if pending/approved request already exists
+      const existingQuery = `
+        SELECT id, status FROM professional_verifications 
+        WHERE user_id = '${userId}' AND professional_type = '${professionalType}'
+        AND status IN ('pending', 'approved')
+        LIMIT 1
+      `;
+      const existing = await db.execute(sql.raw(existingQuery));
+      if (existing.rows.length > 0) {
+        const existingStatus = (existing.rows[0] as any).status;
+        if (existingStatus === 'approved') {
+          return res.status(409).json({ message: "Bu meslek türü için zaten onaylanmış bir doğrulama var" });
+        }
+        return res.status(409).json({ message: "Bu meslek türü için bekleyen bir doğrulama talebi zaten var" });
+      }
+
+      const query = `
+        INSERT INTO professional_verifications 
+        (user_id, professional_type, document_type, document_number, issuing_authority, document_url, document_key, notes)
+        VALUES ('${userId}', '${professionalType}', '${documentType}',
+                ${documentNumber ? `'${documentNumber.replace(/'/g, "''")}'` : 'NULL'},
+                ${issuingAuthority ? `'${issuingAuthority.replace(/'/g, "''")}'` : 'NULL'},
+                ${documentUrl ? `'${documentUrl.replace(/'/g, "''")}'` : 'NULL'},
+                ${documentKey ? `'${documentKey.replace(/'/g, "''")}'` : 'NULL'},
+                ${notes ? `'${notes.replace(/'/g, "''")}'` : 'NULL'})
+        RETURNING *
+      `;
+      const result = await db.execute(sql.raw(query));
+      res.json({ success: true, verification: result.rows[0] });
+    } catch (error) {
+      console.error("Error creating verification request:", error);
+      res.status(500).json({ message: "Doğrulama talebi oluşturulamadı" });
+    }
+  });
+
+  // Get own verification status
+  app.get("/api/verify/status", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = getUserId(user);
+      if (!userId) return res.status(401).json({ message: "Giriş yapmalısınız" });
+
+      const query = `
+        SELECT pv.*, u.first_name as reviewer_first_name, u.last_name as reviewer_last_name
+        FROM professional_verifications pv
+        LEFT JOIN users u ON pv.reviewed_by = u.id
+        WHERE pv.user_id = '${userId}'
+        ORDER BY pv.created_at DESC
+      `;
+      const result = await db.execute(sql.raw(query));
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching verification status:", error);
+      res.status(500).json({ message: "Doğrulama durumu getirilemedi" });
+    }
+  });
+
+  // Admin: List all verification requests
+  app.get("/api/admin/verifications", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      if (!user || user.role !== 'admin') return res.status(403).json({ message: "Yetkiniz yok" });
+
+      const { status, type } = req.query;
+      let conditions = '1=1';
+      if (status) conditions += ` AND pv.status = '${status}'`;
+      if (type) conditions += ` AND pv.professional_type = '${type}'`;
+
+      const query = `
+        SELECT pv.*, 
+               u.first_name, u.last_name, u.email, u.city,
+               r.first_name as reviewer_first_name, r.last_name as reviewer_last_name
+        FROM professional_verifications pv
+        INNER JOIN users u ON pv.user_id = u.id
+        LEFT JOIN users r ON pv.reviewed_by = r.id
+        WHERE ${conditions}
+        ORDER BY 
+          CASE pv.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END,
+          pv.created_at DESC
+      `;
+      const result = await db.execute(sql.raw(query));
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching verifications:", error);
+      res.status(500).json({ message: "Doğrulama listesi getirilemedi" });
+    }
+  });
+
+  // Admin: Approve or reject a verification
+  app.patch("/api/admin/verifications/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      if (!user || user.role !== 'admin') return res.status(403).json({ message: "Yetkiniz yok" });
+
+      const adminId = getUserId(user);
+      const { id } = req.params;
+      const { status, adminNotes } = req.body;
+
+      if (!['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+
+      const query = `
+        UPDATE professional_verifications 
+        SET status = '${status}',
+            admin_notes = ${adminNotes ? `'${adminNotes.replace(/'/g, "''")}'` : 'NULL'},
+            reviewed_by = '${adminId}',
+            reviewed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = '${id}'
+        RETURNING *
+      `;
+      const result = await db.execute(sql.raw(query));
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Doğrulama talebi bulunamadı" });
+      }
+
+      // If approved as veterinarian, update vet_services verified flag
+      const verification = result.rows[0] as any;
+      if (status === 'approved') {
+        if (verification.professional_type === 'veterinarian') {
+          await db.execute(sql.raw(`
+            UPDATE vet_services SET verified = true WHERE vet_id = '${verification.user_id}'
+          `));
+        } else if (verification.professional_type === 'transporter') {
+          await db.execute(sql.raw(`
+            UPDATE transport_services SET verified = true WHERE transporter_id = '${verification.user_id}'
+          `));
+        }
+      }
+
+      res.json({ success: true, verification: result.rows[0] });
+    } catch (error) {
+      console.error("Error updating verification:", error);
+      res.status(500).json({ message: "Doğrulama güncellenemedi" });
+    }
+  });
+}
+
 // Main registration function
 export function registerAdvancedFeatureRoutes(app: Express) {
   registerMarketPriceRoutes(app);
@@ -1132,6 +1286,7 @@ export function registerAdvancedFeatureRoutes(app: Express) {
   registerB2BRoutes(app);
   registerWholesaleRoutes(app);
   registerFarmTVRoutes(app);
+  registerVerificationRoutes(app);
   
   console.log("Advanced feature routes registered successfully");
 }

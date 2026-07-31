@@ -167,12 +167,15 @@ export default function VetServices() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service) => (
+            {filteredServices.map((service) => {
+              const isExample = service.vetId?.startsWith('demo-');
+              return (
               <Card
                 key={service.id}
-                className="hover-elevate overflow-hidden"
+                className="hover-elevate overflow-hidden relative"
                 data-testid={`card-vet-${service.id}`}
               >
+                {isExample && <ExampleListingBadge />}
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
                     <Avatar className="w-12 h-12 bg-primary/10">
@@ -251,7 +254,8 @@ export default function VetServices() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
 

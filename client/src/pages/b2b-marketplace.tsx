@@ -135,14 +135,20 @@ function B2BListingCard({ listing }: { listing: B2BListing }) {
   
   const calculatedPrice = parseFloat(listing.price_per_unit) * quantity;
   
+  const isExample = listing.seller_id?.startsWith('demo-');
+  
   return (
-    <Card className="hover-elevate" data-testid={`b2b-listing-${listing.id}`}>
+    <Card className="hover-elevate relative overflow-hidden" data-testid={`b2b-listing-${listing.id}`}>
+      {isExample && <ExampleListingBadge />}
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base line-clamp-2">{listing.title}</CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 flex items-center gap-2">
               <Badge variant="outline" className="text-xs">{listing.category}</Badge>
+              {isExample && (
+                <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-400">Örnek İlan</Badge>
+              )}
             </CardDescription>
           </div>
           {listing.store_verified && (

@@ -305,6 +305,12 @@ export default function PanelDashboard() {
                 Hesap
               </p>
               <SidebarLink
+                href="/panel/dogrulama"
+                icon={Shield}
+                label="Mesleki Doğrulama"
+                active={location === "/panel/dogrulama"}
+              />
+              <SidebarLink
                 href="/panel/ayarlar"
                 icon={Settings}
                 label="Ayarlar"

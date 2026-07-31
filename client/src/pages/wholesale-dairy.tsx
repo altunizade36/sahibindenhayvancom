@@ -138,8 +138,11 @@ function ProductCard({ product }: { product: WholesaleProduct }) {
   const calculatedPrice = parseFloat(product.price_per_unit) * quantity;
   const rating = product.rating ? parseFloat(product.rating) : 0;
   
+  const isExample = product.seller_id?.startsWith('demo-');
+  
   return (
-    <Card className="hover-elevate" data-testid={`wholesale-product-${product.id}`}>
+    <Card className="hover-elevate relative overflow-hidden" data-testid={`wholesale-product-${product.id}`}>
+      {isExample && <ExampleListingBadge />}
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 min-w-0">
@@ -148,6 +151,9 @@ function ProductCard({ product }: { product: WholesaleProduct }) {
               <Badge variant="outline" className="text-xs">{product.product_type}</Badge>
               {product.origin && (
                 <span className="text-xs text-muted-foreground">{product.origin}</span>
+              )}
+              {isExample && (
+                <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-400">Örnek</Badge>
               )}
             </CardDescription>
           </div>

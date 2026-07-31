@@ -366,7 +366,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // Use existing server if provided, otherwise create new one
   const httpServer = existingServer || createServer(app);
-  const wss = new WebSocketServer({ 
+  
+  // Skip WebSocket setup in serverless environments (Vercel)
+  const isServerless = process.env.VERCEL === '1' || process.env.DISABLE_WEBSOCKET === 'true';
+  const wss: WebSocketServer | null = isServerless ? null : new WebSocketServer({ 
     server: httpServer, 
     path: "/ws",
     maxPayload: 100 * 1024, // 100KB max message size
@@ -479,7 +482,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     return newConversation;
   };
   
-  wss.on("connection", async (ws: WebSocket, req) => {
+  wss?.on("connection", async (ws: WebSocket, req) => {
     // Check connection limit
     if (clients.size >= MAX_CONNECTIONS) {
       ws.close(1008, "Server at capacity");
@@ -3963,7 +3966,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         })
         .where(eq(auctions.id, req.params.id));
 
-      wss.clients.forEach((client: WebSocket) => {
+      wss?.clients?.forEach((client: WebSocket) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
             type: 'new_bid',

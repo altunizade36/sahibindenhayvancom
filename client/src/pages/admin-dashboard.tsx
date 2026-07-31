@@ -124,6 +124,7 @@ const menuItems = [
   { id: "users", label: "Kullanıcılar", icon: Users },
   { id: "stores", label: "Mağazalar", icon: Store },
   { id: "documents", label: "Belge Doğrulama", icon: FileCheck },
+  { id: "verifications", label: "Mesleki Doğrulama", icon: Shield, href: "/admin/dogrulamalar" },
   { id: "reports", label: "Şikayetler", icon: Flag },
   { id: "blog", label: "Blog Yönetimi", icon: BookOpen },
 ];
@@ -309,7 +310,7 @@ export default function AdminDashboard() {
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => (item as any).href ? navigate((item as any).href) : setActiveTab(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
                   activeTab === item.id 
                     ? 'bg-primary text-primary-foreground' 

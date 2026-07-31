@@ -93,13 +93,20 @@ function formatDate(dateString: string): string {
 }
 
 function TransportRequestCard({ request }: { request: TransportRequest }) {
+  const isExample = request.user_id?.startsWith('demo-');
   return (
-    <Card className="hover-elevate" data-testid={`card-transport-${request.id}`}>
+    <Card className="hover-elevate relative overflow-hidden" data-testid={`card-transport-${request.id}`}>
+      {isExample && <ExampleListingBadge />}
       <CardContent className="pt-4">
         <div className="flex items-center justify-between mb-3">
-          <Badge variant={request.status === 'pending' ? 'secondary' : 'default'}>
-            {request.status === 'pending' ? 'Teklif Bekliyor' : request.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={request.status === 'pending' ? 'secondary' : 'default'}>
+              {request.status === 'pending' ? 'Teklif Bekliyor' : request.status}
+            </Badge>
+            {isExample && (
+              <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-400">Örnek</Badge>
+            )}
+          </div>
           <span className="text-sm text-muted-foreground">
             {formatDate(request.created_at)}
           </span>
