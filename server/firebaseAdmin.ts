@@ -1,12 +1,20 @@
 import admin from 'firebase-admin';
 
-// Firebase project configuration
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "sahibindenhayvan-55728";
+// Firebase proje kimliği yalnızca ortamdan okunur (kaynak koda gömülmez).
+const FIREBASE_PROJECT_ID =
+  process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
 
 let firebaseApp: admin.app.App | null = null;
 
 export function getFirebaseAdmin(): admin.app.App {
   if (!firebaseApp) {
+    if (!FIREBASE_PROJECT_ID) {
+      throw new Error(
+        "FIREBASE_PROJECT_ID (veya VITE_FIREBASE_PROJECT_ID) tanımlı değil — " +
+          "Firebase telefon doğrulaması kullanılamaz."
+      );
+    }
+
     // Check if already initialized
     if (admin.apps.length > 0) {
       firebaseApp = admin.apps[0]!;

@@ -191,7 +191,7 @@ export default function ComparePage() {
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={() => navigate(-1)}
+          onClick={() => window.history.back()}
           data-testid="button-back"
         >
           <ArrowLeft className="w-5 h-5" />

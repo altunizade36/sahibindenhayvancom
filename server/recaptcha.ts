@@ -21,14 +21,22 @@ export interface RecaptchaEnterpriseResponse {
   name: string;
 }
 
-const RECAPTCHA_SITE_KEY = '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
-const PROJECT_ID = 'sahibindenhayvan-55728';
+// Site key gizli değildir (tarayıcıya gider) ama depo ile ortamı ayrı tutmak için
+// ortam değişkeninden okunur.
+const RECAPTCHA_SITE_KEY = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
+const PROJECT_ID = process.env.RECAPTCHA_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
 
 export async function verifyRecaptcha(token: string, expectedAction: string, minScore = 0.5): Promise<boolean> {
   const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-  
-  if (!apiKey) {
-    console.warn('⚠️  RECAPTCHA_SECRET_KEY (API Key) not configured. Bypassing verification in development.');
+
+  if (!apiKey || !RECAPTCHA_SITE_KEY || !PROJECT_ID) {
+    // Geliştirmede doğrulamayı atla; ÜRETİMDE kapalı kal (fail closed) —
+    // aksi halde anahtar unutulduğunda spam koruması sessizce devre dışı kalır.
+    if (process.env.NODE_ENV === 'production') {
+      console.error('❌ reCAPTCHA yapılandırılmamış (RECAPTCHA_SECRET_KEY / SITE_KEY / PROJECT_ID) — istek reddedildi.');
+      return false;
+    }
+    console.warn('⚠️  reCAPTCHA yapılandırılmamış — geliştirme modunda doğrulama atlanıyor.');
     return true;
   }
 

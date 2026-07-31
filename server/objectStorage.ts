@@ -1,38 +1,58 @@
-import { Storage, File } from "@google-cloud/storage";
+/**
+ * Object Storage — Supabase Storage
+ *
+ * Replit Object Storage (Google Cloud sidecar) yerine geçer.
+ * Uygulama genelinde dosya yolları "/objects/<key>" biçiminde saklanır;
+ * bucket içindeki gerçek anahtar ise "<key>" olur.
+ *
+ * Gerekli ortam değişkenleri:
+ *   SUPABASE_URL
+ *   SUPABASE_SERVICE_ROLE_KEY
+ *   SUPABASE_STORAGE_BUCKET   (varsayılan: "uploads")
+ */
+
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Response } from "express";
 import { randomUUID } from "crypto";
-import { isSupabaseStorageConfigured, supabaseStorage } from "./supabaseStorage";
 
-// ── Storage provider selection ──────────────────────────────────────────────
-// If SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are set, we use Supabase Storage.
-// Otherwise we fall back to Replit Object Storage (Google Cloud Storage sidecar).
-export const useSupabaseStorage = isSupabaseStorageConfigured();
-if (useSupabaseStorage) {
-  console.log("☁️  Using Supabase Storage provider");
-} else {
-  console.log("☁️  Using Replit Object Storage provider");
+const OBJECT_PREFIX = "/objects/";
+
+let _supabase: SupabaseClient | null = null;
+
+export function isObjectStorageConfigured(): boolean {
+  return !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
-const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+function getClient(): SupabaseClient {
+  if (_supabase) return _supabase;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY tanımlı değil — dosya yükleme devre dışı."
+    );
+  }
+  _supabase = createClient(url, key, { auth: { persistSession: false } });
+  return _supabase;
+}
 
-// objectStorageClient is only used when NOT on Supabase
-export const objectStorageClient = useSupabaseStorage ? null as unknown as Storage : new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
-    type: "external_account",
-    credential_source: {
-      url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
-      format: {
-        type: "json",
-        subject_token_field_name: "access_token",
-      },
-    },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-});
+function getBucket(): string {
+  return process.env.SUPABASE_STORAGE_BUCKET || "uploads";
+}
+
+/** Bucket public ise /objects/* istekleri CDN'e yönlendirilir (serverless bant genişliği tasarrufu) */
+function isPublicBucket(): boolean {
+  return process.env.SUPABASE_STORAGE_PUBLIC !== "false";
+}
+
+/** "/objects/listings/x.webp" → "listings/x.webp" */
+function toStorageKey(objectPath: string): string {
+  let key = objectPath;
+  if (key.startsWith(OBJECT_PREFIX)) key = key.slice(OBJECT_PREFIX.length);
+  else if (key.startsWith("objects/")) key = key.slice("objects/".length);
+  else if (key.startsWith("/")) key = key.slice(1);
+  return key;
+}
 
 export class ObjectNotFoundError extends Error {
   constructor() {
@@ -45,287 +65,192 @@ export class ObjectNotFoundError extends Error {
 export class ObjectStorageService {
   constructor() {}
 
-  getPublicObjectSearchPaths(): Array<string> {
-    const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
-    const paths = Array.from(
-      new Set(
-        pathsStr
-          .split(",")
-          .map((path) => path.trim())
-          .filter((path) => path.length > 0)
-      )
-    );
-    if (paths.length === 0) {
-      throw new Error(
-        "PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' " +
-          "tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths)."
-      );
-    }
-    return paths;
+  // ── Yol yardımcıları (eski Replit API'si ile uyumluluk için korundu) ──────
+
+  getPublicObjectSearchPaths(): string[] {
+    return ["public"];
   }
 
   getPrivateObjectDir(): string {
-    const dir = process.env.PRIVATE_OBJECT_DIR || "";
-    if (!dir) {
-      throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
-      );
-    }
-    return dir;
+    return "";
   }
 
-  async searchPublicObject(filePath: string): Promise<File | null> {
-    for (const searchPath of this.getPublicObjectSearchPaths()) {
-      const fullPath = `${searchPath}/${filePath}`;
-      const { bucketName, objectName } = parseObjectPath(fullPath);
-      const bucket = objectStorageClient.bucket(bucketName);
-      const file = bucket.file(objectName);
+  // ── Okuma ────────────────────────────────────────────────────────────────
 
-      const [exists] = await file.exists();
-      if (exists) {
-        return file;
-      }
+  /** Public klasöründe dosya arar; bulursa storage key döner. */
+  async searchPublicObject(filePath: string): Promise<string | null> {
+    for (const base of this.getPublicObjectSearchPaths()) {
+      const key = `${base}/${filePath}`.replace(/\/+/g, "/");
+      if (await this.fileExists(key)) return key;
     }
-
     return null;
   }
 
-  async downloadObject(file: File | string, res: Response, cacheTtlSec: number = 3600) {
-    // Supabase: file is a path string
-    if (useSupabaseStorage && typeof file === 'string') {
-      return supabaseStorage.downloadObject(file, res, cacheTtlSec);
+  /** "/objects/..." yolunun var olduğunu doğrular, storage key döner. */
+  async getObjectEntityFile(objectPath: string): Promise<string> {
+    if (!objectPath.startsWith(OBJECT_PREFIX)) {
+      throw new ObjectNotFoundError();
     }
+    const key = toStorageKey(objectPath);
+    if (!key) throw new ObjectNotFoundError();
+    if (!(await this.fileExists(key))) {
+      throw new ObjectNotFoundError();
+    }
+    return key;
+  }
 
-    // Replit: file is a Google Cloud Storage File object
+  /**
+   * Dosyayı istemciye gönderir.
+   * Public bucket'ta CDN'e 302 yönlendirir (fonksiyon bant genişliği harcamaz),
+   * private bucket'ta imzalı URL'e yönlendirir.
+   */
+  async downloadObject(
+    file: string,
+    res: Response,
+    cacheTtlSec: number = 3600
+  ): Promise<void> {
+    const key = toStorageKey(file);
     try {
-      const gcsFile = file as File;
-      const [metadata] = await gcsFile.getMetadata();
-      res.set({
-        "Content-Type": metadata.contentType || "application/octet-stream",
-        "Content-Length": metadata.size,
-        "Cache-Control": `public, max-age=${cacheTtlSec}`,
-      });
-
-      const stream = gcsFile.createReadStream();
-      stream.on("error", (err) => {
-        console.error("Stream error:", err);
-        if (!res.headersSent) {
-          res.status(500).json({ error: "Error streaming file" });
-        }
-      });
-
-      stream.pipe(res);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Error downloading file" });
+      if (isPublicBucket()) {
+        res.set("Cache-Control", `public, max-age=${cacheTtlSec}`);
+        return res.redirect(302, this.getPublicUrl(key));
       }
+      const signed = await this.getSignedUrl(key, cacheTtlSec);
+      return res.redirect(302, signed);
+    } catch (error) {
+      console.error("Dosya indirme hatası:", error);
+      if (!res.headersSent) res.status(500).json({ error: "Error downloading file" });
     }
   }
 
+  getPublicUrl(objectPath: string): string {
+    const { data } = getClient()
+      .storage.from(getBucket())
+      .getPublicUrl(toStorageKey(objectPath));
+    return data.publicUrl;
+  }
+
+  async getSignedUrl(objectPath: string, expiresIn: number = 900): Promise<string> {
+    const { data, error } = await getClient()
+      .storage.from(getBucket())
+      .createSignedUrl(toStorageKey(objectPath), expiresIn);
+    if (error || !data) {
+      throw new Error(`İmzalı URL oluşturulamadı: ${error?.message}`);
+    }
+    return data.signedUrl;
+  }
+
+  async fileExists(objectPath: string): Promise<boolean> {
+    const key = toStorageKey(objectPath);
+    const dir = key.split("/").slice(0, -1).join("/");
+    const name = key.split("/").pop() || "";
+    const { data, error } = await getClient()
+      .storage.from(getBucket())
+      .list(dir, { search: name, limit: 100 });
+    if (error || !data) return false;
+    return data.some((f) => f.name === name);
+  }
+
+  // ── Yazma ────────────────────────────────────────────────────────────────
+
+  /** İstemcinin doğrudan yükleme yapabilmesi için imzalı PUT URL'i. */
   async getObjectEntityUploadURL(): Promise<string> {
-    if (useSupabaseStorage) {
-      return supabaseStorage.getObjectEntityUploadURL();
+    const key = `uploads/${randomUUID()}`;
+    const { data, error } = await getClient()
+      .storage.from(getBucket())
+      .createSignedUploadUrl(key);
+    if (error || !data) {
+      throw new Error(`İmzalı yükleme URL'i oluşturulamadı: ${error?.message}`);
     }
-
-    const privateObjectDir = this.getPrivateObjectDir();
-    if (!privateObjectDir) {
-      throw new Error("PRIVATE_OBJECT_DIR not set");
-    }
-
-    const objectId = randomUUID();
-    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
-    const { bucketName, objectName } = parseObjectPath(fullPath);
-
-    return signObjectURL({
-      bucketName,
-      objectName,
-      method: "PUT",
-      ttlSec: 900,
-    });
+    return data.signedUrl;
   }
 
-  async getObjectEntityFile(objectPath: string): Promise<File> {
-    if (!objectPath.startsWith("/objects/")) {
-      throw new ObjectNotFoundError();
-    }
-
-    const parts = objectPath.slice(1).split("/");
-    if (parts.length < 2) {
-      throw new ObjectNotFoundError();
-    }
-
-    const entityId = parts.slice(1).join("/");
-    let entityDir = this.getPrivateObjectDir();
-    if (!entityDir.endsWith("/")) {
-      entityDir = `${entityDir}/`;
-    }
-    const objectEntityPath = `${entityDir}${entityId}`;
-    const { bucketName, objectName } = parseObjectPath(objectEntityPath);
-    const bucket = objectStorageClient.bucket(bucketName);
-    const objectFile = bucket.file(objectName);
-    const [exists] = await objectFile.exists();
-    if (!exists) {
-      throw new ObjectNotFoundError();
-    }
-    return objectFile;
+  /** Buffer yükler, uygulama içi "/objects/..." yolunu döner. */
+  async uploadFileBuffer(
+    buffer: Buffer,
+    contentType: string = "image/jpeg"
+  ): Promise<string> {
+    const ext = (contentType.split("/")[1] || "bin").split("+")[0];
+    const key = `uploads/${randomUUID()}.${ext}`;
+    return this.uploadBufferAt(key, buffer, contentType);
   }
 
-  normalizeObjectEntityPath(rawPath: string): string {
-    if (!rawPath.startsWith("https://storage.googleapis.com/")) {
-      return rawPath;
-    }
-
-    const url = new URL(rawPath);
-    const rawObjectPath = url.pathname;
-
-    let objectEntityDir = this.getPrivateObjectDir();
-    if (!objectEntityDir.endsWith("/")) {
-      objectEntityDir = `${objectEntityDir}/`;
-    }
-
-    if (!rawObjectPath.startsWith(objectEntityDir)) {
-      return rawObjectPath;
-    }
-
-    const entityId = rawObjectPath.slice(objectEntityDir.length);
-    return `/objects/${entityId}`;
+  /** Belirli bir anahtara yükler, uygulama içi "/objects/..." yolunu döner. */
+  async uploadBufferAt(
+    key: string,
+    buffer: Buffer,
+    contentType: string
+  ): Promise<string> {
+    const storageKey = toStorageKey(key);
+    const { error } = await getClient()
+      .storage.from(getBucket())
+      .upload(storageKey, buffer, { contentType, upsert: true });
+    if (error) throw new Error(`Supabase yükleme hatası: ${error.message}`);
+    return `${OBJECT_PREFIX}${storageKey}`;
   }
 
-  async uploadFileBuffer(buffer: Buffer, contentType: string = 'image/jpeg'): Promise<string> {
-    // Supabase storage path
-    if (useSupabaseStorage) {
-      return supabaseStorage.uploadFileBuffer(buffer, contentType);
-    }
-
-    const privateObjectDir = this.getPrivateObjectDir();
-    if (!privateObjectDir) {
-      throw new Error("PRIVATE_OBJECT_DIR not set");
-    }
-
-    const objectId = randomUUID();
-    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
-    const { bucketName, objectName } = parseObjectPath(fullPath);
-    
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(objectName);
-
-    await file.save(buffer, {
-      contentType,
-      metadata: {
-        contentType,
-      },
-    });
-
-    return `/objects/uploads/${objectId}`;
-  }
+  // ── Silme ────────────────────────────────────────────────────────────────
 
   async deleteFile(objectPath: string): Promise<boolean> {
+    if (!objectPath) return false;
     try {
-      if (!objectPath) return false;
-      
-      let fullPath: string;
-      
-      // Handle different path formats
-      if (objectPath.startsWith('/objects/')) {
-        // Convert /objects/uploads/xxx to full path
-        const entityId = objectPath.slice('/objects/'.length);
-        let entityDir = this.getPrivateObjectDir();
-        if (!entityDir.endsWith('/')) {
-          entityDir = `${entityDir}/`;
-        }
-        fullPath = `${entityDir}${entityId}`;
-      } else if (objectPath.startsWith('https://storage.googleapis.com/')) {
-        // Handle full GCS URLs
-        const url = new URL(objectPath);
-        fullPath = url.pathname;
-      } else {
-        // Already a raw path
-        fullPath = objectPath;
-      }
-
-      const { bucketName, objectName } = parseObjectPath(fullPath);
-      const bucket = objectStorageClient.bucket(bucketName);
-      const file = bucket.file(objectName);
-      
-      const [exists] = await file.exists();
-      if (exists) {
-        await file.delete();
-        return true;
-      }
-      return false;
+      const { error } = await getClient()
+        .storage.from(getBucket())
+        .remove([toStorageKey(this.normalizeObjectEntityPath(objectPath))]);
+      return !error;
     } catch (error) {
-      console.error('Error deleting file from object storage:', error);
+      console.error("Dosya silme hatası:", error);
       return false;
     }
   }
 
   async deleteMultipleFiles(objectPaths: string[]): Promise<number> {
-    let deletedCount = 0;
-    for (const path of objectPaths) {
-      const deleted = await this.deleteFile(path);
-      if (deleted) deletedCount++;
+    const keys = (objectPaths || [])
+      .filter(Boolean)
+      .map((p) => toStorageKey(this.normalizeObjectEntityPath(p)));
+    if (keys.length === 0) return 0;
+    try {
+      const { data, error } = await getClient()
+        .storage.from(getBucket())
+        .remove(keys);
+      if (error) return 0;
+      return data?.length ?? 0;
+    } catch (error) {
+      console.error("Toplu silme hatası:", error);
+      return 0;
     }
-    return deletedCount;
-  }
-}
-
-function parseObjectPath(path: string): {
-  bucketName: string;
-  objectName: string;
-} {
-  if (!path.startsWith("/")) {
-    path = `/${path}`;
-  }
-  const pathParts = path.split("/");
-  if (pathParts.length < 3) {
-    throw new Error("Invalid path: must contain at least a bucket name");
   }
 
-  const bucketName = pathParts[1];
-  const objectName = pathParts.slice(2).join("/");
+  // ── Normalizasyon ────────────────────────────────────────────────────────
 
-  return {
-    bucketName,
-    objectName,
-  };
-}
+  /** Tam Supabase URL'i veya imzalı URL'i "/objects/..." biçimine indirger. */
+  normalizeObjectEntityPath(rawPath: string): string {
+    if (!rawPath) return rawPath;
+    if (rawPath.startsWith(OBJECT_PREFIX)) return rawPath;
 
-async function signObjectURL({
-  bucketName,
-  objectName,
-  method,
-  ttlSec,
-}: {
-  bucketName: string;
-  objectName: string;
-  method: "GET" | "PUT" | "DELETE" | "HEAD";
-  ttlSec: number;
-}): Promise<string> {
-  const request = {
-    bucket_name: bucketName,
-    object_name: objectName,
-    method,
-    expires_at: new Date(Date.now() + ttlSec * 1000).toISOString(),
-  };
-  const response = await fetch(
-    `${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
+    // Eski Replit/GCS kayıtları
+    if (rawPath.startsWith("https://storage.googleapis.com/")) {
+      const parts = new URL(rawPath).pathname.split("/").filter(Boolean);
+      return `${OBJECT_PREFIX}${parts.slice(1).join("/")}`;
     }
-  );
-  if (!response.ok) {
-    throw new Error(
-      `Failed to sign object URL, errorcode: ${response.status}, ` +
-        `make sure you're running on Replit`
-    );
-  }
 
-  const { signed_url: signedURL } = await response.json();
-  return signedURL;
+    if (rawPath.startsWith("http")) {
+      try {
+        const url = new URL(rawPath);
+        // .../storage/v1/object/(public|sign|upload/sign)/<bucket>/<key>
+        const m = url.pathname.match(
+          /\/storage\/v1\/object\/(?:public\/|sign\/|upload\/sign\/)?[^/]+\/(.+)$/
+        );
+        if (m) return `${OBJECT_PREFIX}${decodeURIComponent(m[1])}`;
+      } catch {
+        /* geçersiz URL — olduğu gibi bırak */
+      }
+      return rawPath;
+    }
+
+    return `${OBJECT_PREFIX}${toStorageKey(rawPath)}`;
+  }
 }
+
+/** Uygulama genelinde paylaşılan tekil örnek */
+export const objectStorage = new ObjectStorageService();

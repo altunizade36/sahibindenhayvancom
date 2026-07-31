@@ -62,11 +62,11 @@ export default function AdminModeration() {
 
   const moderateMutation = useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: string; reason?: string }) => {
-      return apiRequest(`/api/admin/listings/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status, reason }),
-        headers: { "Content-Type": "application/json" },
+      const res = await apiRequest("PATCH", `/api/admin/listings/${id}/status`, {
+        status,
+        reason,
       });
+      return res.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/listings"] });

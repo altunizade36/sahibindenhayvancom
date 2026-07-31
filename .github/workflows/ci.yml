@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Varsayılan izinleri en aza indir (tedarik zinciri saldırılarına karşı)
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Tip kontrolü + derleme
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript tip kontrolü
+        run: npm run check
+
+      - name: Derleme
+        run: npm run build
+        env:
+          # Derleme sırasında istemci env'i gerekmez; boş değerlerle derlenebilmeli
+          NODE_ENV: production
+
+  audit:
+    name: Bağımlılık güvenlik denetimi
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      # Yüksek/kritik açıklarda başarısız ol; düşük seviyeler uyarı olarak kalır
+      - name: npm audit (high+)
+        run: npm audit --audit-level=high

@@ -65,10 +65,11 @@ export interface DataTableProps<T> {
   onSelectionChange?: (ids: string[]) => void;
   getItemId?: (item: T) => string;
   actions?: {
-    label: string;
+    /** Sabit metin ya da satıra göre değişen metin (ör. "Yasakla" / "Yasağı Kaldır") */
+    label: string | ((item: T) => string);
     icon?: React.ReactNode;
     onClick: (item: T) => void;
-    variant?: "default" | "destructive";
+    variant?: "default" | "destructive" | ((item: T) => "default" | "destructive");
   }[];
   bulkActions?: {
     label: string;
@@ -301,16 +302,24 @@ export function DataTable<T>({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {actions.map((action, i) => (
-                              <DropdownMenuItem
-                                key={i}
-                                onClick={() => action.onClick(item)}
-                                className={action.variant === "destructive" ? "text-destructive" : undefined}
-                              >
-                                {action.icon}
-                                <span className="ml-2">{action.label}</span>
-                              </DropdownMenuItem>
-                            ))}
+                            {actions.map((action, i) => {
+                              const label =
+                                typeof action.label === "function" ? action.label(item) : action.label;
+                              const variant =
+                                typeof action.variant === "function"
+                                  ? action.variant(item)
+                                  : action.variant;
+                              return (
+                                <DropdownMenuItem
+                                  key={i}
+                                  onClick={() => action.onClick(item)}
+                                  className={variant === "destructive" ? "text-destructive" : undefined}
+                                >
+                                  {action.icon}
+                                  <span className="ml-2">{label}</span>
+                                </DropdownMenuItem>
+                              );
+                            })}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

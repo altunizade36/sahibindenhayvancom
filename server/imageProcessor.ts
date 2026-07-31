@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { objectStorageClient, ObjectStorageService } from './objectStorage';
+import { objectStorage } from './objectStorage';
 import { randomUUID } from 'crypto';
 
 export interface ProcessedImage {
@@ -30,29 +30,11 @@ const IMAGE_VARIANTS: ImageVariant[] = [
   { suffix: 'large', width: 2000, height: 2000, quality: 95 },
 ];
 
-function parseObjectPath(path: string): { bucketName: string; objectName: string } {
-  if (!path.startsWith("/")) {
-    path = `/${path}`;
-  }
-  const pathParts = path.split("/");
-  if (pathParts.length < 3) {
-    throw new Error("Invalid path: must contain at least a bucket name");
-  }
-  return {
-    bucketName: pathParts[1],
-    objectName: pathParts.slice(2).join("/"),
-  };
-}
-
 export async function processAndUploadImage(
   buffer: Buffer,
   originalFilename: string,
   listingId?: string
 ): Promise<ProcessedImage> {
-  const objectStorage = new ObjectStorageService();
-  const privateDir = objectStorage.getPrivateObjectDir();
-  
-  const timestamp = Date.now();
   const uuid = randomUUID();
   const cleanFilename = originalFilename.replace(/[^a-zA-Z0-9.-]/g, '_');
   const baseName = cleanFilename.replace(/\.[^/.]+$/, '');
@@ -68,16 +50,8 @@ export async function processAndUploadImage(
     .toBuffer();
   
   const originalObjectName = `${prefix}/${uuid}_${baseName}_original.webp`;
-  const originalFullPath = `${privateDir}/${originalObjectName}`;
-  const { bucketName, objectName: originalObjName } = parseObjectPath(originalFullPath);
-  
-  const bucket = objectStorageClient.bucket(bucketName);
-  const originalFile = bucket.file(originalObjName);
-  await originalFile.save(originalBuffer, {
-    contentType: 'image/webp',
-    metadata: { contentType: 'image/webp' },
-  });
-  
+  await objectStorage.uploadBufferAt(originalObjectName, originalBuffer, 'image/webp');
+
   const results: Record<string, { key: string; url: string }> = {};
   
   for (const variant of IMAGE_VARIANTS) {
@@ -93,15 +67,8 @@ export async function processAndUploadImage(
       .toBuffer();
     
     const variantObjectName = `${prefix}/${uuid}_${baseName}_${variant.suffix}.webp`;
-    const variantFullPath = `${privateDir}/${variantObjectName}`;
-    const { objectName: variantObjName } = parseObjectPath(variantFullPath);
-    
-    const variantFile = bucket.file(variantObjName);
-    await variantFile.save(variantBuffer, {
-      contentType: 'image/webp',
-      metadata: { contentType: 'image/webp' },
-    });
-    
+    await objectStorage.uploadBufferAt(variantObjectName, variantBuffer, 'image/webp');
+
     results[variant.suffix] = {
       key: `/objects/${variantObjectName}`,
       url: `/objects/${variantObjectName}`,
@@ -125,21 +92,7 @@ export async function processAndUploadImage(
 }
 
 export async function deleteImageVariants(keys: string[]): Promise<void> {
-  const objectStorage = new ObjectStorageService();
-  const privateDir = objectStorage.getPrivateObjectDir();
-  
-  for (const key of keys) {
-    try {
-      const objectName = key.replace('/objects/', '');
-      const fullPath = `${privateDir}/${objectName}`;
-      const { bucketName, objectName: objName } = parseObjectPath(fullPath);
-      const bucket = objectStorageClient.bucket(bucketName);
-      const file = bucket.file(objName);
-      await file.delete();
-    } catch (error) {
-      console.error(`Error deleting image ${key}:`, error);
-    }
-  }
+  await objectStorage.deleteMultipleFiles(keys);
 }
 
 export function validateImageFile(
@@ -196,9 +149,6 @@ export async function processStoreImage(
   buffer: Buffer,
   config: StoreImageConfig
 ): Promise<StoreImageResult> {
-  const objectStorage = new ObjectStorageService();
-  const privateDir = objectStorage.getPrivateObjectDir();
-  
   const uuid = randomUUID();
   const prefix = `stores/${config.storeId}`;
   const variants = STORE_IMAGE_VARIANTS[config.type];
@@ -231,16 +181,8 @@ export async function processStoreImage(
     }
     
     const objectName = `${prefix}/${config.type}_${uuid}_${variant.suffix}.webp`;
-    const fullPath = `${privateDir}/${objectName}`;
-    const { bucketName, objectName: objName } = parseObjectPath(fullPath);
-    
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(objName);
-    await file.save(variantBuffer, {
-      contentType: 'image/webp',
-      metadata: { contentType: 'image/webp' },
-    });
-    
+    await objectStorage.uploadBufferAt(objectName, variantBuffer, 'image/webp');
+
     results[variant.suffix] = `/objects/${objectName}`;
   }
   

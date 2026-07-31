@@ -1,1 +1,0 @@
-- [Vercel + Supabase Deployment](vercel-supabase-deploy.md) — multi-provider storage, optional Replit Auth/WebSocket, key files and env vars for independent deployment

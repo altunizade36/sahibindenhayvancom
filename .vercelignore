@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+.env.*
+!.env.example
+dist
+attached_assets/stock_images
+*.md
+scripts/setup*.mjs
+scripts/doctor.mjs
+server/scripts
+server/seed*.ts

@@ -191,7 +191,7 @@ export default function AdminLogsPage() {
             title="Hatalar"
             value={stats?.errors || 0}
             icon={<AlertCircle className="h-4 w-4" />}
-            variant="destructive"
+            variant="danger"
           />
         </StatCardGrid>
 

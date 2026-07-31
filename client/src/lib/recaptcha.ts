@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export async function getRecaptchaToken(action: string): Promise<string | null> {
   if (!RECAPTCHA_SITE_KEY) {

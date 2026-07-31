@@ -1,65 +1,86 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+/**
+ * PostgreSQL bağlantısı — Supabase (veya herhangi bir standart PostgreSQL).
+ *
+ * Not: Eskiden @neondatabase/serverless kullanılıyordu; o sürücü yalnızca
+ * Neon'un WebSocket proxy'siyle çalışır ve Supabase'e bağlanamaz.
+ * Standart `pg` sürücüsüne geçildi.
+ *
+ * DATABASE_URL için Supabase → Connect ekranından:
+ *   • Serverless/Vercel  → "Transaction pooler"  (port 6543)  ✅ önerilen
+ *   • Uzun ömürlü sunucu → "Session pooler"      (port 5432)
+ */
+
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "DATABASE_URL tanımlı değil. .env dosyanızı doldurun (bkz. .env.example / KURULUM.md)."
   );
 }
 
-// Optimized connection pool for high concurrency
-// Neon free tier: ~5 connections, but we optimize usage
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  
-  // Pool size - keep small for free tier, connections are reused aggressively
-  max: 10, // Maximum connections in pool (Neon handles overflow with queuing)
-  min: 2,  // Minimum idle connections
-  
-  // Connection lifecycle
-  maxUses: 7500,           // Retire after 7500 uses (prevent memory leaks)
-  idleTimeoutMillis: 30000, // Close idle connections after 30s
-  connectionTimeoutMillis: 10000, // Timeout waiting for connection: 10s
-  
-  // Keep connections alive
-  allowExitOnIdle: false,
+const connectionString = process.env.DATABASE_URL;
+
+// Serverless'ta her fonksiyon örneği kendi havuzunu açar → havuzu küçük tut.
+const isServerless = !!process.env.VERCEL;
+
+// Supabase TLS zorunlu kılar; sertifika zinciri yönetilen olduğu için doğrulama kapalı.
+const needsSsl =
+  /supabase|neon|render|railway|amazonaws/.test(connectionString) ||
+  process.env.PGSSLMODE === "require";
+
+export const pool = new Pool({
+  connectionString,
+  ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+
+  max: isServerless ? 1 : 10,
+  min: isServerless ? 0 : 2,
+
+  idleTimeoutMillis: isServerless ? 10_000 : 30_000,
+  connectionTimeoutMillis: 10_000,
+  allowExitOnIdle: isServerless,
 });
 
-// Connection pool monitoring
-pool.on('error', (err) => {
-  console.error('PostgreSQL pool error:', err.message);
+pool.on("error", (err) => {
+  console.error("PostgreSQL havuz hatası:", err.message);
 });
 
-pool.on('connect', () => {
-  console.log('📊 New PostgreSQL connection established');
-});
+// Uygulama kapanırken havuzu düzgün kapat (serverless'ta gereksiz)
+if (!isServerless) {
+  const closePool = async () => {
+    console.log("🔌 PostgreSQL havuzu kapatılıyor...");
+    try {
+      await pool.end();
+    } catch {
+      /* zaten kapalı */
+    }
+  };
+  process.once("SIGTERM", closePool);
+  process.once("SIGINT", closePool);
+}
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('🔌 Closing PostgreSQL pool...');
-  await pool.end();
-});
+export const db = drizzle(pool, { schema });
 
-export const db = drizzle({ client: pool, schema });
-
-// Health check function
+/** Sağlık kontrolü */
 export async function checkDatabaseHealth(): Promise<boolean> {
   try {
     const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    try {
+      await client.query("SELECT 1");
+    } finally {
+      client.release();
+    }
     return true;
   } catch (error) {
-    console.error('Database health check failed:', error);
+    console.error("Veritabanı sağlık kontrolü başarısız:", error);
     return false;
   }
 }
 
-// Pool stats for monitoring
+/** İzleme için havuz istatistikleri */
 export function getPoolStats() {
   return {
     total: pool.totalCount,

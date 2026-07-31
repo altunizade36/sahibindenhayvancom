@@ -1,0 +1,25 @@
+# Satır sonlarını normalize et — Windows/Linux karışık ekipte diff gürültüsünü önler
+* text=auto eol=lf
+
+# Windows script'leri CRLF kalmalı
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# İkili dosyalar
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.mp4  binary
+
+# Üretilmiş / büyük dosyalar — GitHub'da diff gösterme, dil istatistiğine katma
+package-lock.json              linguist-generated=true -diff
+server/data/locations-turkey-full.ts  linguist-generated=true -diff
+server/data/blog-posts.ts             linguist-generated=true -diff
+attached_assets/**             linguist-vendored=true

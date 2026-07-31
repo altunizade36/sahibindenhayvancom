@@ -1,43 +1,92 @@
-# Bağımlılıklar
+# ═══════════════════════════════════════════════════════════
+#  GİZLİ DOSYALAR — asla commit edilmez
+# ═══════════════════════════════════════════════════════════
+.env
+.env.*
+!.env.example
+
+# Anahtar / sertifika / kimlik dosyaları
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+*.crt
+*.cer
+id_rsa*
+id_ed25519*
+# Firebase / Google servis hesabı JSON'ları
+**/serviceAccount*.json
+**/service-account*.json
+**/firebase-adminsdk*.json
+**/*credentials*.json
+gha-creds-*.json
+
+# ═══════════════════════════════════════════════════════════
+#  Bağımlılıklar ve derleme çıktısı
+# ═══════════════════════════════════════════════════════════
 node_modules/
 .pnp
 .pnp.js
-
-# Derleme çıktısı
 dist/
 build/
 .vite/
+*.tsbuildinfo
 
-# Ortam dosyaları (GİZLİ — asla commit etmeyin)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# ═══════════════════════════════════════════════════════════
+#  Platform / araç durumu
+# ═══════════════════════════════════════════════════════════
+.vercel/
+.netlify/
+.turbo/
 
-# Geliştirici araçları
+# Replit kalıntıları (proje artık Replit kullanmıyor)
+.replit
+replit.nix
+.upm/
+.local/
+.agents/
+.config/
+.breakpoints
+
+# ═══════════════════════════════════════════════════════════
+#  Editör / işletim sistemi
+# ═══════════════════════════════════════════════════════════
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
-*.pem
 Thumbs.db
+desktop.ini
 
-# Loglar
+# ═══════════════════════════════════════════════════════════
+#  Loglar ve geçici dosyalar
+# ═══════════════════════════════════════════════════════════
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Editör
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Geçici dosyalar
+pnpm-debug.log*
 tmp/
 temp/
 *.tmp
+fetch-log.txt
 
-# Replit
-.replit
-.upm/
+# ═══════════════════════════════════════════════════════════
+#  Sohbet/ajan artıkları — kaynak kod değil, 24MB+ yer kaplar
+#  (Dosyalar diskte durur, sadece depoya girmez.)
+# ═══════════════════════════════════════════════════════════
+attached_assets/Pasted-*
+attached_assets/image_*
+attached_assets/screenshot-*
+attached_assets/Screenshot*
+attached_assets/branding-*.json
+
+# Yedek dosyalar
+*.backup
+*.bak
+*.orig

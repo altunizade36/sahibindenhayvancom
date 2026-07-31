@@ -2,9 +2,10 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { EventEmitter } from "events";
+import { timingSafeEqual } from "crypto";
 import { db } from "./db";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
+import { setupAuth, isAuthenticated, getSession } from "./auth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
@@ -45,7 +46,12 @@ import {
   insertStoreReviewSchema,
   type User,
 } from "@shared/schema";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import {
+  ObjectStorageService,
+  ObjectNotFoundError,
+  objectStorage,
+  isObjectStorageConfigured,
+} from "./objectStorage";
 import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "./email";
 import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms";
 import { verifyRecaptcha } from "./recaptcha";
@@ -496,7 +502,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // Try session-based authentication first
       const sessionMiddleware = getSession();
       await new Promise<void>((resolve, reject) => {
-        sessionMiddleware(req, {} as any, (err?: any) => {
+        sessionMiddleware(req as any, {} as any, (err?: any) => {
           if (err) reject(err);
           else resolve();
         });
@@ -6239,9 +6245,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Bir ilan için en fazla 3 video yükleyebilirsiniz." });
       }
 
-      // Upload to object storage
-      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-      if (!bucketId) {
+      // Upload to object storage (Supabase)
+      if (!isObjectStorageConfigured()) {
         return res.status(500).json({ message: "Object storage yapılandırılmamış." });
       }
 
@@ -6250,19 +6255,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const videoPath = `videos/${listingId}/${timestamp}-${safeFilename}`;
 
       try {
-        const { Storage } = await import("@google-cloud/storage");
-        const storage = new Storage();
-        const bucket = storage.bucket(bucketId);
-        const blob = bucket.file(videoPath);
-
-        await blob.save(file.buffer, {
-          metadata: {
-            contentType: file.mimetype,
-          },
-        });
-
-        await blob.makePublic();
-        const videoUrl = `https://storage.googleapis.com/${bucketId}/${videoPath}`;
+        const videoUrl = await objectStorage.uploadBufferAt(
+          videoPath,
+          file.buffer,
+          file.mimetype
+        );
 
         // Get current max order
         const maxOrderResult = await db
@@ -6340,13 +6337,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       // Delete from storage (optional, can fail silently)
       try {
-        const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-        if (bucketId && video.video.url) {
-          const videoPath = video.video.url.replace(`https://storage.googleapis.com/${bucketId}/`, '');
-          const { Storage } = await import("@google-cloud/storage");
-          const storage = new Storage();
-          const bucket = storage.bucket(bucketId);
-          await bucket.file(videoPath).delete().catch(() => {});
+        if (video.video.url) {
+          await objectStorage.deleteFile(video.video.url);
         }
       } catch (e) {
         console.warn("Failed to delete video from storage:", e);
@@ -6368,13 +6360,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   async function verifyRecaptchaEnterprise(token: string, action: string = "CONTACT"): Promise<{ success: boolean; score: number }> {
     try {
       const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-      if (!apiKey) {
-        console.warn("RECAPTCHA_SECRET_KEY (API Key) not configured, skipping verification");
+      const projectId = process.env.RECAPTCHA_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+      const siteKey = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
+
+      if (!apiKey || !projectId || !siteKey) {
+        // Üretimde fail closed — yapılandırma eksikse doğrulamayı geçirme
+        if (process.env.NODE_ENV === "production") {
+          console.error("reCAPTCHA yapılandırılmamış — istek reddedildi.");
+          return { success: false, score: 0 };
+        }
+        console.warn("reCAPTCHA yapılandırılmamış, geliştirme modunda atlanıyor");
         return { success: true, score: 1.0 };
       }
-
-      const projectId = "sahibindenhayvan-55728";
-      const siteKey = "6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-";
 
       const response = await fetch(
         `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`,
@@ -7965,20 +7962,34 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   }
 
   // Admin PIN verification endpoint
-  app.post("/api/admin/verify-pin", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const { pin } = req.body;
-      const adminPin = process.env.ADMIN_PANEL_PIN || "252525";
-      
-      if (!pin) {
+      const adminPin = process.env.ADMIN_PANEL_PIN;
+
+      // Güvenlik: varsayılan/gömülü PIN YOK. Tanımlı değilse erişim kapalı.
+      if (!adminPin) {
+        console.error("ADMIN_PANEL_PIN tanımlı değil — admin paneli erişimi kapalı.");
+        return res.status(503).json({
+          message: "Admin paneli yapılandırılmamış. Sunucu yöneticisiyle görüşün.",
+        });
+      }
+
+      if (!pin || typeof pin !== "string") {
         return res.status(400).json({ message: "PIN kodu gereklidir" });
       }
-      
-      if (pin !== adminPin) {
+
+      // Zamanlama saldırılarına karşı sabit süreli karşılaştırma
+      const given = Buffer.from(String(pin));
+      const expected = Buffer.from(adminPin);
+      const pinMatches =
+        given.length === expected.length && timingSafeEqual(given, expected);
+
+      if (!pinMatches) {
         console.log(`Admin PIN verification failed for user: ${getUserId(req.user)}`);
         return res.status(401).json({ message: "Geçersiz PIN kodu" });
       }
-      
+
       // Store PIN verification in session
       (req.session as any).adminPinVerified = true;
       console.log(`Admin PIN verified for user: ${getUserId(req.user)}`);

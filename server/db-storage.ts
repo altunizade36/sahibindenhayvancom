@@ -218,7 +218,12 @@ export class DbStorage implements IStorage {
   }
 
   async createAuction(auction: InsertAuction): Promise<Auction> {
-    const [created] = await db.insert(auctions).values(auction).returning();
+    // currentPrice şemada zorunlu ama insert şemasından çıkarılmış —
+    // açılış fiyatı ile başlatılır.
+    const [created] = await db
+      .insert(auctions)
+      .values({ ...auction, currentPrice: auction.startPrice })
+      .returning();
     return created;
   }
 
@@ -242,13 +247,16 @@ export class DbStorage implements IStorage {
   async createBid(bid: InsertBid): Promise<Bid> {
     return await db.transaction(async (tx) => {
       const [created] = await tx.insert(bids).values(bid).returning();
-      
+
       // Update auction with highest bid
       await tx
         .update(auctions)
-        .set({ currentBid: bid.amount })
+        .set({
+          currentPrice: bid.amount,
+          totalBids: sql`${auctions.totalBids} + 1`,
+        })
         .where(eq(auctions.id, bid.auctionId));
-      
+
       return created;
     });
   }
@@ -257,7 +265,7 @@ export class DbStorage implements IStorage {
   async getAllLiveStreams(status?: string): Promise<LiveStream[]> {
     return await db.query.liveStreams.findMany({
       where: status ? eq(liveStreams.status, status as any) : undefined,
-      orderBy: (liveStreams, { desc }) => [desc(liveStreams.startTime)],
+      orderBy: (liveStreams, { desc }) => [desc(liveStreams.createdAt)],
     });
   }
 
@@ -270,7 +278,7 @@ export class DbStorage implements IStorage {
   async getLiveStreamsByStreamer(streamerId: string): Promise<LiveStream[]> {
     return await db.query.liveStreams.findMany({
       where: eq(liveStreams.streamerId, streamerId),
-      orderBy: (liveStreams, { desc }) => [desc(liveStreams.startTime)],
+      orderBy: (liveStreams, { desc }) => [desc(liveStreams.createdAt)],
     });
   }
 
@@ -361,7 +369,7 @@ export class DbStorage implements IStorage {
   async getAllBlogPosts(published?: boolean): Promise<BlogPost[]> {
     return await db.query.blogPosts.findMany({
       where: published !== undefined ? eq(blogPosts.published, published) : undefined,
-      orderBy: (blogPosts, { desc }) => [desc(blogPosts.publishedAt)],
+      orderBy: (blogPosts, { desc }) => [desc(blogPosts.createdAt)],
     });
   }
 
@@ -426,8 +434,12 @@ export class DbStorage implements IStorage {
 
   // ============ Transport Services ============
   async getAllTransportServices(city?: string): Promise<TransportService[]> {
+    // Nakliyecinin şehri yok; hizmet verdiği iller `serviceAreas` (jsonb dizi)
+    // içinde tutulur — şehir aramasında bu dizide arıyoruz.
     return await db.query.transportServices.findMany({
-      where: city ? eq(transportServices.city, city) : undefined,
+      where: city
+        ? sql`${transportServices.serviceAreas} @> ${JSON.stringify([city])}::jsonb`
+        : undefined,
     });
   }
 

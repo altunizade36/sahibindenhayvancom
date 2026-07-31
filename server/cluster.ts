@@ -8,8 +8,9 @@ const numCPUs = os.cpus().length;
  * Spawns worker processes equal to CPU cores
  * Automatically restarts crashed workers
  * 
- * NOTE: Disabled for Replit Autoscale deployments since Autoscale
- * handles horizontal scaling automatically at the infrastructure level
+ * NOTE: Serverless/PaaS ortamlarında (Vercel, Railway, Render, Fly) devre dışı —
+ * ölçekleme altyapı seviyesinde yapılır, çok süreçli çalışma stateless
+ * gereksinimiyle çakışır.
  */
 export function setupCluster(isDevelopment: boolean = false) {
   // Disable clustering in development for easier debugging
@@ -18,14 +19,16 @@ export function setupCluster(isDevelopment: boolean = false) {
     return false;
   }
 
-  // Disable clustering for Replit Autoscale deployments
-  // Autoscale handles horizontal scaling at infrastructure level
-  // Multi-process applications conflict with Autoscale's stateless requirement
-  const isReplitDeployment = process.env.REPL_ID || process.env.REPLIT_DEPLOYMENT;
+  // Platform kendi ölçeklemesini yapıyorsa cluster'ı kapat
+  const isManagedPlatform =
+    process.env.VERCEL ||
+    process.env.RAILWAY_ENVIRONMENT ||
+    process.env.RENDER ||
+    process.env.FLY_APP_NAME;
   const clusterDisabled = process.env.DISABLE_CLUSTER === 'true';
-  
-  if (isReplitDeployment || clusterDisabled) {
-    console.log('🔧 Cluster disabled (Replit Autoscale handles scaling)');
+
+  if (isManagedPlatform || clusterDisabled) {
+    console.log('🔧 Cluster devre dışı (platform ölçeklemeyi kendi yönetiyor)');
     return false;
   }
 

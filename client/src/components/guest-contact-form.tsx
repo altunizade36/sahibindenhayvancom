@@ -40,7 +40,7 @@ export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestC
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
 
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfkTSAsAAAAAC3pwCGqgDDODK0VWcXatiydbsz-';
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
     if (recaptchaSiteKey && !window.grecaptcha?.enterprise) {

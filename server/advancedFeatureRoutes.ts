@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { db } from "./db";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { sql } from "drizzle-orm";
 
 // Helper to get user ID from request

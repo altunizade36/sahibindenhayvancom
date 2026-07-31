@@ -1,3 +1,6 @@
+// .env dosyasını her şeyden önce yükle (Vercel kendi değişkenlerini enjekte eder)
+import "dotenv/config";
+
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
@@ -127,11 +130,16 @@ async function runServer() {
   // Start listening IMMEDIATELY - health checks will work right away
   const port = parseInt(process.env.PORT || '5000', 10);
   
-  httpServer.listen({
+  // SO_REUSEPORT yalnızca Linux'ta desteklenir (Windows/macOS'ta ENOTSUP verir)
+  const listenOptions: { port: number; host: string; reusePort?: boolean } = {
     port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+    host: process.env.HOST || "0.0.0.0",
+  };
+  if (process.platform === "linux") {
+    listenOptions.reusePort = true;
+  }
+
+  httpServer.listen(listenOptions, () => {
     log(`serving on port ${port}`);
     isServerReady = true;
     

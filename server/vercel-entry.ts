@@ -1,35 +1,39 @@
 /**
- * Vercel Serverless Entry Point
+ * Vercel Serverless giriş noktası.
  *
- * This file is used exclusively for Vercel deployments.
- * It creates the Express app without cluster mode and exports
- * the request handler for Vercel's serverless runtime.
- *
- * Usage: configured via vercel.json → functions → api/vercel-entry.js
+ * Statik dosyalar (dist/public) Vercel CDN'inden servis edilir — bu fonksiyon
+ * yalnızca /api/*, /objects/*, /health gibi dinamik istekleri karşılar.
  */
 
-// Mark as serverless so routes skip WebSocket setup
-process.env.VERCEL = "1";
+// Serverless işareti: cluster ve WebSocket kurulumu atlanır
+process.env.VERCEL = process.env.VERCEL || "1";
 process.env.DISABLE_CLUSTER = "true";
 
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./vite";
 import { initializeRedis } from "./cache";
 
 const app = express();
 
-// Health check (immediate response)
+app.set("trust proxy", 1);
+
+// Sağlık kontrolü — başlatmayı beklemeden anında yanıt
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.use(compression());
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      (req as any).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: false }));
 
-// Request logging
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
@@ -40,30 +44,46 @@ app.use((req, res, next) => {
   next();
 });
 
-// Bootstrap (runs once on cold start)
-let initialized = false;
-async function initialize() {
-  if (initialized) return;
-  initialized = true;
-  try {
+// ── Tek seferlik başlatma (cold start) ──────────────────────────────────────
+// Promise saklanır: eşzamanlı istekler aynı başlatmayı bekler, yarış olmaz.
+// Hata olursa promise sıfırlanır ki sonraki istek yeniden denesin.
+let bootstrap: Promise<void> | null = null;
+
+function initialize(): Promise<void> {
+  if (bootstrap) return bootstrap;
+
+  bootstrap = (async () => {
     initializeRedis();
     await registerRoutes(app);
+
+    // Hata yakalayıcı — rotalardan sonra gelmeli
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
-      res.status(status).json({ message: err.message || "Internal Server Error" });
+      console.error("Express error:", err);
+      if (!res.headersSent) {
+        res.status(status).json({ message: err.message || "Internal Server Error" });
+      }
     });
-    // Serve built static files
-    serveStatic(app);
-    console.log("✅ Vercel app initialized");
-  } catch (err) {
-    console.error("❌ Initialization error:", err);
-  }
+
+    console.log("✅ Vercel uygulaması başlatıldı");
+  })().catch((err) => {
+    console.error("❌ Başlatma hatası:", err);
+    bootstrap = null; // sonraki istekte yeniden dene
+    throw err;
+  });
+
+  return bootstrap;
 }
 
-// Vercel invokes this handler for every request
-const handler = async (req: Request, res: Response) => {
-  await initialize();
-  app(req, res);
-};
-
-export default handler;
+// Vercel her istek için bu handler'ı çağırır
+export default async function handler(req: Request, res: Response) {
+  try {
+    await initialize();
+  } catch {
+    if (!res.headersSent) {
+      res.status(503).json({ message: "Servis başlatılamadı, tekrar deneyin." });
+    }
+    return;
+  }
+  return app(req, res);
+}

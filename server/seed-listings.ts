@@ -32,8 +32,8 @@ async function seedListings() {
   // Check if user exists
   const existingUser = await db.select().from(users).where(eq(users.username, "testuser")).limit(1);
   
-  let userId: number;
-  
+  let userId: string;
+
   if (existingUser.length === 0) {
     // Create test user
     const hashedPassword = await bcrypt.hash("test123", 10);
@@ -41,7 +41,8 @@ async function seedListings() {
       username: "testuser",
       email: "test@example.com",
       password: hashedPassword,
-      fullName: "Test Kullanıcı",
+      firstName: "Test",
+      lastName: "Kullanıcı",
       phone: "5551234567",
       role: "buyer",
       status: "active",
@@ -87,7 +88,7 @@ async function seedListings() {
       district: randomDistrict.name,
       age: age.toString(),
       gender,
-      status: "active",
+      status: "active" as const,
       views: Math.floor(Math.random() * 1000),
     });
   }

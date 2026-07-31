@@ -330,10 +330,10 @@ export default function AdminUsersPage() {
                   onClick: (user) => setRoleChangeUser(user),
                 },
                 {
-                  label: user.status === "banned" ? "Yasağı Kaldır" : "Yasakla",
+                  label: (user) => (user.status === "banned" ? "Yasağı Kaldır" : "Yasakla"),
                   icon: <Ban className="h-4 w-4" />,
                   onClick: (user) => setBanUser(user),
-                  variant: user.status === "banned" ? "default" : "destructive",
+                  variant: (user) => (user.status === "banned" ? "default" : "destructive"),
                 },
               ]}
               emptyMessage="Kullanıcı bulunamadı"

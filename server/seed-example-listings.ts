@@ -129,7 +129,13 @@ async function seedExampleListings() {
 
   // Prepare listings data
   const listingsToCreate = exampleListings.map((example, index) => {
-    const categoryId = categoryMapping[example.categoryId] || defaultCategoryId;
+    // Örnek ilanın kategori slug'ını gerçek kategoriyle eşleştir,
+    // bulunamazsa yukarıdaki desen tablosuna, o da yoksa varsayılana düş.
+    const matched = allCategories.find(
+      (c) => c.slug === example.categorySlug || c.slug.includes(example.categorySlug)
+    );
+    const categoryId =
+      matched?.id || categoryMapping[example.categorySlug] || defaultCategoryId;
     
     return {
       title: example.title,

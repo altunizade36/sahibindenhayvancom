@@ -26,15 +26,26 @@ import {
   ActionCodeSettings
 } from "firebase/auth";
 
+// Firebase istemci yapılandırması yalnızca ortam değişkenlerinden okunur.
+// (Bu değerler tarayıcıya gider ve gizli değildir — güvenlik Firebase Security
+// Rules + "Authorized domains" ile sağlanır. Yine de proje kimliklerini kaynak
+// koda gömmüyoruz ki depo ile ortam birbirinden bağımsız kalsın.)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCBqkJ4qJP0G5wNvnU7u2QkQXr5yVTRXkw",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "sahibindenhayvan-55728.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "sahibindenhayvan-55728",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "sahibindenhayvan-55728.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "391297918869",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:391297918869:web:4d10c85c9c5c810670789c",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-L6M9FYENF1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error(
+    "[firebase] VITE_FIREBASE_* ortam değişkenleri eksik — telefon/sosyal giriş çalışmaz.\n" +
+      "Yerelde .env dosyanızı doldurun, Vercel'de Environment Variables'a ekleyin (bkz. KURULUM.md)."
+  );
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
