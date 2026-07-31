@@ -18,9 +18,14 @@ profesyonel mağaza sistemi ve hukuki bilgi / hayvan bakımı içerikli blog bar
 | Barındırma | **Vercel** (serverless) |
 | Veritabanı | **Supabase PostgreSQL** + Drizzle ORM |
 | Dosya depolama | **Supabase Storage** (`uploads` bucket) |
+| Kimlik doğrulama | Kendi oturum katmanı (bcrypt + PostgreSQL oturumları) |
+| E-posta | **Resend** (üretim), konsol (geliştirme) |
+| SMS | Twilio (opsiyonel), konsol (geliştirme) |
 | Önbellek | Bellek içi cache, Redis (Upstash) yedeği |
-| E-posta | Resend (üretim), konsol (geliştirme) |
 | Alan adı / DNS | GoDaddy → Vercel |
+
+> Firebase kullanılmaz. Kimlik doğrulama, veri ve dosya katmanı Supabase;
+> tüm e-posta gönderimi Resend üzerinden yürür.
 
 ### Uygulama
 - **Frontend**: React 18 + TypeScript + Vite, Wouter (yönlendirme), TanStack Query (durum), React Hook Form + Zod (formlar)
@@ -31,7 +36,9 @@ profesyonel mağaza sistemi ve hukuki bilgi / hayvan bakımı içerikli blog bar
 ### Kimlik Doğrulama
 Üç yöntem, hepsi tek oturum modelinde birleşir (`session.user.claims.sub` = kullanıcı id):
 1. **E-posta / telefon + şifre** — bcrypt, `server/routes.ts`
-2. **Firebase telefon doğrulama** — gerçek SMS, Admin SDK ile sunucu tarafı token doğrulama
+2. **Telefon SMS OTP** — `server/sms.ts`; 6 haneli kod, 5 dk geçerli, telefon başına
+   15 dakikada en fazla 3 istek. Sağlayıcı Twilio; yapılandırılmamışsa kodlar
+   yalnızca geliştirme konsoluna yazılır
 3. **Google / Facebook OAuth** — `server/auth.ts` (ilgili env değişkenleri tanımlıysa aktif)
 
 Oturumlar PostgreSQL'de `sessions` tablosunda, 7 gün TTL ile saklanır.

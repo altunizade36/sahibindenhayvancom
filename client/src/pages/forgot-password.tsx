@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { sendPasswordReset } from "@/lib/firebase";
+import { apiRequest } from "@/lib/queryClient";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Geçerli bir email adresi girin"),
@@ -34,8 +34,8 @@ export default function ForgotPassword() {
   const onSubmit = async (data: ForgotPasswordForm) => {
     setIsLoading(true);
     try {
-      // Use Firebase password reset
-      await sendPasswordReset(data.email);
+      // Şifre sıfırlama e-postası sunucudan Resend ile gönderilir
+      await apiRequest("POST", "/api/auth/forgot-password", { email: data.email });
 
       setEmailSent(true);
       toast({

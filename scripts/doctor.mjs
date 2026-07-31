@@ -61,13 +61,13 @@ function checkEnv() {
     ["SESSION_SECRET", "Oturum imzalama anahtarı"],
   ];
   const optional = [
-    ["RESEND_API_KEY", "E-posta gönderimi"],
+    ["RESEND_API_KEY", "E-posta gönderimi (doğrulama, şifre sıfırlama)"],
     ["UPSTASH_REDIS_REST_URL", "Redis önbellek"],
-    ["FIREBASE_CLIENT_EMAIL", "Telefon doğrulama (sunucu)"],
+    ["TWILIO_ACCOUNT_SID", "SMS ile telefon doğrulama"],
     ["RECAPTCHA_SECRET_KEY", "Spam koruması"],
-    ["GOOGLE_CLIENT_ID", "Google ile giriş"],
-    ["VITE_FIREBASE_API_KEY", "Telefon doğrulama (istemci)"],
     ["VITE_RECAPTCHA_SITE_KEY", "reCAPTCHA (istemci)"],
+    ["GOOGLE_CLIENT_ID", "Google ile giriş"],
+    ["FACEBOOK_APP_ID", "Facebook ile giriş"],
   ];
 
   for (const [key, desc] of required) {

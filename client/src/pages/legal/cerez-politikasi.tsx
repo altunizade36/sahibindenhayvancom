@@ -149,8 +149,12 @@ export default function CerezPolitikasi() {
                   <p className="text-xs text-muted-foreground">Güvenlik ve performans</p>
                 </div>
                 <div className="p-3 border rounded-lg">
-                  <h4 className="font-semibold text-sm">Firebase</h4>
-                  <p className="text-xs text-muted-foreground">Kimlik doğrulama</p>
+                  <h4 className="font-semibold text-sm">Supabase</h4>
+                  <p className="text-xs text-muted-foreground">Veritabanı ve dosya depolama</p>
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <h4 className="font-semibold text-sm">Resend</h4>
+                  <p className="text-xs text-muted-foreground">E-posta gönderimi</p>
                 </div>
               </div>
             </CardContent>

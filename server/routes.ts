@@ -56,7 +56,6 @@ import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "
 import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms";
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
-import { verifyFirebaseToken, formatPhoneFromFirebase } from "./firebaseAdmin";
 import { registerAdvancedFeatureRoutes } from "./advancedFeatureRoutes";
 import { getTCMBRates, formatCurrencyForTicker } from "./marketDataService";
 
@@ -1319,7 +1318,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
-  // Phone-based Registration (after Firebase SMS verification)
+  // Phone-based Registration (SMS OTP ile doğrulama sonrası)
   app.post('/api/auth/register-phone', createLimiter, async (req: Request, res: Response) => {
     try {
       const { phone, password, firstName, lastName } = req.body;
@@ -1390,7 +1389,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
-  // Phone-based Password Reset (after Firebase SMS verification)
+  // Phone-based Password Reset (SMS OTP ile doğrulama sonrası)
   app.post('/api/auth/reset-password-phone', createLimiter, async (req: Request, res: Response) => {
     try {
       const { phone, newPassword } = req.body;
@@ -1798,275 +1797,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
-  // Firebase Phone Authentication - Verify Firebase ID Token and create/login user
-  app.post('/api/auth/firebase/verify', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { idToken, phone, firstName, lastName, email, purpose = 'login', userId } = req.body;
-
-      if (!idToken) {
-        return res.status(400).json({ message: "Firebase token gereklidir" });
-      }
-
-      // Verify Firebase ID token
-      const decodedToken = await verifyFirebaseToken(idToken);
-      
-      if (!decodedToken) {
-        return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
-      }
-
-      // Get phone from Firebase token or request
-      const firebasePhone = decodedToken.phone_number;
-      const normalizedPhone = firebasePhone ? formatPhoneFromFirebase(firebasePhone) : (phone || null);
-
-      if (!normalizedPhone) {
-        return res.status(400).json({ message: "Telefon numarası bulunamadı" });
-      }
-
-      let user;
-
-      // Check if user exists with this phone
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
-
-      if (purpose === 'verify' && userId) {
-        // Verify phone for existing user (unified registration flow)
-        const userToVerify = await db.query.users.findFirst({
-          where: eq(users.id, userId),
-        });
-
-        if (!userToVerify) {
-          return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-        }
-
-        // Update phone verification status and Firebase UID
-        await db
-          .update(users)
-          .set({ 
-            phoneVerified: true,
-            firebaseUid: decodedToken.uid 
-          })
-          .where(eq(users.id, userId));
-
-        // Send email verification
-        if (userToVerify.email && userToVerify.verificationToken) {
-          try {
-            await emailService.sendVerificationEmail(
-              userToVerify.email,
-              userToVerify.verificationToken,
-              userToVerify.firstName || userToVerify.email.split('@')[0]
-            );
-          } catch (emailError) {
-            console.error("Email sending error:", emailError);
-          }
-        }
-
-        // Create session
-        (req as any).login({ claims: { sub: userId } }, (err: any) => {
-          if (err) {
-            console.error("Session creation error:", err);
-            return res.status(500).json({ message: "Oturum oluşturulamadı" });
-          }
-
-          res.json({
-            message: "Telefon doğrulandı! Email doğrulama linki gönderildi.",
-            user: {
-              id: userToVerify.id,
-              email: userToVerify.email,
-              phone: userToVerify.phone,
-              firstName: userToVerify.firstName,
-              lastName: userToVerify.lastName,
-              role: userToVerify.role,
-              phoneVerified: true,
-              emailVerified: userToVerify.emailVerified,
-            },
-          });
-        });
-        return;
-      }
-
-      if (purpose === 'register') {
-        if (existingUser) {
-          return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı. Giriş yapmayı deneyin." });
-        }
-
-        // Check if email is already used by another user
-        if (email) {
-          const emailUser = await db.query.users.findFirst({
-            where: eq(users.email, email),
-          });
-          if (emailUser) {
-            return res.status(400).json({ message: "Bu email adresi zaten kullanılıyor." });
-          }
-        }
-
-        // Create new user
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            phone: normalizedPhone,
-            phoneVerified: true,
-            firstName: firstName || null,
-            lastName: lastName || null,
-            email: email || null,
-            emailVerified: false,
-            firebaseUid: decodedToken.uid,
-          })
-          .returning();
-        user = newUser;
-      } else {
-        // Login - find existing user or error
-        if (existingUser) {
-          user = existingUser;
-          
-          // Update Firebase UID if not set
-          if (!existingUser.firebaseUid) {
-            await db
-              .update(users)
-              .set({ 
-                firebaseUid: decodedToken.uid,
-                phoneVerified: true 
-              })
-              .where(eq(users.id, existingUser.id));
-          }
-        } else {
-          return res.status(404).json({ message: "Bu telefon numarasıyla kayıtlı kullanıcı bulunamadı. Lütfen önce kayıt olun." });
-        }
-      }
-
-      // Create session
-      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
-        if (err) {
-          console.error("Session creation error:", err);
-          return res.status(500).json({ message: "Oturum oluşturulamadı" });
-        }
-
-        res.json({
-          message: purpose === 'register' ? "Kayıt başarılı! Hoş geldiniz." : "Giriş başarılı!",
-          user: {
-            id: user.id,
-            email: user.email,
-            phone: user.phone,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            phoneVerified: true,
-            emailVerified: user.emailVerified,
-          },
-        });
-      });
-    } catch (error) {
-      console.error("Firebase verify error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
-
-  // Firebase Social/Email Login - Google, Email/Password authentication
-  app.post('/api/auth/firebase/login', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { idToken, email, displayName, photoURL, provider = 'email' } = req.body;
-
-      if (!idToken) {
-        return res.status(400).json({ message: "Firebase token gereklidir" });
-      }
-
-      // Verify Firebase ID token
-      const decodedToken = await verifyFirebaseToken(idToken);
-      
-      if (!decodedToken) {
-        return res.status(401).json({ message: "Geçersiz veya süresi dolmuş token" });
-      }
-
-      const firebaseUid = decodedToken.uid;
-      const firebaseEmail = decodedToken.email || email;
-      // For Apple/Twitter, email might not be available - generate a unique placeholder
-      const emailVerified = decodedToken.email_verified || (provider === 'google') || (provider === 'facebook');
-
-      // For Apple/Twitter with hidden email, we'll use Firebase UID as identifier
-      // Users can update their email later in profile settings
-      const effectiveEmail = firebaseEmail || `${firebaseUid}@${provider}.sahibindenhayvan.com`;
-
-      let user;
-
-      // Check if user exists with this email or Firebase UID
-      const existingUser = await db.query.users.findFirst({
-        where: or(
-          eq(users.email, effectiveEmail),
-          eq(users.firebaseUid, firebaseUid)
-        ),
-      });
-
-      if (existingUser) {
-        // Update existing user with Firebase info
-        await db
-          .update(users)
-          .set({ 
-            firebaseUid,
-            emailVerified: emailVerified || existingUser.emailVerified,
-            profileImageUrl: photoURL || existingUser.profileImageUrl,
-          })
-          .where(eq(users.id, existingUser.id));
-
-        user = existingUser;
-      } else {
-        // Create new user from Firebase/Social provider
-        const nameParts = displayName?.split(' ') || [];
-        const firstName = nameParts[0] || effectiveEmail.split('@')[0];
-        const lastName = nameParts.slice(1).join(' ') || null;
-
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            email: effectiveEmail,
-            emailVerified: firebaseEmail ? emailVerified : false, // Not verified if using placeholder email
-            firebaseUid,
-            firstName,
-            lastName,
-            profileImageUrl: photoURL || null,
-          })
-          .returning();
-
-        user = newUser;
-
-        console.log(`✅ New user created via Firebase ${provider}: ${user.email}`);
-      }
-
-      // Create session
-      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
-        if (err) {
-          console.error("Session creation error:", err);
-          return res.status(500).json({ message: "Oturum oluşturulamadı" });
-        }
-
-        const providerNames: Record<string, string> = {
-          google: 'Google',
-          facebook: 'Facebook',
-          twitter: 'X (Twitter)',
-          apple: 'Apple',
-          email: 'Email'
-        };
-        const providerName = providerNames[provider] || provider;
-
-        res.json({
-          message: `${providerName} ile giriş başarılı!`,
-          user: {
-            id: user.id,
-            email: user.email,
-            phone: user.phone,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            phoneVerified: user.phoneVerified,
-            emailVerified: user.emailVerified,
-            profileImageUrl: user.profileImageUrl,
-          },
-        });
-      });
-    } catch (error) {
-      console.error("Firebase login error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
 
   // Verify phone for existing user (add phone to account)
   app.post('/api/auth/phone/add', isAuthenticated, createLimiter, async (req: Request, res: Response) => {
@@ -6360,7 +6090,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   async function verifyRecaptchaEnterprise(token: string, action: string = "CONTACT"): Promise<{ success: boolean; score: number }> {
     try {
       const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-      const projectId = process.env.RECAPTCHA_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+      const projectId = process.env.RECAPTCHA_PROJECT_ID;
       const siteKey = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
 
       if (!apiKey || !projectId || !siteKey) {

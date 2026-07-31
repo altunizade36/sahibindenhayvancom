@@ -24,7 +24,7 @@ gönderin. 72 saat içinde dönüş yapılır.
 ### Bir anahtar sızdıysa
 1. **Önce iptal edin** — geçmişi temizlemek yetmez, anahtar zaten okunmuş olabilir.
    - Supabase: Settings → API → service_role anahtarını yeniden üret
-   - Resend / Upstash / Firebase: ilgili panelden anahtarı sil ve yenisini oluştur
+   - Resend / Upstash / Twilio: ilgili panelden anahtarı sil ve yenisini oluştur
 2. Yeni anahtarı `.env` ve Vercel'e ekleyin.
 3. Gerekiyorsa geçmişi temizleyin (`git filter-repo`), ardından zorla push edin.
 
@@ -73,10 +73,9 @@ gönderin. 72 saat içinde dönüş yapılır.
 
 Aşağıdakiler bilinçli kabul edilmiş risklerdir, gizli değildir:
 
-- **Firebase istemci anahtarları ve reCAPTCHA site key** tarayıcıya gider ve
-  herkese açıktır — bu tasarım gereğidir. Güvenlik, Firebase Security Rules ve
-  "Authorized domains" ayarıyla sağlanır. Firebase Console'da yetkili alan
-  adlarının **yalnızca** kendi alan adınız olduğundan emin olun.
+- **reCAPTCHA site key** tarayıcıya gider ve herkese açıktır — bu tasarım
+  gereğidir. Güvenlik, Google reCAPTCHA yönetim panelinde tanımlı alan adı
+  kısıtıyla sağlanır; yalnızca kendi alan adınızın kayıtlı olduğundan emin olun.
 - **E-posta doğrulama akışında `localStorage`'da token tutuluyor.** XSS durumunda
   okunabilir. Ana oturum akışı httpOnly çerez kullandığı için etki sınırlıdır;
   bu akışın da çereze taşınması planlanmaktadır.
@@ -91,7 +90,8 @@ Aşağıdakiler bilinçli kabul edilmiş risklerdir, gizli değildir:
 - [ ] `ADMIN_PANEL_PIN` tahmin edilemez (doğum tarihi / 123456 / 252525 değil)
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucu ortamında (asla `VITE_` önekiyle değil)
 - [ ] `RECAPTCHA_SECRET_KEY` üretimde tanımlı
-- [ ] Firebase Console → Authentication → Authorized domains yalnızca kendi alan adınız
+- [ ] reCAPTCHA yönetim panelinde alan adı kısıtı yalnızca kendi alan adınız
+- [ ] Resend → gönderim alan adı (SPF/DKIM) doğrulanmış
 - [ ] Supabase → Storage bucket politikaları gözden geçirildi
 - [ ] GitHub → Settings → Branch protection: `main` dalına doğrudan push kapalı
 - [ ] GitHub → Settings → Code security: Secret scanning + Push protection açık

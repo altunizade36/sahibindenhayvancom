@@ -26,7 +26,6 @@ export default defineConfig({
           react: ["react", "react-dom", "wouter"],
           query: ["@tanstack/react-query"],
           charts: ["recharts"],
-          firebase: ["firebase/app", "firebase/auth"],
         },
       },
     },

@@ -10,14 +10,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { 
-  sendFirebaseOTP, 
-  verifyFirebaseOTP, 
-  setupRecaptcha, 
-  cleanupRecaptcha,
-  formatPhoneNumber,
-  clearRateLimit
-} from "@/lib/firebase";
 
 type Step = "phone" | "verify";
 
@@ -31,10 +23,6 @@ export default function PhoneLogin() {
   const [smsProgress, setSmsProgress] = useState(0);
   const [smsStatus, setSmsStatus] = useState<"sending" | "waiting" | "ready">("sending");
   const [resendCountdown, setResendCountdown] = useState(0);
-
-  useEffect(() => {
-    clearRateLimit();
-  }, []);
 
   useEffect(() => {
     if (step === "verify" && smsProgress < 100) {
@@ -63,19 +51,17 @@ export default function PhoneLogin() {
     }
   }, [step, resendCountdown]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setupRecaptcha('recaptcha-container');
-    }, 100);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      cleanupRecaptcha();
-    };
-  }, []);
+  /** Sunucu üzerinden SMS OTP gönderir (server/sms.ts) */
+  const sendOtp = async () => {
+    const res = await apiRequest("POST", "/api/auth/phone/send-otp", {
+      phone,
+      purpose: "login",
+    });
+    return res.json();
+  };
 
   const handleSendOTP = async () => {
-    if (!phone || phone.replace(/\D/g, '').length < 10) {
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
       toast({
         variant: "destructive",
         title: "Hata",
@@ -86,11 +72,11 @@ export default function PhoneLogin() {
 
     setIsLoading(true);
     try {
-      await sendFirebaseOTP(phone);
+      await sendOtp();
       setStep("verify");
       setSmsProgress(0);
       setResendCountdown(60);
-      
+
       toast({
         title: "Kod Gönderildi",
         description: "Telefonunuza SMS ile doğrulama kodu gönderdik.",
@@ -118,14 +104,11 @@ export default function PhoneLogin() {
 
     setIsLoading(true);
     try {
-      const firebaseIdToken = await verifyFirebaseOTP(otpCode);
-      
-      const res = await apiRequest("POST", "/api/auth/firebase/verify", {
-        idToken: firebaseIdToken,
-        phone: formatPhoneNumber(phone),
+      const res = await apiRequest("POST", "/api/auth/phone/verify", {
+        phone,
+        code: otpCode,
         purpose: "login",
       });
-      
       const response: any = await res.json();
 
       toast({
@@ -148,15 +131,14 @@ export default function PhoneLogin() {
 
   const resendOTP = async () => {
     if (resendCountdown > 0) return;
-    
+
     setIsLoading(true);
     try {
-      setupRecaptcha('recaptcha-container');
-      await sendFirebaseOTP(phone);
+      await sendOtp();
       setOtpCode("");
       setSmsProgress(0);
       setResendCountdown(60);
-      
+
       toast({
         title: "Kod Yeniden Gönderildi",
         description: "Yeni doğrulama kodu gönderildi.",
@@ -174,8 +156,6 @@ export default function PhoneLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div id="recaptcha-container"></div>
-      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -185,12 +165,12 @@ export default function PhoneLogin() {
             {step === "phone" ? "Telefon ile Giriş" : "Doğrulama Kodu"}
           </CardTitle>
           <CardDescription className="text-base mt-2" data-testid="text-description">
-            {step === "phone" 
-              ? "Telefon numaranıza SMS ile kod göndereceğiz" 
+            {step === "phone"
+              ? "Telefon numaranıza SMS ile kod göndereceğiz"
               : "Telefonunuza gönderilen kodu girin"}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {step === "phone" && (
             <>
@@ -237,7 +217,7 @@ export default function PhoneLogin() {
                     Email ile Giriş
                   </Button>
                 </Link>
-                
+
                 <p className="text-sm text-muted-foreground">
                   Hesabınız yok mu?{" "}
                   <Link href="/kayit" className="text-primary hover:underline" data-testid="link-register">
@@ -277,7 +257,7 @@ export default function PhoneLogin() {
                 <p className="text-sm text-muted-foreground mb-4">
                   SMS'teki <span className="font-bold text-foreground">6 haneli kodu</span> buraya yazın
                 </p>
-                
+
                 <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}
@@ -326,8 +306,8 @@ export default function PhoneLogin() {
                   className="w-full"
                   data-testid="button-resend-otp"
                 >
-                  {resendCountdown > 0 
-                    ? `Tekrar Gönder (${resendCountdown}s)` 
+                  {resendCountdown > 0
+                    ? `Tekrar Gönder (${resendCountdown}s)`
                     : "Kodu Tekrar Gönder"}
                 </Button>
 

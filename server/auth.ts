@@ -6,9 +6,11 @@
  *
  * Sağlanan giriş yöntemleri:
  *   1. E-posta / telefon + şifre   → routes.ts (/api/auth/login)
- *   2. Firebase telefon doğrulama  → routes.ts (/api/auth/firebase/*)
+ *   2. Telefon SMS OTP             → routes.ts (/api/auth/phone/*), server/sms.ts
  *   3. Google ile giriş            → burada (GOOGLE_CLIENT_ID varsa aktif)
  *   4. Facebook ile giriş          → burada (FACEBOOK_APP_ID varsa aktif)
+ *
+ * E-postalar Resend ile gönderilir (server/email.ts). Firebase kullanılmaz.
  */
 
 import passport from "passport";

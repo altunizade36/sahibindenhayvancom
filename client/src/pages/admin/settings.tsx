@@ -492,7 +492,7 @@ export default function AdminSettingsPage() {
                   <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <Lock className="h-5 w-5" />
-                      <span>Firebase Auth</span>
+                      <span>Oturum Kimlik Doğrulama (Supabase)</span>
                     </div>
                     <Badge variant="default" className="bg-green-500">Aktif</Badge>
                   </div>

@@ -21,7 +21,6 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import PhoneLogin from "@/pages/phone-login";
-import EmailVerifyLink from "@/pages/email-verify-link";
 import ListingList from "@/pages/listing-list";
 import ListingDetail from "@/pages/listing-detail";
 import CategoryDetail from "@/pages/category-detail";
@@ -136,7 +135,6 @@ function NoSidebarLayout() {
           <Route path="/giris" component={Login} />
           <Route path="/login" component={Login} />
           <Route path="/telefon-giris" component={PhoneLogin} />
-          <Route path="/email-giris-dogrula" component={EmailVerifyLink} />
           <Route path="/kayit" component={Register} />
           <Route path="/register" component={Register} />
           <Route path="/forgot-password">{() => <LazyRoute component={ForgotPassword} />}</Route>
