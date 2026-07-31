@@ -180,7 +180,6 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").notNull().default("buyer"),
   phone: text("phone").unique(),
-  phoneVerified: boolean("phone_verified").default(false).notNull(),
   city: text("city"),
   district: text("district"),
   bio: text("bio"),
@@ -233,26 +232,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-// Phone Verification OTP table
-export const phoneVerifications = pgTable("phone_verifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  phone: text("phone").notNull(),
-  code: varchar("code", { length: 6 }).notNull(),
-  purpose: varchar("purpose", { length: 20 }).notNull().default("login"), // login, register, verify
-  attempts: integer("attempts").default(0).notNull(),
-  verified: boolean("verified").default(false).notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertPhoneVerificationSchema = createInsertSchema(phoneVerifications).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
-export type PhoneVerification = typeof phoneVerifications.$inferSelect;
-
 // User Settings table - stores all user preferences
 export const userSettings = pgTable("user_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -260,7 +239,6 @@ export const userSettings = pgTable("user_settings", {
   
   // Notification preferences
   emailNotifications: boolean("email_notifications").default(true).notNull(),
-  smsNotifications: boolean("sms_notifications").default(true).notNull(),
   pushNotifications: boolean("push_notifications").default(true).notNull(),
   notifyMessages: boolean("notify_messages").default(true).notNull(),
   notifyFavorites: boolean("notify_favorites").default(true).notNull(),

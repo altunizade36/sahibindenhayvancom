@@ -110,7 +110,6 @@ type PasswordFormData = z.infer<typeof passwordFormSchema>;
 
 interface UserSettings {
   emailNotifications: boolean;
-  smsNotifications: boolean;
   pushNotifications: boolean;
   notifyMessages: boolean;
   notifyFavorites: boolean;
@@ -1148,42 +1147,20 @@ export default function PanelAyarlar() {
                               <Phone className="w-5 h-5" />
                             </div>
                             <div>
-                              <p className="font-medium">Telefon Doğrulama</p>
+                              <p className="font-medium">İletişim Telefonu</p>
                               <p className="text-sm text-muted-foreground" data-testid="text-user-phone">
                                 {user.phone || "Henüz eklenmedi"}
                               </p>
                             </div>
                           </div>
-                          {user.phone ? (
-                            user.phoneVerified ? (
-                              <Badge
-                                variant="outline"
-                                className="text-green-600 border-green-600"
-                                data-testid="badge-phone-verified"
-                              >
-                                <CheckCircle2 className="w-3 h-3 mr-1" />
-                                Doğrulandı
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="outline"
-                                className="text-orange-600 border-orange-600"
-                                data-testid="badge-phone-pending"
-                              >
-                                <AlertCircle className="w-3 h-3 mr-1" />
-                                Bekliyor
-                              </Badge>
-                            )
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setActiveSection("profile")}
-                              data-testid="button-add-phone"
-                            >
-                              Ekle
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setActiveSection("profile")}
+                            data-testid="button-add-phone"
+                          >
+                            {user.phone ? "Düzenle" : "Ekle"}
+                          </Button>
                         </div>
 
                         <div className="flex items-center justify-between p-4 rounded-lg border" data-testid="security-password-row">
@@ -1372,23 +1349,6 @@ export default function PanelAyarlar() {
                                   checked={settings?.emailNotifications ?? true}
                                   onCheckedChange={(v) => handleSettingChange("emailNotifications", v)}
                                   data-testid="switch-email-notifications"
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="flex items-center gap-3">
-                                  <Phone className="w-5 h-5 text-muted-foreground" />
-                                  <div>
-                                    <p className="font-medium">SMS Bildirimleri</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      Kritik bildirimleri SMS ile alın
-                                    </p>
-                                  </div>
-                                </div>
-                                <Switch
-                                  checked={settings?.smsNotifications ?? true}
-                                  onCheckedChange={(v) => handleSettingChange("smsNotifications", v)}
-                                  data-testid="switch-sms-notifications"
                                 />
                               </div>
 

@@ -5,12 +5,13 @@
  * saklanır, böylece routes.ts'teki tüm mevcut kodlar aynen çalışır.
  *
  * Sağlanan giriş yöntemleri:
- *   1. E-posta / telefon + şifre   → routes.ts (/api/auth/login)
- *   2. Telefon SMS OTP             → routes.ts (/api/auth/phone/*), server/sms.ts
- *   3. Google ile giriş            → burada (GOOGLE_CLIENT_ID varsa aktif)
- *   4. Facebook ile giriş          → burada (FACEBOOK_APP_ID varsa aktif)
+ *   1. E-posta + şifre    → routes.ts (/api/auth/login)
+ *   2. Google ile giriş   → burada (GOOGLE_CLIENT_ID varsa aktif)
+ *   3. Facebook ile giriş → burada (FACEBOOK_APP_ID varsa aktif)
  *
- * E-postalar Resend ile gönderilir (server/email.ts). Firebase kullanılmaz.
+ * Doğrulama ve şifre sıfırlama e-postaları Resend ile gönderilir
+ * (server/email.ts). Firebase veya SMS sağlayıcısı kullanılmaz; telefon
+ * numarası yalnızca opsiyonel iletişim bilgisidir (giriş için de kullanılabilir).
  */
 
 import passport from "passport";
@@ -212,7 +213,7 @@ export async function setupAuth(app: Express) {
   });
 
   console.log(
-    `🔐 Kimlik doğrulama hazır (e-posta/telefon${enabled.length ? " + " + enabled.join(" + ") : ""})`
+    `🔐 Kimlik doğrulama hazır (e-posta${enabled.length ? " + " + enabled.join(" + ") : ""})`
   );
 }
 

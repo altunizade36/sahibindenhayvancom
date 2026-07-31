@@ -159,7 +159,6 @@ Faydalı komutlar:
 |---|---|
 | `RESEND_API_KEY` | E-posta gönderimi |
 | `UPSTASH_REDIS_REST_URL/TOKEN` | Redis önbellek (bellek içi cache'e düşer) |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | SMS ile telefon doğrulama (yoksa kodlar konsola yazılır) |
 | `RECAPTCHA_SECRET_KEY` | Spam koruması |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google ile giriş |
 | `FACEBOOK_APP_ID` / `FACEBOOK_APP_SECRET` | Facebook ile giriş |

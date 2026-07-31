@@ -24,7 +24,7 @@ gönderin. 72 saat içinde dönüş yapılır.
 ### Bir anahtar sızdıysa
 1. **Önce iptal edin** — geçmişi temizlemek yetmez, anahtar zaten okunmuş olabilir.
    - Supabase: Settings → API → service_role anahtarını yeniden üret
-   - Resend / Upstash / Twilio: ilgili panelden anahtarı sil ve yenisini oluştur
+   - Resend / Upstash: ilgili panelden anahtarı sil ve yenisini oluştur
 2. Yeni anahtarı `.env` ve Vercel'e ekleyin.
 3. Gerekiyorsa geçmişi temizleyin (`git filter-repo`), ardından zorla push edin.
 

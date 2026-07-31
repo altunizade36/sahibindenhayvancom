@@ -24,7 +24,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, phoneVerifications, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, asc, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -53,7 +53,6 @@ import {
   isObjectStorageConfigured,
 } from "./objectStorage";
 import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "./email";
-import { smsService, generateOtp, validateAndNormalizeTurkishPhone } from "./sms";
 import { verifyRecaptcha } from "./recaptcha";
 import { moderateListingSchema } from "./validation";
 import { registerAdvancedFeatureRoutes } from "./advancedFeatureRoutes";
@@ -1088,7 +1087,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     try {
       const { email, phone, password, firstName, lastName } = req.body;
 
-      // Validation - only email is required (phone is optional)
+      // Kayıt e-posta ile yapılır; telefon yalnızca opsiyonel iletişim bilgisidir.
       if (!email || !password) {
         return res.status(400).json({ message: "E-posta ve şifre gereklidir" });
       }
@@ -1097,8 +1096,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
       }
 
-      // Normalize phone number
-      const normalizedPhone = phone.startsWith('+90') ? phone : phone.replace(/^0/, '+90');
+      // Telefon verildiyse normalize et (zorunlu değil)
+      const normalizedPhone = phone
+        ? (String(phone).startsWith('+90') ? String(phone) : String(phone).replace(/^0/, '+90'))
+        : null;
 
       // Check if user already exists with email
       const existingEmailUser = await db.query.users.findFirst({
@@ -1109,13 +1110,15 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Bu email adresi zaten kayıtlı" });
       }
 
-      // Check if user already exists with phone
-      const existingPhoneUser = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
+      // Telefon verildiyse başkasında kayıtlı olmasın
+      if (normalizedPhone) {
+        const existingPhoneUser = await db.query.users.findFirst({
+          where: eq(users.phone, normalizedPhone),
+        });
 
-      if (existingPhoneUser) {
-        return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
+        if (existingPhoneUser) {
+          return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
+        }
       }
 
       // Hash password
@@ -1125,7 +1128,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const verificationToken = generateVerificationToken();
       const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      // Create user with both email and phone (both unverified initially)
+      // Resend yapılandırılmamışsa (geliştirme) hesabı doğrudan doğrulanmış say
+      const autoVerify = shouldAutoVerifyEmail();
+
       const [newUser] = await db
         .insert(users)
         .values({
@@ -1134,19 +1139,33 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           password: hashedPassword,
           firstName: firstName || null,
           lastName: lastName || null,
-          emailVerified: false,
-          phoneVerified: false,
-          verificationToken,
-          verificationTokenExpiry,
+          emailVerified: autoVerify,
+          verificationToken: autoVerify ? null : verificationToken,
+          verificationTokenExpiry: autoVerify ? null : verificationTokenExpiry,
         })
         .returning();
 
-      // Don't auto-login yet - wait for phone verification
+      // Doğrulama e-postasını Resend ile gönder.
+      // Gönderim başarısız olsa bile kayıt geçerlidir — kullanıcı daha sonra
+      // "yeniden gönder" ile tekrar isteyebilir.
+      if (!autoVerify) {
+        try {
+          await emailService.sendVerificationEmail(
+            email,
+            verificationToken,
+            firstName || email.split('@')[0]
+          );
+        } catch (mailError) {
+          console.error("Doğrulama e-postası gönderilemedi:", mailError);
+        }
+      }
+
       res.status(201).json({
-        message: "Kayıt başarılı! Telefon doğrulaması bekleniyor.",
+        message: autoVerify
+          ? "Kayıt başarılı! Giriş yapabilirsiniz."
+          : "Kayıt başarılı! E-posta adresinize doğrulama bağlantısı gönderdik.",
         userId: newUser.id,
-        requiresPhoneVerification: true,
-        requiresEmailVerification: true,
+        requiresEmailVerification: !autoVerify,
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -1221,7 +1240,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             lastName: user.lastName,
             role: user.role,
             emailVerified: user.emailVerified,
-            phoneVerified: user.phoneVerified,
           },
         });
       });
@@ -1318,118 +1336,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
-  // Phone-based Registration (SMS OTP ile doğrulama sonrası)
-  app.post('/api/auth/register-phone', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { phone, password, firstName, lastName } = req.body;
 
-      if (!phone || !password || !firstName || !lastName) {
-        return res.status(400).json({ message: "Tüm alanlar gereklidir" });
-      }
-
-      if (password.length < 8) {
-        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
-      }
-
-      // Normalize phone number
-      const digits = phone.replace(/\D/g, '');
-      const normalizedPhone = digits.startsWith('90') ? `+${digits}` : `+90${digits.replace(/^0/, '')}`;
-
-      // Check if phone already exists
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
-
-      if (existingUser) {
-        return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create user with verified phone
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          phone: normalizedPhone,
-          password: hashedPassword,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phoneVerified: true,
-          emailVerified: false,
-        })
-        .returning();
-
-      // Log user in
-      (req as any).login({ claims: { sub: newUser.id } }, async (err: any) => {
-        if (err) {
-          console.error("Session creation error:", err);
-          return res.status(500).json({ message: "Oturum oluşturulamadı" });
-        }
-
-        await recordLoginHistory(newUser.id, req, true, 'phone');
-        await registerDevice(newUser.id, req);
-
-        res.status(201).json({
-          message: "Kayıt başarılı! Hoş geldiniz.",
-          user: {
-            id: newUser.id,
-            phone: newUser.phone,
-            firstName: newUser.firstName,
-            lastName: newUser.lastName,
-            role: newUser.role,
-            phoneVerified: true,
-            emailVerified: false,
-          },
-        });
-      });
-    } catch (error) {
-      console.error("Phone registration error:", error);
-      res.status(500).json({ message: "Kayıt sırasında bir hata oluştu" });
-    }
-  });
-
-  // Phone-based Password Reset (SMS OTP ile doğrulama sonrası)
-  app.post('/api/auth/reset-password-phone', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { phone, newPassword } = req.body;
-
-      if (!phone || !newPassword) {
-        return res.status(400).json({ message: "Telefon ve yeni şifre gereklidir" });
-      }
-
-      if (newPassword.length < 8) {
-        return res.status(400).json({ message: "Şifre en az 8 karakter olmalıdır" });
-      }
-
-      // Normalize phone number
-      const digits = phone.replace(/\D/g, '');
-      const normalizedPhone = digits.startsWith('90') ? `+${digits}` : `+90${digits.replace(/^0/, '')}`;
-
-      // Find user by phone
-      const user = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
-
-      if (!user) {
-        return res.status(404).json({ message: "Bu telefon numarasıyla kayıtlı kullanıcı bulunamadı" });
-      }
-
-      // Hash new password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      // Update password
-      await db
-        .update(users)
-        .set({ password: hashedPassword })
-        .where(eq(users.id, user.id));
-
-      res.json({ message: "Şifreniz başarıyla güncellendi" });
-    } catch (error) {
-      console.error("Phone password reset error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
 
   // Verify Email
   app.get('/api/auth/verify-email', async (req: Request, res: Response) => {
@@ -1538,13 +1445,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       }
 
-      // Send verification email
-      const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify-email?token=${verificationToken}`;
-      
+      // Doğrulama e-postasını gönder.
+      // İmza: sendVerificationEmail(alıcı, token, isim) — bağlantıyı servis üretir.
       await emailService.sendVerificationEmail(
         currentUser.email,
-        currentUser.firstName || 'Kullanıcı',
-        verificationUrl
+        verificationToken,
+        currentUser.firstName || currentUser.email.split('@')[0]
       );
 
       res.json({ 
@@ -1559,302 +1465,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Phone Authentication Routes ============
 
-  // Check if phone number is already registered
-  app.post('/api/auth/check-phone', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { phone } = req.body;
-
-      if (!phone) {
-        return res.status(400).json({ message: "Telefon numarası gereklidir" });
-      }
-
-      // Normalize phone number
-      const normalizedPhone = phone.startsWith('+90') ? phone : phone.replace(/^0/, '+90');
-
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
-
-      res.json({ exists: !!existingUser });
-    } catch (error) {
-      console.error("Check phone error:", error);
-      res.status(500).json({ message: "Bir hata oluştu" });
-    }
-  });
-
-  // Send OTP to phone number (for login or registration)
-  app.post('/api/auth/phone/send-otp', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { phone, purpose = 'login' } = req.body;
-
-      if (!phone) {
-        return res.status(400).json({ message: "Telefon numarası gereklidir" });
-      }
-
-      // Validate and normalize Turkish phone format
-      const phoneValidation = validateAndNormalizeTurkishPhone(phone);
-      if (!phoneValidation.valid) {
-        return res.status(400).json({ message: phoneValidation.error });
-      }
-      
-      const normalizedPhone = phoneValidation.normalized;
-
-      // Check if user exists (for login) or doesn't exist (for register)
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.phone, normalizedPhone),
-      });
-
-      if (purpose === 'login' && !existingUser) {
-        return res.status(404).json({ message: "Bu telefon numarası ile kayıtlı kullanıcı bulunamadı" });
-      }
-
-      if (purpose === 'register' && existingUser) {
-        return res.status(400).json({ message: "Bu telefon numarası zaten kayıtlı" });
-      }
-
-      // Rate limit: max 3 OTPs per phone per 15 minutes
-      const recentOtps = await db.query.phoneVerifications.findMany({
-        where: and(
-          eq(phoneVerifications.phone, normalizedPhone),
-          gte(phoneVerifications.createdAt, new Date(Date.now() - 15 * 60 * 1000))
-        ),
-      });
-
-      if (recentOtps.length >= 3) {
-        return res.status(429).json({ message: "Çok fazla kod isteği. 15 dakika sonra tekrar deneyin." });
-      }
-
-      // Generate and save OTP
-      const code = generateOtp();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-      await db.insert(phoneVerifications).values({
-        phone: normalizedPhone,
-        code,
-        purpose,
-        expiresAt,
-      });
-
-      // Send SMS
-      const sent = await smsService.sendOtp(normalizedPhone, code);
-      
-      if (!sent) {
-        return res.status(500).json({ message: "SMS gönderilemedi. Lütfen daha sonra tekrar deneyin." });
-      }
-
-      res.json({ 
-        message: "Doğrulama kodu gönderildi",
-        expiresIn: 300 // 5 minutes in seconds
-      });
-    } catch (error) {
-      console.error("Send OTP error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
-
-  // Verify OTP and login/register with phone
-  app.post('/api/auth/phone/verify', createLimiter, async (req: Request, res: Response) => {
-    try {
-      const { phone, code, purpose = 'login', firstName, lastName } = req.body;
-
-      if (!phone || !code) {
-        return res.status(400).json({ message: "Telefon numarası ve doğrulama kodu gereklidir" });
-      }
-
-      // Validate and normalize phone format
-      const phoneValidation = validateAndNormalizeTurkishPhone(phone);
-      if (!phoneValidation.valid) {
-        return res.status(400).json({ message: phoneValidation.error });
-      }
-      
-      const normalizedPhone = phoneValidation.normalized;
-
-      // First find any pending verification for this phone
-      const latestVerification = await db.query.phoneVerifications.findFirst({
-        where: and(
-          eq(phoneVerifications.phone, normalizedPhone),
-          eq(phoneVerifications.purpose, purpose),
-          eq(phoneVerifications.verified, false),
-          gte(phoneVerifications.expiresAt, new Date())
-        ),
-        orderBy: desc(phoneVerifications.createdAt),
-      });
-
-      // Check if max attempts reached
-      if (latestVerification && latestVerification.attempts >= 5) {
-        return res.status(400).json({ message: "Çok fazla hatalı deneme. Yeni kod isteyin." });
-      }
-
-      // Find valid OTP with matching code
-      const verification = await db.query.phoneVerifications.findFirst({
-        where: and(
-          eq(phoneVerifications.phone, normalizedPhone),
-          eq(phoneVerifications.code, code),
-          eq(phoneVerifications.purpose, purpose),
-          eq(phoneVerifications.verified, false),
-          gte(phoneVerifications.expiresAt, new Date())
-        ),
-        orderBy: desc(phoneVerifications.createdAt),
-      });
-
-      if (!verification) {
-        // Increment attempts on the latest verification record
-        if (latestVerification) {
-          await db
-            .update(phoneVerifications)
-            .set({ attempts: latestVerification.attempts + 1 })
-            .where(eq(phoneVerifications.id, latestVerification.id));
-          
-          const remainingAttempts = 5 - latestVerification.attempts - 1;
-          if (remainingAttempts <= 0) {
-            return res.status(400).json({ message: "Çok fazla hatalı deneme. Yeni kod isteyin." });
-          }
-          return res.status(400).json({ message: `Geçersiz doğrulama kodu. ${remainingAttempts} deneme hakkınız kaldı.` });
-        }
-
-        // Check if code exists but expired or already used
-        const expiredOrUsed = await db.query.phoneVerifications.findFirst({
-          where: and(
-            eq(phoneVerifications.phone, normalizedPhone),
-            eq(phoneVerifications.code, code)
-          ),
-        });
-
-        if (expiredOrUsed) {
-          if (expiredOrUsed.verified) {
-            return res.status(400).json({ message: "Bu kod zaten kullanılmış" });
-          }
-          return res.status(400).json({ message: "Doğrulama kodunun süresi dolmuş" });
-        }
-
-        return res.status(400).json({ message: "Geçersiz doğrulama kodu" });
-      }
-
-      // Mark as verified
-      await db
-        .update(phoneVerifications)
-        .set({ verified: true })
-        .where(eq(phoneVerifications.id, verification.id));
-
-      let user;
-
-      if (purpose === 'register') {
-        // Create new user with phone
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            phone: normalizedPhone,
-            phoneVerified: true,
-            firstName: firstName || null,
-            lastName: lastName || null,
-            emailVerified: false,
-          })
-          .returning();
-        user = newUser;
-      } else {
-        // Find existing user
-        user = await db.query.users.findFirst({
-          where: eq(users.phone, normalizedPhone),
-        });
-
-        if (!user) {
-          return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-        }
-
-        // Update phone verified status if not already
-        if (!user.phoneVerified) {
-          await db
-            .update(users)
-            .set({ phoneVerified: true })
-            .where(eq(users.id, user.id));
-        }
-      }
-
-      // Create session
-      (req as any).login({ claims: { sub: user.id } }, (err: any) => {
-        if (err) {
-          console.error("Session creation error:", err);
-          return res.status(500).json({ message: "Oturum oluşturulamadı" });
-        }
-
-        res.json({
-          message: purpose === 'register' ? "Kayıt başarılı! Hoş geldiniz." : "Giriş başarılı!",
-          user: {
-            id: user.id,
-            email: user.email,
-            phone: user.phone,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            phoneVerified: true,
-            emailVerified: user.emailVerified,
-          },
-        });
-      });
-    } catch (error) {
-      console.error("Verify OTP error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
 
 
-  // Verify phone for existing user (add phone to account)
-  app.post('/api/auth/phone/add', isAuthenticated, createLimiter, async (req: Request, res: Response) => {
-    try {
-      const sessionUser = req.user as any;
-      const userId = sessionUser.dbUserId || sessionUser.claims?.sub || sessionUser.id;
-      const { phone, code } = req.body;
 
-      if (!phone || !code) {
-        return res.status(400).json({ message: "Telefon numarası ve doğrulama kodu gereklidir" });
-      }
 
-      // Check if phone already used by another user
-      const phoneInUse = await db.query.users.findFirst({
-        where: and(
-          eq(users.phone, phone),
-          sql`${users.id} != ${userId}`
-        ),
-      });
-
-      if (phoneInUse) {
-        return res.status(400).json({ message: "Bu telefon numarası başka bir hesapta kullanılıyor" });
-      }
-
-      // Verify OTP
-      const verification = await db.query.phoneVerifications.findFirst({
-        where: and(
-          eq(phoneVerifications.phone, phone),
-          eq(phoneVerifications.code, code),
-          eq(phoneVerifications.purpose, 'verify'),
-          eq(phoneVerifications.verified, false),
-          gte(phoneVerifications.expiresAt, new Date())
-        ),
-        orderBy: desc(phoneVerifications.createdAt),
-      });
-
-      if (!verification) {
-        return res.status(400).json({ message: "Geçersiz veya süresi dolmuş doğrulama kodu" });
-      }
-
-      // Mark as verified
-      await db
-        .update(phoneVerifications)
-        .set({ verified: true })
-        .where(eq(phoneVerifications.id, verification.id));
-
-      // Update user's phone
-      await db
-        .update(users)
-        .set({ phone, phoneVerified: true })
-        .where(eq(users.id, userId));
-
-      res.json({ message: "Telefon numarası başarıyla doğrulandı ve hesabınıza eklendi" });
-    } catch (error) {
-      console.error("Add phone error:", error);
-      res.status(500).json({ message: "Bir hata oluştu. Lütfen tekrar deneyin." });
-    }
-  });
 
   // Get current user (works for both auth methods)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -2010,7 +1624,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       res.json({
         userId,
         emailNotifications: true,
-        smsNotifications: true,
         pushNotifications: true,
         notifyMessages: true,
         notifyFavorites: true,
@@ -7963,7 +7576,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           statusChangedAt: users.statusChangedAt,
           statusReason: users.statusReason,
           emailVerified: users.emailVerified,
-          phoneVerified: users.phoneVerified,
           profileImageUrl: users.profileImageUrl,
           createdAt: users.createdAt,
         })

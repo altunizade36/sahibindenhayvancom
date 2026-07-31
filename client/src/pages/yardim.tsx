@@ -25,11 +25,11 @@ const helpCategories = [
     questions: [
       {
         q: "Nasıl üye olabilirim?",
-        a: "Kayıt sayfasından telefon numaranızla kolayca üye olabilirsiniz. SMS ile gelen doğrulama kodunu girdikten sonra şifrenizi belirleyerek kayıt işlemini tamamlayabilirsiniz."
+        a: "Kayıt sayfasından e-posta adresiniz ve bir şifre belirleyerek üye olabilirsiniz. Ardından e-posta adresinize gelen doğrulama bağlantısına tıklamanız yeterlidir."
       },
       {
         q: "Şifremi unuttum, ne yapmalıyım?",
-        a: "'Şifremi Unuttum' sayfasından telefon numaranızı girerek SMS ile şifre sıfırlama kodu alabilirsiniz."
+        a: "'Şifremi Unuttum' sayfasından e-posta adresinizi girin. Şifre sıfırlama bağlantısını e-posta ile göndeririz; bağlantı 24 saat geçerlidir."
       },
       {
         q: "Hesabımı nasıl silebilirim?",

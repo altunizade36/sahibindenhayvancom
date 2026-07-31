@@ -20,12 +20,12 @@ profesyonel mağaza sistemi ve hukuki bilgi / hayvan bakımı içerikli blog bar
 | Dosya depolama | **Supabase Storage** (`uploads` bucket) |
 | Kimlik doğrulama | Kendi oturum katmanı (bcrypt + PostgreSQL oturumları) |
 | E-posta | **Resend** (üretim), konsol (geliştirme) |
-| SMS | Twilio (opsiyonel), konsol (geliştirme) |
 | Önbellek | Bellek içi cache, Redis (Upstash) yedeği |
 | Alan adı / DNS | GoDaddy → Vercel |
 
-> Firebase kullanılmaz. Kimlik doğrulama, veri ve dosya katmanı Supabase;
-> tüm e-posta gönderimi Resend üzerinden yürür.
+> Firebase ve SMS sağlayıcısı kullanılmaz. Veri ve dosya katmanı Supabase,
+> tüm bildirim/doğrulama e-postaları Resend üzerinden yürür. Telefon numarası
+> yalnızca opsiyonel bir iletişim bilgisidir — doğrulanmaz.
 
 ### Uygulama
 - **Frontend**: React 18 + TypeScript + Vite, Wouter (yönlendirme), TanStack Query (durum), React Hook Form + Zod (formlar)
@@ -34,14 +34,19 @@ profesyonel mağaza sistemi ve hukuki bilgi / hayvan bakımı içerikli blog bar
 - **Gerçek zamanlı**: WebSocket (yalnızca kalıcı sunucuda — bkz. KURULUM.md "Vercel Serverless Kısıtı")
 
 ### Kimlik Doğrulama
-Üç yöntem, hepsi tek oturum modelinde birleşir (`session.user.claims.sub` = kullanıcı id):
-1. **E-posta / telefon + şifre** — bcrypt, `server/routes.ts`
-2. **Telefon SMS OTP** — `server/sms.ts`; 6 haneli kod, 5 dk geçerli, telefon başına
-   15 dakikada en fazla 3 istek. Sağlayıcı Twilio; yapılandırılmamışsa kodlar
-   yalnızca geliştirme konsoluna yazılır
-3. **Google / Facebook OAuth** — `server/auth.ts` (ilgili env değişkenleri tanımlıysa aktif)
+İki yöntem, ikisi de tek oturum modelinde birleşir (`session.user.claims.sub` = kullanıcı id):
+
+1. **E-posta + şifre** — bcrypt ile hash'lenir, `server/routes.ts`.
+   Kayıt sonrası Resend ile doğrulama bağlantısı gönderilir; şifre sıfırlama da
+   e-posta üzerinden yürür. `RESEND_API_KEY` tanımlı değilse (geliştirme)
+   hesaplar otomatik doğrulanmış sayılır.
+2. **Google / Facebook OAuth** — `server/auth.ts` (ilgili env değişkenleri tanımlıysa aktif).
 
 Oturumlar PostgreSQL'de `sessions` tablosunda, 7 gün TTL ile saklanır.
+
+> Telefon numarası kayıt sırasında istenmez; profilde opsiyonel iletişim
+> bilgisi olarak tutulur ve SMS ile doğrulanmaz. Kullanıcı isterse telefonuyla
+> da giriş yapabilir (numara + şifre).
 
 ## Tasarım
 

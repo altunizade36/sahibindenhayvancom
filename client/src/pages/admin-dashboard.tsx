@@ -66,7 +66,6 @@ interface User {
   lastName: string;
   role: string;
   emailVerified: boolean;
-  phoneVerified: boolean;
   createdAt: string;
 }
 
@@ -703,7 +702,7 @@ export default function AdminDashboard() {
                             <td className="p-4">
                               <div className="flex gap-1">
                                 {userData.emailVerified && <Badge variant="outline" className="text-xs">Email ✓</Badge>}
-                                {userData.phoneVerified && <Badge variant="outline" className="text-xs">Tel ✓</Badge>}
+                                {userData.phone && <Badge variant="outline" className="text-xs">Tel</Badge>}
                               </div>
                             </td>
                             <td className="p-4 text-sm text-muted-foreground">

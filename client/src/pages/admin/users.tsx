@@ -61,7 +61,6 @@ interface User {
   role: string;
   status?: string;
   emailVerified: boolean;
-  phoneVerified: boolean;
   profileImageUrl?: string;
   createdAt: string;
   lastLoginAt?: string;
@@ -93,8 +92,8 @@ export default function AdminUsersPage() {
 
   const stats: UserStats = {
     total: users.length,
-    verified: users.filter((u) => u.emailVerified || u.phoneVerified).length,
-    unverified: users.filter((u) => !u.emailVerified && !u.phoneVerified).length,
+    verified: users.filter((u) => u.emailVerified).length,
+    unverified: users.filter((u) => !u.emailVerified).length,
     banned: users.filter((u) => u.status === "banned").length,
     admins: users.filter((u) => u.role === "admin").length,
     sellers: users.filter((u) => u.role === "seller").length,
@@ -134,8 +133,8 @@ export default function AdminUsersPage() {
   });
 
   const filteredUsers = users.filter((user) => {
-    if (statusFilter === "verified") return user.emailVerified || user.phoneVerified;
-    if (statusFilter === "unverified") return !user.emailVerified && !user.phoneVerified;
+    if (statusFilter === "verified") return user.emailVerified;
+    if (statusFilter === "unverified") return !user.emailVerified;
     if (statusFilter === "banned") return user.status === "banned";
     if (statusFilter === "admin") return user.role === "admin";
     if (statusFilter === "seller") return user.role === "seller";
@@ -201,14 +200,10 @@ export default function AdminUsersPage() {
               <Mail className="h-3 w-3" />
             </Badge>
           )}
-          {user.phoneVerified ? (
-            <Badge variant="default" className="bg-green-500 gap-1">
-              <Phone className="h-3 w-3" />
-              Tel
-            </Badge>
-          ) : (
+          {user.phone && (
             <Badge variant="outline" className="gap-1 text-muted-foreground">
               <Phone className="h-3 w-3" />
+              Tel
             </Badge>
           )}
         </div>
@@ -395,16 +390,8 @@ export default function AdminUsersPage() {
                     }
                   />
                   <DetailField
-                    label="Telefon Doğrulaması"
-                    value={
-                      selectedUser.phoneVerified ? (
-                        <Badge variant="default" className="bg-green-500">
-                          Doğrulandı
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Doğrulanmadı</Badge>
-                      )
-                    }
+                    label="Telefon"
+                    value={selectedUser.phone || <Badge variant="secondary">Eklenmedi</Badge>}
                   />
                   <DetailField
                     label="Kayıt Tarihi"
