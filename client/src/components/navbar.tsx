@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,12 +27,51 @@ import { NotificationDropdown } from "@/components/notification-dropdown";
 import { Logo } from "@/components/logo";
 import { MarketTicker } from "@/components/market-ticker";
 
+interface SearchSuggestions {
+  listings: { id: string; title: string; price: string | null; city: string | null }[];
+  categories: { id: string; name: string; slug: string }[];
+}
+
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [location, navigate] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Debounce: 300ms after last keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const { data: suggestions } = useQuery<SearchSuggestions>({
+    queryKey: ["/api/search/suggestions", debouncedQ],
+    queryFn: async () => {
+      if (debouncedQ.length < 2) return { listings: [], categories: [] };
+      const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(debouncedQ)}`);
+      return res.json();
+    },
+    enabled: debouncedQ.length >= 2,
+    staleTime: 10_000,
+  });
+
+  const hasSuggestions =
+    suggestions && (suggestions.listings.length > 0 || suggestions.categories.length > 0);
 
   const { data: notificationCount = { count: 0 } } = useQuery<{ count: number }>({
     queryKey: ["/api/notifications/count"],
@@ -45,10 +84,23 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/ilanlar?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/arama?search=${encodeURIComponent(searchQuery.trim())}`);
       setMobileSearchOpen(false);
+      setShowSuggestions(false);
       setSearchQuery("");
     }
+  };
+
+  const handleSuggestionClick = (query: string) => {
+    navigate(`/arama?search=${encodeURIComponent(query)}`);
+    setSearchQuery("");
+    setShowSuggestions(false);
+  };
+
+  const handleCategoryClick = (slug: string) => {
+    navigate(`/kategori/${slug}`);
+    setSearchQuery("");
+    setShowSuggestions(false);
   };
 
   const isAdmin = user?.role === "admin";
@@ -333,20 +385,67 @@ export function Navbar() {
               {mobileSearchOpen ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
             </Button>
 
-            {/* Desktop Search */}
-            <form onSubmit={handleSearch} className="hidden md:flex">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Hayvan ara..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-40 lg:w-56 pl-9 h-9"
-                  data-testid="input-search"
-                />
-              </div>
-            </form>
+            {/* Desktop Search + Autocomplete */}
+            <div ref={searchWrapperRef} className="hidden md:block relative">
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Hayvan ara..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    className="w-40 lg:w-56 pl-9 h-9"
+                    data-testid="input-search"
+                    autoComplete="off"
+                  />
+                </div>
+              </form>
+              {/* Suggestions Dropdown */}
+              {showSuggestions && hasSuggestions && (
+                <div className="absolute top-full mt-1 left-0 w-72 bg-background border rounded-xl shadow-lg z-50 overflow-hidden">
+                  {suggestions!.categories.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-3 pt-2 pb-1">Kategoriler</p>
+                      {suggestions!.categories.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => handleCategoryClick(c.slug)}
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2"
+                        >
+                          <Package className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <span>{c.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {suggestions!.listings.length > 0 && (
+                    <div className="border-t">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-3 pt-2 pb-1">İlanlar</p>
+                      {suggestions!.listings.map((l) => (
+                        <button
+                          key={l.id}
+                          onClick={() => handleSuggestionClick(l.title)}
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center justify-between gap-2"
+                        >
+                          <span className="truncate">{l.title}</span>
+                          {l.price && <span className="text-xs text-muted-foreground shrink-0">{Number(l.price).toLocaleString("tr-TR")}₺</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="border-t px-3 py-2">
+                    <button
+                      onClick={() => handleSuggestionClick(searchQuery)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      "{searchQuery}" için tüm sonuçları gör →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Mobile Quick Actions */}
             {isAuthenticated && (
@@ -492,13 +591,39 @@ export function Navbar() {
                   type="search"
                   placeholder="Hayvan, cins veya konum ara..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
                   className="w-full pl-10 pr-4 h-10"
                   autoFocus
                   data-testid="input-mobile-search"
+                  autoComplete="off"
                 />
               </div>
             </form>
+            {/* Mobile Suggestions */}
+            {showSuggestions && hasSuggestions && (
+              <div className="mt-1 bg-background border rounded-xl shadow-lg overflow-hidden">
+                {suggestions!.categories.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => handleCategoryClick(c.slug)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-accent text-sm flex items-center gap-2 border-b last:border-b-0"
+                  >
+                    <Package className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+                {suggestions!.listings.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => handleSuggestionClick(l.title)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-accent text-sm flex items-center justify-between gap-2 border-b last:border-b-0"
+                  >
+                    <span className="truncate">{l.title}</span>
+                    {l.price && <span className="text-xs text-muted-foreground shrink-0">{Number(l.price).toLocaleString("tr-TR")}₺</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

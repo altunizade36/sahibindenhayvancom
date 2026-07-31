@@ -2922,6 +2922,32 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // ============ Listing Routes ============
   // Note: No auth required for browsing listings (guest access)
   // req.user will be populated if user is logged in (via Replit Auth session)
+  // ── Arama Önerileri (Autocomplete) ──────────────────────────────────────
+  app.get("/api/search/suggestions", async (req: Request, res: Response) => {
+    try {
+      const q = (req.query.q as string || "").trim();
+      if (!q || q.length < 2) return res.json({ listings: [], categories: [] });
+
+      const [listingSuggestions, categorySuggestions] = await Promise.all([
+        db
+          .select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city })
+          .from(listings)
+          .where(and(ilike(listings.title, `%${q}%`), eq(listings.status, "active")))
+          .orderBy(desc(listings.createdAt))
+          .limit(6),
+        db
+          .select({ id: categories.id, name: categories.name, slug: categories.slug })
+          .from(categories)
+          .where(ilike(categories.name, `%${q}%`))
+          .limit(4),
+      ]);
+
+      res.json({ listings: listingSuggestions, categories: categorySuggestions });
+    } catch (err) {
+      res.json({ listings: [], categories: [] });
+    }
+  });
+
   app.get("/api/listings", async (req: Request, res: Response) => {
     try {
       const { 

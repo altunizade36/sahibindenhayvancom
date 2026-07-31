@@ -114,6 +114,7 @@ function SidebarLayout() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={ListingList} />
+          <Route path="/arama" component={ListingList} />
             <Route component={NotFound} />
           </Switch>
         </main>
