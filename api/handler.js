@@ -2073,7 +2073,7 @@ function getPoolStats() {
 }
 
 // server/db-storage.ts
-import { eq, and, gte, lte, ilike, or, sql as sql2 } from "drizzle-orm";
+import { eq, and, gte, lte, ilike, or, sql as sql2, inArray } from "drizzle-orm";
 var DbStorage = class {
   // ============ Kullanicilar ============
   async getUser(id) {
@@ -2288,7 +2288,7 @@ var DbStorage = class {
     const partnerIds = Array.from(conversationMap.keys());
     if (partnerIds.length === 0) return [];
     const partners = await db.query.users.findMany({
-      where: sql2`${users.id} = ANY(${partnerIds})`
+      where: inArray(users.id, partnerIds)
     });
     const conversations2 = [];
     for (const partner of partners) {
@@ -3504,7 +3504,7 @@ async function processStoreImage(buffer, config) {
 }
 
 // server/routes.ts
-import { eq as eq3, and as and3, isNull, asc, desc as desc3, sql as sql4, count, inArray, gte as gte2, lte as lte2, ilike as ilike2, or as or2 } from "drizzle-orm";
+import { eq as eq3, and as and3, isNull, asc, desc as desc3, sql as sql4, count, inArray as inArray2, gte as gte2, lte as lte2, ilike as ilike2, or as or2 } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -5495,7 +5495,7 @@ async function registerRoutes(app2, existingServer) {
               readAt: /* @__PURE__ */ new Date()
             }).where(
               and3(
-                inArray(messages.id, messageIds),
+                inArray2(messages.id, messageIds),
                 eq3(messages.receiverId, userId)
               )
             );
@@ -6574,7 +6574,7 @@ async function registerRoutes(app2, existingServer) {
         };
         const categoryIds = getAllDescendants(categoryId);
         if (categoryIds.length > 1) {
-          conditions.push(inArray(listings.categoryId, categoryIds));
+          conditions.push(inArray2(listings.categoryId, categoryIds));
         } else {
           conditions.push(eq3(listings.categoryId, categoryId));
         }
@@ -7525,7 +7525,7 @@ async function registerRoutes(app2, existingServer) {
         firstName: users.firstName,
         lastName: users.lastName,
         profileImageUrl: users.profileImageUrl
-      }).from(users).where(sql4`${users.id} = ANY(${partnerIds})`) : [];
+      }).from(users).where(inArray2(users.id, partnerIds)) : [];
       const lastMsgs = messageIds.length > 0 ? await db.select({
         message: messages,
         listing: {
@@ -7536,8 +7536,8 @@ async function registerRoutes(app2, existingServer) {
           city: listings.city,
           district: listings.district
         }
-      }).from(messages).leftJoin(listings, eq3(messages.listingId, listings.id)).where(sql4`${messages.id} = ANY(${messageIds})`) : [];
-      const presences = partnerIds.length > 0 ? await db.select().from(userPresence).where(sql4`${userPresence.userId} = ANY(${partnerIds})`) : [];
+      }).from(messages).leftJoin(listings, eq3(messages.listingId, listings.id)).where(inArray2(messages.id, messageIds)) : [];
+      const presences = partnerIds.length > 0 ? await db.select().from(userPresence).where(inArray2(userPresence.userId, partnerIds)) : [];
       const partnersMap = new Map(partners.map((p) => [p.id, p]));
       const messagesMap = new Map(lastMsgs.map((m) => [m.message.id, { ...m.message, listing: m.listing }]));
       const presenceMap = new Map(presences.map((p) => [p.userId, p]));
@@ -8203,7 +8203,7 @@ async function registerRoutes(app2, existingServer) {
       const userViews = await db.select({ id: viewedListings.id }).from(viewedListings).where(eq3(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt));
       if (userViews.length > 50) {
         const idsToDelete = userViews.slice(50).map((v) => v.id);
-        await db.delete(viewedListings).where(inArray(viewedListings.id, idsToDelete));
+        await db.delete(viewedListings).where(inArray2(viewedListings.id, idsToDelete));
       }
       res.json({ success: true });
     } catch (error) {
@@ -8231,7 +8231,7 @@ async function registerRoutes(app2, existingServer) {
       if (listingIds.length === 0 || listingIds.length > 4) {
         return res.status(400).json({ message: "1-4 aras\u0131 ilan se\xE7ebilirsiniz" });
       }
-      const compareListings = await db.select().from(listings).where(inArray(listings.id, listingIds));
+      const compareListings = await db.select().from(listings).where(inArray2(listings.id, listingIds));
       res.json(compareListings);
     } catch (error) {
       console.error("Failed to fetch listings for comparison:", error);
@@ -8456,7 +8456,7 @@ async function registerRoutes(app2, existingServer) {
         totalFavorites: sql4`COALESCE(SUM(${listings.favoriteCount}), 0)`
       }).from(listings).where(
         and3(
-          inArray(listings.categoryId, categoryIds),
+          inArray2(listings.categoryId, categoryIds),
           eq3(listings.status, "active")
         )
       );
@@ -8465,7 +8465,7 @@ async function registerRoutes(app2, existingServer) {
         count: sql4`count(*)`
       }).from(listings).where(
         and3(
-          inArray(listings.categoryId, categoryIds),
+          inArray2(listings.categoryId, categoryIds),
           eq3(listings.status, "active")
         )
       ).groupBy(listings.city).orderBy(desc3(sql4`count(*)`)).limit(10);
@@ -8483,7 +8483,7 @@ async function registerRoutes(app2, existingServer) {
         count: sql4`count(*)`
       }).from(listings).where(
         and3(
-          inArray(listings.categoryId, categoryIds),
+          inArray2(listings.categoryId, categoryIds),
           eq3(listings.status, "active")
         )
       ).groupBy(sql4`
@@ -8501,7 +8501,7 @@ async function registerRoutes(app2, existingServer) {
         count: sql4`count(*)`
       }).from(listings).where(
         and3(
-          inArray(listings.categoryId, categoryIds),
+          inArray2(listings.categoryId, categoryIds),
           sql4`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
         )
       ).groupBy(sql4`DATE(${listings.createdAt})`).orderBy(sql4`DATE(${listings.createdAt})`);
@@ -10653,7 +10653,7 @@ async function registerRoutes(app2, existingServer) {
       const listingIds = userListings.map((l) => l.id);
       let totalFavorites = 0;
       if (listingIds.length > 0) {
-        const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(inArray(favorites.listingId, listingIds));
+        const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(inArray2(favorites.listingId, listingIds));
         totalFavorites = favResult[0]?.count || 0;
       }
       const messagesResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(eq3(messages.receiverId, userId));

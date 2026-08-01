@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, ilike, desc, or, sql } from "drizzle-orm";
+import { eq, and, gte, lte, ilike, desc, or, sql, inArray } from "drizzle-orm";
 import { db } from "./db";
 import {
   users, categories, listings, auctions, bids, liveStreams,
@@ -337,8 +337,12 @@ export class DbStorage implements IStorage {
     const partnerIds = Array.from(conversationMap.keys());
     if (partnerIds.length === 0) return [];
     
+    // inArray kullanılmalı, sql`... = ANY(${dizi})` DEĞİL: Drizzle şablon
+    // içindeki JS dizisini tek bir dizi parametresi olarak değil, elemanları
+    // ayrı ayrı bağlayarak gönderiyor. Sonuç `= ANY(($1))` sorgusunda $1'in
+    // düz metin olması ve PostgreSQL'in "malformed array literal" hatası.
     const partners = await db.query.users.findMany({
-      where: sql`${users.id} = ANY(${partnerIds})`,
+      where: inArray(users.id, partnerIds),
     });
 
     // Map conversations with user details

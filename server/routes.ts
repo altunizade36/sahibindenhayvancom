@@ -3929,7 +3929,13 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       );
       const messageIds = userConvs.map(c => c.lastMessageId).filter(Boolean) as string[];
       
-      // Batch fetch partners
+      // Toplu getirmelerde inArray kullanılmalı, sql`... = ANY(${dizi})` DEĞİL:
+      // Drizzle şablon içindeki JS dizisini tek bir dizi parametresi olarak
+      // değil, elemanlarını ayrı ayrı bağlayarak gönderiyor. Ortaya `= ANY(($1))`
+      // çıkıyor ve $1 düz metin olduğu için PostgreSQL "malformed array literal"
+      // hatası veriyor. Bu üç sorgu yüzünden gelen kutusu ucu her kullanıcıda
+      // 500 dönüyordu: mesaj gelmiş görünüyor (okunmamış sayacı çalışıyor) ama
+      // konuşma listesi hiç açılmıyordu.
       const partners = partnerIds.length > 0 ? await db
         .select({
           id: users.id,
@@ -3940,7 +3946,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           profileImageUrl: users.profileImageUrl,
         })
         .from(users)
-        .where(sql`${users.id} = ANY(${partnerIds})`) : [];
+        .where(inArray(users.id, partnerIds)) : [];
       
       // Batch fetch last messages with listing info
       const lastMsgs = messageIds.length > 0 ? await db
@@ -3957,13 +3963,13 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         })
         .from(messages)
         .leftJoin(listings, eq(messages.listingId, listings.id))
-        .where(sql`${messages.id} = ANY(${messageIds})`) : [];
+        .where(inArray(messages.id, messageIds)) : [];
       
       // Batch fetch presence
       const presences = partnerIds.length > 0 ? await db
         .select()
         .from(userPresence)
-        .where(sql`${userPresence.userId} = ANY(${partnerIds})`) : [];
+        .where(inArray(userPresence.userId, partnerIds)) : [];
       
       // Create maps
       const partnersMap = new Map(partners.map(p => [p.id, p]));
