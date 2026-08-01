@@ -75,7 +75,7 @@
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.39.1",
+    "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
     "express": "^4.21.2",
@@ -104,7 +104,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "resend": "^6.5.2",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "tw-animate-css": "^1.2.5",
@@ -131,14 +131,18 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.4",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.25.12",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "5.6.3",
-    "vite": "^5.4.20"
+    "vite": "^6.4.3"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
+  },
+  "overridesNote": "drizzle-kit, terk edilmiş @esbuild-kit/esm-loader üzerinden eski bir esbuild taşıyor (GHSA-67mh-4wv8-2f99). Yukarı akışta düzeltilmiş sürüm yok; iç içe geçmiş esbuild'i yamalı sürüme sabitliyoruz. drizzle-kit zaten doğrudan esbuild ^0.25 kullanıyor.",
+  "overrides": {
+    "esbuild": "$esbuild"
   }
 }
