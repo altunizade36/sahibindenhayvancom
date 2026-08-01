@@ -39,11 +39,6 @@ build/
 .vite/
 *.tsbuildinfo
 
-# Vercel serverless fonksiyonu derleme çıktısı (server/vercel-entry.ts'ten
-# esbuild ile üretilir — `npm run build:api`). Uzantısız ESM import'ları
-# çözülemediği için tek dosyaya paketleniyor.
-api/handler.js
-
 # ═══════════════════════════════════════════════════════════
 #  Platform / araç durumu
 # ═══════════════════════════════════════════════════════════
