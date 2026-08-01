@@ -26,17 +26,20 @@ import type { Request, Response, NextFunction } from "express";
 /** Ekranda gizlenen alanın adı. Sıradan bir form alanı gibi görünmeli. */
 export const HONEYPOT_FIELD = "website";
 
-/** Formun açıldığı anı (ms) taşıyan alan. */
-export const FORM_TIMESTAMP_FIELD = "formLoadedAt";
-
-/** Bir insanın formu doldurabileceği en kısa süre (saniye). */
-const MIN_FORM_SECONDS = 2;
-
 /**
- * Gelecek tarihli damgalara karşı üst sınır: saati ileri alınmış bir istemci
- * ya da uydurulmuş damga yüzünden hesap negatif çıkarsa kontrol atlanır.
+ * Formun açılmasıyla gönderilmesi arasında geçen süreyi (ms) taşıyan alan.
+ *
+ * Bilinçli olarak MUTLAK bir zaman damgası değil, İSTEMCİDE ÖLÇÜLEN SÜRE
+ * gönderiliyor. Mutlak damga sunucu saatiyle karşılaştırılmak zorundadır ve
+ * iki saat arasındaki fark (kullanıcının saati birkaç saniye ileri olabilir,
+ * ki bu çok yaygındır) hesabı negatife düşürüp kontrolü işlevsiz bırakır.
+ * Süre farkı aynı saatin iki okumasından çıktığı için saat kaymasından
+ * etkilenmez.
  */
-const MAX_FORM_AGE_SECONDS = 24 * 60 * 60;
+export const FORM_ELAPSED_FIELD = "formFillMs";
+
+/** Bir insanın formu doldurabileceği en kısa süre (ms). */
+const MIN_FORM_MS = 2000;
 
 export interface BotCheckResult {
   bot: boolean;
@@ -52,12 +55,9 @@ export function detectBot(body: unknown): BotCheckResult {
     return { bot: true, reason: "honeypot" };
   }
 
-  const damga = Number(veri[FORM_TIMESTAMP_FIELD]);
-  if (Number.isFinite(damga) && damga > 0) {
-    const gecenSaniye = (Date.now() - damga) / 1000;
-    if (gecenSaniye >= 0 && gecenSaniye < MIN_FORM_SECONDS && gecenSaniye < MAX_FORM_AGE_SECONDS) {
-      return { bot: true, reason: "too-fast" };
-    }
+  const gecenMs = Number(veri[FORM_ELAPSED_FIELD]);
+  if (Number.isFinite(gecenMs) && gecenMs >= 0 && gecenMs < MIN_FORM_MS) {
+    return { bot: true, reason: "too-fast" };
   }
 
   return { bot: false };
@@ -86,6 +86,6 @@ export function botGuard(req: Request, res: Response, next: NextFunction) {
  * alanların veritabanına yazılmasının bir anlamı yok.
  */
 export function stripBotFields<T extends Record<string, any>>(body: T): T {
-  const { [HONEYPOT_FIELD]: _h, [FORM_TIMESTAMP_FIELD]: _t, ...kalan } = body || ({} as T);
+  const { [HONEYPOT_FIELD]: _h, [FORM_ELAPSED_FIELD]: _t, ...kalan } = body || ({} as T);
   return kalan as T;
 }

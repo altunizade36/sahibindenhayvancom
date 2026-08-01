@@ -6,8 +6,10 @@ import { useMemo, useRef } from "react";
  * İki sinyal üretir ve istek gövdesine ekler:
  *  - `website`: ekranda görünmeyen bir alan. İnsan göremediği için boş kalır,
  *    formu otomatik dolduran bot doldurur.
- *  - `formLoadedAt`: formun açıldığı an. İnsanın bir formu 2 saniyeden kısa
- *    sürede doldurması mümkün değildir.
+ *  - `formFillMs`: formun açılmasıyla gönderilmesi arasında geçen süre.
+ *    İnsanın bir formu 2 saniyeden kısa sürede doldurması mümkün değildir.
+ *    Mutlak zaman damgası yerine SÜRE gönderilir; böylece kullanıcının saati
+ *    sunucudan farklı olsa bile kontrol doğru çalışır.
  *
  * Sunucu tarafı (server/bot-protection.ts) yalnızca POZİTİF bot kanıtı varsa
  * reddeder; alanlar eksikse isteği geçirir. Bu yüzden burayı unutmak bir
@@ -50,7 +52,9 @@ export function useBotTrap() {
       /** İstek gövdesine eklenecek alanlar. */
       botFields: () => ({
         website: alanRef.current?.value ?? "",
-        formLoadedAt: acilisRef.current,
+        // Mutlak damga degil, ayni saatin iki okumasi arasindaki fark:
+        // kullanicinin saati ileri/geri olsa bile dogru calisir.
+        formFillMs: Date.now() - acilisRef.current,
       }),
     }),
     []

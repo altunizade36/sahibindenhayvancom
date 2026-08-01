@@ -244,34 +244,53 @@ const authIpLimiter = async (req: Request, res: Response, next: Function) => {
  * hiçbir koşulda kilitlenmez.
  */
 const LOGIN_FAIL_LIMIT = 12;
-const LOGIN_FAIL_WINDOW = 900; // 15 dakika
+const LOGIN_FAIL_WINDOW_MS = 15 * 60 * 1000;
 
-function loginFailKey(identifier: string) {
-  return `login-fail:${String(identifier).toLowerCase().trim()}`;
-}
-
-async function isLoginBlocked(identifier: string): Promise<boolean> {
+/**
+ * Son başarısız giriş sayısını VERİTABANINDAN okur.
+ *
+ * Neden bellek/cache değil: üretimde Redis yapılandırılmamış durumda
+ * (UPSTASH_* tanımsız) ve `cache` bu durumda süreç içi bir Map'e düşüyor.
+ * Vercel'de her istek ayrı bir sunucusuz örneğe gidebildiği ve örnekler sürekli
+ * doğup öldüğü için böyle bir sayaç hiçbir zaman birikmiyor — yani bellek
+ * tabanlı bir kilit pratikte hiç devreye girmez. PostgreSQL tüm örnekler
+ * arasında paylaşılan tek durum kaynağı olduğu için sayaç oradan okunuyor.
+ *
+ * `login_history` tablosu zaten her denemeyi (başarılı/başarısız) kaydediyor;
+ * ayrı bir tabloya gerek yok. Sayım son BAŞARILI girişten sonrasını kapsar:
+ * doğru şifreyi giren kullanıcı anında temize çıkar, geçmiş denetim kaydı
+ * silinmeden kilit kalkar.
+ */
+async function recentFailedLogins(userId: string): Promise<number> {
   try {
-    const sayi = Number((await cache.get<number>(loginFailKey(identifier))) || 0);
-    return sayi >= LOGIN_FAIL_LIMIT;
-  } catch {
-    return false; // sayaç okunamıyorsa meşru kullanıcıyı kilitleme
-  }
-}
+    const pencereBasi = new Date(Date.now() - LOGIN_FAIL_WINDOW_MS);
 
-async function recordFailedLogin(identifier: string): Promise<void> {
-  try {
-    await cache.incr(loginFailKey(identifier), LOGIN_FAIL_WINDOW);
-  } catch {
-    /* sayaç tutulamazsa giriş akışı bozulmasın */
-  }
-}
+    const [sonBasarili] = await db
+      .select({ at: loginHistory.createdAt })
+      .from(loginHistory)
+      .where(and(eq(loginHistory.userId, userId), eq(loginHistory.success, true)))
+      .orderBy(desc(loginHistory.createdAt))
+      .limit(1);
 
-async function clearLoginFailures(identifier: string): Promise<void> {
-  try {
-    await cache.del(loginFailKey(identifier));
-  } catch {
-    /* yok sayılabilir */
+    const baslangic =
+      sonBasarili?.at && sonBasarili.at > pencereBasi ? sonBasarili.at : pencereBasi;
+
+    const [satir] = await db
+      .select({ n: count() })
+      .from(loginHistory)
+      .where(
+        and(
+          eq(loginHistory.userId, userId),
+          eq(loginHistory.success, false),
+          gte(loginHistory.createdAt, baslangic)
+        )
+      );
+
+    return Number(satir?.n ?? 0);
+  } catch (error) {
+    // Sayaç okunamıyorsa meşru kullanıcıyı kilitleme.
+    console.warn("Başarısız giriş sayısı okunamadı:", error);
+    return 0;
   }
 }
 
@@ -1313,14 +1332,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Email/telefon ve şifre gereklidir" });
       }
 
-      // Şifre deneme saldırısına karşı hesap bazlı kilit. IP değil hesap
-      // sayıldığı için paylaşılan (CGNAT/ofis) IP'lerdeki masum kullanıcılar
-      // birbirini etkilemez. Sayaç yalnızca hatalı denemede artar.
-      if (await isLoginBlocked(loginIdentifier)) {
-        return res.status(429).json({
-          message: "Bu hesap için çok fazla hatalı giriş denendi. Lütfen 15 dakika sonra tekrar deneyin veya şifrenizi sıfırlayın.",
-        });
-      }
 
       // Normalize identifier - check if it looks like a phone number
       let normalizedIdentifier = loginIdentifier;
@@ -1343,22 +1354,32 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       });
 
       if (!user || !user.password) {
-        // Olmayan hesap için de sayaç artar: aksi hâlde saldırgan hangi
-        // adreslerin kayıtlı olduğunu deneme sayısından anlayabilir.
-        await recordFailedLogin(loginIdentifier);
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
+      }
+
+      // Şifre deneme saldırısına karşı HESAP bazlı kilit.
+      //
+      // IP yerine hesap sayılıyor: Türkiye'de mobil operatörler CGNAT
+      // kullandığı için binlerce abone aynı genel IP'den çıkar; IP bazlı bir
+      // kilit masum kullanıcıları toplu hâlde engellerdi. Hesap bazlı sayaç
+      // hem onları etkilemez hem de saldırgan IP değiştirse bile durur.
+      //
+      // Şifre karşılaştırmasından ÖNCE bakılıyor ki kilitli hesapta boşuna
+      // bcrypt maliyeti ödenmesin.
+      if ((await recentFailedLogins(user.id)) >= LOGIN_FAIL_LIMIT) {
+        return res.status(429).json({
+          message:
+            "Bu hesap için çok fazla hatalı giriş denendi. Lütfen 15 dakika sonra tekrar deneyin veya şifrenizi sıfırlayın.",
+        });
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        await recordFailedLogin(loginIdentifier);
+        // Bu kayıt hem denetim geçmişi hem de yukarıdaki kilidin sayacıdır.
         await recordLoginHistory(user.id, req, false, isPhone ? 'phone' : 'email', 'Hatalı şifre');
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
-
-      // Doğru şifre girildi — sayaç sıfırlanır, meşru kullanıcı kilitlenmez.
-      await clearLoginFailures(loginIdentifier);
 
       // Hesap durumu — yasaklı/askıya alınmış kullanıcı giriş yapamaz.
       // (Şifre doğrulandıktan SONRA kontrol ediliyor ki hesap durumu

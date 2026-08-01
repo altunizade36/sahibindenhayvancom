@@ -3753,9 +3753,8 @@ var emailService = createEmailService();
 
 // server/bot-protection.ts
 var HONEYPOT_FIELD = "website";
-var FORM_TIMESTAMP_FIELD = "formLoadedAt";
-var MIN_FORM_SECONDS = 2;
-var MAX_FORM_AGE_SECONDS = 24 * 60 * 60;
+var FORM_ELAPSED_FIELD = "formFillMs";
+var MIN_FORM_MS = 2e3;
 function detectBot(body) {
   if (!body || typeof body !== "object") return { bot: false };
   const veri = body;
@@ -3763,12 +3762,9 @@ function detectBot(body) {
   if (typeof balKupu === "string" && balKupu.trim() !== "") {
     return { bot: true, reason: "honeypot" };
   }
-  const damga = Number(veri[FORM_TIMESTAMP_FIELD]);
-  if (Number.isFinite(damga) && damga > 0) {
-    const gecenSaniye = (Date.now() - damga) / 1e3;
-    if (gecenSaniye >= 0 && gecenSaniye < MIN_FORM_SECONDS && gecenSaniye < MAX_FORM_AGE_SECONDS) {
-      return { bot: true, reason: "too-fast" };
-    }
+  const gecenMs = Number(veri[FORM_ELAPSED_FIELD]);
+  if (Number.isFinite(gecenMs) && gecenMs >= 0 && gecenMs < MIN_FORM_MS) {
+    return { bot: true, reason: "too-fast" };
   }
   return { bot: false };
 }
@@ -5116,28 +5112,23 @@ var authIpLimiter = async (req, res, next) => {
   next();
 };
 var LOGIN_FAIL_LIMIT = 12;
-var LOGIN_FAIL_WINDOW = 900;
-function loginFailKey(identifier) {
-  return `login-fail:${String(identifier).toLowerCase().trim()}`;
-}
-async function isLoginBlocked(identifier) {
+var LOGIN_FAIL_WINDOW_MS = 15 * 60 * 1e3;
+async function recentFailedLogins(userId) {
   try {
-    const sayi = Number(await cache.get(loginFailKey(identifier)) || 0);
-    return sayi >= LOGIN_FAIL_LIMIT;
-  } catch {
-    return false;
-  }
-}
-async function recordFailedLogin(identifier) {
-  try {
-    await cache.incr(loginFailKey(identifier), LOGIN_FAIL_WINDOW);
-  } catch {
-  }
-}
-async function clearLoginFailures(identifier) {
-  try {
-    await cache.del(loginFailKey(identifier));
-  } catch {
+    const pencereBasi = new Date(Date.now() - LOGIN_FAIL_WINDOW_MS);
+    const [sonBasarili] = await db.select({ at: loginHistory.createdAt }).from(loginHistory).where(and3(eq3(loginHistory.userId, userId), eq3(loginHistory.success, true))).orderBy(desc3(loginHistory.createdAt)).limit(1);
+    const baslangic = sonBasarili?.at && sonBasarili.at > pencereBasi ? sonBasarili.at : pencereBasi;
+    const [satir] = await db.select({ n: count() }).from(loginHistory).where(
+      and3(
+        eq3(loginHistory.userId, userId),
+        eq3(loginHistory.success, false),
+        gte2(loginHistory.createdAt, baslangic)
+      )
+    );
+    return Number(satir?.n ?? 0);
+  } catch (error) {
+    console.warn("Ba\u015Far\u0131s\u0131z giri\u015F say\u0131s\u0131 okunamad\u0131:", error);
+    return 0;
   }
 }
 var pinAttemptLimiter = async (req, res, next) => {
@@ -5808,11 +5799,6 @@ async function registerRoutes(app2, existingServer) {
       if (!loginIdentifier || !password) {
         return res.status(400).json({ message: "Email/telefon ve \u015Fifre gereklidir" });
       }
-      if (await isLoginBlocked(loginIdentifier)) {
-        return res.status(429).json({
-          message: "Bu hesap i\xE7in \xE7ok fazla hatal\u0131 giri\u015F denendi. L\xFCtfen 15 dakika sonra tekrar deneyin veya \u015Fifrenizi s\u0131f\u0131rlay\u0131n."
-        });
-      }
       let normalizedIdentifier = loginIdentifier;
       const isPhone = /^[\d\s\+\-\(\)]+$/.test(loginIdentifier.replace(/\s/g, "")) && loginIdentifier.replace(/\D/g, "").length >= 10;
       if (isPhone) {
@@ -5827,16 +5813,18 @@ async function registerRoutes(app2, existingServer) {
         )
       });
       if (!user || !user.password) {
-        await recordFailedLogin(loginIdentifier);
         return res.status(401).json({ message: "Hatal\u0131 email/kullan\u0131c\u0131 ad\u0131 veya \u015Fifre" });
+      }
+      if (await recentFailedLogins(user.id) >= LOGIN_FAIL_LIMIT) {
+        return res.status(429).json({
+          message: "Bu hesap i\xE7in \xE7ok fazla hatal\u0131 giri\u015F denendi. L\xFCtfen 15 dakika sonra tekrar deneyin veya \u015Fifrenizi s\u0131f\u0131rlay\u0131n."
+        });
       }
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        await recordFailedLogin(loginIdentifier);
         await recordLoginHistory(user.id, req, false, isPhone ? "phone" : "email", "Hatal\u0131 \u015Fifre");
         return res.status(401).json({ message: "Hatal\u0131 email/kullan\u0131c\u0131 ad\u0131 veya \u015Fifre" });
       }
-      await clearLoginFailures(loginIdentifier);
       if (user.status === "banned" || user.status === "suspended") {
         await recordLoginHistory(
           user.id,
