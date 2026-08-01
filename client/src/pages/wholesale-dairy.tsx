@@ -328,8 +328,7 @@ export default function WholesaleDairyPage() {
         {/* Info alert about example listings */}
         <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
           <Info className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-sm">
-            Sarı şeritli ilanlar örnek içeriktir. Üretici olarak süt ve süt ürünleri satmak için <strong>"Süt İlanı Ver"</strong> butonuna tıklayarak kendi ilanınızı oluşturabilirsiniz.
+          <AlertDescription className="text-sm"> Üretici olarak süt ve süt ürünleri satmak için <strong>"Süt İlanı Ver"</strong> butonuna tıklayarak kendi ilanınızı oluşturabilirsiniz.
           </AlertDescription>
         </Alert>
       </div>

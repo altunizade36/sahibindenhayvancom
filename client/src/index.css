@@ -324,3 +324,19 @@
 .animation-paused {
   animation-play-state: paused;
 }
+
+
+/**
+ * Yatay kaydirilabilir seritlerde kaydirma cubugunu gizler.
+ *
+ * Bu sinif kod icinde kullaniliyordu ama hicbir yerde TANIMLI DEGILDI;
+ * dolayisiyla filtre cipleri seridinde cirkin bir yatay cubuk goruntuleniyordu.
+ * Icerik yine kaydirilabilir, yalnizca cubuk gizlenir.
+ */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE / eski Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, yeni Edge */
+}

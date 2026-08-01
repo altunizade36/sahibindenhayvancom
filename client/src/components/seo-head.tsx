@@ -126,6 +126,38 @@ export function generateListingStructuredData(listing: any) {
   };
 }
 
+/**
+ * Kırıntı navigasyonu (breadcrumb) yapılandırılmış verisi.
+ *
+ * Arama sonuçlarında başlığın altında "Ana Sayfa › Kategori › İlan" yolunu
+ * gösterir; çıplak URL yerine okunabilir bir yol çıktığı için tıklanma
+ * oranını artırır.
+ */
+export function generateBreadcrumbStructuredData(
+  items: Array<{ name: string; url: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url.startsWith("http")
+        ? item.url
+        : `${SITE_ORIGIN}${item.url}`,
+    })),
+  };
+}
+
+/** Birden fazla şemayı tek bir JSON-LD bloğunda toplar. */
+export function combineStructuredData(...schemas: Array<Record<string, any> | null | undefined>) {
+  const valid = schemas.filter(Boolean) as Record<string, any>[];
+  if (valid.length === 0) return undefined;
+  if (valid.length === 1) return valid[0];
+  return { "@context": "https://schema.org", "@graph": valid.map(({ ["@context"]: _c, ...rest }) => rest) };
+}
+
 export function generateOrganizationStructuredData() {
   return {
     "@context": "https://schema.org",

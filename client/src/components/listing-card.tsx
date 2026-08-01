@@ -144,6 +144,7 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
                 className={`h-6 w-6 min-[360px]:h-7 min-[360px]:w-7 min-[400px]:h-8 min-[400px]:w-8 bg-background/80 min-[360px]:bg-transparent ${inCompare ? "text-primary" : ""}`}
                 onClick={handleCompareClick}
                 disabled={!inCompare && !canAddMore}
+                aria-label={inCompare ? "Karşılaştırmadan çıkar" : "Karşılaştırmaya ekle"}
                 data-testid={`button-compare-${listing.id}`}
               >
                 <GitCompare
@@ -159,6 +160,7 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
                     e.preventDefault();
                     onFavoriteToggle();
                   }}
+                  aria-label={listing.isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
                   data-testid={`button-favorite-${listing.id}`}
                 >
                   <Heart

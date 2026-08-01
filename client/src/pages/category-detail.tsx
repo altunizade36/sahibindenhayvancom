@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link, useLocation } from "wouter";
+import { SEOHead, generateBreadcrumbStructuredData } from "@/components/seo-head";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -212,6 +213,21 @@ export default function CategoryDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-4 md:py-6">
+      {/* Kategori sayfalarının da kendi başlık/açıklaması yoktu; hepsi ana
+          sayfa etiketlerini kullanıyordu. Kırıntı navigasyonu ekranda zaten
+          vardı, arama motorlarına da bildiriliyor. */}
+      {category && (
+        <SEOHead
+          title={`${category.name} İlanları | sahibindenhayvan.com`}
+          description={`${category.name} kategorisindeki güncel ilanlar. Türkiye genelinde ücretsiz ilan ver, güvenle al ve sat.`}
+          canonical={`/kategori/${category.slug}`}
+          structuredData={generateBreadcrumbStructuredData([
+            { name: "Ana Sayfa", url: "/" },
+            ...breadcrumb.map((c) => ({ name: c.name, url: `/kategori/${c.slug}` })),
+          ])}
+        />
+      )}
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-4 flex-wrap" data-testid="breadcrumb">
         <Link href="/"><span className="hover:text-foreground cursor-pointer" data-testid="link-home">Ana Sayfa</span></Link>

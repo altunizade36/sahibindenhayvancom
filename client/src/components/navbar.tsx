@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { Plus, User, LogOut, Settings, Heart, MessageSquare, Gavel, Radio, Menu, Bell, Search, X, Store, Shield, Building2, TrendingUp, Package, Milk, Truck, Stethoscope, ChevronDown } from "lucide-react";
+import { Plus, User, LogOut, Settings, Heart, MessageSquare, Menu, Bell, Search, X, Store, Shield, Building2, TrendingUp, Package, Milk, Truck, Stethoscope, ChevronDown } from "lucide-react";
 import { NotificationDropdown } from "@/components/notification-dropdown";
 import { Logo } from "@/components/logo";
 import { MarketTicker } from "@/components/market-ticker";
@@ -154,7 +154,7 @@ export function Navbar() {
             {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={true}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden shrink-0" data-testid="button-mobile-menu">
+                <Button variant="ghost" size="icon" className="md:hidden shrink-0" aria-label="Menüyü aç" data-testid="button-mobile-menu">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
@@ -193,18 +193,6 @@ export function Navbar() {
                       <Button variant={location === "/ilanlar" ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-listings">
                         <Search className="w-4 h-4 mr-3" />
                         İlanlar
-                      </Button>
-                    </Link>
-                    <Link href="/acik-artirmalar">
-                      <Button variant={location.startsWith("/acik-artirma") ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-auctions">
-                        <Gavel className="w-4 h-4 mr-3" />
-                        Açık Artırma
-                      </Button>
-                    </Link>
-                    <Link href="/canli-yayinlar">
-                      <Button variant={location.startsWith("/canli-yayin") ? "secondary" : "ghost"} className="w-full justify-start h-11" onClick={closeMobileMenu} data-testid="mobile-link-streams">
-                        <Radio className="w-4 h-4 mr-3" />
-                        Canlı Yayın
                       </Button>
                     </Link>
                     <Link href="/magazalar">
@@ -357,14 +345,6 @@ export function Navbar() {
             <Link href="/ilanlar" className={`text-sm hover:text-primary transition-colors ${location === "/ilanlar" ? "text-primary font-medium" : ""}`} data-testid="link-listings">
               İlanlar
             </Link>
-            <Link href="/acik-artirmalar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/acik-artirma") ? "text-primary font-medium" : ""}`} data-testid="link-auctions">
-              <Gavel className="w-3.5 h-3.5" />
-              Açık Artırma
-            </Link>
-            <Link href="/canli-yayinlar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/canli-yayin") ? "text-primary font-medium" : ""}`} data-testid="link-streams">
-              <Radio className="w-3.5 h-3.5" />
-              Canlı Yayın
-            </Link>
             <Link href="/magazalar" className={`flex items-center gap-1 text-sm hover:text-primary transition-colors ${location.startsWith("/magaza") ? "text-primary font-medium" : ""}`} data-testid="link-stores">
               <Store className="w-3.5 h-3.5" />
               Mağazalar
@@ -417,7 +397,7 @@ export function Navbar() {
               size="icon" 
               className="md:hidden shrink-0"
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              data-testid="button-mobile-search"
+              aria-label="Arama" data-testid="button-mobile-search"
             >
               {mobileSearchOpen ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
             </Button>
@@ -488,7 +468,7 @@ export function Navbar() {
             {isAuthenticated && (
               <>
                 <Link href="/bildirimler" className="md:hidden">
-                  <Button variant="ghost" size="icon" className="relative shrink-0" data-testid="button-mobile-notifications">
+                  <Button variant="ghost" size="icon" className="relative shrink-0" aria-label="Bildirimler" data-testid="button-mobile-notifications">
                     <Bell className="w-5 h-5" />
                     {notificationCount.count > 0 && (
                       <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
@@ -498,7 +478,7 @@ export function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/ilan-ver" className="md:hidden">
-                  <Button size="icon" className="shrink-0" data-testid="button-mobile-add-listing">
+                  <Button size="icon" className="shrink-0" aria-label="Ücretsiz ilan ver" data-testid="button-mobile-add-listing">
                     <Plus className="w-5 h-5" />
                   </Button>
                 </Link>
@@ -521,7 +501,7 @@ export function Navbar() {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full" data-testid="button-user-menu">
+                      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Hesap menüsü" data-testid="button-user-menu">
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={user?.profileImageUrl || undefined} />
                           <AvatarFallback>{user?.firstName?.[0] || user?.email?.[0] || "U"}</AvatarFallback>

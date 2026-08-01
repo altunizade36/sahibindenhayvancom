@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useLocation } from "wouter";
+import { SEOHead, generateListingStructuredData, generateBreadcrumbStructuredData, combineStructuredData } from "@/components/seo-head";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -281,6 +282,29 @@ export default function ListingDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* İlan sayfaları sitenin en değerli SEO varlığı; daha önce hiç meta
+          etiketi yoktu ve hepsi ana sayfa başlığını kullanıyordu. */}
+      {listing && (
+        <SEOHead
+          title={`${listing.title} — ${listing.city || "Türkiye"} | sahibindenhayvan.com`}
+          description={
+            (listing.description || "").slice(0, 155) ||
+            `${listing.title} ilanı. ${listing.city || ""} ${listing.district || ""} bölgesinde satılık.`
+          }
+          image={(listing.images as string[] | undefined)?.[0]}
+          type="product"
+          canonical={`/ilan/${listing.id}`}
+          structuredData={combineStructuredData(
+            generateListingStructuredData(listing),
+            generateBreadcrumbStructuredData([
+              { name: "Ana Sayfa", url: "/" },
+              { name: "İlanlar", url: "/ilanlar" },
+              { name: listing.title, url: `/ilan/${listing.id}` },
+            ])
+          )}
+        />
+      )}
+
       <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
         {/* Back Button */}
         <Link href="/ilanlar">

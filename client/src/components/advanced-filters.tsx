@@ -574,7 +574,7 @@ export function AdvancedFilters({ onFilterChange, currentFilters, hideTriggerOnD
       {/* Top Bar - Sort + Filter Button */}
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
         {/* Quick Filters - Horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0">
           {quickFilters.map((filter) => {
             const isActive = currentFilters[filter.key as keyof FilterValues] === filter.value;
             return (

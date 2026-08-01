@@ -204,12 +204,12 @@ export function DataTable<T>({
             </div>
           )}
           {onRefresh && (
-            <Button variant="outline" size="icon" onClick={onRefresh} data-testid="button-refresh">
+            <Button variant="outline" size="icon" onClick={onRefresh} aria-label="Yenile" data-testid="button-refresh">
               <RefreshCw className="h-4 w-4" />
             </Button>
           )}
           {onExport && (
-            <Button variant="outline" size="icon" onClick={onExport} data-testid="button-export">
+            <Button variant="outline" size="icon" onClick={onExport} aria-label="Dışa aktar" data-testid="button-export">
               <Download className="h-4 w-4" />
             </Button>
           )}
@@ -297,7 +297,7 @@ export function DataTable<T>({
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" data-testid={`actions-${id}`}>
+                            <Button variant="ghost" size="icon" aria-label="İşlemler" data-testid={`actions-${id}`}>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
