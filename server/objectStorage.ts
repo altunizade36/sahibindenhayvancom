@@ -1,7 +1,7 @@
 /**
  * Object Storage — Supabase Storage
  *
- * Replit Object Storage (Google Cloud sidecar) yerine geçer.
+ * Supabase Storage tabanlı dosya katmanı.
  * Uygulama genelinde dosya yolları "/objects/<key>" biçiminde saklanır;
  * bucket içindeki gerçek anahtar ise "<key>" olur.
  *
@@ -78,7 +78,7 @@ export class ObjectNotFoundError extends Error {
 export class ObjectStorageService {
   constructor() {}
 
-  // ── Yol yardımcıları (eski Replit API'si ile uyumluluk için korundu) ──────
+  // ── Yol yardımcıları ─────────────────────────────────────────────────────
 
   getPublicObjectSearchPaths(): string[] {
     return ["public"];
@@ -241,7 +241,7 @@ export class ObjectStorageService {
     if (!rawPath) return rawPath;
     if (rawPath.startsWith(OBJECT_PREFIX)) return rawPath;
 
-    // Eski Replit/GCS kayıtları
+    // Devralınan eski GCS kayıtları
     if (rawPath.startsWith("https://storage.googleapis.com/")) {
       const parts = new URL(rawPath).pathname.split("/").filter(Boolean);
       return `${OBJECT_PREFIX}${parts.slice(1).join("/")}`;

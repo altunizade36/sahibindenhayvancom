@@ -158,7 +158,7 @@ export const userStatusEnum = pgEnum("user_status", [
   "suspended",   // Geçici askıya alınmış
 ]);
 
-// Session storage table for Replit Auth
+// Oturum saklama tablosu (connect-pg-simple)
 export const sessions = pgTable(
   "sessions",
   {
@@ -169,7 +169,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
-// Users table (Hybrid Auth: Replit Auth + Email/Password)
+// Kullanicilar tablosu (e-posta/sifre + opsiyonel OAuth)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").unique(),
@@ -306,7 +306,7 @@ export type UserDevice = typeof userDevices.$inferSelect;
 export const loginHistory = pgTable("login_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  loginMethod: varchar("login_method", { length: 30 }).notNull(), // email, phone, google, replit
+  loginMethod: varchar("login_method", { length: 30 }).notNull(), // email, phone, google, facebook
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
   location: varchar("location", { length: 200 }),

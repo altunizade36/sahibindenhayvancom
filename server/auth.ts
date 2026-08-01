@@ -1,5 +1,5 @@
 /**
- * Kimlik doğrulama — Replit Auth (OIDC) yerine geçer.
+ * Kimlik doğrulama katmanı.
  *
  * Oturum modeli değişmedi: passport session içinde `{ claims: { sub: userId } }`
  * saklanır, böylece routes.ts'teki tüm mevcut kodlar aynen çalışır.
@@ -189,7 +189,7 @@ export async function setupAuth(app: Express) {
   }
 
   // ── Geriye dönük uyumluluk: /api/login ve /api/logout ─────────────────────
-  // Eski Replit Auth uçlarıydı; istemci hâlâ bunlara yönlendiriyor.
+  // Geriye dönük uyumluluk: istemcinin bazı yerlerde kullandığı eski uçlar.
   app.get("/api/login", (_req, res) => res.redirect("/giris"));
 
   app.get("/api/logout", (req, res) => {

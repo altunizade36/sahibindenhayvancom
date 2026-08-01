@@ -37,7 +37,7 @@ export interface IStorage {
 }
 
 export class DbStorage implements IStorage {
-  // ============ Users (Replit Auth compatible) ============
+  // ============ Kullanicilar ============
   async getUser(id: string): Promise<User | undefined> {
     return await db.query.users.findFirst({
       where: eq(users.id, id),

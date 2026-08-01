@@ -375,10 +375,10 @@ async function registerDevice(userId: string, req: Request): Promise<void> {
   }
 }
 
-// Note: Express Request.user type is extended via replitAuth.ts
+// Not: Express Request.user tipi server/auth.ts icinde genisletiliyor
 
-// Legacy JWT middleware removed - now using Replit Auth sessions
-// Use isAuthenticated from replitAuth.ts for protected routes
+// Eski JWT ara katmani kaldirildi - oturum tabanli kimlik dogrulama kullaniliyor
+// Korumali rotalar icin server/auth.ts icindeki isAuthenticated kullanilir
 
 export async function registerRoutes(app: Express, existingServer?: Server): Promise<Server> {
   // ============ Additional Monitoring Routes ============
@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   registerSitemapRoutes(app);
   app.get("/metrics", metricsEndpoint);
 
-  // ============ Replit Auth Setup ============
+  // ============ Kimlik Dogrulama Kurulumu ============
   await setupAuth(app);
 
   // ============ Global Rate Limiting (Production Only) ============
@@ -1108,7 +1108,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       });
   }
 
-  // ============ Auth Routes (Hybrid: Replit Auth + Email/Password) ============
+  // ============ Kimlik Dogrulama Rotalari (E-posta / Sifre) ============
   
   // Unified Registration (Email + Phone)
   app.post('/api/auth/register', strictRateLimiter, async (req: Request, res: Response) => {
@@ -2317,7 +2317,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Listing Routes ============
   // Note: No auth required for browsing listings (guest access)
-  // req.user will be populated if user is logged in (via Replit Auth session)
+  // Kullanici giris yapmissa req.user oturumdan doldurulur
   // ── Arama Önerileri (Autocomplete) ──────────────────────────────────────
   app.get("/api/search/suggestions", async (req: Request, res: Response) => {
     try {
@@ -2687,7 +2687,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Note: No auth required for viewing listing details (guest access)
-  // req.user will be populated if user is logged in (via Replit Auth session)
+  // Kullanici giris yapmissa req.user oturumdan doldurulur
   app.get("/api/listings/:id", async (req: Request, res: Response) => {
     try {
       const [listing] = await db

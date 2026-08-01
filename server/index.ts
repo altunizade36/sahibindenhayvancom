@@ -48,7 +48,7 @@ async function runServer() {
   const app = express();
   
   // ============ CRITICAL: Health check FIRST - before ANY middleware ============
-  // This MUST respond immediately for Replit deployment health checks
+  // Dagitim saglik kontrolleri icin ANINDA yanit vermeli
   // No middleware, no async operations, just instant 200 response
   // ALWAYS returns 200 regardless of Accept header for deployment health checks
   app.get("/health", (_req, res) => {
@@ -61,7 +61,7 @@ async function runServer() {
   });
   
   // Root health check - ALWAYS returns 200 for ANY request type
-  // This ensures Replit deployment health checks pass immediately
+  // Dagitim saglik kontrollerinin hemen gecmesini saglar
   app.get("/", (req, res, next) => {
     const acceptHeader = req.headers.accept || '';
     // For health checks (non-browser requests), always return 200 JSON immediately
