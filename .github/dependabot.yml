@@ -1,39 +1,76 @@
 version: 2
+
+# Dependabot ayarı bilinçli olarak SESSİZ tutuluyor.
+#
+# Varsayılan haftalık ayarla her hafta 5 PR açılıyor, her PR bir e-posta
+# üretiyordu. Daha önemlisi: bu PR'ların çoğu denendiğinde derlemeyi bozdu
+# (aşağıdaki ignore listesine bakın). Otomatik açılan ama birleştirilemeyen
+# PR'lar gürültüden ibaret.
+#
+# Bu yüzden:
+#   • Güvenlik güncellemeleri (Dependabot alerts) AYRI çalışır ve bu ayardan
+#     etkilenmez — açık çıkarsa yine bildirim gelir. Asıl korumamız odur.
+#   • Rutin sürüm yükseltmeleri aylık ve tek grupta toplanır.
+#   • Denenip kırıldığı görülen majör yükseltmeler yok sayılır.
+
 updates:
-  # npm bağımlılıkları
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "07:00"
       timezone: Europe/Istanbul
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels: ["bağımlılık"]
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
     groups:
-      # Gürültüyü azalt: küçük/yama güncellemeleri tek PR'da toplansın
+      # Tüm küçük/yama güncellemeleri tek PR'da toplansın
       minor-and-patch:
         update-types: ["minor", "patch"]
     ignore:
-      # Vite 8, @vitejs/plugin-react@4 ile uyumsuz (peer: ^4||^5||^6||^7).
-      # Plugin desteklediğinde bu kural kaldırılabilir.
+      # Vite 8 — @vitejs/plugin-react@4 ile uyumsuz (peer: ^4||^5||^6||^7).
+      # npm install ERESOLVE ile düşüyor, Vercel derlemesi başarısız oluyor.
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
-      # Majör atlamalar elle değerlendirilsin; otomatik PR'lar derlemeyi
-      # bozabiliyor (date-fns 4, cross-env 10, esbuild 0.28 vb.).
+
+      # esbuild 0.28 — package.json'daki `overrides: { esbuild: $esbuild }`
+      # Vite'ın kendi iç esbuild'ini de zorluyor; Vite 6 bu sürümle
+      # "Transform failed" veriyor. Vite yükseltilmeden bu da yükseltilemez.
+      - dependency-name: "esbuild"
+        versions: [">=0.26.0"]
+
+      # drizzle-zod 0.8 — Zod 4 tiplerini getiriyor, proje Zod 3 kullanıyor.
+      # Denendiğinde 69 tip hatası çıktı (ZodError.errors -> .issues).
+      # Zod 4 geçişiyle birlikte ele alınmalı.
+      - dependency-name: "drizzle-zod"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+      # React 19 — gerçek bir majör geçiş. react-day-picker 8, framer-motion 11,
+      # recharts 2 gibi bağımlılıkların uyumu tek tek doğrulanmalı.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+
+      # Majör atlamalar elle değerlendirilsin
       - dependency-name: "date-fns"
         update-types: ["version-update:semver-major"]
       - dependency-name: "cross-env"
         update-types: ["version-update:semver-major"]
 
-  # GitHub Actions sürümleri (tedarik zinciri güvenliği için önemli)
+  # GitHub Actions sürümleri tedarik zinciri güvenliği açısından önemli;
+  # bunlar derlemeyi bozmadığı için daha sık kontrol edilebilir.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 2
     labels: ["ci"]
     commit-message:
       prefix: "ci"
