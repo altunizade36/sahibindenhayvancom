@@ -11,26 +11,6 @@ import type { Category, Listing } from "@shared/schema";
 import { SEOHead, generateOrganizationStructuredData } from "@/components/seo-head";
 import { Footer } from "@/components/footer";
 
-// Kategori ikonları (emoji eşleştirmesi)
-const CATEGORY_EMOJIS: Record<string, string> = {
-  "evcil-hayvanlar": "🐾",
-  "ciftlik-hayvanlari": "🐄",
-  "baliklar-su-urunleri": "🐟",
-  "atlar-binicilik": "🐴",
-  "aricilik": "🍯",
-  "kuslar": "🐦",
-  "surungenler-amfibiler": "🦎",
-  "kemirgenler-kucuk-hayvanlar": "🐹",
-  "yem-mama-tarim": "🌾",
-  "ekipmanlar-aksesuarlar": "🛒",
-  "veterinerlik-hizmetler": "🩺",
-  "kayit-belgeler": "📄",
-  "magazalar": "🏪",
-  "tarim-kirsal-emlak": "🏡",
-  "araclar-nakliye": "🚛",
-  "uretim-isleme-tesisleri": "🏭",
-  "insaat-yapi": "🏗️",
-};
 
 interface ListingsResponse {
   data: Listing[];
@@ -138,40 +118,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Kategori Grid ─────────────────────────────────────── */}
-      {(() => {
-        const rootCats = categories.filter((c) => !c.parentId);
-        if (rootCats.length === 0) return null;
-        return (
-          <section className="border-b bg-background">
-            <div className="container mx-auto px-4 py-2">
-              {/* Mobilde yatay kaydırma, masaüstünde sarmalayan grid */}
-              <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 md:flex-wrap md:overflow-visible md:gap-1.5">
-                {rootCats.map((cat) => (
-                  <Link key={cat.id} href={`/kategori/${cat.slug}`}>
-                    <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-2.5 py-1.5 rounded-lg hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
-                      <span className="text-lg md:text-xl leading-none">
-                        {CATEGORY_EMOJIS[cat.slug] || "📦"}
-                      </span>
-                      <span className="text-[10px] md:text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground line-clamp-2 w-full">
-                        {cat.name}
-                      </span>
-                    </button>
-                  </Link>
-                ))}
-                <Link href="/ilanlar">
-                  <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-2.5 py-1.5 rounded-lg hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
-                    <span className="text-lg md:text-xl leading-none">➕</span>
-                    <span className="text-[10px] md:text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground">
-                      Tümü
-                    </span>
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </section>
-        );
-      })()}
+      {/* Kategori ikon şeridi kaldırıldı: soldaki yan menü zaten aynı 17
+          kategoriyi listeliyordu. Aynı bilgiyi iki kez göstermek ekranın
+          üst kısmını gereksiz dolduruyor, içerik aşağı itiliyordu. */}
 
       <section className="py-3 md:py-4 flex-1 min-h-[400px]">
         <div className="container mx-auto px-4 h-full">
