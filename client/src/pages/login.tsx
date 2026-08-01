@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { safeRedirectTarget, redirectQuery } from "@/lib/redirect";
+import { safeRedirectTarget, redirectQuery, redirectReason } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -103,7 +103,7 @@ export default function Login() {
                 Hesabınıza Giriş Yapın
               </CardTitle>
               <CardDescription className="text-base mt-2" data-testid="text-description">
-                E-posta adresiniz ve şifrenizle giriş yapın
+                {redirectReason() ?? "E-posta adresiniz ve şifrenizle giriş yapın"}
               </CardDescription>
             </div>
           </CardHeader>

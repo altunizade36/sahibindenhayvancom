@@ -38,3 +38,21 @@ export function redirectQuery(): string {
   const hedef = safeRedirectTarget();
   return hedef === "/" ? "" : `?redirect=${encodeURIComponent(hedef)}`;
 }
+
+/**
+ * Kullanıcı giriş/kayıt ekranına bir işlemin ortasında düştüyse, NEDEN burada
+ * olduğunu açıklayan kısa metin.
+ *
+ * Hiçbir açıklama olmadan giriş ekranıyla karşılaşmak, özellikle "Ücretsiz
+ * İlan Ver"e basıp gelen kullanıcıda "yanlış yere mi geldim" hissi yaratıyor
+ * ve akışın terk edilmesine yol açıyor.
+ */
+export function redirectReason(): string | null {
+  const hedef = safeRedirectTarget();
+  if (hedef === "/") return null;
+  if (hedef.startsWith("/ilan-ver")) return "Ücretsiz ilan verebilmek için önce hesabınıza giriş yapın.";
+  if (hedef.startsWith("/mesajlar")) return "Mesajlarınızı görmek için giriş yapın.";
+  if (hedef.startsWith("/favoriler")) return "Favorilerinizi görmek için giriş yapın.";
+  if (hedef.startsWith("/panel")) return "Panelinize erişmek için giriş yapın.";
+  return "Devam etmek için giriş yapın.";
+}

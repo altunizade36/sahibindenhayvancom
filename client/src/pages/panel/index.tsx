@@ -553,7 +553,7 @@ export default function PanelDashboard() {
                     <Link href="/ilan-ver">
                       <Button data-testid="button-create-first-listing">
                         <Plus className="w-4 h-4 mr-2" />
-                        İlan Ver
+                        Ücretsiz İlan Ver
                       </Button>
                     </Link>
                   </CardContent>

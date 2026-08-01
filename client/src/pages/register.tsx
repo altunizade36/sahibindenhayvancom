@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirectQuery } from "@/lib/redirect";
+import { redirectQuery, redirectReason } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -157,7 +157,7 @@ export default function Register() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold" data-testid="text-title">Hesap Oluştur</CardTitle>
-              <CardDescription className="text-base mt-2">E-posta ile ücretsiz kayıt olun</CardDescription>
+              <CardDescription className="text-base mt-2">{redirectReason() ? "Ücretsiz ilan vermek için hemen üye olun" : "E-posta ile ücretsiz kayıt olun"}</CardDescription>
             </div>
           </CardHeader>
 
