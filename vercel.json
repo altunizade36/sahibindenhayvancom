@@ -4,7 +4,7 @@
   "outputDirectory": "dist/public",
   "framework": null,
   "functions": {
-    "api/handler.ts": {
+    "api/handler.js": {
       "memory": 1024,
       "maxDuration": 30
     }

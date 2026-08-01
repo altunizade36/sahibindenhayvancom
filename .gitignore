@@ -39,6 +39,11 @@ build/
 .vite/
 *.tsbuildinfo
 
+# Vercel serverless fonksiyonu derleme çıktısı (server/vercel-entry.ts'ten
+# esbuild ile üretilir — `npm run build:api`). Uzantısız ESM import'ları
+# çözülemediği için tek dosyaya paketleniyor.
+api/handler.js
+
 # ═══════════════════════════════════════════════════════════
 #  Platform / araç durumu
 # ═══════════════════════════════════════════════════════════
@@ -94,3 +99,7 @@ attached_assets/branding-*.json
 *.backup
 *.bak
 *.orig
+
+# Vercel CLI tarafından eklendi. `.env*` kalıbı .env.example'ı da kapsadığı
+# için kaldırıldı — gizli dosya kuralları dosyanın başında zaten tanımlı.
+.vercel
