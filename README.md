@@ -63,11 +63,19 @@ Zorunlu: `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_S
 
 ## Katkı
 
-1. Bir dal açın (`git checkout -b ozellik/aciklama`)
-2. Değişikliklerinizi yapın, `npm run check` ve `npm run build` temiz olsun
+Hızlı güncelleme için `main` dalına doğrudan push yapılabilir:
+
+```bash
+git add -A && git commit -m "mesaj" && git push
+```
+
+Daha büyük değişikliklerde dal açıp PR üzerinden ilerlemek tercih edilir:
+
+1. `git checkout -b ozellik/aciklama`
+2. `npm run check` ve `npm run build` temiz olsun
 3. Pull request açın — CI otomatik çalışır
 
-`main` dalına doğrudan push yapılmaz.
+`main` dalında **force push ve şube silme kapalıdır** (kaza koruması).
 
 ---
 

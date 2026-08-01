@@ -21,6 +21,24 @@ gönderin. 72 saat içinde dönüş yapılır.
 - Her push ve PR'da `gitleaks` ile geçmiş dahil tarama yapılır (`.github/workflows/secret-scan.yml`).
 - `.env`, `*.pem`, `serviceAccount*.json` gibi dosyalar depoya eklenirse CI **başarısız olur**.
 
+### Geçmiş Olay: 2026-08-01
+Depo GitHub'a ilk kez gönderilirken push koruması **iki gerçek kimlik bilgisi**
+yakaladı. İkisi de `attached_assets/` altında, sohbet penceresinden yapıştırılmış
+dosyalardaydı:
+
+- Google OAuth istemci sırrı (`client_secret_*.json`)
+- Firebase servis hesabı özel anahtarı (`Pasted--type-service-account-*.txt`)
+
+`attached_assets/` altındaki tüm yapıştırma artıkları `git filter-branch` ile
+geçmişten silindi (yalnızca `stock_images/`, logo, favicon, ogImage ve
+`content-*.md` korundu) ve ilgili anahtarlar iptal edildi. Dosyalar hiçbir zaman
+GitHub'a ulaşmadı.
+
+**Ders:** Sohbet/ajan arayüzlerinden yapıştırılan içerik `attached_assets/`
+altına düşer ve kolayca gözden kaçar. Bu klasöre asla kimlik bilgisi
+yapıştırmayın; `.gitignore` artık `client_secret*`, `Pasted-*` ve benzeri
+kalıpları kapsıyor.
+
 ### Bir anahtar sızdıysa
 1. **Önce iptal edin** — geçmişi temizlemek yetmez, anahtar zaten okunmuş olabilir.
    - Supabase: Settings → API → service_role anahtarını yeniden üret
@@ -93,6 +111,7 @@ Aşağıdakiler bilinçli kabul edilmiş risklerdir, gizli değildir:
 - [ ] reCAPTCHA yönetim panelinde alan adı kısıtı yalnızca kendi alan adınız
 - [ ] Resend → gönderim alan adı (SPF/DKIM) doğrulanmış
 - [ ] Supabase → Storage bucket politikaları gözden geçirildi
-- [ ] GitHub → Settings → Branch protection: `main` dalına doğrudan push kapalı
+- [x] GitHub → `main` dalında force push ve şube silme kapalı
+      (ekip büyüyünce PR zorunluluğu da eklenebilir)
 - [ ] GitHub → Settings → Code security: Secret scanning + Push protection açık
 - [ ] `npm run doctor` temiz
