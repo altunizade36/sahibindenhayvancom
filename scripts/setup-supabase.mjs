@@ -140,17 +140,17 @@ async function run() {
     log.ok(`Bucket '${BUCKET}' zaten var`);
     const { error: updErr } = await supabase.storage.updateBucket(BUCKET, {
       public: true,
-      fileSizeLimit: "104857600", // 100MB (video yüklemeleri için)
+      fileSizeLimit: 52428800, // 50MB — ücretsiz plan üst sınırı
     });
     if (updErr) log.warn(`Bucket güncellenemedi: ${updErr.message}`);
-    else log.ok("Bucket public + 100MB limit olarak ayarlandı");
+    else log.ok("Bucket public + 50MB limit olarak ayarlandı");
   } else {
     const { error: createErr } = await supabase.storage.createBucket(BUCKET, {
       public: true,
-      fileSizeLimit: "104857600",
+      fileSizeLimit: 52428800,
     });
     if (createErr) log.err(`Bucket oluşturulamadı: ${createErr.message}`);
-    else log.ok(`Bucket '${BUCKET}' oluşturuldu (public, 100MB)`);
+    else log.ok(`Bucket '${BUCKET}' oluşturuldu (public, 50MB)`);
   }
 
   // ── 5. Storage politikaları ──────────────────────────────────────────────

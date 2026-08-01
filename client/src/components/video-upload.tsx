@@ -100,11 +100,11 @@ export function VideoUpload({ listingId, maxVideos = 3, onUploadComplete }: Vide
       return;
     }
 
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    const maxSize = 50 * 1024 * 1024; // 50MB — Supabase ucretsiz plan dosya siniri
     if (file.size > maxSize) {
       toast({
         title: "Dosya Çok Büyük",
-        description: "Video boyutu 100MB'ı geçemez.",
+        description: "Video boyutu 50MB'ı geçemez.",
         variant: "destructive",
       });
       return;
@@ -223,7 +223,7 @@ export function VideoUpload({ listingId, maxVideos = 3, onUploadComplete }: Vide
                   Video Yükle
                 </Button>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  MP4, WebM, MOV, AVI • Maks. 100MB
+                  MP4, WebM, MOV, AVI • Maks. 50MB
                 </p>
               </div>
             )}

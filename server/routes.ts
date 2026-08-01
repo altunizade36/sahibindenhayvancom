@@ -5573,9 +5573,13 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Desteklenen video formatları: MP4, WebM, MOV, AVI" });
       }
 
-      const maxSize = 100 * 1024 * 1024; // 100MB
+      // Supabase ücretsiz planda dosya başına üst sınır 50MB'dır.
+      // Ücretli plana geçerseniz MAX_VIDEO_MB ile büyütebilirsiniz
+      // (bucket limitini de Supabase panelinden yükseltmeyi unutmayın).
+      const maxVideoMb = Number(process.env.MAX_VIDEO_MB || 50);
+      const maxSize = maxVideoMb * 1024 * 1024;
       if (file.size > maxSize) {
-        return res.status(400).json({ message: "Video boyutu 100MB'ı geçemez." });
+        return res.status(400).json({ message: `Video boyutu ${maxVideoMb}MB'ı geçemez.` });
       }
 
       // Check video count limit
