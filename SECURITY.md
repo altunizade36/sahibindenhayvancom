@@ -77,8 +77,32 @@ kalıpları kapsıyor.
 ### Veri
 - Veritabanı bağlantıları TLS üzerinden
 - Drizzle ORM parametreli sorgular kullanır (SQL enjeksiyonu koruması)
-- Supabase Storage bucket'ında RLS politikaları tanımlı
+- Kullanıcı nesnesi döndüren uçlar `sanitizeUser()` ile şifre hash'ini ve
+  doğrulama/sıfırlama token'larını yanıttan çıkarır
 - Hassas kayıt belgeleri (mikroçip, TÜRKVET vb.) herkese açık gösterilmez
+
+### Supabase Data API kapalı (önemli)
+Bu uygulama Supabase'in Data API'sini (PostgREST) **kullanmaz**. Sunucu
+veritabanına doğrudan `postgres` rolüyle bağlanır, dosya işlemlerinde
+`service_role` anahtarını kullanır.
+
+Bu nedenle Data API tamamen kapatılmıştır:
+- `public` şemasındaki **tüm** tablolarda RLS açık (politika yok → erişim yok)
+- `anon` ve `authenticated` rollerinin tüm tablo/sekans/fonksiyon yetkileri geri alındı
+- Şema üzerindeki `USAGE` yetkisi kaldırıldı
+- Yeni oluşturulacak tablolar için varsayılan yetkiler de kapatıldı
+
+Sunucu tabloların sahibi olan `postgres` rolüyle bağlandığı için RLS onu
+etkilemez — uygulama normal çalışır.
+
+Uygulamak / doğrulamak:
+```bash
+npm run harden   # scripts/sql/harden-rls.sql uygular ve canlı test eder
+npm run doctor   # RLS ve Data API durumunu raporlar
+```
+
+> İleride Supabase Realtime kullanılacaksa, yalnızca ihtiyaç duyulan tablolara
+> `USAGE` + `SELECT` verip uygun RLS politikalarını yazın. Toptan geri açmayın.
 
 ### Tedarik Zinciri
 - Dependabot ile haftalık bağımlılık ve GitHub Actions güncellemesi
@@ -110,6 +134,8 @@ Aşağıdakiler bilinçli kabul edilmiş risklerdir, gizli değildir:
 - [ ] `RECAPTCHA_SECRET_KEY` üretimde tanımlı
 - [ ] reCAPTCHA yönetim panelinde alan adı kısıtı yalnızca kendi alan adınız
 - [ ] Resend → gönderim alan adı (SPF/DKIM) doğrulanmış
+- [ ] `npm run harden` çalıştırıldı (RLS + Data API kapalı)
+- [ ] Supabase → Advisors ekranında kritik uyarı yok
 - [ ] Supabase → Storage bucket politikaları gözden geçirildi
 - [x] GitHub → `main` dalında force push ve şube silme kapalı
       (ekip büyüyünce PR zorunluluğu da eklenebilir)

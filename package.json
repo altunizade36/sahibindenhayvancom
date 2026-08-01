@@ -22,6 +22,7 @@
     "setup:supabase": "node scripts/setup-supabase.mjs",
     "setup:vercel": "node scripts/setup-vercel.mjs",
     "setup:dns": "node scripts/setup-godaddy-dns.mjs",
+    "harden": "node scripts/harden.mjs",
     "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {

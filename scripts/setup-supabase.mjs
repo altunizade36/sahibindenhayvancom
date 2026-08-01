@@ -12,6 +12,8 @@
  *   5. Sık kullanılan sorgular için indeksleri kontrol eder
  */
 import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
 import { loadEnv, log, ROOT, projectRefFromUrl } from "./lib/env.mjs";
@@ -45,38 +47,14 @@ CREATE TABLE IF NOT EXISTS "sessions" (
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions" ("expire");
 `;
 
-// Bucket public olduğu için okuma zaten serbest; yazma/silme service_role ile
-// yapılır (RLS'i atlar). Politikalar yine de savunma amaçlı tanımlanır.
-const STORAGE_POLICY_SQL = `
-DO $$
-BEGIN
-  -- Herkese okuma
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE schemaname = 'storage' AND tablename = 'objects'
-      AND policyname = 'shv_public_read'
-  ) THEN
-    EXECUTE format(
-      'CREATE POLICY shv_public_read ON storage.objects FOR SELECT USING (bucket_id = %L)',
-      '${BUCKET}'
-    );
-  END IF;
-
-  -- Giriş yapmış kullanıcı yükleyebilir
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE schemaname = 'storage' AND tablename = 'objects'
-      AND policyname = 'shv_auth_insert'
-  ) THEN
-    EXECUTE format(
-      'CREATE POLICY shv_auth_insert ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = %L)',
-      '${BUCKET}'
-    );
-  END IF;
-EXCEPTION WHEN insufficient_privilege THEN
-  RAISE NOTICE 'storage.objects politikaları atlandı (yetki yok) — bucket public ise sorun değil.';
-END $$;
-`;
+// Güvenlik sertleştirmesi ayrı bir dosyada tutulur (scripts/sql/harden-rls.sql):
+// public şemasındaki tüm tablolarda RLS'i açar ve Data API erişimini kapatır.
+// Supabase projeleri "tüm tabloları otomatik yayınla" ayarıyla oluşturulduğunda
+// anon anahtarı tüm veriye erişebilir hale gelir — bu adım onu engeller.
+const HARDEN_SQL = fs.readFileSync(
+  path.join(ROOT, "scripts", "sql", "harden-rls.sql"),
+  "utf8"
+);
 
 async function run() {
   log.title("Supabase Kurulumu");
@@ -153,13 +131,21 @@ async function run() {
     else log.ok(`Bucket '${BUCKET}' oluşturuldu (public, 50MB)`);
   }
 
-  // ── 5. Storage politikaları ──────────────────────────────────────────────
-  log.step("Storage erişim politikaları uygulanıyor...");
+  // ── 5. Güvenlik sertleştirmesi ───────────────────────────────────────────
+  log.step("Güvenlik sertleştirmesi (RLS + Data API kapatma)...");
   try {
-    await client.query(STORAGE_POLICY_SQL);
-    log.ok("Politikalar uygulandı");
+    await client.query(HARDEN_SQL);
+    const { rows } = await client.query(
+      "select count(*) filter (where not rowsecurity)::int as kapali from pg_tables where schemaname='public'"
+    );
+    log.ok(
+      rows[0].kapali === 0
+        ? "Tüm tablolarda RLS açık, Data API kapatıldı"
+        : `UYARI: ${rows[0].kapali} tabloda RLS hâlâ kapalı`
+    );
   } catch (err) {
-    log.warn(`Politikalar atlandı: ${err.message}`);
+    log.err(`Sertleştirme başarısız: ${err.message}`);
+    log.info("Elle çalıştırın: npm run harden");
   }
 
   // ── 6. Özet ──────────────────────────────────────────────────────────────

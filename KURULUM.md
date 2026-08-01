@@ -62,8 +62,15 @@ Bu komut şunları yapar:
 - Bağlantıyı test eder
 - Drizzle şemasını uygular (`drizzle-kit push`)
 - `sessions` tablosunu oluşturur (oturumlar için **şart**)
-- `uploads` bucket'ını public + 100MB limitle oluşturur
-- Storage erişim politikalarını yazar
+- `uploads` bucket'ını public + 50MB limitle oluşturur
+- **Güvenlik sertleştirmesi**: tüm tablolarda RLS'i açar, Supabase Data API
+  erişimini kapatır
+
+> ⚠️ **Data API mutlaka kapatılmalı.** Supabase projeleri varsayılan olarak
+> `public` şemasındaki her tabloyu `anon` anahtarına açar. `anon` anahtarı
+> herkese açıktır; RLS de kapalıysa tüm veritabanı (şifre hash'leri dahil)
+> dışarıdan okunup yazılabilir. Kurulum bunu otomatik kapatır, ayrıca
+> `npm run harden` ile istediğiniz zaman uygulayıp doğrulayabilirsiniz.
 
 ---
 

@@ -126,6 +126,29 @@ async function checkDatabase() {
       record("Kullanıcı kaydı", true, `${cnt[0].n} kullanıcı`);
     }
 
+    // ── Güvenlik: RLS ve Data API ───────────────────────────────────────────
+    const { rows: rls } = await client.query(
+      "select count(*) filter (where not rowsecurity)::int as kapali from pg_tables where schemaname='public'"
+    );
+    record(
+      "RLS tüm tablolarda açık",
+      rls[0].kapali === 0,
+      rls[0].kapali === 0
+        ? "korumalı"
+        : `${rls[0].kapali} tabloda KAPALI — 'npm run harden' çalıştırın`
+    );
+
+    const { rows: grants } = await client.query(
+      "select count(*)::int n from information_schema.role_table_grants where table_schema='public' and grantee in ('anon','authenticated')"
+    );
+    record(
+      "Data API kapalı (anon erişimi yok)",
+      grants[0].n === 0,
+      grants[0].n === 0
+        ? "anon/authenticated yetkisiz"
+        : `anon/authenticated ${grants[0].n} yetkiye sahip — 'npm run harden' çalıştırın`
+    );
+
     await client.end();
   } catch (err) {
     record("Bağlantı", false, err.message);
