@@ -1,10 +1,24 @@
 name: CI
 
+# OTOMATİK TETİKLEME KAPALI — sebebi kod değil, hesap faturası.
+#
+# GitHub Actions bu hesapta "billing issue" nedeniyle kilitli. İşler hiç
+# başlamıyor, 2-3 saniyede düşüyor ve log bile üretmiyor; her push başına
+# "All jobs have failed" e-postası geliyordu. Yani bildirimler gerçek bir
+# sorunu göstermiyor, sadece gürültü üretiyordu.
+#
+# Silmek yerine tetikleyici manuele alındı: yapılandırma duruyor, fatura
+# sorunu çözülünce aşağıdaki `push`/`pull_request` satırlarının yorumu
+# kaldırılarak eski hâline dönülür.
+#
+# Bu arada aynı kontroller yerelde çalışıyor: `npm run check` (tip),
+# `npm audit` (bağımlılık), ayrıca her dağıtım öncesi canlı uçtan uca testler.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
 
 # Varsayılan izinleri en aza indir (tedarik zinciri saldırılarına karşı)
 permissions:
