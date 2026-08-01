@@ -4,14 +4,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldCheck, PawPrint } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { LogoFull } from "@/components/logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi girin"),
@@ -21,7 +21,6 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,10 +39,24 @@ export default function Login() {
       });
 
       toast({ title: "Giriş Başarılı!", description: "Hoş geldiniz!" });
-      // Oturum bilgisi tazelenmeden yönlendirilirse hedef sayfanın koruması
-      // kullanıcıyı tekrar giriş sayfasına atabilir — önce bekliyoruz.
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation(safeRedirectTarget());
+
+      // Girişten sonra TAM SAYFA yönlendirmesi yapılır, uygulama içi geçiş
+      // değil.
+      //
+      // Önceki sürüm önce `await queryClient.invalidateQueries(...)` ile oturum
+      // bilgisinin tazelenmesini bekliyor, sonra `setLocation` ile geçiş
+      // yapıyordu. Bu bekleme çözülmediğinde `setLocation` satırına hiç
+      // gelinmiyordu: kullanıcı "Giriş Başarılı" mesajını görüyor ama giriş
+      // ekranında kilitli kalıyordu. Bildirilen hata tam olarak buydu ve
+      // sunucu tarafında hiçbir sorun yoktu (giriş 200 dönüyor, çerez
+      // veriliyor, /api/auth/user oturumu tanıyor).
+      //
+      // Tam sayfa yönlendirmesi bu belirsizliği tamamen ortadan kaldırır:
+      // uygulama sıfırdan açılır, oturum çerezi okunur, önbellekte eski
+      // "oturum yok" değeri kalmaz. Girişte bir kerelik yeniden yükleme
+      // maliyeti, kullanıcının ekranda kilitlenmesi riskine değmez.
+      window.location.assign(safeRedirectTarget());
+      return;
     } catch (error: any) {
       let msg = "E-posta veya şifre hatalı.";
       if (error.message?.includes("bulunamadı") || error.message?.includes("not found"))

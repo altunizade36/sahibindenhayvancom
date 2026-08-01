@@ -22,7 +22,16 @@ const registerSchema = z.object({
   firstName: z.string().min(2, "Adınızı girin (en az 2 karakter)"),
   lastName: z.string().min(2, "Soyadınızı girin (en az 2 karakter)"),
   email: z.string().email("Geçerli bir e-posta adresi girin"),
-  password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
+  // Kurallar aşağıdaki PasswordStrength listesiyle BİREBİR aynı olmalı.
+  // Daha önce yalnızca uzunluk kontrol ediliyordu; kullanıcı "en az bir harf"
+  // ve "en az bir rakam" satırlarını kırmızı görürken formu gönderebiliyordu.
+  // Karşılanmayan bir kuralı ekranda gösterip yine de kabul etmek, formun
+  // bozuk olduğu izlenimi veriyordu.
+  password: z
+    .string()
+    .min(8, "Şifre en az 8 karakter olmalı")
+    .regex(/[A-Za-zçğıöşüÇĞİÖŞÜ]/, "Şifre en az bir harf içermeli")
+    .regex(/[0-9]/, "Şifre en az bir rakam içermeli"),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine((v) => v === true, { message: "Kullanım koşullarını kabul etmelisiniz" }),
   acceptKvkk: z.boolean().refine((v) => v === true, { message: "KVKK metnini onaylamalısınız" }),
@@ -105,20 +114,28 @@ export default function Register() {
                 <MailCheck className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">E-postanızı Doğrulayın</CardTitle>
+            <CardTitle className="text-2xl font-bold">Hesabınız Oluşturuldu</CardTitle>
             <CardDescription className="text-base">
-              <strong>{registeredEmail}</strong> adresine doğrulama linki gönderdik.
-              Lütfen e-postanızı kontrol edin ve linke tıklayın.
+              <strong>{registeredEmail}</strong> adresine doğrulama bağlantısı gönderdik.
+              Şimdi giriş yapabilirsiniz; ilan verebilmek için bağlantıya tıklayıp
+              e-postanızı doğrulamanız gerekiyor.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pb-8">
+            {/*
+              Önceki metin "doğruladıktan sonra giriş yapabilirsiniz" diyordu
+              ama sistem doğrulanmamış hesabın girişine izin veriyor. Kullanıcı
+              gereksiz yere e-posta beklerken kilitlendiğini sanıyordu. Metin
+              gerçek davranışa göre düzeltildi: giriş serbest, doğrulama
+              yalnızca ilan vermek için gerekli.
+            */}
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-2 text-left">
-              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Spam/Junk klasörünüzü kontrol edin</p>
-              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Link 24 saat geçerlidir</p>
-              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Doğruladıktan sonra giriş yapabilirsiniz</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Bağlantı 24 saat geçerlidir</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> E-posta gelmediyse Spam/Gereksiz klasörünü kontrol edin</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Yine gelmezse giriş yapıp hesabınızdan yeni bağlantı isteyebilirsiniz</p>
             </div>
-            <Button variant="outline" className="w-full" onClick={() => setLocation(`/giris${redirectQuery()}`)}>
-              Giriş Sayfasına Git
+            <Button className="w-full" onClick={() => setLocation(`/giris${redirectQuery()}`)} data-testid="button-go-login">
+              Giriş Yap
             </Button>
           </CardContent>
         </Card>
