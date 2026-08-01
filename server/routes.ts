@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./auth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
+import { slugify } from "@shared/utils";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
 import { registerSitemapRoutes } from "./sitemap";
 
@@ -7510,6 +7511,221 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   app.get("/api/admin/pin-status", isAuthenticated, adminRoleMiddleware, (req: Request, res: Response) => {
     const session = req.session as any;
     res.json({ verified: !!session.adminPinVerified });
+  });
+
+  // ============ Kategori Yönetimi ============
+  //
+  // Yönetim panelindeki kategori sayfası vardı ama tamamen göstermelikti:
+  // "Oluştur", "Güncelle" ve "Sil" düğmeleri yalnızca "Bu özellik yakında
+  // eklenecek" mesajı gösteriyordu; sunucuda kategori yazan hiçbir uç yoktu.
+  // Aşağıdaki üç uç bu boşluğu dolduruyor.
+
+  /** Kategori önbellekleri 24 saat TTL ile tutuluyor; her değişiklikte temizlenmeli. */
+  async function kategoriOnbelleginiTemizle() {
+    await Promise.all([
+      cache.del(cacheKeys.categories()),
+      cache.del(cacheKeys.categoryTree()),
+      cache.del(cacheKeys.categoryStats()),
+    ]).catch(() => {
+      /* önbellek temizlenemese bile işlem başarılı sayılır */
+    });
+  }
+
+  /** Aynı slug varsa sonuna -2, -3 ... ekleyerek benzersizleştirir. */
+  async function benzersizSlug(taban: string, haricId?: string): Promise<string> {
+    const kok = slugify(taban) || "kategori";
+    for (let i = 1; i < 200; i++) {
+      const aday = i === 1 ? kok : `${kok}-${i}`;
+      const [carpisan] = await db
+        .select({ id: categories.id })
+        .from(categories)
+        .where(eq(categories.slug, aday))
+        .limit(1);
+      if (!carpisan || carpisan.id === haricId) return aday;
+    }
+    return `${kok}-${Date.now()}`;
+  }
+
+  /** Verilen kategorinin tüm alt dallarını (kendisi hariç) döndürür. */
+  async function altDallar(kokId: string) {
+    const hepsi = await db
+      .select({ id: categories.id, parentId: categories.parentId })
+      .from(categories);
+    const cocuklar = new Map<string, string[]>();
+    for (const c of hepsi) {
+      if (!c.parentId) continue;
+      cocuklar.set(c.parentId, [...(cocuklar.get(c.parentId) || []), c.id]);
+    }
+    const sonuc: string[] = [];
+    const yigin = [...(cocuklar.get(kokId) || [])];
+    while (yigin.length) {
+      const id = yigin.pop()!;
+      sonuc.push(id);
+      yigin.push(...(cocuklar.get(id) || []));
+    }
+    return sonuc;
+  }
+
+  /** Bir kategorinin ve altındaki tüm dalların depth/path değerlerini yeniden hesaplar. */
+  async function agaciYenidenHesapla(kokId: string) {
+    const kuyruk = [kokId];
+    while (kuyruk.length) {
+      const id = kuyruk.shift()!;
+      const [dugum] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
+      if (!dugum) continue;
+
+      let derinlik = 0;
+      let yol: string[] = [];
+      if (dugum.parentId) {
+        const [ebeveyn] = await db
+          .select({ depth: categories.depth, path: categories.path, id: categories.id })
+          .from(categories)
+          .where(eq(categories.id, dugum.parentId))
+          .limit(1);
+        if (ebeveyn) {
+          derinlik = (ebeveyn.depth ?? 0) + 1;
+          yol = [...((ebeveyn.path as string[]) || []), ebeveyn.id];
+        }
+      }
+
+      if (derinlik !== dugum.depth || JSON.stringify(yol) !== JSON.stringify(dugum.path)) {
+        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq(categories.id, id));
+      }
+
+      const cocuklar = await db
+        .select({ id: categories.id })
+        .from(categories)
+        .where(eq(categories.parentId, id));
+      kuyruk.push(...cocuklar.map((c) => c.id));
+    }
+  }
+
+  app.post("/api/admin/categories", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { name, slug, parentId, icon, description, order } = req.body;
+
+      if (!name || typeof name !== "string" || name.trim().length < 2) {
+        return res.status(400).json({ message: "Kategori adı en az 2 karakter olmalıdır" });
+      }
+
+      let derinlik = 0;
+      let yol: string[] = [];
+      if (parentId) {
+        const [ebeveyn] = await db.select().from(categories).where(eq(categories.id, parentId)).limit(1);
+        if (!ebeveyn) return res.status(400).json({ message: "Üst kategori bulunamadı" });
+        derinlik = (ebeveyn.depth ?? 0) + 1;
+        yol = [...((ebeveyn.path as string[]) || []), ebeveyn.id];
+      }
+
+      const [yeni] = await db
+        .insert(categories)
+        .values({
+          name: name.trim(),
+          slug: await benzersizSlug(slug || name),
+          parentId: parentId || null,
+          icon: icon || null,
+          description: description || null,
+          order: Number.isFinite(Number(order)) ? Number(order) : 0,
+          depth: derinlik,
+          path: yol,
+        })
+        .returning();
+
+      await kategoriOnbelleginiTemizle();
+      res.status(201).json(yeni);
+    } catch (error) {
+      console.error("Kategori oluşturulamadı:", error);
+      res.status(500).json({ message: "Kategori oluşturulamadı" });
+    }
+  });
+
+  app.patch("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { name, slug, parentId, icon, description, order } = req.body;
+
+      const [mevcut] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
+      if (!mevcut) return res.status(404).json({ message: "Kategori bulunamadı" });
+
+      const ebeveynDegisti = parentId !== undefined && (parentId || null) !== mevcut.parentId;
+
+      if (ebeveynDegisti && parentId) {
+        // Döngü koruması: bir kategori kendi altına ya da kendi alt dalının
+        // altına taşınırsa ağaç kapalı bir halkaya döner ve gezinme sonsuz
+        // döngüye girer.
+        if (parentId === id) {
+          return res.status(400).json({ message: "Bir kategori kendi alt kategorisi olamaz" });
+        }
+        const altlar = await altDallar(id);
+        if (altlar.includes(parentId)) {
+          return res.status(400).json({ message: "Bir kategori kendi alt dalının altına taşınamaz" });
+        }
+        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq(categories.id, parentId)).limit(1);
+        if (!ebeveyn) return res.status(400).json({ message: "Üst kategori bulunamadı" });
+      }
+
+      const guncelleme: Record<string, unknown> = {};
+      if (name !== undefined) guncelleme.name = String(name).trim();
+      if (slug !== undefined) guncelleme.slug = await benzersizSlug(slug || name || mevcut.name, id);
+      if (parentId !== undefined) guncelleme.parentId = parentId || null;
+      if (icon !== undefined) guncelleme.icon = icon || null;
+      if (description !== undefined) guncelleme.description = description || null;
+      if (order !== undefined && Number.isFinite(Number(order))) guncelleme.order = Number(order);
+
+      if (Object.keys(guncelleme).length === 0) {
+        return res.status(400).json({ message: "Güncellenecek alan verilmedi" });
+      }
+
+      const [guncel] = await db.update(categories).set(guncelleme).where(eq(categories.id, id)).returning();
+
+      // Üst kategori değiştiyse bu dalın ve altındaki HER kategorinin
+      // depth/path değerleri artık yanlıştır; ağaç yeniden hesaplanır.
+      if (ebeveynDegisti) await agaciYenidenHesapla(id);
+
+      await kategoriOnbelleginiTemizle();
+      res.json(guncel);
+    } catch (error) {
+      console.error("Kategori güncellenemedi:", error);
+      res.status(500).json({ message: "Kategori güncellenemedi" });
+    }
+  });
+
+  app.delete("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const [mevcut] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
+      if (!mevcut) return res.status(404).json({ message: "Kategori bulunamadı" });
+
+      // Alt kategorisi olan silinmez: parentId kısıtı ON DELETE SET NULL
+      // olduğu için silme sessizce geçer ve alt dallar kök kategoriye
+      // dönüşerek menüde başıboş görünürdü.
+      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq(categories.parentId, id)).limit(1);
+      if (cocuk) {
+        return res.status(409).json({
+          message: "Bu kategorinin alt kategorileri var. Önce onları silin veya başka bir kategoriye taşıyın.",
+        });
+      }
+
+      // İlanı olan silinmez: listings.categoryId NOT NULL olduğu için
+      // veritabanı zaten reddeder, ama kullanıcıya anlaşılır mesaj verilir.
+      const [{ n }] = await db
+        .select({ n: count() })
+        .from(listings)
+        .where(eq(listings.categoryId, id));
+      if (Number(n) > 0) {
+        return res.status(409).json({
+          message: `Bu kategoride ${n} ilan var. Kategori silinemez; önce ilanları başka kategoriye taşıyın.`,
+        });
+      }
+
+      await db.delete(categories).where(eq(categories.id, id));
+      await kategoriOnbelleginiTemizle();
+      res.json({ success: true, message: `"${mevcut.name}" kategorisi silindi` });
+    } catch (error) {
+      console.error("Kategori silinemedi:", error);
+      res.status(500).json({ message: "Kategori silinemedi" });
+    }
   });
 
   // Admin dashboard stats

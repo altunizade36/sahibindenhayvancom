@@ -3020,6 +3020,25 @@ var messageBroker = {
   }
 };
 
+// shared/utils.ts
+function slugify(text2) {
+  const turkishMap = {
+    "\xE7": "c",
+    "\xC7": "C",
+    "\u011F": "g",
+    "\u011E": "G",
+    "\u0131": "i",
+    "\u0130": "I",
+    "\xF6": "o",
+    "\xD6": "O",
+    "\u015F": "s",
+    "\u015E": "S",
+    "\xFC": "u",
+    "\xDC": "U"
+  };
+  return text2.split("").map((char) => turkishMap[char] || char).join("").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+}
+
 // server/monitoring.ts
 function getSystemMetrics() {
   const memUsage = process.memoryUsage();
@@ -9764,6 +9783,154 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/admin/pin-status", isAuthenticated, adminRoleMiddleware, (req, res) => {
     const session2 = req.session;
     res.json({ verified: !!session2.adminPinVerified });
+  });
+  async function kategoriOnbelleginiTemizle() {
+    await Promise.all([
+      cache.del(cacheKeys.categories()),
+      cache.del(cacheKeys.categoryTree()),
+      cache.del(cacheKeys.categoryStats())
+    ]).catch(() => {
+    });
+  }
+  async function benzersizSlug(taban, haricId) {
+    const kok = slugify(taban) || "kategori";
+    for (let i = 1; i < 200; i++) {
+      const aday = i === 1 ? kok : `${kok}-${i}`;
+      const [carpisan] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.slug, aday)).limit(1);
+      if (!carpisan || carpisan.id === haricId) return aday;
+    }
+    return `${kok}-${Date.now()}`;
+  }
+  async function altDallar(kokId) {
+    const hepsi = await db.select({ id: categories.id, parentId: categories.parentId }).from(categories);
+    const cocuklar = /* @__PURE__ */ new Map();
+    for (const c of hepsi) {
+      if (!c.parentId) continue;
+      cocuklar.set(c.parentId, [...cocuklar.get(c.parentId) || [], c.id]);
+    }
+    const sonuc = [];
+    const yigin = [...cocuklar.get(kokId) || []];
+    while (yigin.length) {
+      const id = yigin.pop();
+      sonuc.push(id);
+      yigin.push(...cocuklar.get(id) || []);
+    }
+    return sonuc;
+  }
+  async function agaciYenidenHesapla(kokId) {
+    const kuyruk = [kokId];
+    while (kuyruk.length) {
+      const id = kuyruk.shift();
+      const [dugum] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      if (!dugum) continue;
+      let derinlik = 0;
+      let yol = [];
+      if (dugum.parentId) {
+        const [ebeveyn] = await db.select({ depth: categories.depth, path: categories.path, id: categories.id }).from(categories).where(eq3(categories.id, dugum.parentId)).limit(1);
+        if (ebeveyn) {
+          derinlik = (ebeveyn.depth ?? 0) + 1;
+          yol = [...ebeveyn.path || [], ebeveyn.id];
+        }
+      }
+      if (derinlik !== dugum.depth || JSON.stringify(yol) !== JSON.stringify(dugum.path)) {
+        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq3(categories.id, id));
+      }
+      const cocuklar = await db.select({ id: categories.id }).from(categories).where(eq3(categories.parentId, id));
+      kuyruk.push(...cocuklar.map((c) => c.id));
+    }
+  }
+  app2.post("/api/admin/categories", isAuthenticated, adminMiddleware, async (req, res) => {
+    try {
+      const { name, slug, parentId, icon, description, order } = req.body;
+      if (!name || typeof name !== "string" || name.trim().length < 2) {
+        return res.status(400).json({ message: "Kategori ad\u0131 en az 2 karakter olmal\u0131d\u0131r" });
+      }
+      let derinlik = 0;
+      let yol = [];
+      if (parentId) {
+        const [ebeveyn] = await db.select().from(categories).where(eq3(categories.id, parentId)).limit(1);
+        if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
+        derinlik = (ebeveyn.depth ?? 0) + 1;
+        yol = [...ebeveyn.path || [], ebeveyn.id];
+      }
+      const [yeni] = await db.insert(categories).values({
+        name: name.trim(),
+        slug: await benzersizSlug(slug || name),
+        parentId: parentId || null,
+        icon: icon || null,
+        description: description || null,
+        order: Number.isFinite(Number(order)) ? Number(order) : 0,
+        depth: derinlik,
+        path: yol
+      }).returning();
+      await kategoriOnbelleginiTemizle();
+      res.status(201).json(yeni);
+    } catch (error) {
+      console.error("Kategori olu\u015Fturulamad\u0131:", error);
+      res.status(500).json({ message: "Kategori olu\u015Fturulamad\u0131" });
+    }
+  });
+  app2.patch("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, slug, parentId, icon, description, order } = req.body;
+      const [mevcut] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
+      const ebeveynDegisti = parentId !== void 0 && (parentId || null) !== mevcut.parentId;
+      if (ebeveynDegisti && parentId) {
+        if (parentId === id) {
+          return res.status(400).json({ message: "Bir kategori kendi alt kategorisi olamaz" });
+        }
+        const altlar = await altDallar(id);
+        if (altlar.includes(parentId)) {
+          return res.status(400).json({ message: "Bir kategori kendi alt dal\u0131n\u0131n alt\u0131na ta\u015F\u0131namaz" });
+        }
+        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.id, parentId)).limit(1);
+        if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
+      }
+      const guncelleme = {};
+      if (name !== void 0) guncelleme.name = String(name).trim();
+      if (slug !== void 0) guncelleme.slug = await benzersizSlug(slug || name || mevcut.name, id);
+      if (parentId !== void 0) guncelleme.parentId = parentId || null;
+      if (icon !== void 0) guncelleme.icon = icon || null;
+      if (description !== void 0) guncelleme.description = description || null;
+      if (order !== void 0 && Number.isFinite(Number(order))) guncelleme.order = Number(order);
+      if (Object.keys(guncelleme).length === 0) {
+        return res.status(400).json({ message: "G\xFCncellenecek alan verilmedi" });
+      }
+      const [guncel] = await db.update(categories).set(guncelleme).where(eq3(categories.id, id)).returning();
+      if (ebeveynDegisti) await agaciYenidenHesapla(id);
+      await kategoriOnbelleginiTemizle();
+      res.json(guncel);
+    } catch (error) {
+      console.error("Kategori g\xFCncellenemedi:", error);
+      res.status(500).json({ message: "Kategori g\xFCncellenemedi" });
+    }
+  });
+  app2.delete("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [mevcut] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
+      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.parentId, id)).limit(1);
+      if (cocuk) {
+        return res.status(409).json({
+          message: "Bu kategorinin alt kategorileri var. \xD6nce onlar\u0131 silin veya ba\u015Fka bir kategoriye ta\u015F\u0131y\u0131n."
+        });
+      }
+      const [{ n }] = await db.select({ n: count() }).from(listings).where(eq3(listings.categoryId, id));
+      if (Number(n) > 0) {
+        return res.status(409).json({
+          message: `Bu kategoride ${n} ilan var. Kategori silinemez; \xF6nce ilanlar\u0131 ba\u015Fka kategoriye ta\u015F\u0131y\u0131n.`
+        });
+      }
+      await db.delete(categories).where(eq3(categories.id, id));
+      await kategoriOnbelleginiTemizle();
+      res.json({ success: true, message: `"${mevcut.name}" kategorisi silindi` });
+    } catch (error) {
+      console.error("Kategori silinemedi:", error);
+      res.status(500).json({ message: "Kategori silinemedi" });
+    }
   });
   app2.get("/api/admin/stats", isAuthenticated, adminMiddleware, async (_req, res) => {
     try {

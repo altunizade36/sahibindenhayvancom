@@ -91,6 +91,76 @@ export default function AdminCategoriesPage() {
     queryKey: ["/api/categories/tree"],
   });
 
+  /**
+   * Kategori yazma işlemleri.
+   *
+   * Bu sayfadaki "Oluştur", "Güncelle" ve "Sil" düğmeleri daha önce yalnızca
+   * "Bu özellik yakında eklenecek" mesajı gösteriyordu; sunucuda karşılık
+   * gelen uç da yoktu. Artık gerçekten çalışıyorlar.
+   */
+  const kategorileriTazele = () => {
+    // Kategori ağacı ana menüde, ilan verme formunda ve kategori
+    // sayfalarında kullanılıyor; hepsinin yeniden çekilmesi gerekir.
+    queryClient.invalidateQueries({ queryKey: ["/api/categories/tree"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/categories/main"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/categories/stats"] });
+    refetch();
+  };
+
+  const hataMesaji = (e: any, varsayilan: string) =>
+    typeof e?.message === "string" && e.message.trim() ? e.message : varsayilan;
+
+  const kaydetMutation = useMutation({
+    mutationFn: async () => {
+      const govde = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        parentId: formData.parentId || null,
+        icon: formData.icon.trim() || undefined,
+      };
+      if (editCategory) {
+        return apiRequest("PATCH", `/api/admin/categories/${editCategory.id}`, govde);
+      }
+      return apiRequest("POST", "/api/admin/categories", govde);
+    },
+    onSuccess: () => {
+      toast({
+        title: editCategory ? "Kategori güncellendi" : "Kategori oluşturuldu",
+        description: formData.name,
+      });
+      setIsCreateOpen(false);
+      setEditCategory(null);
+      kategorileriTazele();
+    },
+    onError: (e: any) => {
+      toast({
+        variant: "destructive",
+        title: editCategory ? "Güncellenemedi" : "Oluşturulamadı",
+        description: hataMesaji(e, "İşlem tamamlanamadı."),
+      });
+    },
+  });
+
+  const silMutation = useMutation({
+    mutationFn: async (id: string) => apiRequest("DELETE", `/api/admin/categories/${id}`),
+    onSuccess: () => {
+      toast({ title: "Kategori silindi", description: deleteCategory?.name });
+      setDeleteCategory(null);
+      kategorileriTazele();
+    },
+    onError: (e: any) => {
+      // Sunucu, alt kategorisi veya ilanı olan kategoriyi silmeyi reddediyor
+      // ve nedenini açıklıyor; o mesaj olduğu gibi gösterilir.
+      toast({
+        variant: "destructive",
+        title: "Silinemedi",
+        description: hataMesaji(e, "Kategori silinemedi."),
+      });
+    },
+  });
+
   const flatCategories = categories.reduce<Category[]>((acc, cat) => {
     acc.push(cat);
     if (cat.children) {
@@ -400,13 +470,15 @@ export default function AdminCategoriesPage() {
               İptal
             </Button>
             <Button
-              onClick={() => {
-                toast({ title: "Bu özellik yakında eklenecek" });
-                setIsCreateOpen(false);
-                setEditCategory(null);
-              }}
+              onClick={() => kaydetMutation.mutate()}
+              disabled={kaydetMutation.isPending || formData.name.trim().length < 2}
+              data-testid="button-save-category"
             >
-              {editCategory ? "Güncelle" : "Oluştur"}
+              {kaydetMutation.isPending
+                ? "Kaydediliyor..."
+                : editCategory
+                  ? "Güncelle"
+                  : "Oluştur"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -428,13 +500,17 @@ export default function AdminCategoriesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                toast({ title: "Bu özellik yakında eklenecek" });
-                setDeleteCategory(null);
+              onClick={(e) => {
+                // Diyalog kendiliğinden kapanmasın: silme reddedilirse
+                // (alt kategori/ilan var) kullanıcı nedeni görebilmeli.
+                e.preventDefault();
+                if (deleteCategory) silMutation.mutate(deleteCategory.id);
               }}
+              disabled={silMutation.isPending}
               className="bg-destructive"
+              data-testid="button-confirm-delete-category"
             >
-              Sil
+              {silMutation.isPending ? "Siliniyor..." : "Sil"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
