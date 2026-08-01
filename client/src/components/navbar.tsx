@@ -111,7 +111,10 @@ export function Navbar() {
       <MarketTicker />
       
       <div className="container mx-auto px-3 md:px-4">
-        <div className="flex items-center justify-between h-14 md:h-16 gap-2">
+        {/* Üst çubuk yüksekliği bilinçli olarak düşük tutuluyor: ekranın
+            üst kısmı zaten piyasa şeridi, arama ve kategori satırıyla
+            paylaşılıyor; içerik için dikey alan bırakmak önemli. */}
+        <div className="flex items-center justify-between h-12 md:h-14 gap-2">
           {/* Left: Menu + Logo */}
           <div className="flex items-center gap-2">
             {/* Mobile Menu Button */}

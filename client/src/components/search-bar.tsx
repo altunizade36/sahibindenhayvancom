@@ -66,7 +66,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
       <div className="hidden md:flex items-center p-2 gap-2">
         {/* Search Input */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             ref={inputRef}
             type="search"
@@ -75,7 +75,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className="pl-11 pr-8 h-12 border-0 shadow-none focus-visible:ring-0 text-base"
+            className="pl-10 pr-8 h-10 border-0 shadow-none focus-visible:ring-0 text-sm"
             data-testid="input-search"
           />
           {query && (
@@ -96,7 +96,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
         {/* Category Select */}
         {mainCategories.length > 0 && (
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-44 h-12 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-category">
+            <SelectTrigger className="w-40 h-10 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-category">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -114,7 +114,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
 
         {/* City Select */}
         <Select value={selectedCity || "all"} onValueChange={(value) => setSelectedCity(value === "all" ? "" : value)}>
-          <SelectTrigger className="w-40 h-12 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-city">
+          <SelectTrigger className="w-36 h-10 border-0 shadow-none focus:ring-0 hover:bg-accent/50" data-testid="select-city">
             <div className="flex items-center gap-2 pointer-events-none">
               <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
               <span className="truncate">{selectedCityName || "Tüm Türkiye"}</span>
@@ -131,7 +131,7 @@ export function SearchBar({ onSearch, categories = [] }: SearchBarProps) {
         </Select>
 
         {/* Search Button */}
-        <Button type="submit" size="lg" className="h-12 px-6" data-testid="button-search">
+        <Button type="submit" className="h-10 px-5" data-testid="button-search">
           <Search className="w-5 h-5 mr-2" />
           Ara
         </Button>

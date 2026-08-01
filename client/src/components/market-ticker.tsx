@@ -140,12 +140,12 @@ function PriceItem({ item }: { item: TickerItem }) {
 
   return (
     <div
-      className="inline-flex items-center gap-1.5 px-4 py-1 whitespace-nowrap"
+      className="inline-flex items-center gap-1.5 px-3 py-0.5 whitespace-nowrap"
       data-testid={`ticker-item-${item.id}`}
     >
       <PriceIcon icon={item.icon} className={getCategoryColor(item.category)} />
-      <span className="text-sm font-medium text-slate-200">{item.name}</span>
-      <span className="text-sm font-bold text-white">
+      <span className="text-xs font-medium text-slate-200">{item.name}</span>
+      <span className="text-xs font-bold text-white">
         {item.price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         <span className="text-xs text-slate-400 ml-0.5">{item.unit}</span>
       </span>
@@ -181,7 +181,7 @@ export function MarketTicker() {
   if (tickerItems.length === 0) {
     return (
       <div
-        className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 h-8"
+        className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 h-7"
         data-testid="market-ticker"
       >
         <div className="flex items-center justify-center h-full">
@@ -198,7 +198,7 @@ export function MarketTicker() {
       onMouseLeave={() => setIsPaused(false)}
       data-testid="market-ticker"
     >
-      <div className="relative flex items-center h-8">
+      <div className="relative flex items-center h-7">
         <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900 to-transparent z-10" />
         <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 to-transparent z-10" />
         <div

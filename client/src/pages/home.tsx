@@ -127,10 +127,10 @@ export default function Home() {
         structuredData={generateOrganizationStructuredData()}
       />
       
-      <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 py-3 md:py-4">
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 py-2 md:py-3">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-hero-title">
+            <h1 className="text-base md:text-lg font-bold mb-1.5" data-testid="text-hero-title">
               <span className="text-primary">Hayvan İlanları</span> - Türkiye'nin Hayvan Pazarı
             </h1>
             <SearchBar categories={categories} />
@@ -144,13 +144,13 @@ export default function Home() {
         if (rootCats.length === 0) return null;
         return (
           <section className="border-b bg-background">
-            <div className="container mx-auto px-4 py-3">
+            <div className="container mx-auto px-4 py-2">
               {/* Mobilde yatay kaydırma, masaüstünde sarmalayan grid */}
               <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 md:flex-wrap md:overflow-visible md:gap-1.5">
                 {rootCats.map((cat) => (
                   <Link key={cat.id} href={`/kategori/${cat.slug}`}>
-                    <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-3 py-2 rounded-xl hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
-                      <span className="text-xl md:text-2xl leading-none">
+                    <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-2.5 py-1.5 rounded-lg hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
+                      <span className="text-lg md:text-xl leading-none">
                         {CATEGORY_EMOJIS[cat.slug] || "📦"}
                       </span>
                       <span className="text-[10px] md:text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground line-clamp-2 w-full">
@@ -160,8 +160,8 @@ export default function Home() {
                   </Link>
                 ))}
                 <Link href="/ilanlar">
-                  <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-3 py-2 rounded-xl hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
-                    <span className="text-xl md:text-2xl leading-none">➕</span>
+                  <button className="flex flex-col items-center gap-1 min-w-[68px] md:min-w-0 w-[68px] md:w-auto md:px-2.5 py-1.5 rounded-lg hover:bg-accent border border-transparent hover:border-border transition-all text-center group shrink-0">
+                    <span className="text-lg md:text-xl leading-none">➕</span>
                     <span className="text-[10px] md:text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground">
                       Tümü
                     </span>
@@ -173,7 +173,7 @@ export default function Home() {
         );
       })()}
 
-      <section className="py-4 md:py-6 flex-1 min-h-[400px]">
+      <section className="py-3 md:py-4 flex-1 min-h-[400px]">
         <div className="container mx-auto px-4 h-full">
           <RecentlyViewedListings />
           
