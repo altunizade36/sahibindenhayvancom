@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeRedirectTarget, redirectQuery } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,28 +19,6 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
-
-/**
- * Giriş sonrası dönülecek adresi `?redirect=` parametresinden okur.
- *
- * Güvenlik: yalnızca site içi, tek eğik çizgiyle başlayan yollar kabul edilir.
- * "//baska-site.com" veya "https://..." gibi değerler açık yönlendirme
- * (open redirect) saldırısına yol açar; bunlar yok sayılıp ana sayfaya dönülür.
- */
-function safeRedirectTarget(): string {
-  const raw = new URLSearchParams(window.location.search).get("redirect");
-  if (!raw) return "/";
-  let value: string;
-  try {
-    value = decodeURIComponent(raw);
-  } catch {
-    return "/";
-  }
-  if (!value.startsWith("/") || value.startsWith("//")) return "/";
-  // Giriş/kayıt sayfalarına geri dönüp döngü oluşturma
-  if (/^\/(giris|login|kayit|register)(\/|$|\?)/.test(value)) return "/";
-  return value;
-}
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -218,7 +197,7 @@ export default function Login() {
             <div className="pt-4 border-t">
               <p className="text-center text-sm text-muted-foreground">
                 Hesabınız yok mu?{" "}
-                <Link href="/kayit" className="text-primary font-semibold hover:underline" data-testid="link-register">
+                <Link href={`/kayit${redirectQuery()}`} className="text-primary font-semibold hover:underline" data-testid="link-register">
                   Hemen Kayıt Ol
                 </Link>
               </p>

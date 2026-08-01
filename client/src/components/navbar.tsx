@@ -466,37 +466,43 @@ export function Navbar() {
 
             {/* Mobile Quick Actions */}
             {isAuthenticated && (
-              <>
-                <Link href="/bildirimler" className="md:hidden">
-                  <Button variant="ghost" size="icon" className="relative shrink-0" aria-label="Bildirimler" data-testid="button-mobile-notifications">
-                    <Bell className="w-5 h-5" />
-                    {notificationCount.count > 0 && (
-                      <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
-                        {notificationCount.count > 9 ? "9+" : notificationCount.count}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-                <Link href="/ilan-ver" className="md:hidden">
-                  <Button size="icon" className="shrink-0" aria-label="Ücretsiz ilan ver" data-testid="button-mobile-add-listing">
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </Link>
-              </>
+              <Link href="/bildirimler" className="md:hidden">
+                <Button variant="ghost" size="icon" className="relative shrink-0" aria-label="Bildirimler" data-testid="button-mobile-notifications">
+                  <Bell className="w-5 h-5" />
+                  {notificationCount.count > 0 && (
+                    <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                      {notificationCount.count > 9 ? "9+" : notificationCount.count}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
             )}
+
+            {/* Mobilde de ilan verme her zaman erişilebilir olmalı. */}
+            <Link href="/ilan-ver" className="md:hidden">
+              <Button size="icon" className="shrink-0" aria-label="Ücretsiz ilan ver" data-testid="button-mobile-add-listing">
+                <Plus className="w-5 h-5" />
+              </Button>
+            </Link>
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
+              {/* "Ücretsiz İlan Ver" oturum durumundan BAĞIMSIZ gösterilir.
+                  Sitenin birincil eylemi budur; ziyaretçiden gizlemek, ilan
+                  verilebileceğini ancak üye olanların görmesi demekti. Üye
+                  olmayan tıkladığında /ilan-ver sayfası useRequireAuth ile
+                  giriş ekranına yönlendirir ve dönüş adresini korur, yani
+                  giriş/kayıt sonrası doğrudan ilan verme akışına düşer. */}
+              <Link href="/ilan-ver">
+                <Button size="sm" data-testid="button-add-listing">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  <span className="lg:hidden">İlan Ver</span>
+                  <span className="hidden lg:inline">Ücretsiz İlan Ver</span>
+                </Button>
+              </Link>
+
               {isAuthenticated ? (
                 <>
-                  <Link href="/ilan-ver">
-                    <Button size="sm" data-testid="button-add-listing">
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      <span className="lg:hidden">İlan Ver</span>
-                      <span className="hidden lg:inline">Ücretsiz İlan Ver</span>
-                    </Button>
-                  </Link>
-
                   <NotificationDropdown />
 
                   <DropdownMenu>

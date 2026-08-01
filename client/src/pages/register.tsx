@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { redirectQuery } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -116,7 +117,7 @@ export default function Register() {
               <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Link 24 saat geçerlidir</p>
               <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Doğruladıktan sonra giriş yapabilirsiniz</p>
             </div>
-            <Button variant="outline" className="w-full" onClick={() => setLocation("/giris")}>
+            <Button variant="outline" className="w-full" onClick={() => setLocation(`/giris${redirectQuery()}`)}>
               Giriş Sayfasına Git
             </Button>
           </CardContent>
