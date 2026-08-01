@@ -25,18 +25,18 @@ const ICONS_DIR = path.join(PUBLIC_DIR, "icons");
 
 const BRAND = "#0066CC";
 
-/** Yuvarlatılmış kare zemin üzerinde beyaz pati — navbar'daki işaretle aynı dil */
+/**
+ * Marka işareti — yuvarlatılmış kare zemin üzerinde "sh" harf işareti.
+ *
+ * Marka bir amblem değil, "sahibindenhayvan" adının kendisi. Favicon gibi
+ * küçük alanlarda tam ad okunmadığı için adın baş harfleri kullanılıyor.
+ */
 function markSvg(size) {
-  const r = Math.round(size * 0.22); // köşe yuvarlaklığı
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="${(r / size) * 100}" fill="${BRAND}"/>
-  <g fill="#ffffff">
-    <ellipse cx="32" cy="34" rx="9"  ry="11"/>
-    <ellipse cx="50" cy="28" rx="9"  ry="12"/>
-    <ellipse cx="68" cy="34" rx="9"  ry="11"/>
-    <ellipse cx="78" cy="52" rx="8"  ry="10"/>
-    <path d="M50 46c11 0 20 8 20 17 0 7-6 12-13 12-3 0-5-1-7-1s-4 1-7 1c-7 0-13-5-13-12 0-9 9-17 20-17z"/>
-  </g>
+  <rect width="100" height="100" rx="22" fill="${BRAND}"/>
+  <text x="50" y="50" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52"
+        font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central"
+        letter-spacing="-2">sh</text>
 </svg>`;
 }
 
@@ -50,18 +50,9 @@ function ogSvg() {
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <g transform="translate(470 150) scale(2.6)">
-    <rect width="100" height="100" rx="22" fill="${BRAND}"/>
-    <g fill="#ffffff">
-      <ellipse cx="32" cy="34" rx="9"  ry="11"/>
-      <ellipse cx="50" cy="28" rx="9"  ry="12"/>
-      <ellipse cx="68" cy="34" rx="9"  ry="11"/>
-      <ellipse cx="78" cy="52" rx="8"  ry="10"/>
-      <path d="M50 46c11 0 20 8 20 17 0 7-6 12-13 12-3 0-5-1-7-1s-4 1-7 1c-7 0-13-5-13-12 0-9 9-17 20-17z"/>
-    </g>
-  </g>
-  <text x="600" y="480" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700" text-anchor="middle" fill="#0F172A">sahibinden<tspan fill="${BRAND}">hayvan</tspan></text>
-  <text x="600" y="535" font-family="Inter, Arial, sans-serif" font-size="26" text-anchor="middle" fill="#475569">Türkiye'nin ücretsiz hayvan ilanları platformu</text>
+  <text x="600" y="300" font-family="Inter, Helvetica, Arial, sans-serif" font-size="86" font-weight="700" text-anchor="middle" fill="#0F172A">sahibinden<tspan fill="${BRAND}">hayvan</tspan></text>
+  <text x="600" y="370" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" text-anchor="middle" fill="#475569">Türkiye'nin ücretsiz hayvan ilanları platformu</text>
+  <rect x="500" y="410" width="200" height="4" rx="2" fill="${BRAND}"/>
 </svg>`;
 }
 

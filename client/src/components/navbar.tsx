@@ -105,8 +105,39 @@ export function Navbar() {
 
   const isAdmin = user?.role === "admin";
 
+  /**
+   * Üst barın GERÇEK yüksekliğini ölçüp CSS değişkenine yazar.
+   *
+   * Yan menü (ui/sidebar) `--navbar-height` değişkenine göre konumlanıyor ve
+   * varsayılanı 3.5rem. Oysa üst bar = piyasa şeridi + menü satırı; şerit
+   * yüklenip yüklenmemesine ve ekran boyutuna göre değişiyor. Sabit değer
+   * kullanıldığında yan menünün üst kısmı barın ALTINDA kalıyordu.
+   * Ölçüm ResizeObserver ile canlı takip ediliyor.
+   */
+  const headerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${el.getBoundingClientRect().height}px`
+      );
+    };
+
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    window.addEventListener("resize", apply);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", apply);
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b bg-background">
+    <header ref={headerRef} className="sticky top-0 z-50 border-b bg-background">
       {/* Bloomberg-style Market Ticker */}
       <MarketTicker />
       

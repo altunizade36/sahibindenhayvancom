@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PawPrint, ArrowRight, UserPlus } from "lucide-react";
+import { ArrowRight, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SPLASH_KEY = "sahibindenhayvan-onboarded";
@@ -53,8 +53,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     >
       <div className="text-center px-6 max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="relative mb-6">
-          <div className="w-28 h-28 mx-auto rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-            <PawPrint className="w-14 h-14 text-white" />
+          <div className="mx-auto flex items-center justify-center">
+            <span className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              sahibinden<span className="text-white/70">hayvan</span>
+            </span>
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
             %100 ÜCRETSİZ
