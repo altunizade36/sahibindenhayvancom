@@ -31,6 +31,15 @@
 --  ihtiyaç duyulan tablolar için USAGE + SELECT yetkisi geri verilip uygun
 --  RLS politikaları yazılmalıdır. Toptan geri açmayın.
 --
+--  ⚠️  ŞEMA DEĞİŞİKLİĞİNDEN SONRA MUTLAKA TEKRAR ÇALIŞTIRIN
+--  ------------------------------------------------------
+--  `drizzle-kit push` RLS durumunu Drizzle şemasına göre yeniden yazar.
+--  Şemada RLS tanımlı olmadığı için push işlemi RLS'i SESSİZCE KAPATIR ve
+--  bu dosyadaki koruma kaybolur. Bu yüzden `npm run db:push` komutu
+--  sertleştirmeyi otomatik olarak tekrar uygular. `drizzle-kit push`'u
+--  doğrudan çalıştırdıysanız ardından `npm run harden` demeyi unutmayın.
+--  `npm run doctor` durumu her zaman raporlar.
+--
 --  Çalıştırma:  npm run harden
 -- ============================================================================
 

@@ -45,13 +45,26 @@ function isPublicBucket(): boolean {
   return process.env.SUPABASE_STORAGE_PUBLIC !== "false";
 }
 
-/** "/objects/listings/x.webp" → "listings/x.webp" */
+/**
+ * "/objects/listings/x.webp" → "listings/x.webp"
+ *
+ * Yol geçişi (path traversal) koruması: ".." segmentleri ve boş segmentler
+ * atılır. Supabase nesne deposu olduğu için dosya sistemi kaçışı zaten
+ * mümkün değildir; yine de anahtar alanının dışına çıkan istekleri
+ * normalize ederek beklenmedik nesnelere erişimi engelliyoruz.
+ */
 function toStorageKey(objectPath: string): string {
   let key = objectPath;
   if (key.startsWith(OBJECT_PREFIX)) key = key.slice(OBJECT_PREFIX.length);
   else if (key.startsWith("objects/")) key = key.slice("objects/".length);
   else if (key.startsWith("/")) key = key.slice(1);
-  return key;
+
+  // Ters eğik çizgileri normalize et, ".." ve boş segmentleri düşür
+  return key
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter((segment) => segment !== "" && segment !== "." && segment !== "..")
+    .join("/");
 }
 
 export class ObjectNotFoundError extends Error {

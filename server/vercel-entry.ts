@@ -60,8 +60,16 @@ function initialize(): Promise<void> {
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       console.error("Express error:", err);
+
+      // 5xx'te ham hata mesajı sızdırılmaz (PostgreSQL hataları şema
+      // detaylarını açığa çıkarabilir). 4xx bilinçli üretildiği için geçer.
+      const message =
+        status >= 500 && process.env.NODE_ENV === "production"
+          ? "Sunucu hatası. Lütfen daha sonra tekrar deneyin."
+          : err.message || "Internal Server Error";
+
       if (!res.headersSent) {
-        res.status(status).json({ message: err.message || "Internal Server Error" });
+        res.status(status).json({ message });
       }
     });
 

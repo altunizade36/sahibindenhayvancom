@@ -68,10 +68,14 @@ const uploadImages = multer({
     fileSize: 10 * 1024 * 1024, // 10MB max file size
   },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    // Açık liste kullanılıyor: "image/*" kalıbı SVG'yi de kabul ederdi.
+    // SVG bir XML belgesidir ve içine <script> gömülebilir; ham hâlde
+    // servis edildiğinde tarayıcıda çalışır. Raster formatlarla sınırlıyoruz.
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Sadece resim dosyaları yüklenebilir'));
+      cb(new Error('Sadece JPEG, PNG, WebP veya GIF yüklenebilir'));
     }
   },
 });
@@ -1238,6 +1242,24 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
 
+      // Hesap durumu — yasaklı/askıya alınmış kullanıcı giriş yapamaz.
+      // (Şifre doğrulandıktan SONRA kontrol ediliyor ki hesap durumu
+      //  kimlik doğrulamadan sızdırılmasın.)
+      if (user.status === "banned" || user.status === "suspended") {
+        await recordLoginHistory(
+          user.id, req, false, isPhone ? 'phone' : 'email',
+          `Hesap durumu: ${user.status}`
+        );
+        return res.status(403).json({
+          message:
+            user.status === "banned"
+              ? "Hesabınız askıya alınmıştır. İtiraz için destek ile iletişime geçin."
+              : "Hesabınız geçici olarak durdurulmuştur. Destek ile iletişime geçin.",
+          status: user.status,
+          reason: user.statusReason || undefined,
+        });
+      }
+
       // Log user in by creating session
       (req as any).login({ claims: { sub: user.id } }, async (err: any) => {
         if (err) {
@@ -2167,7 +2189,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Get all document requirements (for admin)
-  app.get("/api/admin/document-requirements", isAuthenticated, async (req: Request, res: Response) => {
+  app.get("/api/admin/document-requirements", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       if (user?.role !== 'admin') {
@@ -2188,7 +2210,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Get pending documents for admin verification
-  app.get("/api/admin/listing-documents", isAuthenticated, async (req: Request, res: Response) => {
+  app.get("/api/admin/listing-documents", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       if (user?.role !== 'admin') {
@@ -2217,7 +2239,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Verify or reject a document (admin only)
-  app.patch("/api/admin/listing-documents/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/admin/listing-documents/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       if (user?.role !== 'admin') {
@@ -7237,7 +7259,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Admin: Get all reports
-  app.get("/api/admin/reports", isAuthenticated, async (req: Request, res: Response) => {
+  app.get("/api/admin/reports", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       if ((req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Admin yetkisi gereklidir" });
@@ -7261,7 +7283,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Admin: Update report status
-  app.patch("/api/admin/reports/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/admin/reports/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       if ((req.user as any).role !== "admin") {
         return res.status(403).json({ message: "Admin yetkisi gereklidir" });
@@ -7303,14 +7325,23 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
     
-    // Check role from database (not session) for real-time admin access
+    // Rol ve hesap durumu oturumdan DEĞİL veritabanından okunur; böylece
+    // yetkisi alınan veya yasaklanan bir hesap oturumu dolmadan da engellenir.
     const userId = getUserId(req.user);
-    const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
-    
+    const [dbUser] = await db
+      .select({ role: users.role, status: users.status })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
     if (!dbUser || dbUser.role !== "admin") {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
-    
+
+    if (dbUser.status !== "active") {
+      return res.status(403).json({ message: "Hesabınız aktif değil" });
+    }
+
     // Update session with current role
     (req.user as any).role = dbUser.role;
     next();
@@ -7636,6 +7667,19 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
 
+      // Rol oturuma da yazıldığı için (adminMiddleware), rol değişiminde
+      // kullanıcının oturumları sonlandırılır. Aksi halde yöneticiliği
+      // alınan biri, oturumu dolana kadar bayat "admin" rolüyle işlem
+      // yapmaya devam edebilirdi.
+      try {
+        await db.execute(
+          sql`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+        );
+        console.log(`🔒 Rol değişti, oturumlar sonlandırıldı: ${id} → ${role}`);
+      } catch (sessionErr) {
+        console.error("Oturum sonlandırma hatası:", sessionErr);
+      }
+
       res.json(sanitizeUser(updatedUser));
     } catch (error) {
       console.error("Error updating user role:", error);
@@ -7672,9 +7716,24 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         })
         .where(eq(users.id, id))
         .returning();
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      // Yasaklama/askıya alma ANINDA etkili olmalı: kullanıcının açık
+      // oturumları silinir. Aksi halde mevcut çerezle oturum TTL'i (7 gün)
+      // boyunca siteyi kullanmaya devam edebilirdi.
+      if (status !== "active") {
+        try {
+          await db.execute(
+            sql`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+          );
+          console.log(`🔒 Oturumlar sonlandırıldı: ${id} (${status})`);
+        } catch (sessionErr) {
+          // Oturum temizliği başarısız olsa da durum güncellemesi geçerlidir
+          console.error("Oturum sonlandırma hatası:", sessionErr);
+        }
       }
 
       res.json(sanitizeUser(updatedUser));

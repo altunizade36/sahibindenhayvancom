@@ -157,9 +157,21 @@ async function runServer() {
         // Error handler middleware (must be after routes)
         app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
           const status = err.status || err.statusCode || 500;
-          const message = err.message || "Internal Server Error";
-          res.status(status).json({ message });
           console.error('Express error:', err);
+
+          // Sunucu hatalarında ham mesaj istemciye GİTMEZ: PostgreSQL
+          // hataları tablo/sütun adlarını, sorgu parçalarını ve bazen
+          // bağlantı bilgilerini içerebilir. İstemci hataları (4xx) bilinçli
+          // üretildiği için olduğu gibi döner.
+          const isServerError = status >= 500;
+          const message =
+            isServerError && process.env.NODE_ENV === 'production'
+              ? 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.'
+              : err.message || 'Internal Server Error';
+
+          if (!res.headersSent) {
+            res.status(status).json({ message });
+          }
         });
 
         // Setup Vite or static serving
