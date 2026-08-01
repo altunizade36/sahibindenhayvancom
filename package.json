@@ -25,7 +25,8 @@
     "setup:vercel": "node scripts/setup-vercel.mjs",
     "setup:dns": "node scripts/setup-godaddy-dns.mjs",
     "harden": "node scripts/harden.mjs",
-    "doctor": "node scripts/doctor.mjs"
+    "doctor": "node scripts/doctor.mjs",
+    "make-admin": "node scripts/make-admin.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
