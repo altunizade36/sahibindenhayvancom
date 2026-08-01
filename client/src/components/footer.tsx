@@ -5,20 +5,20 @@ import { CookieSettingsButton } from "@/components/cookie-consent";
 export function Footer() {
   return (
     <footer className="bg-muted/30 border-t mt-auto">
-      <div className="container mx-auto px-4 py-5 sm:py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-          <div className="sm:col-span-2 md:col-span-1">
+      <div className="container mx-auto px-4 py-4 sm:py-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block">
-              <LogoFull className="h-auto w-auto max-w-[200px] sm:max-w-none mb-3" />
+              <LogoFull className="h-auto w-auto items-start mb-2" />
             </Link>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Türkiye'nin en güvenilir hayvan ilanları platformu. Evcil hayvanlarınızı güvenle alın, satın, sahiplenin.
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold text-sm mb-2" data-testid="footer-section-platform">Platform</h4>
-            <ul className="space-y-1.5 text-sm">
+            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-platform">Platform</h4>
+            <ul className="space-y-1 text-[13px]">
               <li>
                 <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-home">
                   Ana Sayfa
@@ -63,8 +63,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-sm mb-2" data-testid="footer-section-legal">Yasal</h4>
-            <ul className="space-y-1.5 text-sm">
+            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-legal">Yasal</h4>
+            <ul className="space-y-1 text-[13px]">
               <li>
                 <Link href="/kullanim-kosullari" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-terms">
                   Kullanım Koşulları
@@ -94,8 +94,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-sm mb-2" data-testid="footer-section-support">Destek</h4>
-            <ul className="space-y-1.5 text-sm">
+            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-support">Destek</h4>
+            <ul className="space-y-1 text-[13px]">
               <li>
                 <Link href="/yardim" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-help">
                   Yardım Merkezi

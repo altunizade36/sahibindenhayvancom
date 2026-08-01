@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -115,7 +115,10 @@ export function Navbar() {
    * Ölçüm ResizeObserver ile canlı takip ediliyor.
    */
   const headerRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
+  // useEffect DEĞİL useLayoutEffect: değişken boyamadan önce yazılmalı.
+  // useEffect ile ilk kare 3.5rem varsayılanıyla çizilir ve yan menünün ilk
+  // satırı üst barın altında kalır — kullanıcının gördüğü kırpılma buydu.
+  useLayoutEffect(() => {
     const el = headerRef.current;
     if (!el) return;
 
