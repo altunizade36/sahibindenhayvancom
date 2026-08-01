@@ -3512,6 +3512,12 @@ import multer from "multer";
 // server/email.ts
 import crypto2 from "crypto";
 import { Resend } from "resend";
+function contactRecipient() {
+  return process.env.CONTACT_EMAIL || "info@sahibindenhayvan.com";
+}
+function escapeHtml(value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 function generateVerificationToken() {
   return crypto2.randomBytes(32).toString("hex");
 }
@@ -3539,6 +3545,16 @@ var DevelopmentEmailService = class {
     console.log(`
 \u{1F517} S\u0131f\u0131rlama Linki:`);
     console.log(resetUrl);
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
+  }
+  async sendContactMessage(data) {
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log("\u2709\uFE0F  \u0130LET\u0130\u015E\u0130M FORMU (DEV MODE)");
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log(`Al\u0131c\u0131: ${contactRecipient()}`);
+    console.log(`G\xF6nderen: ${data.name} <${data.email}> ${data.phone || ""}`);
+    console.log(`Konu: ${data.subject}`);
+    console.log(data.message);
     console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
   }
 };
@@ -3671,6 +3687,47 @@ var ProductionEmailService = class {
     } catch (error) {
       console.error("\u274C Failed to send password reset email:", error);
       throw new Error("Email g\xF6nderilemedi. L\xFCtfen daha sonra tekrar deneyin.");
+    }
+  }
+  /**
+   * İletişim formu mesajını site sahibine iletir.
+   *
+   * `replyTo` gönderenin adresine ayarlanır: site sahibi gelen e-postaya
+   * doğrudan "yanıtla" diyerek kullanıcıya ulaşabilir. `from` alanı kendi
+   * doğrulanmış alan adımız olmalı — gönderenin adresini `from` yapmak
+   * SPF/DKIM'i bozar ve e-postanın spam'e düşmesine yol açar.
+   */
+  async sendContactMessage(data) {
+    const alici = contactRecipient();
+    const satir = (baslik, deger) => `<tr><td style="padding:6px 12px;color:#666;white-space:nowrap">${baslik}</td><td style="padding:6px 12px"><b>${escapeHtml(deger)}</b></td></tr>`;
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: alici,
+        replyTo: data.email,
+        subject: `\u0130leti\u015Fim formu: ${data.subject}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:16px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com \u2014 \u0130leti\u015Fim Formu</h2>
+            </div>
+            <table style="width:100%;border-collapse:collapse;background:#f5f5f5">
+              ${satir("Ad Soyad", data.name)}
+              ${satir("E-posta", data.email)}
+              ${data.phone ? satir("Telefon", data.phone) : ""}
+              ${satir("Konu", data.subject)}
+            </table>
+            <div style="padding:20px;white-space:pre-wrap;line-height:1.6">${escapeHtml(data.message)}</div>
+            <p style="padding:0 20px 20px;color:#999;font-size:12px">
+              Bu e-postay\u0131 yan\u0131tlarsan\u0131z do\u011Frudan ${escapeHtml(data.email)} adresine ula\u015F\u0131r.
+            </p>
+          </div>
+        `
+      });
+      console.log(`\u2705 Contact form message forwarded to ${alici}`);
+    } catch (error) {
+      console.error("\u274C Failed to forward contact message:", error);
+      throw new Error("Mesaj iletilemedi.");
     }
   }
 };
@@ -8848,7 +8905,7 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "\u0130leti\u015Fim talepleri say\u0131lamad\u0131" });
     }
   });
-  app2.post("/api/contact", async (req, res) => {
+  app2.post("/api/contact", createLimiter, async (req, res) => {
     try {
       const { name, email, phone, subject, message } = req.body;
       if (!name || !email || !subject || !message) {
@@ -8858,14 +8915,12 @@ async function registerRoutes(app2, existingServer) {
       if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Ge\xE7erli bir e-posta adresi girin" });
       }
-      console.log("\u{1F4E7} Contact form submission:", {
-        name,
-        email,
-        phone: phone || "N/A",
-        subject,
-        message: message.substring(0, 100) + "...",
-        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-        ip: req.ip || req.socket.remoteAddress
+      await emailService.sendContactMessage({
+        name: String(name).slice(0, 200),
+        email: String(email).slice(0, 320),
+        phone: phone ? String(phone).slice(0, 40) : void 0,
+        subject: String(subject).slice(0, 300),
+        message: String(message).slice(0, 5e3)
       });
       res.status(201).json({
         message: "Mesaj\u0131n\u0131z al\u0131nd\u0131. En k\u0131sa s\xFCrede size d\xF6n\xFC\u015F yapaca\u011F\u0131z.",
@@ -8873,7 +8928,9 @@ async function registerRoutes(app2, existingServer) {
       });
     } catch (error) {
       console.error("Failed to process contact form:", error);
-      res.status(500).json({ message: "Mesaj g\xF6nderilemedi. L\xFCtfen tekrar deneyin." });
+      res.status(500).json({
+        message: "Mesaj g\xF6nderilemedi. L\xFCtfen tekrar deneyin veya do\u011Frudan e-posta ile ula\u015F\u0131n."
+      });
     }
   });
   app2.get("/api/listings/:listingId/offers", isAuthenticated, async (req, res) => {
@@ -9724,7 +9781,7 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "\u015Eikayet g\xFCncellenemedi" });
     }
   });
-  async function adminMiddleware(req, res, next) {
+  async function adminRoleMiddleware(req, res, next) {
     if (!req.user) {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
@@ -9749,7 +9806,10 @@ async function registerRoutes(app2, existingServer) {
     }
     next();
   }
-  app2.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminMiddleware, async (req, res) => {
+  async function adminMiddleware(req, res, next) {
+    return adminRoleMiddleware(req, res, () => adminPinMiddleware(req, res, next));
+  }
+  app2.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminRoleMiddleware, async (req, res) => {
     try {
       const { pin } = req.body;
       const adminPin = process.env.ADMIN_PANEL_PIN;
@@ -9777,7 +9837,7 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Do\u011Frulama hatas\u0131" });
     }
   });
-  app2.get("/api/admin/pin-status", isAuthenticated, adminMiddleware, (req, res) => {
+  app2.get("/api/admin/pin-status", isAuthenticated, adminRoleMiddleware, (req, res) => {
     const session2 = req.session;
     res.json({ verified: !!session2.adminPinVerified });
   });

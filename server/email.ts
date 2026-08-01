@@ -1,10 +1,38 @@
 import crypto from "crypto";
 import { Resend } from "resend";
 
+/** İletişim formundan gelen mesaj. */
+export interface ContactMessage {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}
+
 // Email service configuration
 export interface EmailService {
   sendVerificationEmail(to: string, token: string, username: string): Promise<void>;
   sendPasswordResetEmail(to: string, token: string, username: string): Promise<void>;
+  sendContactMessage(data: ContactMessage): Promise<void>;
+}
+
+/**
+ * İletişim formu mesajlarının gideceği adres.
+ *
+ * Ortam değişkeninden okunur; depo herkese açık olduğu için kişisel adres
+ * koda yazılmaz. Tanımlı değilse sitenin kamuya duyurulmuş adresi kullanılır.
+ */
+function contactRecipient(): string {
+  return process.env.CONTACT_EMAIL || "info@sahibindenhayvan.com";
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 // Generate secure verification token
@@ -39,6 +67,17 @@ class DevelopmentEmailService implements EmailService {
     console.log(`Kullanıcı: ${username}`);
     console.log(`\n🔗 Sıfırlama Linki:`);
     console.log(resetUrl);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  }
+
+  async sendContactMessage(data: ContactMessage): Promise<void> {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✉️  İLETİŞİM FORMU (DEV MODE)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Alıcı: ${contactRecipient()}`);
+    console.log(`Gönderen: ${data.name} <${data.email}> ${data.phone || ''}`);
+    console.log(`Konu: ${data.subject}`);
+    console.log(data.message);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 }
@@ -180,6 +219,52 @@ class ProductionEmailService implements EmailService {
     } catch (error) {
       console.error('❌ Failed to send password reset email:', error);
       throw new Error('Email gönderilemedi. Lütfen daha sonra tekrar deneyin.');
+    }
+  }
+
+  /**
+   * İletişim formu mesajını site sahibine iletir.
+   *
+   * `replyTo` gönderenin adresine ayarlanır: site sahibi gelen e-postaya
+   * doğrudan "yanıtla" diyerek kullanıcıya ulaşabilir. `from` alanı kendi
+   * doğrulanmış alan adımız olmalı — gönderenin adresini `from` yapmak
+   * SPF/DKIM'i bozar ve e-postanın spam'e düşmesine yol açar.
+   */
+  async sendContactMessage(data: ContactMessage): Promise<void> {
+    const alici = contactRecipient();
+    const satir = (baslik: string, deger: string) =>
+      `<tr><td style="padding:6px 12px;color:#666;white-space:nowrap">${baslik}</td>` +
+      `<td style="padding:6px 12px"><b>${escapeHtml(deger)}</b></td></tr>`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: alici,
+        replyTo: data.email,
+        subject: `İletişim formu: ${data.subject}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:16px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com — İletişim Formu</h2>
+            </div>
+            <table style="width:100%;border-collapse:collapse;background:#f5f5f5">
+              ${satir("Ad Soyad", data.name)}
+              ${satir("E-posta", data.email)}
+              ${data.phone ? satir("Telefon", data.phone) : ""}
+              ${satir("Konu", data.subject)}
+            </table>
+            <div style="padding:20px;white-space:pre-wrap;line-height:1.6">${escapeHtml(data.message)}</div>
+            <p style="padding:0 20px 20px;color:#999;font-size:12px">
+              Bu e-postayı yanıtlarsanız doğrudan ${escapeHtml(data.email)} adresine ulaşır.
+            </p>
+          </div>
+        `,
+      });
+
+      console.log(`✅ Contact form message forwarded to ${alici}`);
+    } catch (error) {
+      console.error('❌ Failed to forward contact message:', error);
+      throw new Error('Mesaj iletilemedi.');
     }
   }
 }

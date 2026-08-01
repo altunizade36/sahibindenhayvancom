@@ -6056,7 +6056,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // General contact form (public)
-  app.post("/api/contact", async (req: Request, res: Response) => {
+  app.post("/api/contact", createLimiter, async (req: Request, res: Response) => {
     try {
       const { name, email, phone, subject, message } = req.body;
 
@@ -6071,29 +6071,34 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Geçerli bir e-posta adresi girin" });
       }
 
-      // Log the contact form submission (in production, you'd store in DB or send email)
-      console.log("📧 Contact form submission:", {
-        name,
-        email,
-        phone: phone || "N/A",
-        subject,
-        message: message.substring(0, 100) + "...",
-        timestamp: new Date().toISOString(),
-        ip: req.ip || req.socket.remoteAddress
+      // Mesaj site sahibine e-posta ile iletilir.
+      //
+      // Daha önce burada yalnızca `console.log` vardı ve kullanıcıya
+      // "Mesajınız alındı, en kısa sürede dönüş yapacağız" deniyordu. Mesaj
+      // hiçbir yere ulaşmıyordu: sunucusuz ortamda konsol çıktısı kimsenin
+      // okumadığı bir günlüğe yazılıp kayboluyordu. Site tutamayacağı bir söz
+      // veriyordu; artık gerçekten iletiliyor.
+      //
+      // Gönderim başarısız olursa başarı dönmüyoruz — kullanıcı mesajının
+      // ulaşmadığını bilmeli ki başka bir yoldan iletebilsin.
+      await emailService.sendContactMessage({
+        name: String(name).slice(0, 200),
+        email: String(email).slice(0, 320),
+        phone: phone ? String(phone).slice(0, 40) : undefined,
+        subject: String(subject).slice(0, 300),
+        message: String(message).slice(0, 5000),
       });
 
-      // In a real app, you'd want to:
-      // 1. Store in database
-      // 2. Send email notification to admin
-      // For now, just log and respond success
-
-      res.status(201).json({ 
+      res.status(201).json({
         message: "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
         success: true
       });
     } catch (error) {
       console.error("Failed to process contact form:", error);
-      res.status(500).json({ message: "Mesaj gönderilemedi. Lütfen tekrar deneyin." });
+      res.status(500).json({
+        message:
+          "Mesaj gönderilemedi. Lütfen tekrar deneyin veya doğrudan e-posta ile ulaşın.",
+      });
     }
   });
 
@@ -7360,7 +7365,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Admin Routes ============
   // Admin middleware - checks role from database for real-time admin access
-  async function adminMiddleware(req: Request, res: Response, next: Function) {
+  async function adminRoleMiddleware(req: Request, res: Response, next: Function) {
     if (!req.user) {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
@@ -7391,16 +7396,34 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   function adminPinMiddleware(req: Request, res: Response, next: Function) {
     const session = req.session as any;
     if (!session.adminPinVerified) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Admin PIN doğrulaması gereklidir",
-        requirePin: true 
+        requirePin: true
       });
     }
     next();
   }
 
+  /**
+   * Yönetim uçlarının standart koruması: önce rol (veritabanından), sonra PIN.
+   *
+   * PIN kontrolü daha önce HİÇBİR rotaya bağlı değildi — `adminPinMiddleware`
+   * tanımlanmış ama kullanılmamıştı. Arayüzde PIN ekranı vardı ve doğrulama
+   * yalnızca istemcide tutuluyordu; yani PIN'i bilmeyen ama yönetici oturumu
+   * ele geçirmiş biri, arayüzü hiç kullanmadan doğrudan /api/admin/... çağırıp
+   * tüm yönetim işlemlerini yapabiliyordu. PIN ikinci bir katman olarak
+   * konulmuşken hiçbir şey korumuyordu.
+   *
+   * PIN'in kendi uçları (`/api/admin/verify-pin` ve `/api/admin/pin-status`)
+   * bilinçli olarak yalnızca `adminRoleMiddleware` kullanır — aksi hâlde PIN'i
+   * doğrulamak için PIN doğrulanmış olmak gerekir ve panele hiç girilemez.
+   */
+  async function adminMiddleware(req: Request, res: Response, next: Function) {
+    return adminRoleMiddleware(req, res, () => adminPinMiddleware(req, res, next));
+  }
+
   // Admin PIN verification endpoint
-  app.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminRoleMiddleware, async (req: Request, res: Response) => {
     try {
       const { pin } = req.body;
       const adminPin = process.env.ADMIN_PANEL_PIN;
@@ -7440,7 +7463,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Check admin PIN status
-  app.get("/api/admin/pin-status", isAuthenticated, adminMiddleware, (req: Request, res: Response) => {
+  app.get("/api/admin/pin-status", isAuthenticated, adminRoleMiddleware, (req: Request, res: Response) => {
     const session = req.session as any;
     res.json({ verified: !!session.adminPinVerified });
   });
