@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useBotTrap } from "@/lib/bot-trap";
 
 const registerSchema = z.object({
   firstName: z.string().min(2, "Adınızı girin (en az 2 karakter)"),
@@ -54,6 +55,7 @@ function PasswordStrength({ password }: { password: string }) {
 export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { BotTrapField, botFields } = useBotTrap();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -78,6 +80,7 @@ export default function Register() {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        ...botFields(),
       });
       setRegisteredEmail(data.email);
     } catch (error: any) {
@@ -160,6 +163,7 @@ export default function Register() {
           <CardContent className="space-y-4 pt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-register">
+                <BotTrapField />
                 {/* Ad & Soyad */}
                 <div className="grid grid-cols-2 gap-3">
                   <FormField

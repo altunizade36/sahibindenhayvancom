@@ -63,8 +63,6 @@ function checkEnv() {
   const optional = [
     ["RESEND_API_KEY", "E-posta gönderimi (doğrulama, şifre sıfırlama)"],
     ["UPSTASH_REDIS_REST_URL", "Redis önbellek"],
-    ["RECAPTCHA_SECRET_KEY", "Spam koruması"],
-    ["VITE_RECAPTCHA_SITE_KEY", "reCAPTCHA (istemci)"],
     ["GOOGLE_CLIENT_ID", "Google ile giriş"],
     ["FACEBOOK_APP_ID", "Facebook ile giriş"],
   ];

@@ -372,18 +372,18 @@ export default function AdminSettingsPage() {
                     <div className="space-y-0.5">
                       <Label className="flex items-center gap-2">
                         <Shield className="h-4 w-4" />
-                        reCAPTCHA
+                        Bot Koruması
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        Form ve giriş işlemlerinde bot koruması
+                        Formlarda gizli tuzak alan ve doldurma süresi kontrolü
                       </p>
                     </div>
                     <Switch
-                      checked={localSettings.security.enable_recaptcha === "true"}
+                      checked={localSettings.security.enable_bot_protection !== "false"}
                       onCheckedChange={(checked) =>
-                        updateSetting("security", "enable_recaptcha", checked ? "true" : "false")
+                        updateSetting("security", "enable_bot_protection", checked ? "true" : "false")
                       }
-                      data-testid="switch-recaptcha"
+                      data-testid="switch-bot-protection"
                     />
                   </div>
                 </div>

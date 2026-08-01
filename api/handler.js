@@ -3751,61 +3751,34 @@ function shouldAutoVerifyEmail() {
 }
 var emailService = createEmailService();
 
-// server/recaptcha.ts
-var RECAPTCHA_SITE_KEY = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
-var PROJECT_ID = process.env.RECAPTCHA_PROJECT_ID;
-async function verifyRecaptcha(token, expectedAction, minScore = 0.5) {
-  const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-  if (!apiKey || !RECAPTCHA_SITE_KEY || !PROJECT_ID) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("\u274C reCAPTCHA yap\u0131land\u0131r\u0131lmam\u0131\u015F (RECAPTCHA_SECRET_KEY / SITE_KEY / PROJECT_ID) \u2014 istek reddedildi.");
-      return false;
-    }
-    console.warn("\u26A0\uFE0F  reCAPTCHA yap\u0131land\u0131r\u0131lmam\u0131\u015F \u2014 geli\u015Ftirme modunda do\u011Frulama atlan\u0131yor.");
-    return true;
+// server/bot-protection.ts
+var HONEYPOT_FIELD = "website";
+var FORM_TIMESTAMP_FIELD = "formLoadedAt";
+var MIN_FORM_SECONDS = 2;
+var MAX_FORM_AGE_SECONDS = 24 * 60 * 60;
+function detectBot(body) {
+  if (!body || typeof body !== "object") return { bot: false };
+  const veri = body;
+  const balKupu = veri[HONEYPOT_FIELD];
+  if (typeof balKupu === "string" && balKupu.trim() !== "") {
+    return { bot: true, reason: "honeypot" };
   }
-  try {
-    const response = await fetch(
-      `https://recaptchaenterprise.googleapis.com/v1/projects/${PROJECT_ID}/assessments?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          event: {
-            token,
-            expectedAction,
-            siteKey: RECAPTCHA_SITE_KEY
-          }
-        })
-      }
-    );
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("reCAPTCHA Enterprise API error:", response.status, errorText);
-      return false;
+  const damga = Number(veri[FORM_TIMESTAMP_FIELD]);
+  if (Number.isFinite(damga) && damga > 0) {
+    const gecenSaniye = (Date.now() - damga) / 1e3;
+    if (gecenSaniye >= 0 && gecenSaniye < MIN_FORM_SECONDS && gecenSaniye < MAX_FORM_AGE_SECONDS) {
+      return { bot: true, reason: "too-fast" };
     }
-    const data = await response.json();
-    if (!data.tokenProperties?.valid) {
-      console.error("reCAPTCHA token invalid:", data.tokenProperties?.invalidReason);
-      return false;
-    }
-    if (expectedAction && data.tokenProperties.action !== expectedAction) {
-      console.error(`reCAPTCHA action mismatch: expected ${expectedAction}, got ${data.tokenProperties.action}`);
-      return false;
-    }
-    const score = data.riskAnalysis?.score ?? 0;
-    if (score < minScore) {
-      console.warn(`reCAPTCHA score too low: ${score} < ${minScore}`, data.riskAnalysis?.reasons);
-      return false;
-    }
-    console.log(`\u2705 reCAPTCHA verified: action=${expectedAction}, score=${score}`);
-    return true;
-  } catch (error) {
-    console.error("reCAPTCHA verification error:", error);
-    return false;
   }
+  return { bot: false };
+}
+function botGuard(req, res, next) {
+  const sonuc = detectBot(req.body);
+  if (sonuc.bot) {
+    console.warn(`Bot korumasi engelledi (${sonuc.reason}): ${req.method} ${req.path}`);
+    return res.status(400).json({ message: "\u0130stek do\u011Frulanamad\u0131. L\xFCtfen sayfay\u0131 yenileyip tekrar deneyin." });
+  }
+  next();
 }
 
 // server/validation.ts
@@ -5130,14 +5103,50 @@ var globalApiLimiter = async (req, res, next) => {
   }
   next();
 };
-var strictRateLimiter = async (req, res, next) => {
+var authIpLimiter = async (req, res, next) => {
+  if (isDevelopment) return next();
   const ip = req.ip || req.socket.remoteAddress || "unknown";
-  const limit = isDevelopment ? 30 : 5;
-  const windowSeconds = 300;
-  const result = await checkRedisRateLimit(`strict:${ip}`, limit, windowSeconds);
+  const result = await checkRedisRateLimit(`auth-ip:${ip}`, 120, 300);
   if (!result.allowed) {
     return res.status(429).json({
-      message: "\xC7ok fazla deneme yapt\u0131n\u0131z. L\xFCtfen 5 dakika bekleyin.",
+      message: "\xC7ok fazla istek g\xF6nderildi. L\xFCtfen biraz bekleyip tekrar deneyin.",
+      retryAfter: result.resetAt - Math.floor(Date.now() / 1e3)
+    });
+  }
+  next();
+};
+var LOGIN_FAIL_LIMIT = 12;
+var LOGIN_FAIL_WINDOW = 900;
+function loginFailKey(identifier) {
+  return `login-fail:${String(identifier).toLowerCase().trim()}`;
+}
+async function isLoginBlocked(identifier) {
+  try {
+    const sayi = Number(await cache.get(loginFailKey(identifier)) || 0);
+    return sayi >= LOGIN_FAIL_LIMIT;
+  } catch {
+    return false;
+  }
+}
+async function recordFailedLogin(identifier) {
+  try {
+    await cache.incr(loginFailKey(identifier), LOGIN_FAIL_WINDOW);
+  } catch {
+  }
+}
+async function clearLoginFailures(identifier) {
+  try {
+    await cache.del(loginFailKey(identifier));
+  } catch {
+  }
+}
+var pinAttemptLimiter = async (req, res, next) => {
+  const userId = req.user?.claims?.sub;
+  if (!userId) return next();
+  const result = await checkRedisRateLimit(`admin-pin:${userId}`, 10, 900);
+  if (!result.allowed) {
+    return res.status(429).json({
+      message: "\xC7ok fazla hatal\u0131 PIN denemesi. L\xFCtfen 15 dakika bekleyin.",
       retryAfter: result.resetAt - Math.floor(Date.now() / 1e3)
     });
   }
@@ -5733,7 +5742,7 @@ async function registerRoutes(app2, existingServer) {
       ws.close(1011, "Internal error");
     });
   }
-  app2.post("/api/auth/register", strictRateLimiter, async (req, res) => {
+  app2.post("/api/auth/register", authIpLimiter, botGuard, async (req, res) => {
     try {
       const { email, phone, password, firstName, lastName } = req.body;
       if (!email || !password) {
@@ -5792,12 +5801,17 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Kay\u0131t s\u0131ras\u0131nda bir hata olu\u015Ftu" });
     }
   });
-  app2.post("/api/auth/login", strictRateLimiter, async (req, res) => {
+  app2.post("/api/auth/login", authIpLimiter, async (req, res) => {
     try {
       const { identifier, emailOrUsername, password } = req.body;
       const loginIdentifier = identifier || emailOrUsername;
       if (!loginIdentifier || !password) {
         return res.status(400).json({ message: "Email/telefon ve \u015Fifre gereklidir" });
+      }
+      if (await isLoginBlocked(loginIdentifier)) {
+        return res.status(429).json({
+          message: "Bu hesap i\xE7in \xE7ok fazla hatal\u0131 giri\u015F denendi. L\xFCtfen 15 dakika sonra tekrar deneyin veya \u015Fifrenizi s\u0131f\u0131rlay\u0131n."
+        });
       }
       let normalizedIdentifier = loginIdentifier;
       const isPhone = /^[\d\s\+\-\(\)]+$/.test(loginIdentifier.replace(/\s/g, "")) && loginIdentifier.replace(/\D/g, "").length >= 10;
@@ -5813,13 +5827,16 @@ async function registerRoutes(app2, existingServer) {
         )
       });
       if (!user || !user.password) {
+        await recordFailedLogin(loginIdentifier);
         return res.status(401).json({ message: "Hatal\u0131 email/kullan\u0131c\u0131 ad\u0131 veya \u015Fifre" });
       }
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        await recordFailedLogin(loginIdentifier);
         await recordLoginHistory(user.id, req, false, isPhone ? "phone" : "email", "Hatal\u0131 \u015Fifre");
         return res.status(401).json({ message: "Hatal\u0131 email/kullan\u0131c\u0131 ad\u0131 veya \u015Fifre" });
       }
+      await clearLoginFailures(loginIdentifier);
       if (user.status === "banned" || user.status === "suspended") {
         await recordLoginHistory(
           user.id,
@@ -6812,7 +6829,7 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Failed to fetch listing" });
     }
   });
-  app2.post("/api/listings", createLimiter, isAuthenticated, async (req, res) => {
+  app2.post("/api/listings", createLimiter, botGuard, isAuthenticated, async (req, res) => {
     try {
       const user = req.user;
       const sellerId = getUserId2(user);
@@ -6821,22 +6838,6 @@ async function registerRoutes(app2, existingServer) {
           message: "\u0130lan olu\u015Fturabilmek i\xE7in email adresinizi do\u011Frulaman\u0131z gerekmektedir.",
           requiresVerification: true
         });
-      }
-      const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === "production") {
-        if (!recaptchaToken) {
-          return res.status(400).json({
-            message: "Bot korumas\u0131 do\u011Frulamas\u0131 gereklidir",
-            errorCode: "RECAPTCHA_REQUIRED"
-          });
-        }
-        const isValid = await verifyRecaptcha(recaptchaToken, "CREATE_LISTING");
-        if (!isValid) {
-          return res.status(400).json({
-            message: "Bot korumas\u0131 do\u011Frulamas\u0131 ba\u015Far\u0131s\u0131z",
-            errorCode: "RECAPTCHA_FAILED"
-          });
-        }
       }
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3);
       const normalizedTitle = req.body.title.toLowerCase().trim();
@@ -8718,49 +8719,9 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Video silinemedi." });
     }
   });
-  async function verifyRecaptchaEnterprise(token, action = "CONTACT") {
+  app2.post("/api/contact-requests", createLimiter, botGuard, async (req, res) => {
     try {
-      const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-      const projectId = process.env.RECAPTCHA_PROJECT_ID;
-      const siteKey = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
-      if (!apiKey || !projectId || !siteKey) {
-        if (process.env.NODE_ENV === "production") {
-          console.error("reCAPTCHA yap\u0131land\u0131r\u0131lmam\u0131\u015F \u2014 istek reddedildi.");
-          return { success: false, score: 0 };
-        }
-        console.warn("reCAPTCHA yap\u0131land\u0131r\u0131lmam\u0131\u015F, geli\u015Ftirme modunda atlan\u0131yor");
-        return { success: true, score: 1 };
-      }
-      const response = await fetch(
-        `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event: {
-              token,
-              expectedAction: action,
-              siteKey
-            }
-          })
-        }
-      );
-      if (!response.ok) {
-        console.error("reCAPTCHA Enterprise API error:", response.status);
-        return { success: false, score: 0 };
-      }
-      const data = await response.json();
-      const isValid = data.tokenProperties?.valid ?? false;
-      const score = data.riskAnalysis?.score ?? 0;
-      return { success: isValid, score };
-    } catch (error) {
-      console.error("reCAPTCHA verification failed:", error);
-      return { success: false, score: 0 };
-    }
-  }
-  app2.post("/api/contact-requests", async (req, res) => {
-    try {
-      const { listingId, senderName, senderEmail, senderPhone, message, recaptchaToken } = req.body;
+      const { listingId, senderName, senderEmail, senderPhone, message } = req.body;
       if (!listingId || !senderName || !senderEmail || !message) {
         return res.status(400).json({ message: "L\xFCtfen t\xFCm gerekli alanlar\u0131 doldurun" });
       }
@@ -8776,16 +8737,8 @@ async function registerRoutes(app2, existingServer) {
           message: "\xD6rnek ilanlara ileti\u015Fim talebi g\xF6nderilemez. Bu ilan sadece \xF6rnek ama\xE7l\u0131d\u0131r."
         });
       }
-      let recaptchaScore = 1;
-      if (recaptchaToken) {
-        const recaptchaResult = await verifyRecaptchaEnterprise(recaptchaToken, "CONTACT");
-        recaptchaScore = recaptchaResult.score;
-        if (!recaptchaResult.success || recaptchaScore < 0.3) {
-          return res.status(400).json({ message: "G\xFCvenlik do\u011Frulamas\u0131 ba\u015Far\u0131s\u0131z oldu. L\xFCtfen tekrar deneyin." });
-        }
-      }
       const ipAddress = req.ip || req.socket.remoteAddress || "unknown";
-      const status = recaptchaScore < 0.5 ? "spam" : "pending";
+      const status = "pending";
       const [contactRequest] = await db.insert(contactRequests).values({
         listingId,
         sellerId: listing.sellerId,
@@ -8794,19 +8747,16 @@ async function registerRoutes(app2, existingServer) {
         senderPhone: senderPhone || null,
         message,
         ipAddress,
-        recaptchaScore: recaptchaScore.toString(),
         status
       }).returning();
-      if (status !== "spam") {
-        await db.insert(notifications).values({
-          userId: listing.sellerId,
-          type: "new_message",
-          title: "Yeni \u0130leti\u015Fim Talebi",
-          message: `${senderName} adl\u0131 ziyaret\xE7i ilan\u0131n\u0131z hakk\u0131nda ileti\u015Fime ge\xE7mek istiyor.`,
-          relatedId: contactRequest.id,
-          isRead: false
-        });
-      }
+      await db.insert(notifications).values({
+        userId: listing.sellerId,
+        type: "new_message",
+        title: "Yeni \u0130leti\u015Fim Talebi",
+        message: `${senderName} adl\u0131 ziyaret\xE7i ilan\u0131n\u0131z hakk\u0131nda ileti\u015Fime ge\xE7mek istiyor.`,
+        relatedId: contactRequest.id,
+        isRead: false
+      });
       res.status(201).json({
         message: "Mesaj\u0131n\u0131z sat\u0131c\u0131ya iletildi. En k\u0131sa s\xFCrede sizinle ileti\u015Fime ge\xE7ilecektir.",
         id: contactRequest.id
@@ -9654,7 +9604,7 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Taslaklar getirilemedi" });
     }
   });
-  app2.post("/api/listings/:listingId/publish", isAuthenticated, createLimiter, async (req, res) => {
+  app2.post("/api/listings/:listingId/publish", isAuthenticated, createLimiter, botGuard, async (req, res) => {
     try {
       const { listingId } = req.params;
       const sellerId = getUserId2(req.user);
@@ -9683,22 +9633,6 @@ async function registerRoutes(app2, existingServer) {
           message: "\u0130lan yay\u0131nlamak i\xE7in email adresinizi do\u011Frulaman\u0131z gerekmektedir.",
           requiresVerification: true
         });
-      }
-      const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === "production") {
-        if (!recaptchaToken) {
-          return res.status(400).json({
-            message: "Bot korumas\u0131 do\u011Frulamas\u0131 gereklidir",
-            errorCode: "RECAPTCHA_REQUIRED"
-          });
-        }
-        const isValid = await verifyRecaptcha(recaptchaToken, "PUBLISH_LISTING");
-        if (!isValid) {
-          return res.status(400).json({
-            message: "Bot korumas\u0131 do\u011Frulamas\u0131 ba\u015Far\u0131s\u0131z",
-            errorCode: "RECAPTCHA_FAILED"
-          });
-        }
       }
       const newStatus = process.env.NODE_ENV === "production" ? "pending" : "active";
       const [publishedListing] = await db.update(listings).set({
@@ -9809,7 +9743,7 @@ async function registerRoutes(app2, existingServer) {
   async function adminMiddleware(req, res, next) {
     return adminRoleMiddleware(req, res, () => adminPinMiddleware(req, res, next));
   }
-  app2.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminRoleMiddleware, async (req, res) => {
+  app2.post("/api/admin/verify-pin", pinAttemptLimiter, isAuthenticated, adminRoleMiddleware, async (req, res) => {
     try {
       const { pin } = req.body;
       const adminPin = process.env.ADMIN_PANEL_PIN;

@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AuthGate } from "@/components/auth-gate";
-import { getRecaptchaToken, loadRecaptchaScript } from "@/lib/recaptcha";
+import { useBotTrap } from "@/lib/bot-trap";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -130,6 +130,8 @@ export default function CreateListing() {
   const { user } = useAuth();
   const { ready, isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
+  // reCAPTCHA yerine: bal kupu + form doldurma suresi (kullaniciya gorunmez)
+  const { BotTrapField, botFields } = useBotTrap();
   const [step, setStep] = useState(1);
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
@@ -298,8 +300,7 @@ export default function CreateListing() {
   const publishMutation = useMutation({
     mutationFn: async () => {
       if (!draftId) throw new Error("No draft ID");
-      const recaptchaToken = await getRecaptchaToken('PUBLISH_LISTING');
-      return await apiRequest("POST", `/api/listings/${draftId}/publish`, { recaptchaToken });
+      return await apiRequest("POST", `/api/listings/${draftId}/publish`, botFields());
     },
     onSuccess: (response: any) => {
       toast({
@@ -320,7 +321,6 @@ export default function CreateListing() {
 
   const createListingMutation = useMutation({
     mutationFn: async (data: ListingFormData) => {
-      const recaptchaToken = await getRecaptchaToken('CREATE_LISTING');
       const orderedImages = uploadedImages.length > 0 
         ? [uploadedImages[coverIndex], ...uploadedImages.filter((_, i) => i !== coverIndex)]
         : [];
@@ -329,7 +329,7 @@ export default function CreateListing() {
         images: orderedImages,
         videoUrls,
         characterTraits: selectedTraits,
-        recaptchaToken,
+        ...botFields(),
       });
     },
     onSuccess: (response: any) => {
@@ -528,11 +528,7 @@ export default function CreateListing() {
     }
   };
 
-  useEffect(() => {
-    if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
-      loadRecaptchaScript().catch(() => {});
-    }
-  }, []);
+
 
   // Oturum yüklenmeden yönlendirme yapılmaz (bkz. useRequireAuth)
   if (!ready) return <AuthGate isLoading={authLoading} />;
@@ -612,6 +608,7 @@ export default function CreateListing() {
         <CardContent className="p-4 md:p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
+              <BotTrapField />
               
               {/* Step 1: Category & Location */}
               {step === 1 && (

@@ -54,7 +54,7 @@ import {
   isObjectStorageConfigured,
 } from "./objectStorage";
 import { emailService, generateVerificationToken, shouldAutoVerifyEmail } from "./email";
-import { verifyRecaptcha } from "./recaptcha";
+import { botGuard, stripBotFields } from "./bot-protection";
 import { moderateListingSchema } from "./validation";
 import { registerAdvancedFeatureRoutes } from "./advancedFeatureRoutes";
 import { getTCMBRates, formatCurrencyForTicker } from "./marketDataService";
@@ -202,21 +202,98 @@ const globalApiLimiter = async (req: Request, res: Response, next: Function) => 
   next();
 };
 
-// Strict rate limiter for sensitive operations (login, register, etc.)
-const strictRateLimiter = async (req: Request, res: Response, next: Function) => {
+/**
+ * Giriş / kayıt gibi uçlar için IP tabanlı üst sınır.
+ *
+ * Eskiden IP başına 5 DAKİKADA 5 denemeydi ve bu gerçek kullanıcıları
+ * engelliyordu: Türkiye'de mobil operatörler CGNAT kullanıyor, yani binlerce
+ * abone aynı genel IP'den çıkıyor. Aynı ev, ofis veya kafe ağındaki herkes de
+ * tek IP paylaşır. Bu ölçekte 5 deneme birkaç saniyede tükeniyor ve hiçbir
+ * şey yapmamış kullanıcılar "Çok fazla deneme yaptınız" hatası alıyordu.
+ *
+ * Sınır artık paylaşılan bir IP'nin normal trafiğini rahatça geçirecek kadar
+ * geniş; amacı yalnızca kaba bir sel baskınını kesmek. Şifre deneme
+ * saldırısına karşı asıl koruma aşağıdaki hesap bazlı sayaçta.
+ */
+const authIpLimiter = async (req: Request, res: Response, next: Function) => {
+  if (isDevelopment) return next();
+
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  const limit = isDevelopment ? 30 : 5; // 5 attempts per 5 minutes in production
-  const windowSeconds = 300; // 5 minutes
-  
-  const result = await checkRedisRateLimit(`strict:${ip}`, limit, windowSeconds);
-  
+  const result = await checkRedisRateLimit(`auth-ip:${ip}`, 120, 300); // 5 dakikada 120
+
   if (!result.allowed) {
     return res.status(429).json({
-      message: 'Çok fazla deneme yaptınız. Lütfen 5 dakika bekleyin.',
+      message: 'Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar deneyin.',
       retryAfter: result.resetAt - Math.floor(Date.now() / 1000)
     });
   }
-  
+
+  next();
+};
+
+/**
+ * Şifre deneme saldırısına karşı HESAP bazlı koruma.
+ *
+ * IP yerine e-posta sayılır; CGNAT arkasındaki masum kullanıcılar birbirini
+ * etkilemez, buna karşılık tek bir hesaba yönelik deneme saldırısı kaynak IP
+ * değiştirse bile durur. Eşik bilinçli olarak yüksek: şifresini hatırlamaya
+ * çalışan gerçek bir kullanıcı buraya takılmamalı.
+ *
+ * Sayaç yalnızca BAŞARISIZ girişte artar (recordFailedLogin) ve başarılı
+ * girişte sıfırlanır (clearLoginFailures) — doğru şifreyi bilen kullanıcı
+ * hiçbir koşulda kilitlenmez.
+ */
+const LOGIN_FAIL_LIMIT = 12;
+const LOGIN_FAIL_WINDOW = 900; // 15 dakika
+
+function loginFailKey(identifier: string) {
+  return `login-fail:${String(identifier).toLowerCase().trim()}`;
+}
+
+async function isLoginBlocked(identifier: string): Promise<boolean> {
+  try {
+    const sayi = Number((await cache.get<number>(loginFailKey(identifier))) || 0);
+    return sayi >= LOGIN_FAIL_LIMIT;
+  } catch {
+    return false; // sayaç okunamıyorsa meşru kullanıcıyı kilitleme
+  }
+}
+
+async function recordFailedLogin(identifier: string): Promise<void> {
+  try {
+    await cache.incr(loginFailKey(identifier), LOGIN_FAIL_WINDOW);
+  } catch {
+    /* sayaç tutulamazsa giriş akışı bozulmasın */
+  }
+}
+
+async function clearLoginFailures(identifier: string): Promise<void> {
+  try {
+    await cache.del(loginFailKey(identifier));
+  } catch {
+    /* yok sayılabilir */
+  }
+}
+
+/**
+ * Yönetici PIN'i için deneme sınırı.
+ *
+ * PIN kısa (4-10 hane) olduğundan sınırsız deneme kaba kuvvetle kırılabilir.
+ * Sayaç IP yerine KULLANICI başına tutulur — bu uca yalnızca kimliği
+ * doğrulanmış yöneticiler ulaşabildiği için IP'ye bakmanın anlamı yok ve
+ * paylaşılan IP'den giren ikinci yönetici cezalandırılmamalı.
+ */
+const pinAttemptLimiter = async (req: Request, res: Response, next: Function) => {
+  const userId = (req.user as any)?.claims?.sub;
+  if (!userId) return next(); // kimlik kontrolü zaten sonraki katmanda
+
+  const result = await checkRedisRateLimit(`admin-pin:${userId}`, 10, 900); // 15 dakikada 10
+  if (!result.allowed) {
+    return res.status(429).json({
+      message: 'Çok fazla hatalı PIN denemesi. Lütfen 15 dakika bekleyin.',
+      retryAfter: result.resetAt - Math.floor(Date.now() / 1000)
+    });
+  }
   next();
 };
 
@@ -1134,7 +1211,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // ============ Kimlik Dogrulama Rotalari (E-posta / Sifre) ============
   
   // Unified Registration (Email + Phone)
-  app.post('/api/auth/register', strictRateLimiter, async (req: Request, res: Response) => {
+  app.post('/api/auth/register', authIpLimiter, botGuard, async (req: Request, res: Response) => {
     try {
       const { email, phone, password, firstName, lastName } = req.body;
 
@@ -1225,7 +1302,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Unified Login (Email or Phone + Password)
-  app.post('/api/auth/login', strictRateLimiter, async (req: Request, res: Response) => {
+  app.post('/api/auth/login', authIpLimiter, async (req: Request, res: Response) => {
     try {
       const { identifier, emailOrUsername, password } = req.body;
       
@@ -1234,6 +1311,15 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       if (!loginIdentifier || !password) {
         return res.status(400).json({ message: "Email/telefon ve şifre gereklidir" });
+      }
+
+      // Şifre deneme saldırısına karşı hesap bazlı kilit. IP değil hesap
+      // sayıldığı için paylaşılan (CGNAT/ofis) IP'lerdeki masum kullanıcılar
+      // birbirini etkilemez. Sayaç yalnızca hatalı denemede artar.
+      if (await isLoginBlocked(loginIdentifier)) {
+        return res.status(429).json({
+          message: "Bu hesap için çok fazla hatalı giriş denendi. Lütfen 15 dakika sonra tekrar deneyin veya şifrenizi sıfırlayın.",
+        });
       }
 
       // Normalize identifier - check if it looks like a phone number
@@ -1257,17 +1343,22 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       });
 
       if (!user || !user.password) {
-        // Record failed login attempt (user not found - but we still track by identifier)
+        // Olmayan hesap için de sayaç artar: aksi hâlde saldırgan hangi
+        // adreslerin kayıtlı olduğunu deneme sayısından anlayabilir.
+        await recordFailedLogin(loginIdentifier);
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        // Record failed login attempt
+        await recordFailedLogin(loginIdentifier);
         await recordLoginHistory(user.id, req, false, isPhone ? 'phone' : 'email', 'Hatalı şifre');
         return res.status(401).json({ message: "Hatalı email/kullanıcı adı veya şifre" });
       }
+
+      // Doğru şifre girildi — sayaç sıfırlanır, meşru kullanıcı kilitlenmez.
+      await clearLoginFailures(loginIdentifier);
 
       // Hesap durumu — yasaklı/askıya alınmış kullanıcı giriş yapamaz.
       // (Şifre doğrulandıktan SONRA kontrol ediliyor ki hesap durumu
@@ -2825,7 +2916,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
-  app.post("/api/listings", createLimiter, isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/listings", createLimiter, botGuard, isAuthenticated, async (req: Request, res: Response) => {
     try {
       const user = req.user!;
       const sellerId = getUserId(user);
@@ -2839,23 +2930,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       }
 
-      // SECURITY: Validate reCAPTCHA for listing creation (skip in development)
-      const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === 'production') {
-        if (!recaptchaToken) {
-          return res.status(400).json({
-            message: "Bot koruması doğrulaması gereklidir",
-            errorCode: "RECAPTCHA_REQUIRED",
-          });
-        }
-        const isValid = await verifyRecaptcha(recaptchaToken, "CREATE_LISTING");
-        if (!isValid) {
-          return res.status(400).json({
-            message: "Bot koruması doğrulaması başarısız",
-            errorCode: "RECAPTCHA_FAILED",
-          });
-        }
-      }
+      // Bot koruması yukarıdaki botGuard katmanında yapılıyor (bal küpü +
+      // form doldurma süresi). Ayrıca ilan verebilmek için e-posta doğrulaması
+      // zorunlu ve aşağıda yinelenen/sık ilan filtreleri var.
 
       // SPAM FILTER: Check BEFORE counting toward hourly limit
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -5790,62 +5867,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Guest Contact Requests (Misafir İletişim Formu) ============
 
-  // Verify reCAPTCHA Enterprise token
-  async function verifyRecaptchaEnterprise(token: string, action: string = "CONTACT"): Promise<{ success: boolean; score: number }> {
-    try {
-      const apiKey = process.env.RECAPTCHA_SECRET_KEY;
-      const projectId = process.env.RECAPTCHA_PROJECT_ID;
-      const siteKey = process.env.VITE_RECAPTCHA_SITE_KEY || process.env.RECAPTCHA_SITE_KEY;
-
-      if (!apiKey || !projectId || !siteKey) {
-        // Üretimde fail closed — yapılandırma eksikse doğrulamayı geçirme
-        if (process.env.NODE_ENV === "production") {
-          console.error("reCAPTCHA yapılandırılmamış — istek reddedildi.");
-          return { success: false, score: 0 };
-        }
-        console.warn("reCAPTCHA yapılandırılmamış, geliştirme modunda atlanıyor");
-        return { success: true, score: 1.0 };
-      }
-
-      const response = await fetch(
-        `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event: {
-              token: token,
-              expectedAction: action,
-              siteKey: siteKey,
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        console.error("reCAPTCHA Enterprise API error:", response.status);
-        return { success: false, score: 0 };
-      }
-
-      const data = await response.json() as { 
-        tokenProperties?: { valid?: boolean };
-        riskAnalysis?: { score?: number };
-      };
-      
-      const isValid = data.tokenProperties?.valid ?? false;
-      const score = data.riskAnalysis?.score ?? 0;
-      
-      return { success: isValid, score: score };
-    } catch (error) {
-      console.error("reCAPTCHA verification failed:", error);
-      return { success: false, score: 0 };
-    }
-  }
-
   // Create a guest contact request (no login required)
-  app.post("/api/contact-requests", async (req: Request, res: Response) => {
+  app.post("/api/contact-requests", createLimiter, botGuard, async (req: Request, res: Response) => {
     try {
-      const { listingId, senderName, senderEmail, senderPhone, message, recaptchaToken } = req.body;
+      const { listingId, senderName, senderEmail, senderPhone, message } = req.body;
 
       // Validate required fields
       if (!listingId || !senderName || !senderEmail || !message) {
@@ -5873,23 +5898,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       }
 
-      // Verify reCAPTCHA Enterprise
-      let recaptchaScore = 1.0;
-      if (recaptchaToken) {
-        const recaptchaResult = await verifyRecaptchaEnterprise(recaptchaToken, "CONTACT");
-        recaptchaScore = recaptchaResult.score;
-        
-        // Block if score is too low (likely bot)
-        if (!recaptchaResult.success || recaptchaScore < 0.3) {
-          return res.status(400).json({ message: "Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin." });
-        }
-      }
-
-      // Get IP address
+      // Bot koruması botGuard katmanında (bal küpü + form süresi) yapılıyor.
       const ipAddress = req.ip || req.socket.remoteAddress || "unknown";
 
-      // Determine status based on reCAPTCHA score
-      const status = recaptchaScore < 0.5 ? "spam" : "pending";
+      // Talep her hâlükârda moderasyona düşer; satıcı görmeden önce
+      // yönetim panelinden değerlendirilebilir.
+      const status = "pending";
 
       // Create the contact request
       const [contactRequest] = await db
@@ -5902,22 +5916,21 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           senderPhone: senderPhone || null,
           message,
           ipAddress,
-          recaptchaScore: recaptchaScore.toString(),
           status,
         })
         .returning();
 
-      // If not spam, create a notification for the seller
-      if (status !== "spam") {
-        await db.insert(notifications).values({
-          userId: listing.sellerId,
-          type: "new_message",
-          title: "Yeni İletişim Talebi",
-          message: `${senderName} adlı ziyaretçi ilanınız hakkında iletişime geçmek istiyor.`,
-          relatedId: contactRequest.id,
-          isRead: false,
-        });
-      }
+      // Satıcıya bildirim. Talep botGuard'ı geçtiği için ayrıca spam
+      // puanına bakılmıyor; şüpheli olanlar yönetim panelinden "spam"
+      // olarak işaretlenebilir.
+      await db.insert(notifications).values({
+        userId: listing.sellerId,
+        type: "new_message",
+        title: "Yeni İletişim Talebi",
+        message: `${senderName} adlı ziyaretçi ilanınız hakkında iletişime geçmek istiyor.`,
+        relatedId: contactRequest.id,
+        isRead: false,
+      });
 
       res.status(201).json({ 
         message: "Mesajınız satıcıya iletildi. En kısa sürede sizinle iletişime geçilecektir.",
@@ -7172,7 +7185,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Publish a draft (convert to pending/active)
-  app.post("/api/listings/:listingId/publish", isAuthenticated, createLimiter, async (req: Request, res: Response) => {
+  app.post("/api/listings/:listingId/publish", isAuthenticated, createLimiter, botGuard, async (req: Request, res: Response) => {
     try {
       const { listingId } = req.params;
       const sellerId = getUserId(req.user);
@@ -7219,23 +7232,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       }
 
-      // CAPTCHA verification
-      const recaptchaToken = req.body.recaptchaToken;
-      if (process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === 'production') {
-        if (!recaptchaToken) {
-          return res.status(400).json({
-            message: "Bot koruması doğrulaması gereklidir",
-            errorCode: "RECAPTCHA_REQUIRED",
-          });
-        }
-        const isValid = await verifyRecaptcha(recaptchaToken, "PUBLISH_LISTING");
-        if (!isValid) {
-          return res.status(400).json({
-            message: "Bot koruması doğrulaması başarısız",
-            errorCode: "RECAPTCHA_FAILED",
-          });
-        }
-      }
+      // Bot koruması botGuard katmanında (bal küpü + form doldurma süresi).
 
       // Set status based on environment
       const newStatus = process.env.NODE_ENV === 'production' ? 'pending' : 'active';
@@ -7429,7 +7426,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   }
 
   // Admin PIN verification endpoint
-  app.post("/api/admin/verify-pin", strictRateLimiter, isAuthenticated, adminRoleMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/verify-pin", pinAttemptLimiter, isAuthenticated, adminRoleMiddleware, async (req: Request, res: Response) => {
     try {
       const { pin } = req.body;
       const adminPin = process.env.ADMIN_PANEL_PIN;

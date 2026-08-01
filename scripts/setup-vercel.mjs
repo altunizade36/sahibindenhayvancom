@@ -96,7 +96,7 @@ async function pushEnvVars() {
       v !== "" &&
       v != null &&
       // Sadece .env dosyasında tanımlı olanlar (sistem env'i değil)
-      /^(DATABASE_URL|SUPABASE_|SESSION_SECRET|APP_URL|FROM_EMAIL|ADMIN_PANEL_PIN|RESEND_|UPSTASH_|RECAPTCHA_|GOOGLE_|FACEBOOK_|VITE_)/.test(k)
+      /^(DATABASE_URL|SUPABASE_|SESSION_SECRET|APP_URL|FROM_EMAIL|ADMIN_PANEL_PIN|RESEND_|UPSTASH_|GOOGLE_|FACEBOOK_|VITE_)/.test(k)
   );
 
   if (!entries.length) {

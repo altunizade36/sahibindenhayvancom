@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2, CheckCircle, Mail, Phone, User } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useBotTrap } from "@/lib/bot-trap";
 
 const contactFormSchema = z.object({
   senderName: z.string().min(2, "İsim en az 2 karakter olmalı"),
@@ -38,26 +39,10 @@ interface GuestContactFormProps {
 export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestContactFormProps) {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
 
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
-
-  useEffect(() => {
-    if (recaptchaSiteKey && !window.grecaptcha?.enterprise) {
-      const script = document.createElement("script");
-      script.src = `https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        window.grecaptcha?.enterprise?.ready(() => {
-          setRecaptchaLoaded(true);
-        });
-      };
-      document.head.appendChild(script);
-    } else if (window.grecaptcha?.enterprise) {
-      setRecaptchaLoaded(true);
-    }
-  }, [recaptchaSiteKey]);
+  // reCAPTCHA kaldırıldı; yerine kullanıcının fark etmediği bal küpü +
+  // form doldurma süresi kontrolü kullanılıyor.
+  const { BotTrapField, botFields } = useBotTrap();
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -71,20 +56,10 @@ export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestC
 
   const submitMutation = useMutation({
     mutationFn: async (data: ContactFormData) => {
-      let recaptchaToken = "";
-      
-      if (recaptchaSiteKey && window.grecaptcha?.enterprise) {
-        try {
-          recaptchaToken = await window.grecaptcha.enterprise.execute(recaptchaSiteKey, { action: "CONTACT" });
-        } catch (error) {
-          console.error("reCAPTCHA Enterprise error:", error);
-        }
-      }
-
       const response = await apiRequest("POST", "/api/contact-requests", {
         ...data,
         listingId,
-        recaptchaToken,
+        ...botFields(),
       });
 
       return response.json();
@@ -148,6 +123,7 @@ export function GuestContactForm({ listingId, listingTitle, sellerName }: GuestC
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <BotTrapField />
             <FormField
               control={form.control}
               name="senderName"
