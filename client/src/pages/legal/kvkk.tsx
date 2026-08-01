@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
 import { ArrowLeft, Shield, AlertCircle, FileCheck, User, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COMPANY, companyIdentityRows } from "@/lib/company";
 
 export default function KVKK() {
   return (
@@ -25,7 +26,7 @@ export default function KVKK() {
             6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Aydınlatma Metni
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Son güncelleme: 1 Aralık 2024
+            Son güncelleme: {COMPANY.legalLastUpdated}
           </p>
         </div>
 
@@ -45,9 +46,12 @@ export default function KVKK() {
               </p>
               <div className="p-4 bg-muted rounded-lg">
                 <ul className="space-y-2">
-                  <li><strong>Platform:</strong> sahibindenhayvan.com</li>
-                  <li><strong>E-posta:</strong> kvkk@sahibindenhayvan.com</li>
-                  <li><strong>Adres:</strong> İstanbul, Türkiye</li>
+                  {companyIdentityRows().map((row) => (
+                    <li key={row.label}>
+                      <strong>{row.label}:</strong> {row.value}
+                    </li>
+                  ))}
+                  <li><strong>KVKK Başvuru:</strong> {COMPANY.kvkkEmail}</li>
                 </ul>
               </div>
             </CardContent>

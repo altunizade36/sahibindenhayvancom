@@ -19,6 +19,28 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+/**
+ * Giriş sonrası dönülecek adresi `?redirect=` parametresinden okur.
+ *
+ * Güvenlik: yalnızca site içi, tek eğik çizgiyle başlayan yollar kabul edilir.
+ * "//baska-site.com" veya "https://..." gibi değerler açık yönlendirme
+ * (open redirect) saldırısına yol açar; bunlar yok sayılıp ana sayfaya dönülür.
+ */
+function safeRedirectTarget(): string {
+  const raw = new URLSearchParams(window.location.search).get("redirect");
+  if (!raw) return "/";
+  let value: string;
+  try {
+    value = decodeURIComponent(raw);
+  } catch {
+    return "/";
+  }
+  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  // Giriş/kayıt sayfalarına geri dönüp döngü oluşturma
+  if (/^\/(giris|login|kayit|register)(\/|$|\?)/.test(value)) return "/";
+  return value;
+}
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -39,8 +61,10 @@ export default function Login() {
       });
 
       toast({ title: "Giriş Başarılı!", description: "Hoş geldiniz!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
+      // Oturum bilgisi tazelenmeden yönlendirilirse hedef sayfanın koruması
+      // kullanıcıyı tekrar giriş sayfasına atabilir — önce bekliyoruz.
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation(safeRedirectTarget());
     } catch (error: any) {
       let msg = "E-posta veya şifre hatalı.";
       if (error.message?.includes("bulunamadı") || error.message?.includes("not found"))

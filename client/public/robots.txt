@@ -1,0 +1,32 @@
+# sahibindenhayvan.com — robots.txt
+
+User-agent: *
+Allow: /
+
+# Kişisel/işlemsel alanlar dizine eklenmemeli
+Disallow: /panel
+Disallow: /panel/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /mesajlar
+Disallow: /profil-duzenle
+Disallow: /ilan-duzenle/
+Disallow: /ayarlar
+Disallow: /giris
+Disallow: /login
+Disallow: /kayit
+Disallow: /register
+Disallow: /sifremi-unuttum
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+# Sunucu API'si ve dosya uçları
+Disallow: /api/
+Disallow: /objects/
+
+# Arama sonucu sayfaları yinelenen içerik üretir
+Disallow: /arama?
+Disallow: /*?q=
+
+Sitemap: https://sahibindenhayvan.com/sitemap.xml

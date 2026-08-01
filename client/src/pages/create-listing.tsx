@@ -6,6 +6,8 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { AuthGate } from "@/components/auth-gate";
 import { getRecaptchaToken, loadRecaptchaScript } from "@/lib/recaptcha";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -126,6 +128,7 @@ export default function CreateListing() {
   const [, navigate] = useLocation();
   const searchString = useSearch();
   const { user } = useAuth();
+  const { ready, isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [selectedProvince, setSelectedProvince] = useState<string>("");
@@ -526,12 +529,14 @@ export default function CreateListing() {
   };
 
   useEffect(() => {
-    if (!user) navigate("/giris");
     if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
       loadRecaptchaScript().catch(() => {});
     }
-  }, [user, navigate]);
+  }, []);
 
+  // Oturum yüklenmeden yönlendirme yapılmaz (bkz. useRequireAuth)
+  if (!ready) return <AuthGate isLoading={authLoading} />;
+  // ready true iken user daima dolu; bu satır yalnızca TypeScript daraltması için
   if (!user) return null;
 
   const canProceedStep1 = form.watch("categoryId") && form.watch("city") && form.watch("district");

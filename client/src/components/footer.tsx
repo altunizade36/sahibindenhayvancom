@@ -30,8 +30,33 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/magazalar" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-stores">
+                  Mağazalar
+                </Link>
+              </li>
+              <li>
+                <Link href="/veteriner-hizmetleri" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-vet">
+                  Veteriner Hizmetleri
+                </Link>
+              </li>
+              <li>
+                <Link href="/nakliye-hizmetleri" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-transport">
+                  Nakliye Hizmetleri
+                </Link>
+              </li>
+              <li>
+                <Link href="/piyasa-fiyatlari" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-prices">
+                  Piyasa Fiyatları
+                </Link>
+              </li>
+              <li>
                 <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-blog">
                   Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/hakkimizda" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
+                  Hakkımızda
                 </Link>
               </li>
             </ul>

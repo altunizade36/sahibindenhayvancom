@@ -9,6 +9,7 @@ import { setupAuth, isAuthenticated, getSession } from "./auth";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
+import { registerSitemapRoutes } from "./sitemap";
 
 // Global notification event emitter for real-time WebSocket notifications
 export const notificationEmitter = new EventEmitter();
@@ -384,6 +385,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // Note: Main health checks (/ and /health) are registered in index.ts BEFORE any middleware
   // These are additional monitoring endpoints
   app.get("/readiness", readinessCheck);
+
+  // SEO: dinamik sitemap (robots.txt statik olarak client/public altinda)
+  registerSitemapRoutes(app);
   app.get("/metrics", metricsEndpoint);
 
   // ============ Replit Auth Setup ============

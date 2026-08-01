@@ -6,6 +6,8 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { AuthGate } from "@/components/auth-gate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -55,6 +57,7 @@ type PasswordFormData = z.infer<typeof passwordFormSchema>;
 export default function EditProfile() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
+  const { ready, isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -261,15 +264,10 @@ export default function EditProfile() {
     changePasswordMutation.mutate(data);
   };
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/giris");
-    }
-  }, [user, navigate]);
-
-  if (!user) {
-    return null;
-  }
+  // Oturum yüklenmeden yönlendirme yapılmaz (bkz. useRequireAuth)
+  if (!ready) return <AuthGate isLoading={authLoading} />;
+  // ready true iken user daima dolu; bu satır yalnızca TypeScript daraltması için
+  if (!user) return null;
 
   return (
     <div className="container max-w-2xl mx-auto py-8 px-4">

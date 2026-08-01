@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { COMPANY } from "@/lib/company";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
@@ -23,7 +24,7 @@ export default function IlanKurallari() {
             <h1 className="text-3xl font-bold">İlan Kuralları ve Yasaklı Ürünler</h1>
           </div>
           <p className="text-muted-foreground">
-            Son güncelleme: 1 Aralık 2024
+            Son güncelleme: {COMPANY.legalLastUpdated}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             5199 Sayılı Hayvanları Koruma Kanunu ve 5996 Sayılı Veteriner Hizmetleri Kanunu kapsamında hazırlanmıştır.

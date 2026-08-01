@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { COMPANY } from "@/lib/company";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
@@ -22,7 +23,7 @@ export default function GizlilikPolitikasi() {
             <h1 className="text-3xl font-bold">Gizlilik Politikası</h1>
           </div>
           <p className="text-muted-foreground">
-            Son güncelleme: 1 Aralık 2024
+            Son güncelleme: {COMPANY.legalLastUpdated}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında hazırlanmıştır.

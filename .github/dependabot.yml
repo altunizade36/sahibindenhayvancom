@@ -17,6 +17,17 @@ updates:
       # Gürültüyü azalt: küçük/yama güncellemeleri tek PR'da toplansın
       minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # Vite 8, @vitejs/plugin-react@4 ile uyumsuz (peer: ^4||^5||^6||^7).
+      # Plugin desteklediğinde bu kural kaldırılabilir.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      # Majör atlamalar elle değerlendirilsin; otomatik PR'lar derlemeyi
+      # bozabiliyor (date-fns 4, cross-env 10, esbuild 0.28 vb.).
+      - dependency-name: "date-fns"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "cross-env"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions sürümleri (tedarik zinciri güvenliği için önemli)
   - package-ecosystem: github-actions

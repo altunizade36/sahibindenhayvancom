@@ -1,5 +1,4 @@
 import { Link } from "wouter";
-import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -126,7 +125,6 @@ export default function Yardim() {
         title="Yardım Merkezi | sahibindenhayvan.com"
         description="Sıkça sorulan sorular, hesap ayarları, ilan verme ve güvenlik konularında yardım alın."
       />
-      <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">

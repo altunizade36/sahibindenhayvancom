@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+const SITE_ORIGIN = "https://sahibindenhayvan.com";
+
 interface SEOHeadProps {
   title?: string;
   description?: string;
@@ -7,6 +9,23 @@ interface SEOHeadProps {
   url?: string;
   type?: "website" | "article" | "product";
   structuredData?: Record<string, any>;
+  /** Arama motorları bu sayfayı dizine eklemesin (404, arama sonucu, panel vb.) */
+  noIndex?: boolean;
+  /**
+   * Sayfanın kanonik adresi. Verilmezse mevcut yoldan üretilir.
+   * Sorgu parametreleri bilinçli olarak atılır: aynı içeriğin
+   * ?page=2&sort=... gibi sayısız varyantı ayrı sayfa sayılmamalı.
+   */
+  canonical?: string;
+}
+
+/** Mevcut yoldan kanonik adres üretir (sorgu ve hash atılır, sondaki / sadeleştirilir). */
+function buildCanonical(explicit?: string): string {
+  if (explicit) {
+    return explicit.startsWith("http") ? explicit : `${SITE_ORIGIN}${explicit}`;
+  }
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  return `${SITE_ORIGIN}${path}`;
 }
 
 export function SEOHead({
@@ -15,7 +34,9 @@ export function SEOHead({
   image = "https://sahibindenhayvan.com/og-image.jpg",
   url = window.location.href,
   type = "website",
-  structuredData
+  structuredData,
+  noIndex = false,
+  canonical
 }: SEOHeadProps) {
   useEffect(() => {
     // Update title
@@ -37,8 +58,20 @@ export function SEOHead({
 
     // Standard meta tags
     updateMeta("description", description);
-    updateMeta("robots", "index, follow");
+    updateMeta("robots", noIndex ? "noindex, nofollow" : "index, follow");
     updateMeta("viewport", "width=device-width, initial-scale=1");
+
+    // Kanonik adres — index.html'deki sabit değeri her sayfada güncelliyoruz.
+    // Güncellenmezse tüm sayfalar ana sayfayı işaret eder ve arama motorları
+    // iç sayfaları yinelenen içerik sayıp dizine almaz.
+    const canonicalHref = buildCanonical(canonical);
+    let linkEl = document.querySelector('link[rel="canonical"]');
+    if (!linkEl) {
+      linkEl = document.createElement("link");
+      linkEl.setAttribute("rel", "canonical");
+      document.head.appendChild(linkEl);
+    }
+    linkEl.setAttribute("href", canonicalHref);
 
     // Open Graph
     updateMeta("og:title", title, true);
@@ -67,7 +100,7 @@ export function SEOHead({
       
       scriptElement.textContent = JSON.stringify(structuredData);
     }
-  }, [title, description, image, url, type, structuredData]);
+  }, [title, description, image, url, type, structuredData, noIndex, canonical]);
 
   return null;
 }
