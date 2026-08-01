@@ -170,8 +170,63 @@
     @apply border-border;
   }
 
+  html {
+    /*
+     * iOS cihaz yatay çevrildiğinde metni kendiliğinden büyütür ve düzen
+     * bozulur. Bu davranış kapatılıyor; ölçekleme kullanıcıya bırakılıyor
+     * (parmakla yakınlaştırma açık, bkz. index.html'deki viewport notu).
+     */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
+
+    /*
+     * Yatay taşma koruması. Tek bir taşan öğe (uzun başlık, geniş tablo,
+     * negatif kenar boşluğu) mobilde tüm sayfayı yana kaydırılabilir hâle
+     * getirir ve düzen bozuk görünür. Dikey kaydırma etkilenmez.
+     */
+    overflow-x: hidden;
+
+    /*
+     * Çentikli/yuvarlak köşeli ekranlarda güvenli alan. viewport-fit=cover
+     * kullanıldığı için içerik ekranın tamamına yayılıyor; yatay modda
+     * çentiğin altında metin kalmasın diye yanlardan pay bırakılıyor.
+     * Dikey modda bu değerler 0'dır, hiçbir şey değişmez.
+     */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+
+    /* Dokunulan öğenin etrafında beliren gri kutu kaldırıldı; geri bildirimi
+       bileşenlerin kendi active/hover durumları veriyor. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+   * Dokunmatik cihazlarda dokunma hedefi büyütmesi.
+   *
+   * Varsayılan buton yükseklikleri 32-36px; fare ile sorun değil ama parmakla
+   * kullanımda küçük kalıyor ve yanlış öğeye basılıyor. `pointer: coarse`
+   * yalnızca dokunmatik girdide eşleşir, masaüstü görünümü değişmez.
+   *
+   * WCAG 2.5.8 en az 24px, Apple ve Google 44px öneriyor; 44px alındı.
+   */
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    a[href][data-testid],
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-height: 44px;
+    }
+
+    button[class*="w-9"],
+    button[class*="w-8"],
+    [role="button"][class*="w-9"] {
+      min-width: 44px;
+    }
   }
 }
 

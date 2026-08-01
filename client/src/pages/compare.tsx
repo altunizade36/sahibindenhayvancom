@@ -253,6 +253,8 @@ export default function ComparePage() {
                             src={listing.images[0]}
                             alt={listing.title}
                             className="w-32 h-32 mx-auto rounded-lg object-cover mb-2 group-hover:ring-2 ring-primary transition-shadow"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div className="w-32 h-32 mx-auto rounded-lg bg-muted flex items-center justify-center mb-2">

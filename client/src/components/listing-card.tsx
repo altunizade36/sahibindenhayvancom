@@ -78,6 +78,8 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
                   alt={listing.title}
                   className="object-cover w-full h-full"
                   data-testid={`img-listing-${listing.id}`}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               {listing.listingSource === "store" && listing.store && (
@@ -186,6 +188,8 @@ export function ListingCard({ listing, onFavoriteToggle, variant = "vertical" }:
             alt={listing.title}
             className="object-cover w-full h-full"
             data-testid={`img-listing-${listing.id}`}
+            loading="lazy"
+            decoding="async"
           />
           <div className="absolute top-2 right-2 flex gap-1 flex-wrap justify-end">
             {listing.listingSource === "store" && listing.store && (

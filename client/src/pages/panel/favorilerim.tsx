@@ -333,6 +333,8 @@ export default function PanelFavorilerim() {
                             src={favorite.listing.images[0]}
                             alt={favorite.listing.title}
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -417,6 +419,8 @@ export default function PanelFavorilerim() {
                               src={favorite.listing.images[0]}
                               alt={favorite.listing.title}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

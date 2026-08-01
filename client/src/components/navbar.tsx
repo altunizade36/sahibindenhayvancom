@@ -139,8 +139,14 @@ export function Navbar() {
     };
   }, []);
 
+  // pt-[env(safe-area-inset-top)]: uygulama ana ekrana eklenip tam ekran
+  // (standalone) çalıştırıldığında üst bar iOS durum çubuğunun altında
+  // kalıyordu. Normal tarayıcıda bu değer 0'dır, hiçbir şey değişmez.
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 border-b bg-background">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 border-b bg-background pt-[env(safe-area-inset-top)]"
+    >
       {/* Bloomberg-style Market Ticker */}
       <MarketTicker />
       

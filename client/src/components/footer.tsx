@@ -120,7 +120,10 @@ export function Footer() {
       </div>
 
       {/* Alt şerit */}
-      <div className="border-t">
+      {/* pb-[env(safe-area-inset-bottom)]: çentikli telefonlarda ekranın en
+          altındaki ana ekran çubuğu son satırın üzerine biniyordu. Tarayıcıda
+          ve klasik ekranlarda bu değer 0'dır. */}
+      <div className="border-t pb-[env(safe-area-inset-bottom)]">
         <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-3 text-[11px] text-muted-foreground md:flex-row">
           <p data-testid="footer-copyright">
             © {new Date().getFullYear()} {COMPANY.brand} — Tüm hakları saklıdır.

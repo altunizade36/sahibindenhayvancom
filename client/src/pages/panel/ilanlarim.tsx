@@ -506,6 +506,8 @@ export default function PanelIlanlarim() {
                             src={listing.images[0]}
                             alt={listing.title}
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -653,6 +655,8 @@ export default function PanelIlanlarim() {
                               src={listing.images[0]}
                               alt={listing.title}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
