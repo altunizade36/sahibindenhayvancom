@@ -59,12 +59,46 @@ export function registerSitemapRoutes(app: Express) {
       );
 
       // ── Kategoriler ────────────────────────────────────────────────────────
+      // Yalnızca GERÇEKTEN içerik gösteren kategoriler bildirilir.
+      //
+      // Sitede 524 kategori var; hepsini koşulsuz bildirmek, ilan girilmeden
+      // önce Google'a 500+ boş ve birbirinin aynısı sayfa sunmak demek. Yeni
+      // bir alan adında bu "zayıf içerik" (thin content) sayılır, tarama
+      // bütçesini tüketir ve alan adının güvenilirliğini düşürür.
+      //
+      // Kural: kök kategoriler her zaman girer (boşken bile gezinilebilir bir
+      // alt kategori listesi gösterirler); alt kategoriler ise ancak kendisinde
+      // veya altındakilerden birinde yayında ilan varsa girer. Kategori sayfası
+      // alt dalları da listelediği için ata zincirinin tamamı işaretlenir.
+      // İlk ilan girildiği anda ilgili sayfalar sitemap'e kendiliğinden döner.
       const cats = await db
-        .select({ slug: categories.slug })
+        .select({ id: categories.id, slug: categories.slug, parentId: categories.parentId })
         .from(categories)
         .limit(2000);
+
+      const withListings = await db
+        .selectDistinct({ categoryId: listings.categoryId })
+        .from(listings)
+        .where(eq(listings.status, "active"));
+
+      const parentOf = new Map(cats.map((c) => [c.id, c.parentId]));
+      const dolu = new Set<string>();
+      for (const { categoryId } of withListings) {
+        // İlanın kategorisinden köke kadar çık; her atayı işaretle.
+        let cur: string | null | undefined = categoryId;
+        while (cur && !dolu.has(cur)) {
+          dolu.add(cur);
+          cur = parentOf.get(cur);
+        }
+      }
+
       for (const c of cats) {
-        if (c.slug) entries.push(urlEntry(`${SITE}/kategori/${c.slug}`, null, "daily", "0.7"));
+        if (!c.slug) continue;
+        const kok = c.parentId === null;
+        if (!kok && !dolu.has(c.id)) continue;
+        entries.push(
+          urlEntry(`${SITE}/kategori/${c.slug}`, null, "daily", kok ? "0.8" : "0.7")
+        );
       }
 
       // ── Yayındaki ilanlar ──────────────────────────────────────────────────

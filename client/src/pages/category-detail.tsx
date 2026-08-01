@@ -186,6 +186,25 @@ export default function CategoryDetailPage() {
     return v !== undefined && v !== '';
   }).length;
 
+  /**
+   * Ne ilanı ne de alt kategorisi olan bir kategori sayfası, arama motoru
+   * açısından "zayıf içerik"tir: gösterecek hiçbir şeyi yoktur ve sitedeki
+   * yüzlerce benzeriyle birebir aynı görünür. Böyle sayfaları dizine
+   * aldırmak yeni bir alan adının tarama bütçesini ve güvenilirliğini boşa
+   * harcar. Sayfa kullanıcıya açık kalır, yalnızca dizine girmez.
+   *
+   * Ölçüt bilinçli olarak dar: yalnızca sorgu tamamlandığında, filtre
+   * uygulanmamışken ve gerçekten sıfır sonuç varken devreye girer. "0 ilan"
+   * bir filtre yüzündense sayfa dizinlenebilir kalmalı; ilk ilan girildiğinde
+   * de kendiliğinden geri döner. Aynı kural sunucu tarafında sitemap'te de
+   * uygulanıyor (server/sitemap.ts).
+   */
+  const bosVeDizinlenmemeli =
+    !listingsLoading &&
+    listingsResponse?.total === 0 &&
+    subCategories.length === 0 &&
+    activeFilterCount === 0;
+
   if (categoryLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -221,6 +240,7 @@ export default function CategoryDetailPage() {
           title={`${category.name} İlanları | sahibindenhayvan.com`}
           description={`${category.name} kategorisindeki güncel ilanlar. Türkiye genelinde ücretsiz ilan ver, güvenle al ve sat.`}
           canonical={`/kategori/${category.slug}`}
+          noIndex={bosVeDizinlenmemeli}
           structuredData={generateBreadcrumbStructuredData([
             { name: "Ana Sayfa", url: "/" },
             ...breadcrumb.map((c) => ({ name: c.name, url: `/kategori/${c.slug}` })),
