@@ -95,8 +95,12 @@ async function upsertOAuthUser(profile: {
     profileImageUrl: profile.profileImageUrl ?? null,
   } as any);
 
-  // routes.ts getUserId() bu şekli bekliyor
-  return { claims: { sub: dbUser.id }, dbUserId: dbUser.id };
+  // routes.ts getUserId() bu şekli bekliyor.
+  // `role` de taşınır — rotalar yetki kontrolünü `req.user.role` üzerinden
+  // yapıyor; alan yoksa OAuth ile girenler yönetici/veteriner/nakliyeci
+  // yetkilerini hiç kullanamaz. Rol değişiminde oturumlar silindiği için
+  // bayat rol riski yok.
+  return { claims: { sub: dbUser.id }, dbUserId: dbUser.id, role: (dbUser as any).role };
 }
 
 function callbackBase(): string {

@@ -2481,7 +2481,7 @@ async function upsertOAuthUser(profile) {
     lastName: profile.lastName ?? null,
     profileImageUrl: profile.profileImageUrl ?? null
   });
-  return { claims: { sub: dbUser.id }, dbUserId: dbUser.id };
+  return { claims: { sub: dbUser.id }, dbUserId: dbUser.id, role: dbUser.role };
 }
 function callbackBase() {
   const url = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") || `http://localhost:${process.env.PORT || 5e3}`;
@@ -5105,6 +5105,10 @@ function getUserId2(user) {
   }
   return id;
 }
+async function isEmailVerified(user) {
+  const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq3(users.id, getUserId2(user))).limit(1);
+  return !!row?.emailVerified;
+}
 function parseUserAgent(userAgent) {
   if (!userAgent) {
     return { deviceType: "unknown", browser: "unknown", os: "unknown" };
@@ -5773,7 +5777,7 @@ async function registerRoutes(app2, existingServer) {
           reason: user.statusReason || void 0
         });
       }
-      req.login({ claims: { sub: user.id } }, async (err) => {
+      req.login({ claims: { sub: user.id }, role: user.role }, async (err) => {
         if (err) {
           console.error("Session creation error:", err);
           await recordLoginHistory(user.id, req, false, isPhone ? "phone" : "email", "Oturum olu\u015Fturulamad\u0131");
@@ -6755,7 +6759,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const sellerId = getUserId2(user);
-      if (!user.emailVerified && process.env.NODE_ENV === "production") {
+      if (process.env.NODE_ENV === "production" && !await isEmailVerified(user)) {
         return res.status(403).json({
           message: "\u0130lan olu\u015Fturabilmek i\xE7in email adresinizi do\u011Frulaman\u0131z gerekmektedir.",
           requiresVerification: true
@@ -9617,7 +9621,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listing.city || !listing.district) {
         return res.status(400).json({ message: "Konum bilgisi gereklidir" });
       }
-      if (!user.emailVerified && process.env.NODE_ENV === "production") {
+      if (process.env.NODE_ENV === "production" && !await isEmailVerified(user)) {
         return res.status(403).json({
           message: "\u0130lan yay\u0131nlamak i\xE7in email adresinizi do\u011Frulaman\u0131z gerekmektedir.",
           requiresVerification: true

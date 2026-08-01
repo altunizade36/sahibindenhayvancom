@@ -268,6 +268,29 @@ function getUserId(user: any): string {
   return id;
 }
 
+/**
+ * Oturumdaki kullanıcının e-postasının doğrulanmış olup olmadığını
+ * VERİTABANINDAN okur.
+ *
+ * Neden veritabanından: `req.user` yalnızca `{ claims: { sub } }` taşıyan
+ * oturum nesnesidir; kullanıcı kaydındaki `emailVerified` gibi alanlar orada
+ * BULUNMAZ. `req.user.emailVerified` okumak her zaman `undefined` döndürür,
+ * yani "doğrulanmamış" sayılır.
+ *
+ * Bu, üretimde ilan verilmesini tamamen durduran bir hataya yol açmıştı:
+ * e-postasını doğrulamış kullanıcılar bile ilan oluşturmaya çalıştığında
+ * "email adresinizi doğrulayın" hatası alıyordu ve sitede hiç ilan
+ * oluşmuyordu. Doğrulama durumu tek kaynaktan — veritabanından — okunmalı.
+ */
+async function isEmailVerified(user: any): Promise<boolean> {
+  const [row] = await db
+    .select({ emailVerified: users.emailVerified })
+    .from(users)
+    .where(eq(users.id, getUserId(user)))
+    .limit(1);
+  return !!row?.emailVerified;
+}
+
 // Helper function to parse user-agent and extract device info
 function parseUserAgent(userAgent: string | undefined): { deviceType: string; browser: string; os: string } {
   if (!userAgent) {
@@ -1265,7 +1288,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
 
       // Log user in by creating session
-      (req as any).login({ claims: { sub: user.id } }, async (err: any) => {
+      //
+      // `role` oturuma yazılır: rotaların çoğu sahiplik kontrolünü
+      // `listing.sellerId !== userId && req.user.role !== "admin"` biçiminde
+      // yapıyor, veteriner/nakliyeci uçları da `req.user.role`a bakıyor.
+      // Oturumda bu alan olmadığı sürece hepsi `undefined` okuyup herkesi
+      // reddediyordu (veteriner ve nakliyeci panelleri tamamen kullanılamazdı,
+      // yöneticiler başkasının ilanını yönetemiyordu).
+      //
+      // Bayatlama riski yok: rol değiştirildiğinde veya hesap askıya
+      // alındığında kullanıcının oturumları veritabanından siliniyor
+      // (aşağıda /api/admin/users/:id/role ve /status uçlarına bakınız).
+      (req as any).login({ claims: { sub: user.id }, role: user.role }, async (err: any) => {
         if (err) {
           console.error("Session creation error:", err);
           await recordLoginHistory(user.id, req, false, isPhone ? 'phone' : 'email', 'Oturum oluşturulamadı');
@@ -2797,7 +2831,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const sellerId = getUserId(user);
 
       // SECURITY: Email verification required to create listings (skip in development)
-      if (!(user as any).emailVerified && process.env.NODE_ENV === 'production') {
+      // Doğrulama durumu veritabanından okunur — oturum nesnesinde yoktur.
+      if (process.env.NODE_ENV === 'production' && !(await isEmailVerified(user))) {
         return res.status(403).json({
           message: "İlan oluşturabilmek için email adresinizi doğrulamanız gerekmektedir.",
           requiresVerification: true,
@@ -7165,7 +7200,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
 
       // Email verification check for production
-      if (!(user as any).emailVerified && process.env.NODE_ENV === 'production') {
+      // Doğrulama durumu veritabanından okunur — oturum nesnesinde yoktur.
+      if (process.env.NODE_ENV === 'production' && !(await isEmailVerified(user))) {
         return res.status(403).json({
           message: "İlan yayınlamak için email adresinizi doğrulamanız gerekmektedir.",
           requiresVerification: true,
