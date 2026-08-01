@@ -7025,7 +7025,7 @@ async function registerRoutes(app2, existingServer) {
               type: "price_drop",
               title: "Fiyat D\xFC\u015Ft\xFC!",
               message: `"${listing.title}" ilan\u0131n\u0131n fiyat\u0131 %${discountPercent} d\xFC\u015Ft\xFC! Yeni fiyat: \u20BA${newPrice.toLocaleString("tr-TR")}`,
-              link: `/ilanlar/${req.params.id}`,
+              link: `/ilan/${req.params.id}`,
               relatedId: req.params.id
             }));
             await db.insert(notifications).values(notificationValues);
@@ -8062,7 +8062,7 @@ async function registerRoutes(app2, existingServer) {
             type: "new_favorite",
             title: "Yeni Favori",
             message: `${userName} "${listing.title}" ilan\u0131n\u0131z\u0131 favorilere ekledi`,
-            link: `/ilanlar/${listing.id}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id
           }).returning();
           notificationEmitter.emit("notification", {
@@ -10039,9 +10039,18 @@ async function registerRoutes(app2, existingServer) {
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      if (listing.status !== "pending") {
+      const IZINLI_GECISLER = {
+        pending: ["active", "rejected"],
+        // onayla / reddet
+        active: ["rejected"],
+        // yayından kaldır
+        rejected: ["active"]
+        // itiraz üzerine geri aç
+      };
+      const izinli = IZINLI_GECISLER[listing.status ?? ""] ?? [];
+      if (!izinli.includes(status)) {
         return res.status(400).json({
-          message: `Bu i\u015Flem sadece bekleyen ilanlar i\xE7in yap\u0131labilir. Mevcut durum: ${listing.status}`
+          message: `"${listing.status}" durumundaki bir ilan "${status}" yap\u0131lamaz.`
         });
       }
       const [updated] = await db.update(listings).set({
@@ -10057,7 +10066,7 @@ async function registerRoutes(app2, existingServer) {
             type: "listing_approved",
             title: "\u0130lan Onayland\u0131",
             message: `"${listing.title}" ilan\u0131n\u0131z onayland\u0131 ve yay\u0131na girdi`,
-            link: `/ilanlar/${listing.id}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id
           }).returning();
           notificationEmitter.emit("notification", {
@@ -10065,12 +10074,13 @@ async function registerRoutes(app2, existingServer) {
             notification
           });
         } else if (status === "rejected") {
+          const yayindaydi = listing.status === "active";
           const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: "listing_rejected",
-            title: "\u0130lan Reddedildi",
-            message: `"${listing.title}" ilan\u0131n\u0131z reddedildi${reason ? `: ${reason}` : ""}`,
-            link: `/ilanlar/${listing.id}`,
+            title: yayindaydi ? "\u0130lan Yay\u0131ndan Kald\u0131r\u0131ld\u0131" : "\u0130lan Reddedildi",
+            message: yayindaydi ? `"${listing.title}" ilan\u0131n\u0131z yay\u0131ndan kald\u0131r\u0131ld\u0131${reason ? `: ${reason}` : ""}` : `"${listing.title}" ilan\u0131n\u0131z reddedildi${reason ? `: ${reason}` : ""}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id
           }).returning();
           notificationEmitter.emit("notification", {

@@ -3229,7 +3229,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
               type: 'price_drop' as const,
               title: 'Fiyat Düştü!',
               message: `"${listing.title}" ilanının fiyatı %${discountPercent} düştü! Yeni fiyat: ₺${newPrice.toLocaleString('tr-TR')}`,
-              link: `/ilanlar/${req.params.id}`,
+              link: `/ilan/${req.params.id}`,
               relatedId: req.params.id,
             }));
 
@@ -4883,7 +4883,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             type: 'new_favorite',
             title: 'Yeni Favori',
             message: `${userName} "${listing.title}" ilanınızı favorilere ekledi`,
-            link: `/ilanlar/${listing.id}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id,
           }).returning();
           
@@ -7872,10 +7872,30 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "İlan bulunamadı" });
       }
 
-      // SECURITY: Only allow moderation on pending listings
-      if (listing.status !== 'pending') {
+      /*
+       * İzin verilen durum geçişleri.
+       *
+       * Önceden yalnızca `pending` ilanlar denetlenebiliyordu. Bunun sonucu,
+       * bir kez yayına alınan ilanın yönetici tarafından BİR DAHA
+       * kaldırılamamasıydı: şikayet gelse, sahte çıksa veya hayvan refahı
+       * kurallarına aykırı olsa bile. Bir ilan sitesinde yayındaki içeriği
+       * kaldıramamak kabul edilemez.
+       *
+       * Kapsam dışı bırakılanlar bilinçlidir: `draft` henüz gönderilmemiştir,
+       * `sold` / `expired` / `deleted` ise satıcıya veya sisteme ait
+       * durumlardır; yöneticinin satılmış bir ilanı yeniden yayına alması
+       * doğru olmaz.
+       */
+      const IZINLI_GECISLER: Record<string, string[]> = {
+        pending: ["active", "rejected"],   // onayla / reddet
+        active: ["rejected"],              // yayından kaldır
+        rejected: ["active"],              // itiraz üzerine geri aç
+      };
+
+      const izinli = IZINLI_GECISLER[listing.status ?? ""] ?? [];
+      if (!izinli.includes(status)) {
         return res.status(400).json({
-          message: `Bu işlem sadece bekleyen ilanlar için yapılabilir. Mevcut durum: ${listing.status}`,
+          message: `"${listing.status}" durumundaki bir ilan "${status}" yapılamaz.`,
         });
       }
 
@@ -7900,7 +7920,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             type: 'listing_approved',
             title: 'İlan Onaylandı',
             message: `"${listing.title}" ilanınız onaylandı ve yayına girdi`,
-            link: `/ilanlar/${listing.id}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id,
           }).returning();
           
@@ -7909,12 +7929,17 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             notification,
           });
         } else if (status === 'rejected') {
+          // Yayındaki bir ilan kaldırıldıysa "reddedildi" demek yanlış olur —
+          // satıcı ilanın zaten yayında olduğunu biliyor.
+          const yayindaydi = listing.status === 'active';
           const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: 'listing_rejected',
-            title: 'İlan Reddedildi',
-            message: `"${listing.title}" ilanınız reddedildi${reason ? `: ${reason}` : ''}`,
-            link: `/ilanlar/${listing.id}`,
+            title: yayindaydi ? 'İlan Yayından Kaldırıldı' : 'İlan Reddedildi',
+            message: yayindaydi
+              ? `"${listing.title}" ilanınız yayından kaldırıldı${reason ? `: ${reason}` : ''}`
+              : `"${listing.title}" ilanınız reddedildi${reason ? `: ${reason}` : ''}`,
+            link: `/ilan/${listing.id}`,
             relatedId: listing.id,
           }).returning();
           
