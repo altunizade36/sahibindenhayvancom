@@ -9,7 +9,6 @@ import { Link } from "wouter";
 import { Gavel, Loader2, ChevronUp, ChevronRight } from "lucide-react";
 import type { Category, Listing } from "@shared/schema";
 import { SEOHead, generateOrganizationStructuredData } from "@/components/seo-head";
-import { Footer } from "@/components/footer";
 
 
 interface ListingsResponse {
@@ -242,8 +241,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      <Footer />
 
       {showScrollTop && (
         <Button

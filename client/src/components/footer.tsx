@@ -1,124 +1,83 @@
 import { Link } from "wouter";
-import { LogoFull } from "@/components/logo";
 import { CookieSettingsButton } from "@/components/cookie-consent";
+
+/**
+ * Alt bilgi — bilinçli olarak kompakt.
+ *
+ * Önceki hâli dört sütunluk kalın bir bloktu ve ekranın önemli bir kısmını
+ * kaplıyordu; içerik az olduğunda sayfanın yarısı alt bilgiye gidiyordu.
+ * Burada bağlantılar tek bir sarmalayan satır kümesine indirildi: aynı
+ * bağlantılar duruyor, kapladığı dikey alan belirgin şekilde azaldı.
+ */
+
+const platformLinks = [
+  { href: "/ilanlar", label: "İlanlar" },
+  { href: "/magazalar", label: "Mağazalar" },
+  { href: "/veteriner-hizmetleri", label: "Veteriner" },
+  { href: "/nakliye-hizmetleri", label: "Nakliye" },
+  { href: "/piyasa-fiyatlari", label: "Piyasa Fiyatları" },
+  { href: "/blog", label: "Blog" },
+  { href: "/hakkimizda", label: "Hakkımızda" },
+];
+
+const legalLinks = [
+  { href: "/kullanim-kosullari", label: "Kullanım Koşulları" },
+  { href: "/gizlilik-politikasi", label: "Gizlilik" },
+  { href: "/kvkk", label: "KVKK" },
+  { href: "/cerez-politikasi", label: "Çerez Politikası" },
+  { href: "/ilan-kurallari", label: "İlan Kuralları" },
+  { href: "/yardim", label: "Yardım" },
+  { href: "/iletisim", label: "İletişim" },
+];
+
+function LinkRow({ items }: { items: { href: string; label: string }[] }) {
+  return (
+    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      {items.map((item) => (
+        <li key={item.href}>
+          <Link
+            href={item.href}
+            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            data-testid={`footer-link-${item.href.slice(1)}`}
+          >
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function Footer() {
   return (
-    <footer className="bg-muted/30 border-t mt-auto">
-      <div className="container mx-auto px-4 py-4 sm:py-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="inline-block">
-              <LogoFull className="h-auto w-auto items-start mb-2" />
+    <footer className="mt-auto border-t bg-muted/30">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex flex-col gap-3">
+          {/* Marka + bağlantılar aynı satırda (geniş ekran) */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <Link href="/" className="shrink-0">
+              <span className="text-base font-bold tracking-tight leading-none">
+                <span className="text-foreground">sahibinden</span>
+                <span className="text-primary">hayvan</span>
+              </span>
             </Link>
-            <p className="text-xs text-muted-foreground">
-              Türkiye'nin en güvenilir hayvan ilanları platformu. Evcil hayvanlarınızı güvenle alın, satın, sahiplenin.
+
+            <div className="flex flex-col gap-1.5 md:items-end">
+              <LinkRow items={platformLinks} />
+              <LinkRow items={legalLinks} />
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-between gap-1.5 border-t pt-3 text-[11px] text-muted-foreground md:flex-row">
+            <p data-testid="footer-copyright">
+              © {new Date().getFullYear()} sahibindenhayvan.com — Tüm hakları saklıdır.
             </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-platform">Platform</h4>
-            <ul className="space-y-1 text-[13px]">
-              <li>
-                <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-home">
-                  Ana Sayfa
-                </Link>
-              </li>
-              <li>
-                <Link href="/ilanlar" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-listings">
-                  İlanlar
-                </Link>
-              </li>
-              <li>
-                <Link href="/magazalar" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-stores">
-                  Mağazalar
-                </Link>
-              </li>
-              <li>
-                <Link href="/veteriner-hizmetleri" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-vet">
-                  Veteriner Hizmetleri
-                </Link>
-              </li>
-              <li>
-                <Link href="/nakliye-hizmetleri" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-transport">
-                  Nakliye Hizmetleri
-                </Link>
-              </li>
-              <li>
-                <Link href="/piyasa-fiyatlari" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-prices">
-                  Piyasa Fiyatları
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-blog">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/hakkimizda" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-about">
-                  Hakkımızda
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-legal">Yasal</h4>
-            <ul className="space-y-1 text-[13px]">
-              <li>
-                <Link href="/kullanim-kosullari" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-terms">
-                  Kullanım Koşulları
-                </Link>
-              </li>
-              <li>
-                <Link href="/gizlilik-politikasi" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-privacy">
-                  Gizlilik Politikası
-                </Link>
-              </li>
-              <li>
-                <Link href="/kvkk" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-kvkk">
-                  KVKK Aydınlatma Metni
-                </Link>
-              </li>
-              <li>
-                <Link href="/cerez-politikasi" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-cookies">
-                  Çerez Politikası
-                </Link>
-              </li>
-              <li>
-                <Link href="/ilan-kurallari" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-listing-rules">
-                  İlan Kuralları
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-1.5" data-testid="footer-section-support">Destek</h4>
-            <ul className="space-y-1 text-[13px]">
-              <li>
-                <Link href="/yardim" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-help">
-                  Yardım Merkezi
-                </Link>
-              </li>
-              <li>
-                <Link href="/iletisim" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="footer-link-contact">
-                  İletişim
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t mt-4 pt-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground text-center md:text-left" data-testid="footer-copyright">
-            © {new Date().getFullYear()} sahibindenhayvan.com - Tüm hakları saklıdır.
-          </p>
-          <div className="flex items-center gap-4 text-xs">
-            <CookieSettingsButton />
-            <p className="text-muted-foreground text-center md:text-right">
-              5199 sayılı Hayvanları Koruma Kanunu kapsamında faaliyet göstermektedir.
-            </p>
+            <div className="flex items-center gap-3">
+              <CookieSettingsButton />
+              <span className="hidden sm:inline">
+                5199 sayılı Hayvanları Koruma Kanunu kapsamında faaliyet göstermektedir.
+              </span>
+            </div>
           </div>
         </div>
       </div>

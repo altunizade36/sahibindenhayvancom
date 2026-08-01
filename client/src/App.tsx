@@ -12,6 +12,7 @@ import { SplashScreen, useSplashScreen } from "@/components/splash-screen";
 import { CookieConsent } from "@/components/cookie-consent";
 import { CompareProvider } from "@/contexts/compare-context";
 import { CompareBar } from "@/components/compare-bar";
+import { Footer } from "@/components/footer";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -101,23 +102,32 @@ function LazyRoute({ component: Component }: { component: React.ComponentType })
 // Routes that should have the sidebar layout
 function SidebarLayout() {
   return (
-    <div className="flex flex-col h-screen w-full">
+    // TEK kaydırma alanı: `h-screen` + `overflow-hidden` kaldırıldı.
+    // Daha önce ana içerik kendi içinde kayıyor, yan menü sabit duruyordu;
+    // sayfada iki ayrı kaydırma çubuğu oluşuyor ve alt bilgi menüden kopuk
+    // görünüyordu. Artık belge normal şekilde kayıyor, menü `sticky`.
+    <div className="flex min-h-svh w-full flex-col">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex w-full flex-1 items-start">
         <AppSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="min-w-0 flex-1">
           {/* Mobilde sidebar toggle butonu */}
-          <div className="md:hidden sticky top-0 z-40 bg-background border-b p-2">
+          <div className="md:hidden sticky top-[var(--navbar-height,4.75rem)] z-40 bg-background border-b p-2">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
           </div>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/ilanlar" component={ListingList} />
-          <Route path="/arama" component={ListingList} />
+            <Route path="/arama" component={ListingList} />
             <Route component={NotFound} />
           </Switch>
         </main>
       </div>
+
+      {/* Alt bilgi düzen seviyesinde: yan menü + içerik satırının ALTINDA,
+          tam genişlikte. Sayfa içinde çizilseydi yalnızca içerik sütunu
+          kadar geniş olur, yan menü yanında ayrı dururdu. */}
+      <Footer />
     </div>
   );
 }
@@ -128,9 +138,10 @@ function NoSidebarLayout() {
   const isAdminRoute = location.startsWith('/admin');
   
   return (
-    <div className="flex flex-col h-screen w-full">
+    // SidebarLayout ile aynı ilke: belge tek parça kayar, iç kaydırma yok.
+    <div className="flex min-h-svh w-full flex-col">
       {!isAdminRoute && <Navbar />}
-      <main className={`flex-1 overflow-auto ${isAdminRoute ? 'p-0' : ''}`}>
+      <main className={`flex-1 ${isAdminRoute ? 'p-0' : ''}`}>
         <Switch>
           <Route path="/giris" component={Login} />
           <Route path="/login" component={Login} />

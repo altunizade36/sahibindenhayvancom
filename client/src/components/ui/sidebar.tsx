@@ -205,36 +205,40 @@ function Sidebar({
     )
   }
 
+  /**
+   * Masaüstü yan menü — `fixed` DEĞİL `sticky`.
+   *
+   * Varsayılan shadcn düzeni menüyü `fixed` konumlandırır ve ana içeriğe ayrı
+   * bir kaydırma alanı verir. Sonuç: sayfada iki bağımsız kaydırma çubuğu
+   * oluşur, menü sayfayla birlikte hareket etmez ve alt bilgiyle ilişkisi
+   * kopar — menü "siteden ayrı bir kutu" gibi durur.
+   *
+   * Burada menü normal akışta yer tutuyor ve `sticky` ile üst barın altına
+   * yapışıyor. Böylece tüm sayfa TEK bir kaydırma alanı; alt bilgi de menünün
+   * altından doğal biçimde geçiyor.
+   */
   return (
     <div
-      className="group peer text-sidebar-foreground hidden md:block"
+      className={cn(
+        "group peer text-sidebar-foreground hidden md:block shrink-0",
+        "w-[var(--sidebar-width)] transition-[width] duration-200 ease-linear",
+        "data-[collapsible=offcanvas]:w-0",
+        variant === "floating" || variant === "inset"
+          ? "data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4))]"
+          : "data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
+      )}
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
     >
-      {/* This is what handles the sidebar gap on desktop */}
-      <div
-        data-slot="sidebar-gap"
-        className={cn(
-          "relative w-[var(--sidebar-width)] bg-transparent transition-[width] duration-200 ease-linear",
-          "group-data-[collapsible=offcanvas]:w-0",
-          "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4))]"
-            : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
-        )}
-      />
       <div
         data-slot="sidebar-container"
         className={cn(
-          "fixed z-10 hidden w-[var(--sidebar-width)] transition-[left,right,width] duration-200 ease-linear md:flex",
+          "sticky hidden w-[var(--sidebar-width)] flex-col transition-[width] duration-200 ease-linear md:flex",
           "top-[var(--navbar-height,4.75rem)] h-[calc(100svh-var(--navbar-height,4.75rem))]",
-          side === "left"
-            ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-            : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-          // Adjust the padding for floating and inset variants.
+          "group-data-[collapsible=offcanvas]:w-0 group-data-[collapsible=offcanvas]:overflow-hidden",
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]"
             : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)] group-data-[side=left]:border-r group-data-[side=right]:border-l",
