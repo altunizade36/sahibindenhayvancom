@@ -233,6 +233,26 @@ interface AuthenticatedUser {
   dbUserId?: string;
 }
 
+/**
+ * Kullanıcı kaydından istemciye ASLA gitmemesi gereken alanları çıkarır.
+ *
+ * Şifre hash'i sızarsa çevrimdışı kaba kuvvet saldırısına açık hale gelir;
+ * doğrulama/sıfırlama token'ları ise hesap ele geçirmeye yarayabilir.
+ * Kullanıcı nesnesi döndüren her uçta bu fonksiyondan geçirin.
+ */
+function sanitizeUser<T extends Record<string, any> | undefined | null>(user: T): T {
+  if (!user) return user;
+  const {
+    password,
+    verificationToken,
+    verificationTokenExpiry,
+    resetToken,
+    resetTokenExpiry,
+    ...safe
+  } = user as Record<string, any>;
+  return safe as T;
+}
+
 // Helper function to get user ID from session (handles OIDC and email/phone auth)
 // Returns a non-null string for authenticated routes (throws if not found)
 function getUserId(user: any): string {
@@ -1498,8 +1518,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (!user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
-      res.json(user);
+
+      res.json(sanitizeUser(user));
     } catch {
       res.status(401).json({ message: "Unauthorized" });
     }
@@ -7615,8 +7635,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
-      
-      res.json(updatedUser);
+
+      res.json(sanitizeUser(updatedUser));
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Rol güncellenemedi" });
@@ -7656,8 +7676,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
-      
-      res.json(updatedUser);
+
+      res.json(sanitizeUser(updatedUser));
     } catch (error) {
       console.error("Error updating user status:", error);
       res.status(500).json({ message: "Durum güncellenemedi" });
