@@ -6757,7 +6757,9 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Failed to fetch similar listings" });
     }
   });
-  app2.get("/api/listings/:id", async (req, res) => {
+  const LISTE_SABIT_YOLLARI = /* @__PURE__ */ new Set(["mine", "compare", "drafts", "hot"]);
+  app2.get("/api/listings/:id", async (req, res, next) => {
+    if (LISTE_SABIT_YOLLARI.has(req.params.id)) return next();
     try {
       const [listing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
       if (!listing) {

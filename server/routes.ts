@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { EventEmitter } from "events";
@@ -2834,14 +2834,34 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // Note: No auth required for viewing listing details (guest access)
   // Kullanici giris yapmissa req.user oturumdan doldurulur
-  app.get("/api/listings/:id", async (req: Request, res: Response) => {
+  /**
+   * `/api/listings/...` altındaki SABİT yollar — `:id` kalıbı bunları yutmamalı.
+   *
+   * Express rotaları kayıt sırasına göre eşleştirir. `/api/listings/:id` bu
+   * dosyada 2837. satırda tanımlı; `mine` (3377), `compare` (5135) ve `drafts`
+   * (7188) ise çok daha aşağıda. Dolayısıyla `/api/listings/compare` isteği
+   * `:id = "compare"` olarak buraya düşüyor, o kimlikte bir ilan bulunamıyor ve
+   * 404 dönüyordu. Üç uç da erişilemez durumdaydı; karşılaştırma özelliği
+   * (compare-bar.tsx, compare.tsx) bu yüzden hiç çalışmıyordu.
+   *
+   * Rotaları yukarı taşımak yerine buraya bir geçiş kapısı konuldu: bu isimler
+   * geldiğinde `next()` çağrılıp sıradaki rotalara devredilir. Böylece 8000
+   * satırlık dosyada büyük blokları yer değiştirmek gerekmiyor.
+   *
+   * YENİ bir `/api/listings/<sabit-ad>` ucu eklerken adı bu listeye de ekleyin,
+   * yoksa sessizce 404 döner.
+   */
+  const LISTE_SABIT_YOLLARI = new Set(["mine", "compare", "drafts", "hot"]);
+
+  app.get("/api/listings/:id", async (req: Request, res: Response, next: NextFunction) => {
+    if (LISTE_SABIT_YOLLARI.has(req.params.id)) return next();
     try {
       const [listing] = await db
         .select()
         .from(listings)
         .where(eq(listings.id, req.params.id))
         .limit(1);
-        
+
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
