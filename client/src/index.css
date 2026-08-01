@@ -340,3 +340,41 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Chrome, Safari, yeni Edge */
 }
+
+
+/**
+ * Ince, gosterissiz kaydirma cubugu.
+ *
+ * Tarayicinin varsayilan cubugu kalin duruyor ve isletim sistemi koyu
+ * temadayken acik sayfayla celisiyordu. Cubuk tamamen gizlenmiyor —
+ * kullanicinin sayfada nerede oldugunu gormesi gerekir — yalnizca
+ * inceltilip yumusatiliyor.
+ */
+* {
+  scrollbar-width: thin;                        /* Firefox */
+  scrollbar-color: hsl(0 0% 80%) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: hsl(0 0% 82%);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(0 0% 70%);
+}
+
+/* Kose karesi ve ok butonlari gosterilmez */
+*::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-button { display: none; }

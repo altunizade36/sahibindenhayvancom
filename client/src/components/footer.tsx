@@ -1,83 +1,133 @@
 import { Link } from "wouter";
+import { ShieldCheck, Heart, BadgeCheck } from "lucide-react";
 import { CookieSettingsButton } from "@/components/cookie-consent";
+import { COMPANY } from "@/lib/company";
 
 /**
- * Alt bilgi — bilinçli olarak kompakt.
+ * Alt bilgi.
  *
- * Önceki hâli dört sütunluk kalın bir bloktu ve ekranın önemli bir kısmını
- * kaplıyordu; içerik az olduğunda sayfanın yarısı alt bilgiye gidiyordu.
- * Burada bağlantılar tek bir sarmalayan satır kümesine indirildi: aynı
- * bağlantılar duruyor, kapladığı dikey alan belirgin şekilde azaldı.
+ * Tasarım ilkesi: Türk pazaryerlerinin (sahibinden, Trendyol) alışılmış
+ * düzeni — başlıklı sütunlar hâlinde gruplanmış bağlantılar, üstte kısa bir
+ * güven şeridi, altta telif ve mevzuat satırı.
+ *
+ * Daha önce iki denemeden geçti: önce dört sütunluk çok yüksek bir blok
+ * (ekranın büyük kısmını kaplıyordu), sonra sarmalayan tek satırlık bağlantı
+ * dizisi (yer kaplamıyordu ama düzensiz görünüyordu). Buradaki sürüm ikisinin
+ * arası: gruplama ve hiyerarşi korunuyor, tipografi küçük tutularak yükseklik
+ * makul seviyede kalıyor.
  */
 
-const platformLinks = [
-  { href: "/ilanlar", label: "İlanlar" },
-  { href: "/magazalar", label: "Mağazalar" },
-  { href: "/veteriner-hizmetleri", label: "Veteriner" },
-  { href: "/nakliye-hizmetleri", label: "Nakliye" },
-  { href: "/piyasa-fiyatlari", label: "Piyasa Fiyatları" },
-  { href: "/blog", label: "Blog" },
-  { href: "/hakkimizda", label: "Hakkımızda" },
+const columns: Array<{ title: string; links: { href: string; label: string }[] }> = [
+  {
+    title: "Keşfet",
+    links: [
+      { href: "/ilanlar", label: "Tüm İlanlar" },
+      { href: "/magazalar", label: "Mağazalar" },
+      { href: "/piyasa-fiyatlari", label: "Piyasa Fiyatları" },
+      { href: "/blog", label: "Blog" },
+    ],
+  },
+  {
+    title: "Hizmetler",
+    links: [
+      { href: "/veteriner-hizmetleri", label: "Veteriner Hizmetleri" },
+      { href: "/nakliye-hizmetleri", label: "Nakliye Hizmetleri" },
+      { href: "/ilan-ver", label: "Ücretsiz İlan Ver" },
+    ],
+  },
+  {
+    title: "Kurumsal",
+    links: [
+      { href: "/hakkimizda", label: "Hakkımızda" },
+      { href: "/iletisim", label: "İletişim" },
+      { href: "/yardim", label: "Yardım Merkezi" },
+    ],
+  },
+  {
+    title: "Yasal",
+    links: [
+      { href: "/kullanim-kosullari", label: "Kullanım Koşulları" },
+      { href: "/gizlilik-politikasi", label: "Gizlilik Politikası" },
+      { href: "/kvkk", label: "KVKK Aydınlatma Metni" },
+      { href: "/cerez-politikasi", label: "Çerez Politikası" },
+      { href: "/ilan-kurallari", label: "İlan Kuralları" },
+    ],
+  },
 ];
 
-const legalLinks = [
-  { href: "/kullanim-kosullari", label: "Kullanım Koşulları" },
-  { href: "/gizlilik-politikasi", label: "Gizlilik" },
-  { href: "/kvkk", label: "KVKK" },
-  { href: "/cerez-politikasi", label: "Çerez Politikası" },
-  { href: "/ilan-kurallari", label: "İlan Kuralları" },
-  { href: "/yardim", label: "Yardım" },
-  { href: "/iletisim", label: "İletişim" },
+const trustPoints = [
+  { icon: BadgeCheck, text: "Ücretsiz ilan" },
+  { icon: ShieldCheck, text: "Moderasyonlu ilanlar" },
+  { icon: Heart, text: "Hayvan refahı odaklı" },
 ];
-
-function LinkRow({ items }: { items: { href: string; label: string }[] }) {
-  return (
-    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      {items.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-            data-testid={`footer-link-${item.href.slice(1)}`}
-          >
-            {item.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t bg-muted/30">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-3">
-          {/* Marka + bağlantılar aynı satırda (geniş ekran) */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <Link href="/" className="shrink-0">
-              <span className="text-base font-bold tracking-tight leading-none">
+    <footer className="mt-auto border-t bg-muted/20">
+      {/* Güven şeridi */}
+      <div className="border-b bg-background/60">
+        <div className="container mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-2.5">
+          {trustPoints.map(({ icon: Icon, text }) => (
+            <span key={text} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Icon className="h-3.5 w-3.5 text-primary" />
+              {text}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-5">
+          {/* Marka */}
+          <div className="col-span-2 md:col-span-1">
+            <Link href="/" className="inline-block">
+              <span className="text-base font-bold leading-none tracking-tight">
                 <span className="text-foreground">sahibinden</span>
                 <span className="text-primary">hayvan</span>
               </span>
             </Link>
-
-            <div className="flex flex-col gap-1.5 md:items-end">
-              <LinkRow items={platformLinks} />
-              <LinkRow items={legalLinks} />
-            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Evcil hayvanlardan çiftlik hayvanlarına, Türkiye'nin ücretsiz
+              hayvan ilanları platformu.
+            </p>
+            {COMPANY.legalName && (
+              <p className="mt-2 text-[11px] text-muted-foreground">{COMPANY.legalName}</p>
+            )}
           </div>
 
-          <div className="flex flex-col items-center justify-between gap-1.5 border-t pt-3 text-[11px] text-muted-foreground md:flex-row">
-            <p data-testid="footer-copyright">
-              © {new Date().getFullYear()} sahibindenhayvan.com — Tüm hakları saklıdır.
-            </p>
-            <div className="flex items-center gap-3">
-              <CookieSettingsButton />
-              <span className="hidden sm:inline">
-                5199 sayılı Hayvanları Koruma Kanunu kapsamında faaliyet göstermektedir.
-              </span>
-            </div>
+          {/* Bağlantı sütunları */}
+          {columns.map((col) => (
+            <nav key={col.title} aria-label={col.title}>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
+                {col.title}
+              </h3>
+              <ul className="space-y-1.5">
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-[13px] leading-snug text-muted-foreground transition-colors hover:text-primary"
+                      data-testid={`footer-link-${link.href.slice(1)}`}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+      </div>
+
+      {/* Alt şerit */}
+      <div className="border-t">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-3 text-[11px] text-muted-foreground md:flex-row">
+          <p data-testid="footer-copyright">
+            © {new Date().getFullYear()} {COMPANY.brand} — Tüm hakları saklıdır.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <CookieSettingsButton />
+            <span>5199 sayılı Hayvanları Koruma Kanunu kapsamında faaliyet göstermektedir.</span>
           </div>
         </div>
       </div>
