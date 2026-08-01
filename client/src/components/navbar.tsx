@@ -512,7 +512,8 @@ export function Navbar() {
                   <Link href="/ilan-ver">
                     <Button size="sm" data-testid="button-add-listing">
                       <Plus className="w-4 h-4 mr-1.5" />
-                      İlan Ver
+                      <span className="lg:hidden">İlan Ver</span>
+                      <span className="hidden lg:inline">Ücretsiz İlan Ver</span>
                     </Button>
                   </Link>
 

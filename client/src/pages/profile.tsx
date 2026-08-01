@@ -237,7 +237,7 @@ export default function Profile() {
                 <Link href="/ilan-ver">
                   <Button size="sm" data-testid="button-new-listing" className="w-full">
                     <Plus className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">İlan Ver</span>
+                    <span className="hidden sm:inline">Ücretsiz İlan Ver</span>
                   </Button>
                 </Link>
               </div>

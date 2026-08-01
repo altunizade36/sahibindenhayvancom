@@ -25,7 +25,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.messages": "Mesajlar",
     "nav.notifications": "Bildirimler",
     "nav.logout": "Çıkış Yap",
-    "nav.createListing": "İlan Ver",
+    "nav.createListing": "Ücretsiz İlan Ver",
     
     "home.hero.title": "Hayvan İlanlarında Güvenilir Adres",
     "home.hero.subtitle": "Binlerce ilan arasında aradığınızı bulun",

@@ -218,7 +218,7 @@ export default function PanelFavorilerim() {
             <Link href="/ilan-ver">
               <Button className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
-                Yeni İlan Ver
+                Ücretsiz İlan Ver
               </Button>
             </Link>
           </div>

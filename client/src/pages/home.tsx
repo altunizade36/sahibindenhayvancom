@@ -143,7 +143,7 @@ export default function Home() {
           </div>
           
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {[...Array(20)].map((_, i) => (
                 <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
               ))}
@@ -157,7 +157,7 @@ export default function Home() {
             </div>
           ) : allListings.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {allListings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
@@ -205,7 +205,7 @@ export default function Home() {
             <div className="text-center py-8">
               <p className="text-muted-foreground">Henüz ilan yok</p>
               <Link href="/ilan-ver">
-                <Button className="mt-3">İlk İlanı Siz Verin</Button>
+                <Button className="mt-3">Ücretsiz İlan Ver</Button>
               </Link>
             </div>
           )}

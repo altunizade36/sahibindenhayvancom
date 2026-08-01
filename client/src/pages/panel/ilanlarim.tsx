@@ -331,7 +331,7 @@ export default function PanelIlanlarim() {
             <Link href="/ilan-ver">
               <Button className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
-                Yeni İlan Ver
+                Ücretsiz İlan Ver
               </Button>
             </Link>
           </div>
@@ -368,7 +368,7 @@ export default function PanelIlanlarim() {
               <Link href="/ilan-ver">
                 <Button data-testid="button-new-listing">
                   <Plus className="w-4 h-4 mr-2" />
-                  Yeni İlan Ver
+                  Ücretsiz İlan Ver
                 </Button>
               </Link>
             </div>

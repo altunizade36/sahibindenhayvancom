@@ -318,7 +318,7 @@ export default function CategoryDetailPage() {
             {/* Listings grid */}
             {listingsLoading ? (
               <div className={viewMode === "grid"
-                ? "grid gap-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-3"
+                ? "grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
                 : "flex flex-col gap-3"}>
                 {[...Array(9)].map((_, i) => (
                   <Skeleton key={i} className={viewMode === "grid" ? "h-56" : "h-24"} />
@@ -328,7 +328,7 @@ export default function CategoryDetailPage() {
               <>
                 <div
                   className={viewMode === "grid"
-                    ? "grid gap-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-3"
+                    ? "grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
                     : "flex flex-col gap-3"}
                   data-testid="grid-listings"
                 >
@@ -364,7 +364,7 @@ export default function CategoryDetailPage() {
                   </Button>
                 ) : (
                   <Link href="/ilan-ver">
-                    <Button data-testid="button-create-listing">İlk İlanı Siz Verin</Button>
+                    <Button data-testid="button-create-listing">Ücretsiz İlan Ver</Button>
                   </Link>
                 )}
               </Card>

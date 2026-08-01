@@ -214,7 +214,7 @@ export default function ListingList() {
               <Link href="/ilan-ver">
                 <Button className="h-9 sm:h-10" data-testid="button-create-listing">
                   <Plus className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">İlan Ver</span>
+                  <span className="hidden sm:inline">Ücretsiz İlan Ver</span>
                 </Button>
               </Link>
             </div>
@@ -311,7 +311,7 @@ export default function ListingList() {
         {isLoading ? (
           <div className={
             viewMode === "grid" 
-              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
+              ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4"
               : "space-y-3"
           }>
             {[...Array(viewMode === "grid" ? 10 : 5)].map((_, i) => (
@@ -323,7 +323,7 @@ export default function ListingList() {
             <div 
               className={
                 viewMode === "grid" 
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
+                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4"
                   : "space-y-3"
               } 
               data-testid="grid-listings"

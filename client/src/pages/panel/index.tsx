@@ -332,7 +332,7 @@ export default function PanelDashboard() {
             <Link href="/ilan-ver">
               <Button className="w-full" data-testid="button-new-listing-sidebar">
                 <Plus className="w-4 h-4 mr-2" />
-                Yeni İlan Ver
+                Ücretsiz İlan Ver
               </Button>
             </Link>
           </div>
@@ -493,7 +493,7 @@ export default function PanelDashboard() {
               <h2 className="text-lg font-semibold mb-4">Hızlı İşlemler</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <QuickActionCard
-                  title="Yeni İlan Ver"
+                  title="Ücretsiz İlan Ver"
                   description="Hemen satışa başlayın"
                   icon={Plus}
                   href="/ilan-ver"
