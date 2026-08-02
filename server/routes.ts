@@ -356,6 +356,34 @@ function sanitizeUser<T extends Record<string, any> | undefined | null>(user: T)
   return safe as T;
 }
 
+/**
+ * Bir kullanıcı kaydının HERKESE AÇIK uçlarda gösterilebilecek alanları.
+ *
+ * `sanitizeUser` kara liste ile çalışır: bilinen hassas alanları çıkarır,
+ * geri kalan her şeyi geçirir. Kullanıcının kendisine dönen yanıtlar için
+ * uygun, ama herkese açık bir uçta yeterli değil — tabloya sonradan eklenen
+ * bir alan (ör. son giriş IP'si) sessizce yayımlanır.
+ *
+ * Bu yardımcı beyaz liste kullanır: yalnızca aşağıdakiler döner.
+ * `phone` listede, çünkü alıcının satıcıya/hizmet verene ulaşması gerekiyor
+ * ve arayüz bunu gösteriyor. `email` listede DEĞİL: istenmeyen posta
+ * toplayıcılarına açık hedef olur ve gösterilmesi için bir sebep yok.
+ */
+function publicUserFields<T extends Record<string, any> | undefined | null>(user: T) {
+  if (!user) return null;
+  const u = user as Record<string, any>;
+  return {
+    id: u.id,
+    firstName: u.firstName ?? null,
+    lastName: u.lastName ?? null,
+    username: u.username ?? null,
+    profileImageUrl: u.profileImageUrl ?? null,
+    phone: u.phone ?? null,
+    city: u.city ?? null,
+    createdAt: u.createdAt ?? null,
+  };
+}
+
 // Helper function to get user ID from session (handles OIDC and email/phone auth)
 // Returns a non-null string for authenticated routes (throws if not found)
 function getUserId(user: any): string {
@@ -1742,9 +1770,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
 
-      // Return sanitized user (without password)
-      const { password: _, ...safeUser } = updatedUser;
-      res.json(safeUser);
+      // Kullanicinin kendisine donuyor; e-posta gorunebilir ama dogrulama ve
+      // sifirlama token'lari yanitta yer almamali.
+      res.json(sanitizeUser(updatedUser));
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Profil güncellenirken bir hata oluştu" });
@@ -2839,12 +2867,37 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         isFavorite = !!favorite;
       }
 
-      // Sanitize seller object
-      let sanitizedSeller = null;
-      if (seller) {
-        const { password: _, ...safe } = seller;
-        sanitizedSeller = safe;
-      }
+      /*
+       * Satıcı bilgisi BEYAZ LİSTE ile döndürülüyor.
+       *
+       * Burada eskiden yalnızca `password` çıkarılıyor, kullanıcı kaydının
+       * geri kalanı OLDUĞU GİBİ herkese açık ilan detayında yayımlanıyordu.
+       * Sızan alanlar arasında `resetToken` de vardı: bu, şifre sıfırlama
+       * bağlantısındaki gizli değerdir. Satıcı şifresini sıfırlamak
+       * istediğinde token üretiliyor ve o andan itibaren ilanını açan HERKES
+       * token'ı okuyup /reset-password?token=... adresinden hesabı ele
+       * geçirebiliyordu. Ayrıca `verificationToken` ve satıcının e-posta
+       * adresi de açıktaydı (istenmeyen posta hedefi ve KVKK sorunu).
+       *
+       * Kara liste yerine beyaz liste: yalnızca arayüzün gerçekten kullandığı
+       * ve kamuya açık olması gereken alanlar dönüyor. Kullanıcı tablosuna
+       * ileride eklenecek bir alan buradan kendiliğinden sızamaz.
+       *
+       * `phone` bilinçli olarak listede: alıcının satıcıya ulaşması gerekiyor
+       * ve arayüz iletişim bölümünde bunu kullanıyor.
+       */
+      const sanitizedSeller = seller
+        ? {
+            id: seller.id,
+            firstName: seller.firstName,
+            lastName: seller.lastName,
+            username: seller.username,
+            profileImageUrl: seller.profileImageUrl,
+            phone: seller.phone,
+            city: (seller as any).city ?? null,
+            createdAt: seller.createdAt,
+          }
+        : null;
 
       res.json({
         ...listing,
@@ -3028,9 +3081,38 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Fiyat en fazla 99.999.999,99 TL olabilir" });
       }
 
-      // Remove sensitive fields that should not be stored publicly
-      const { microchipNumber, passportNumber, earTagNumber, turkvetNumber, ...safeBody } = req.body;
-      
+      /*
+       * Satıcının gönderebileceği alanlar BEYAZ LİSTE ile belirleniyor.
+       *
+       * Önceden gövdenin tamamı (`...req.body`) şemaya aktarılıyor, yalnızca
+       * birkaç hassas alan çıkarılıyordu. Şema tablodaki TÜM sütunları kabul
+       * ettiği için sunucuya ait alanlar da geçiyordu: kullanıcı `isPremium:
+       * true` göndererek ilanını ücretsiz öne çıkarabiliyordu (canlı testle
+       * doğrulandı). `isUrgent`, `isExampleListing`, `moderatedBy`,
+       * `moderationReason` gibi alanlar da aynı şekilde açıktı.
+       *
+       * Kara liste yaklaşımı bu hatayı davet ediyor: şemaya yeni bir sütun
+       * eklendiğinde listeye eklemeyi unutmak yeterli. Beyaz listede ise
+       * unutulan alan sessizce yok sayılır — güvenli taraf.
+       *
+       * `microchipNumber`, `passportNumber`, `earTagNumber`, `turkvetNumber`
+       * bilinçli olarak listede YOK: bunlar hayvanın kimlik numaraları ve
+       * herkese açık bir ilanda yayımlanmamalı.
+       */
+      const SATICININ_BELIRLEYEBILECEGI = [
+        "categoryId", "title", "description", "images",
+        "breed", "age", "ageCategory", "gender", "healthStatus",
+        "vaccinated", "neutered", "pedigree", "characterTraits",
+        "videoUrls", "categoryAttributes",
+        "deliveryInfo", "warrantyInfo", "allowOffers",
+        "locationId", "city", "district", "storeId",
+      ] as const;
+
+      const safeBody: Record<string, unknown> = {};
+      for (const alan of SATICININ_BELIRLEYEBILECEGI) {
+        if (req.body[alan] !== undefined) safeBody[alan] = req.body[alan];
+      }
+
       const parsedData = insertListingSchema.parse({
         ...safeBody,
         price: numericPrice.toString(),
@@ -4585,12 +4667,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           )
         );
 
-      // Sanitize vet object
-      let sanitizedVet = null;
-      if (vet) {
-        const { password: _, ...safe } = vet;
-        sanitizedVet = safe;
-      }
+      // Herkese acik uc: yalnizca kamuya acilabilir alanlar donuyor.
+      // Onceden sadece sifre cikariliyor, resetToken dahil kaydin geri kalani
+      // yayimlaniyordu.
+      const sanitizedVet = publicUserFields(vet);
 
       res.json({
         ...service,
@@ -4674,12 +4754,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           )
         );
 
-      // Sanitize transporter object
-      let sanitizedTransporter = null;
-      if (transporter) {
-        const { password: _, ...safe } = transporter;
-        sanitizedTransporter = safe;
-      }
+      // Herkese acik uc: bkz. veteriner ucundaki aciklama.
+      const sanitizedTransporter = publicUserFields(transporter);
 
       res.json({
         ...service,

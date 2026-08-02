@@ -5383,6 +5383,20 @@ function sanitizeUser(user) {
   } = user;
   return safe;
 }
+function publicUserFields(user) {
+  if (!user) return null;
+  const u = user;
+  return {
+    id: u.id,
+    firstName: u.firstName ?? null,
+    lastName: u.lastName ?? null,
+    username: u.username ?? null,
+    profileImageUrl: u.profileImageUrl ?? null,
+    phone: u.phone ?? null,
+    city: u.city ?? null,
+    createdAt: u.createdAt ?? null
+  };
+}
 function getUserId2(user) {
   const id = user?.claims?.sub ?? user?.dbUserId ?? user?.id;
   if (!id) {
@@ -6283,8 +6297,7 @@ async function registerRoutes(app2, existingServer) {
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
-      const { password: _, ...safeUser } = updatedUser;
-      res.json(safeUser);
+      res.json(sanitizeUser(updatedUser));
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Profil g\xFCncellenirken bir hata olu\u015Ftu" });
@@ -6949,11 +6962,16 @@ async function registerRoutes(app2, existingServer) {
         ).limit(1);
         isFavorite = !!favorite;
       }
-      let sanitizedSeller = null;
-      if (seller) {
-        const { password: _, ...safe } = seller;
-        sanitizedSeller = safe;
-      }
+      const sanitizedSeller = seller ? {
+        id: seller.id,
+        firstName: seller.firstName,
+        lastName: seller.lastName,
+        username: seller.username,
+        profileImageUrl: seller.profileImageUrl,
+        phone: seller.phone,
+        city: seller.city ?? null,
+        createdAt: seller.createdAt
+      } : null;
       res.json({
         ...listing,
         views: (listing.views || 0) + 1,
@@ -7088,7 +7106,34 @@ async function registerRoutes(app2, existingServer) {
       if (numericPrice > 9999999999e-2) {
         return res.status(400).json({ message: "Fiyat en fazla 99.999.999,99 TL olabilir" });
       }
-      const { microchipNumber, passportNumber, earTagNumber, turkvetNumber, ...safeBody } = req.body;
+      const SATICININ_BELIRLEYEBILECEGI = [
+        "categoryId",
+        "title",
+        "description",
+        "images",
+        "breed",
+        "age",
+        "ageCategory",
+        "gender",
+        "healthStatus",
+        "vaccinated",
+        "neutered",
+        "pedigree",
+        "characterTraits",
+        "videoUrls",
+        "categoryAttributes",
+        "deliveryInfo",
+        "warrantyInfo",
+        "allowOffers",
+        "locationId",
+        "city",
+        "district",
+        "storeId"
+      ];
+      const safeBody = {};
+      for (const alan of SATICININ_BELIRLEYEBILECEGI) {
+        if (req.body[alan] !== void 0) safeBody[alan] = req.body[alan];
+      }
       const parsedData = insertListingSchema.parse({
         ...safeBody,
         price: numericPrice.toString(),
@@ -8069,11 +8114,7 @@ async function registerRoutes(app2, existingServer) {
           eq4(reviews.targetType, "vet_service")
         )
       );
-      let sanitizedVet = null;
-      if (vet) {
-        const { password: _, ...safe } = vet;
-        sanitizedVet = safe;
-      }
+      const sanitizedVet = publicUserFields(vet);
       res.json({
         ...service,
         vet: sanitizedVet,
@@ -8122,11 +8163,7 @@ async function registerRoutes(app2, existingServer) {
           eq4(reviews.targetType, "transport_service")
         )
       );
-      let sanitizedTransporter = null;
-      if (transporter) {
-        const { password: _, ...safe } = transporter;
-        sanitizedTransporter = safe;
-      }
+      const sanitizedTransporter = publicUserFields(transporter);
       res.json({
         ...service,
         transporter: sanitizedTransporter,
