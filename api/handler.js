@@ -3231,6 +3231,21 @@ function registerSitemapRoutes(app2) {
 import fs from "fs";
 import path from "path";
 import { eq as eq3, and as and3 } from "drizzle-orm";
+
+// shared/image-variants.ts
+var BOYUTLAR = ["thumb", "medium", "large", "original"];
+function imageVariant(url, boyut) {
+  if (!url || typeof url !== "string") return url ?? "";
+  for (const mevcut of BOYUTLAR) {
+    const ek = `_${mevcut}.webp`;
+    if (url.endsWith(ek)) {
+      return url.slice(0, -ek.length) + `_${boyut}.webp`;
+    }
+  }
+  return url;
+}
+
+// server/prerender.ts
 var SITE2 = (process.env.APP_URL || "https://sahibindenhayvan.com").replace(/\/$/, "");
 var VARSAYILAN_GORSEL = `${SITE2}/og-image.png?v=3`;
 function kacisla(deger) {
@@ -3321,7 +3336,7 @@ async function ilanMetasi(id) {
     status: listings.status
   }).from(listings).where(eq3(listings.id, id)).limit(1);
   if (!ilan || ilan.status !== "active") return null;
-  const gorsel = tamAdres(ilan.images?.[0]);
+  const gorsel = tamAdres(imageVariant(ilan.images?.[0], "medium"));
   const konum = [ilan.city, ilan.district].filter(Boolean).join(", ");
   const canonical = `${SITE2}/ilan/${ilan.id}`;
   return {
@@ -7451,6 +7466,19 @@ async function registerRoutes(app2, existingServer) {
         listingSource: safeBody.storeId ? "store" : "individual"
       });
       const [listing] = await db.insert(listings).values(parsedData).returning();
+      const gorselAdresleri = parsedData.images;
+      if (Array.isArray(gorselAdresleri) && gorselAdresleri.length > 0) {
+        try {
+          await db.update(listingImages).set({ listingId: listing.id }).where(
+            and5(
+              isNull(listingImages.listingId),
+              inArray3(listingImages.thumbnailUrl, gorselAdresleri)
+            )
+          );
+        } catch (err) {
+          console.error("\u0130lan g\xF6rselleri ilana ba\u011Flanamad\u0131:", err);
+        }
+      }
       const responseMessage = listingStatus === "active" ? "\u0130lan\u0131n\u0131z ba\u015Far\u0131yla olu\u015Fturuldu ve yay\u0131nda!" : "\u0130lan\u0131n\u0131z ba\u015Far\u0131yla olu\u015Fturuldu. Admin onay\u0131ndan sonra yay\u0131na girecektir.";
       res.status(201).json({
         ...listing,
@@ -8295,8 +8323,8 @@ async function registerRoutes(app2, existingServer) {
         }).where(eq5(conversations.id, conversationId));
       }
       try {
-        const sender = req.user;
-        const senderName = sender.firstName ? `${sender.firstName} ${sender.lastName || ""}`.trim() : sender.username || "Birisi";
+        const [gonderen] = await db.select({ firstName: users.firstName, lastName: users.lastName, username: users.username }).from(users).where(eq5(users.id, senderId)).limit(1);
+        const senderName = [gonderen?.firstName, gonderen?.lastName].filter(Boolean).join(" ").trim() || gonderen?.username || "Birisi";
         await db.insert(notifications).values({
           userId: receiverId,
           type: "new_message",

@@ -3149,7 +3149,38 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // Create listing - completely free, but requires admin approval
       const [listing] = await db.insert(listings).values(parsedData as any).returning();
 
-      const responseMessage = listingStatus === 'active' 
+      /*
+       * Yüklenen görselleri bu ilana bağla.
+       *
+       * Görseller ilan kaydedilmeden ÖNCE yükleniyor (kullanıcı formu
+       * doldururken), o yüzden `listing_images` satırları `listing_id = NULL`
+       * olarak oluşuyor. Burada bağlanmazlarsa tablo sonsuza kadar sahipsiz
+       * satır biriktirir: hangi görselin hangi ilana ait olduğu bilinemez,
+       * ilan silinince görselleri depolamadan temizlemek de mümkün olmaz.
+       *
+       * Eşleştirme `listings.images` içindeki adreslerle yapılıyor — istemci
+       * oraya küçük boyutun adresini yazıyor.
+       */
+      const gorselAdresleri = (parsedData as any).images as string[] | undefined;
+      if (Array.isArray(gorselAdresleri) && gorselAdresleri.length > 0) {
+        try {
+          await db
+            .update(listingImages)
+            .set({ listingId: listing.id })
+            .where(
+              and(
+                isNull(listingImages.listingId),
+                inArray(listingImages.thumbnailUrl, gorselAdresleri)
+              )
+            );
+        } catch (err) {
+          // Bağlama başarısız olsa da ilan geçerlidir; görseller zaten
+          // listings.images üzerinden gösteriliyor.
+          console.error("İlan görselleri ilana bağlanamadı:", err);
+        }
+      }
+
+      const responseMessage = listingStatus === 'active'
         ? "İlanınız başarıyla oluşturuldu ve yayında!"
         : "İlanınız başarıyla oluşturuldu. Admin onayından sonra yayına girecektir.";
       
@@ -4513,11 +4544,25 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       // Send notification to receiver
       try {
-        const sender = req.user as any;
-        const senderName = sender.firstName 
-          ? `${sender.firstName} ${sender.lastName || ''}`.trim() 
-          : sender.username || 'Birisi';
-        
+        /*
+         * Gönderenin adı VERİTABANINDAN okunuyor.
+         *
+         * Önceden `req.user.firstName` kullanılıyordu; `req.user` yalnızca
+         * `{ claims: { sub }, role }` taşıyan oturum nesnesidir ve orada isim
+         * alanı YOKTUR. Sonuç: her bildirim "Birisi size bir mesaj gönderdi"
+         * diyordu — kim yazdığı hiç görünmüyordu.
+         */
+        const [gonderen] = await db
+          .select({ firstName: users.firstName, lastName: users.lastName, username: users.username })
+          .from(users)
+          .where(eq(users.id, senderId))
+          .limit(1);
+
+        const senderName =
+          [gonderen?.firstName, gonderen?.lastName].filter(Boolean).join(" ").trim() ||
+          gonderen?.username ||
+          "Birisi";
+
         await db.insert(notifications).values({
           userId: receiverId,
           type: 'new_message',

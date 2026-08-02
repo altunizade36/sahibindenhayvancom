@@ -47,6 +47,7 @@ import {
   Tag,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
+import { imageVariant, imageVariants } from "@shared/image-variants";
 import type { Listing, User, Category, Location } from "@shared/schema";
 import { CHARACTER_TRAITS, HEALTH_STATUS_OPTIONS, AGE_CATEGORIES, GENDER_OPTIONS } from "@shared/listing-options";
 
@@ -277,7 +278,17 @@ export default function ListingDetail() {
     );
   }
 
-  const images = listing.images && listing.images.length > 0 ? listing.images : null;
+  /*
+   * Galeride BUYUK boyut gosteriliyor.
+   *
+   * listings.images alaninda kucuk boyut (400x400) saklaniyor - ilan kartlari
+   * icin dogru, ama detay sayfasindaki buyuk fotograf 400px'lik bir gorselden
+   * buyutulunce bulaniklasiyordu. Boyut adresten turetiliyor (bkz.
+   * shared/image-variants.ts), ek istek gerekmiyor.
+   */
+  const images = listing.images && listing.images.length > 0
+    ? imageVariants(listing.images as string[], "large")
+    : null;
   const price = parseFloat(listing.price as string);
 
   return (
@@ -291,7 +302,9 @@ export default function ListingDetail() {
             (listing.description || "").slice(0, 155) ||
             `${listing.title} ilanı. ${listing.city || ""} ${listing.district || ""} bölgesinde satılık.`
           }
-          image={(listing.images as string[] | undefined)?.[0]}
+          // Paylasim onizlemesi icin orta boyut: 400x400 kucuk boyut
+          // WhatsApp/Facebook onizlemesinde kucuk goruntuleniyordu.
+          image={imageVariant((listing.images as string[] | undefined)?.[0], "medium")}
           type="product"
           canonical={`/ilan/${listing.id}`}
           structuredData={combineStructuredData(

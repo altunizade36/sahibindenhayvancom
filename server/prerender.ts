@@ -37,6 +37,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { eq, and } from "drizzle-orm";
 import { db } from "./db";
 import { listings, categories, blogPosts, stores } from "@shared/schema";
+import { imageVariant } from "@shared/image-variants";
 
 const SITE = (process.env.APP_URL || "https://sahibindenhayvan.com").replace(/\/$/, "");
 const VARSAYILAN_GORSEL = `${SITE}/og-image.png?v=3`;
@@ -197,7 +198,10 @@ async function ilanMetasi(id: string): Promise<SayfaMeta | null> {
   // ilanın başlığını arama motoruna ve önizlemelere sunmak doğru olmaz.
   if (!ilan || ilan.status !== "active") return null;
 
-  const gorsel = tamAdres((ilan.images as string[] | null)?.[0]);
+  // Paylasim onizlemesi icin ORTA boyut (1200px): listings.images alaninda
+  // kucuk boyut (400x400) saklaniyor ve WhatsApp/Facebook onizlemesinde
+  // kucuk goruntuleniyordu.
+  const gorsel = tamAdres(imageVariant((ilan.images as string[] | null)?.[0], "medium"));
   const konum = [ilan.city, ilan.district].filter(Boolean).join(", ");
   const canonical = `${SITE}/ilan/${ilan.id}`;
 
