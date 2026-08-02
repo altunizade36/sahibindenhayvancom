@@ -9,6 +9,8 @@
 process.env.VERCEL = process.env.VERCEL || "1";
 process.env.DISABLE_CLUSTER = "true";
 
+// url.parse (DEP0169) uyarısını sustur — bağımlılıklar yüklenmeden önce.
+import "./quiet-deprecations";
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";

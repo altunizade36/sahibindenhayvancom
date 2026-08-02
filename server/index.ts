@@ -1,3 +1,6 @@
+// url.parse (DEP0169) uyarısını sustur — her şeyden önce, bağımlılıklar
+// yüklenmeden çalışmalı.
+import "./quiet-deprecations";
 // .env dosyasını her şeyden önce yükle (Vercel kendi değişkenlerini enjekte eder)
 import "dotenv/config";
 
