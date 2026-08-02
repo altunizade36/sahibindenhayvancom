@@ -147,15 +147,19 @@ export class SavedSearchNotifier {
     }
 
     if (filters.breed) {
-      conditions.push(ilike(listings.breed, `%${filters.breed}%`));
+      // Türkçe arama — aksansız yazım da eşleşmeli (bkz. scripts/sql/turkce-arama.sql)
+      conditions.push(
+        sql`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${filters.breed}%`})`
+      );
     }
 
     if (filters.searchQuery) {
+      // Türkçe arama — kayıtlı aramanın metni aksansız yazılmış olabilir
       conditions.push(
-        or(
-          ilike(listings.title, `%${filters.searchQuery}%`),
-          ilike(listings.description, `%${filters.searchQuery}%`)
-        )
+        sql`(
+          public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${filters.searchQuery}%`})
+          OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${`%${filters.searchQuery}%`})
+        )`
       );
     }
 

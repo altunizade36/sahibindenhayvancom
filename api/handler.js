@@ -2159,7 +2159,7 @@ var DbStorage = class {
     }
     return await db.query.listings.findMany({
       where: conditions.length > 0 ? and(...conditions) : void 0,
-      orderBy: (listings2, { desc: desc4 }) => [desc4(listings2.createdAt)]
+      orderBy: (listings2, { desc: desc5 }) => [desc5(listings2.createdAt)]
     });
   }
   async getListing(id) {
@@ -2170,7 +2170,7 @@ var DbStorage = class {
   async getListingsBySeller(sellerId) {
     return await db.query.listings.findMany({
       where: eq(listings.sellerId, sellerId),
-      orderBy: (listings2, { desc: desc4 }) => [desc4(listings2.createdAt)]
+      orderBy: (listings2, { desc: desc5 }) => [desc5(listings2.createdAt)]
     });
   }
   async createListing(listing) {
@@ -2192,7 +2192,7 @@ var DbStorage = class {
   async getAllAuctions(status) {
     return await db.query.auctions.findMany({
       where: status ? eq(auctions.status, status) : void 0,
-      orderBy: (auctions2, { desc: desc4 }) => [desc4(auctions2.createdAt)]
+      orderBy: (auctions2, { desc: desc5 }) => [desc5(auctions2.createdAt)]
     });
   }
   async getAuction(id) {
@@ -2217,7 +2217,7 @@ var DbStorage = class {
   async getBidsByAuction(auctionId) {
     return await db.query.bids.findMany({
       where: eq(bids.auctionId, auctionId),
-      orderBy: (bids2, { desc: desc4 }) => [desc4(bids2.createdAt)]
+      orderBy: (bids2, { desc: desc5 }) => [desc5(bids2.createdAt)]
     });
   }
   async createBid(bid) {
@@ -2234,7 +2234,7 @@ var DbStorage = class {
   async getAllLiveStreams(status) {
     return await db.query.liveStreams.findMany({
       where: status ? eq(liveStreams.status, status) : void 0,
-      orderBy: (liveStreams2, { desc: desc4 }) => [desc4(liveStreams2.createdAt)]
+      orderBy: (liveStreams2, { desc: desc5 }) => [desc5(liveStreams2.createdAt)]
     });
   }
   async getLiveStream(id) {
@@ -2245,7 +2245,7 @@ var DbStorage = class {
   async getLiveStreamsByStreamer(streamerId) {
     return await db.query.liveStreams.findMany({
       where: eq(liveStreams.streamerId, streamerId),
-      orderBy: (liveStreams2, { desc: desc4 }) => [desc4(liveStreams2.createdAt)]
+      orderBy: (liveStreams2, { desc: desc5 }) => [desc5(liveStreams2.createdAt)]
     });
   }
   async createLiveStream(stream) {
@@ -2276,7 +2276,7 @@ var DbStorage = class {
         eq(messages.senderId, userId),
         eq(messages.receiverId, userId)
       ),
-      orderBy: (messages2, { desc: desc4 }) => [desc4(messages2.createdAt)]
+      orderBy: (messages2, { desc: desc5 }) => [desc5(messages2.createdAt)]
     });
     const conversationMap = /* @__PURE__ */ new Map();
     for (const msg of userMessages) {
@@ -2310,7 +2310,7 @@ var DbStorage = class {
   async getAllBlogPosts(published) {
     return await db.query.blogPosts.findMany({
       where: published !== void 0 ? eq(blogPosts.published, published) : void 0,
-      orderBy: (blogPosts2, { desc: desc4 }) => [desc4(blogPosts2.createdAt)]
+      orderBy: (blogPosts2, { desc: desc5 }) => [desc5(blogPosts2.createdAt)]
     });
   }
   async getBlogPost(id) {
@@ -2386,7 +2386,7 @@ var DbStorage = class {
         eq(reviews.targetId, targetId),
         eq(reviews.targetType, targetType)
       ),
-      orderBy: (reviews2, { desc: desc4 }) => [desc4(reviews2.createdAt)]
+      orderBy: (reviews2, { desc: desc5 }) => [desc5(reviews2.createdAt)]
     });
   }
   async createReview(review) {
@@ -2397,7 +2397,7 @@ var DbStorage = class {
   async getFavoritesByUser(userId) {
     return await db.query.favorites.findMany({
       where: eq(favorites.userId, userId),
-      orderBy: (favorites2, { desc: desc4 }) => [desc4(favorites2.createdAt)]
+      orderBy: (favorites2, { desc: desc5 }) => [desc5(favorites2.createdAt)]
     });
   }
   async createFavorite(favorite) {
@@ -3436,6 +3436,294 @@ function registerPrerenderRoutes(app2) {
   app2.get("/magaza/:slug", isle((slug) => magazaMetasi(slug)));
 }
 
+// server/saved-search-notifier.ts
+import { Resend } from "resend";
+import { eq as eq4, and as and4, gt, desc as desc3, sql as sql3, or as or2, ilike as ilike2, inArray as inArray2 } from "drizzle-orm";
+var SavedSearchNotifier = class {
+  resend = null;
+  fromEmail;
+  isProduction;
+  checkIntervalMs = 60 * 60 * 1e3;
+  // 1 hour
+  notificationCooldownMs = 24 * 60 * 60 * 1e3;
+  // 24 hours between notifications
+  constructor() {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+    }
+    this.fromEmail = process.env.FROM_EMAIL || "noreply@sahibindenhayvan.com";
+    this.isProduction = process.env.NODE_ENV === "production" || !!apiKey;
+  }
+  async start() {
+    console.log("\u{1F514} Saved Search Notifier: Starting...");
+    await this.checkAndNotify();
+    setInterval(() => {
+      this.checkAndNotify().catch((error) => {
+        console.error("\u274C Saved search notification check failed:", error);
+      });
+    }, this.checkIntervalMs);
+    console.log(`\u{1F514} Saved Search Notifier: Running (check every ${this.checkIntervalMs / 6e4} minutes)`);
+  }
+  async checkAndNotify() {
+    try {
+      const cooldownTime = new Date(Date.now() - this.notificationCooldownMs);
+      const activeSearches = await db.select({
+        search: savedSearches,
+        user: {
+          id: users.id,
+          email: users.email,
+          username: users.username,
+          firstName: users.firstName
+        }
+      }).from(savedSearches).innerJoin(users, eq4(savedSearches.userId, users.id)).where(
+        and4(
+          eq4(savedSearches.notifyEnabled, true),
+          or2(
+            sql3`${savedSearches.lastNotifiedAt} IS NULL`,
+            sql3`${savedSearches.lastNotifiedAt} < ${cooldownTime}`
+          )
+        )
+      );
+      console.log(`\u{1F514} Found ${activeSearches.length} saved searches with notifications enabled`);
+      for (const { search, user } of activeSearches) {
+        try {
+          await this.processSearch(search, user);
+        } catch (error) {
+          console.error(`\u274C Failed to process saved search ${search.id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error("\u274C Saved search notification check failed:", error);
+    }
+  }
+  async processSearch(search, user) {
+    const filters = search.filters;
+    const sinceDate = search.lastNotifiedAt || new Date(Date.now() - 7 * 24 * 60 * 60 * 1e3);
+    const conditions = [
+      eq4(listings.status, "active"),
+      gt(listings.createdAt, sinceDate)
+    ];
+    if (filters.categorySlug) {
+      const matchingCategories = await db.select({ id: categories.id }).from(categories).where(ilike2(categories.slug, `%${filters.categorySlug}%`));
+      if (matchingCategories.length > 0) {
+        conditions.push(inArray2(listings.categoryId, matchingCategories.map((c) => c.id)));
+      }
+    }
+    if (filters.city) {
+      conditions.push(eq4(listings.city, filters.city));
+    }
+    if (filters.district) {
+      conditions.push(eq4(listings.district, filters.district));
+    }
+    if (filters.minPrice) {
+      const minPrice = parseFloat(filters.minPrice);
+      if (!isNaN(minPrice)) {
+        conditions.push(sql3`CAST(${listings.price} AS DECIMAL) >= ${minPrice}`);
+      }
+    }
+    if (filters.maxPrice) {
+      const maxPrice = parseFloat(filters.maxPrice);
+      if (!isNaN(maxPrice)) {
+        conditions.push(sql3`CAST(${listings.price} AS DECIMAL) <= ${maxPrice}`);
+      }
+    }
+    if (filters.gender) {
+      conditions.push(eq4(listings.gender, filters.gender));
+    }
+    if (filters.breed) {
+      conditions.push(
+        sql3`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${filters.breed}%`})`
+      );
+    }
+    if (filters.searchQuery) {
+      conditions.push(
+        sql3`(
+          public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${filters.searchQuery}%`})
+          OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${`%${filters.searchQuery}%`})
+        )`
+      );
+    }
+    const matchingListings = await db.select({
+      id: listings.id,
+      title: listings.title,
+      price: listings.price,
+      city: listings.city,
+      images: listings.images,
+      createdAt: listings.createdAt
+    }).from(listings).where(and4(...conditions)).orderBy(desc3(listings.createdAt)).limit(10);
+    if (matchingListings.length === 0) {
+      console.log(`\u{1F4ED} No new listings for saved search "${search.name}"`);
+      return;
+    }
+    console.log(`\u{1F4EC} Found ${matchingListings.length} new listings for saved search "${search.name}"`);
+    const existingLogs = await db.select().from(searchNotificationLogs).where(eq4(searchNotificationLogs.savedSearchId, search.id)).orderBy(desc3(searchNotificationLogs.createdAt)).limit(1);
+    const previouslyNotifiedIds = existingLogs[0]?.matchedListingIds || [];
+    const newListings = matchingListings.filter((l) => !previouslyNotifiedIds.includes(l.id));
+    if (newListings.length === 0) {
+      console.log(`\u{1F4ED} No new unique listings for saved search "${search.name}"`);
+      return;
+    }
+    if (user.email) {
+      await this.sendNotificationEmail(user, search, newListings);
+    }
+    await db.insert(notifications).values({
+      userId: user.id,
+      type: "saved_search_match",
+      title: `${newListings.length} Yeni \u0130lan Bulundu`,
+      message: `"${search.name}" araman\u0131z i\xE7in ${newListings.length} yeni ilan bulundu.`,
+      link: `/ilanlar?${this.buildSearchUrl(filters)}`,
+      relatedId: search.id,
+      isRead: false
+    });
+    await db.insert(searchNotificationLogs).values({
+      savedSearchId: search.id,
+      userId: user.id,
+      matchedListingIds: newListings.map((l) => l.id),
+      emailSent: !!user.email && !!this.resend,
+      sentAt: /* @__PURE__ */ new Date()
+    });
+    await db.update(savedSearches).set({ lastNotifiedAt: /* @__PURE__ */ new Date(), updatedAt: /* @__PURE__ */ new Date() }).where(eq4(savedSearches.id, search.id));
+  }
+  async sendNotificationEmail(user, search, newListings) {
+    if (!user.email) return;
+    if (!this.resend) {
+      console.log("\u{1F4E7} [DEV] Would send saved search notification email:");
+      console.log(`   To: ${user.email}`);
+      console.log(`   Search: ${search.name}`);
+      console.log(`   Listings: ${newListings.length}`);
+      return;
+    }
+    const appUrl = process.env.APP_URL || process.env.VITE_APP_URL || "https://sahibindenhayvan.com";
+    const userName = user.firstName || user.username;
+    const filters = search.filters;
+    const searchUrl = `${appUrl}/ilanlar?${this.buildSearchUrl(filters)}`;
+    const listingsHtml = newListings.slice(0, 5).map((listing) => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          ${listing.images?.[0] ? `<img src="${listing.images[0]}" alt="" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px;">` : ""}
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          <a href="${appUrl}/ilan/${listing.id}" style="color: #0066CC; text-decoration: none; font-weight: bold;">
+            ${listing.title}
+          </a>
+          <br>
+          <span style="color: #666; font-size: 12px;">${listing.city || ""}</span>
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: #0066CC;">
+          ${listing.price ? `${parseFloat(listing.price).toLocaleString("tr-TR")} \u20BA` : "Fiyat Belirtilmemi\u015F"}
+        </td>
+      </tr>
+    `).join("");
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: user.email,
+        subject: `${newListings.length} Yeni \u0130lan Bulundu - ${search.name}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Kay\u0131tl\u0131 Arama Bildirimi</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #0066CC; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Sahibindenhayvan.com</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f5f5f5;">
+              <h2 style="color: #333;">Merhaba ${userName},</h2>
+              
+              <p style="color: #666; line-height: 1.6;">
+                <strong>"${search.name}"</strong> kay\u0131tl\u0131 araman\u0131z i\xE7in 
+                <strong>${newListings.length}</strong> yeni ilan bulundu!
+              </p>
+              
+              <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin: 20px 0;">
+                <tbody>
+                  ${listingsHtml}
+                </tbody>
+              </table>
+              
+              ${newListings.length > 5 ? `
+                <p style="color: #666; text-align: center;">
+                  ... ve ${newListings.length - 5} ilan daha
+                </p>
+              ` : ""}
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${searchUrl}" 
+                   style="background-color: #0066CC; color: white; padding: 15px 30px; 
+                          text-decoration: none; border-radius: 5px; display: inline-block;">
+                  T\xFCm \u0130lanlar\u0131 G\xF6r
+                </a>
+              </div>
+              
+              <p style="color: #999; font-size: 12px; text-align: center;">
+                Bu bildirimi kapatmak i\xE7in 
+                <a href="${appUrl}/panel/kayitli-aramalar" style="color: #0066CC;">kay\u0131tl\u0131 aramalar</a> 
+                sayfas\u0131ndan ayarlar\u0131n\u0131z\u0131 de\u011Fi\u015Ftirebilirsiniz.
+              </p>
+            </div>
+            
+            <div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">
+              <p>\xA9 2025 Sahibindenhayvan.com - T\xFCm haklar\u0131 sakl\u0131d\u0131r.</p>
+            </div>
+          </body>
+          </html>
+        `
+      });
+      console.log(`\u2705 Saved search notification email sent to ${user.email}`);
+    } catch (error) {
+      console.error("\u274C Failed to send saved search notification email:", error);
+    }
+  }
+  buildSearchUrl(filters) {
+    const params = new URLSearchParams();
+    if (filters.categorySlug) params.set("kategori", filters.categorySlug);
+    if (filters.city) params.set("sehir", filters.city);
+    if (filters.district) params.set("ilce", filters.district);
+    if (filters.minPrice) params.set("minFiyat", filters.minPrice);
+    if (filters.maxPrice) params.set("maxFiyat", filters.maxPrice);
+    if (filters.gender) params.set("cinsiyet", filters.gender);
+    if (filters.breed) params.set("irk", filters.breed);
+    if (filters.searchQuery) params.set("ara", filters.searchQuery);
+    return params.toString();
+  }
+};
+var savedSearchNotifier = new SavedSearchNotifier();
+
+// server/cron.ts
+function yetkiliMi(req) {
+  const sir = process.env.CRON_SECRET;
+  if (process.env.NODE_ENV !== "production") return true;
+  if (!sir) {
+    console.error("CRON_SECRET tan\u0131ml\u0131 de\u011Fil \u2014 zamanlanm\u0131\u015F g\xF6rev ucu kapal\u0131.");
+    return false;
+  }
+  const baslik = req.headers.authorization || "";
+  return baslik === `Bearer ${sir}`;
+}
+function registerCronRoutes(app2) {
+  app2.get("/api/cron/saved-searches", async (req, res) => {
+    if (!yetkiliMi(req)) {
+      return res.status(401).json({ message: "Yetkisiz" });
+    }
+    console.log("\u23F0 Zamanlanm\u0131\u015F g\xF6rev: kay\u0131tl\u0131 arama bildirimleri ba\u015Fl\u0131yor");
+    savedSearchNotifier.checkAndNotify().then(() => console.log("\u23F0 Kay\u0131tl\u0131 arama bildirimleri tamamland\u0131")).catch((err) => console.error("\u23F0 Kay\u0131tl\u0131 arama bildirimleri hata verdi:", err));
+    res.status(202).json({ started: true, at: (/* @__PURE__ */ new Date()).toISOString() });
+  });
+  app2.get("/api/cron/health", (req, res) => {
+    if (!yetkiliMi(req)) return res.status(401).json({ message: "Yetkisiz" });
+    res.json({
+      ok: true,
+      cronSecretTanimli: !!process.env.CRON_SECRET,
+      resendTanimli: !!process.env.RESEND_API_KEY
+    });
+  });
+}
+
 // server/imageProcessor.ts
 import sharp from "sharp";
 
@@ -3732,14 +4020,14 @@ async function processStoreImage(buffer, config) {
 }
 
 // server/routes.ts
-import { eq as eq4, and as and4, isNull, asc, desc as desc3, sql as sql4, count, inArray as inArray2, gte as gte2, lte as lte2, ilike as ilike2, or as or2 } from "drizzle-orm";
+import { eq as eq5, and as and5, isNull, asc, desc as desc4, sql as sql5, count, inArray as inArray3, gte as gte2, lte as lte2, ilike as ilike3, or as or3 } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 
 // server/email.ts
 import crypto2 from "crypto";
-import { Resend } from "resend";
+import { Resend as Resend2 } from "resend";
 function contactRecipient() {
   return process.env.CONTACT_EMAIL || "info@sahibindenhayvan.com";
 }
@@ -3794,7 +4082,7 @@ var ProductionEmailService = class {
     if (!apiKey) {
       throw new Error("RESEND_API_KEY environment variable is required for production email service");
     }
-    this.resend = new Resend(apiKey);
+    this.resend = new Resend2(apiKey);
     this.fromEmail = process.env.FROM_EMAIL || "noreply@sahibindenhayvan.com";
   }
   async sendVerificationEmail(to, token, username) {
@@ -4026,7 +4314,7 @@ var moderateListingSchema = z2.object({
 );
 
 // server/advancedFeatureRoutes.ts
-import { sql as sql3 } from "drizzle-orm";
+import { sql as sql4 } from "drizzle-orm";
 var getUserId = (user) => {
   if (user?.dbUserId) return user.dbUserId;
   if (user?.claims?.sub) return user.claims.sub;
@@ -4046,7 +4334,7 @@ function registerMarketPriceRoutes(app2) {
         ORDER BY date DESC 
         LIMIT ${parseInt(limit)}
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching market prices:", error);
@@ -4064,7 +4352,7 @@ function registerMarketPriceRoutes(app2) {
         ${type ? `WHERE type = '${type}'` : ""}
         ORDER BY category, city, date DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching latest prices:", error);
@@ -4084,7 +4372,7 @@ function registerMarketPriceRoutes(app2) {
         AND date >= '${daysAgo.toISOString()}'
         ORDER BY date ASC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching price history:", error);
@@ -4105,7 +4393,7 @@ function registerMarketPriceRoutes(app2) {
                 ${source ? `'${source}'` : "NULL"}, NOW())
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error adding market price:", error);
@@ -4127,7 +4415,7 @@ function registerVetOnlineRoutes(app2) {
           AND vs.verified_at IS NOT NULL
         ORDER BY vs.rating DESC NULLS LAST
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching online vets:", error);
@@ -4153,7 +4441,7 @@ function registerVetOnlineRoutes(app2) {
                 ${scheduledAt ? `'${scheduledAt}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating consultation:", error);
@@ -4176,7 +4464,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE c.client_id = '${userId}'
         ORDER BY c.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching consultations:", error);
@@ -4199,7 +4487,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE c.vet_id = '${userId}'
         ORDER BY c.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching vet consultations:", error);
@@ -4229,7 +4517,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE id = '${id}' AND (vet_id = '${userId}' OR client_id = '${userId}')
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Kons\xFCltasyon bulunamad\u0131" });
       }
@@ -4254,7 +4542,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE id = '${id}' AND client_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Kons\xFCltasyon bulunamad\u0131" });
       }
@@ -4304,7 +4592,7 @@ function registerTransportRoutes(app2) {
                 ${specialRequirements ? `'${specialRequirements}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating transport request:", error);
@@ -4325,7 +4613,7 @@ function registerTransportRoutes(app2) {
         WHERE ${conditions}
         ORDER BY r.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching transport requests:", error);
@@ -4346,7 +4634,7 @@ function registerTransportRoutes(app2) {
         WHERE r.user_id = '${userId}'
         ORDER BY r.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my requests:", error);
@@ -4374,7 +4662,7 @@ function registerTransportRoutes(app2) {
                 ${expiresAt ? `'${expiresAt}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error submitting quote:", error);
@@ -4399,7 +4687,7 @@ function registerTransportRoutes(app2) {
         WHERE q.request_id = '${id}'
         ORDER BY q.price ASC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching quotes:", error);
@@ -4417,7 +4705,7 @@ function registerTransportRoutes(app2) {
       const updateQuote = `
         UPDATE transport_quotes SET is_accepted = true WHERE id = '${id}' RETURNING request_id
       `;
-      const quoteResult = await db.execute(sql3.raw(updateQuote));
+      const quoteResult = await db.execute(sql4.raw(updateQuote));
       if (quoteResult.rows.length === 0) {
         return res.status(404).json({ message: "Teklif bulunamad\u0131" });
       }
@@ -4428,7 +4716,7 @@ function registerTransportRoutes(app2) {
         WHERE id = '${requestId}' AND user_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(updateRequest));
+      const result = await db.execute(sql4.raw(updateRequest));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error accepting quote:", error);
@@ -4455,7 +4743,7 @@ function registerB2BRoutes(app2) {
         ${city ? `AND u.city ILIKE '%${city}%'` : ""}
         ORDER BY l.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching B2B listings:", error);
@@ -4465,7 +4753,7 @@ function registerB2BRoutes(app2) {
   app2.get("/api/b2b/listings/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await db.execute(sql3.raw(`
+      await db.execute(sql4.raw(`
         UPDATE b2b_listings SET view_count = view_count + 1 WHERE id = '${id}'
       `));
       const query = `
@@ -4477,7 +4765,7 @@ function registerB2BRoutes(app2) {
         LEFT JOIN stores s ON l.store_id = s.id
         WHERE l.id = '${id}'
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -4526,7 +4814,7 @@ function registerB2BRoutes(app2) {
                 '${JSON.stringify(deliveryOptions || [])}')
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating B2B listing:", error);
@@ -4542,7 +4830,7 @@ function registerB2BRoutes(app2) {
       }
       const { listingId, quantity, deliveryAddress, deliveryCity, deliveryNotes } = req.body;
       const listingQuery = `SELECT * FROM b2b_listings WHERE id = '${listingId}' AND status = 'active'`;
-      const listingResult = await db.execute(sql3.raw(listingQuery));
+      const listingResult = await db.execute(sql4.raw(listingQuery));
       if (listingResult.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131 veya stokta yok" });
       }
@@ -4569,8 +4857,8 @@ function registerB2BRoutes(app2) {
                 ${deliveryNotes ? `'${deliveryNotes}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
-      await db.execute(sql3.raw(`
+      const result = await db.execute(sql4.raw(query));
+      await db.execute(sql4.raw(`
         UPDATE b2b_listings SET order_count = order_count + 1 WHERE id = '${listingId}'
       `));
       res.json(result.rows[0]);
@@ -4596,7 +4884,7 @@ function registerB2BRoutes(app2) {
         WHERE o.buyer_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my orders:", error);
@@ -4621,7 +4909,7 @@ function registerB2BRoutes(app2) {
         WHERE o.seller_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching seller orders:", error);
@@ -4649,7 +4937,7 @@ function registerB2BRoutes(app2) {
         WHERE id = '${id}' AND seller_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Sipari\u015F bulunamad\u0131" });
       }
@@ -4679,7 +4967,7 @@ function registerWholesaleRoutes(app2) {
         ${city ? `AND u.city ILIKE '%${city}%'` : ""}
         ORDER BY p.is_certified DESC, p.rating DESC, p.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching wholesale products:", error);
@@ -4698,7 +4986,7 @@ function registerWholesaleRoutes(app2) {
         LEFT JOIN stores s ON p.store_id = s.id
         WHERE p.id = '${id}'
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -4748,7 +5036,7 @@ function registerWholesaleRoutes(app2) {
                 '${JSON.stringify(deliveryZones || [])}')
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating wholesale product:", error);
@@ -4764,7 +5052,7 @@ function registerWholesaleRoutes(app2) {
       }
       const { productId, quantity, deliveryAddress, deliveryCity, deliveryNotes } = req.body;
       const productQuery = `SELECT * FROM wholesale_products WHERE id = '${productId}' AND status = 'active'`;
-      const productResult = await db.execute(sql3.raw(productQuery));
+      const productResult = await db.execute(sql4.raw(productQuery));
       if (productResult.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -4790,8 +5078,8 @@ function registerWholesaleRoutes(app2) {
                 ${deliveryNotes ? `'${deliveryNotes}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
-      await db.execute(sql3.raw(`
+      const result = await db.execute(sql4.raw(query));
+      await db.execute(sql4.raw(`
         UPDATE wholesale_products SET order_count = order_count + 1 WHERE id = '${productId}'
       `));
       res.json(result.rows[0]);
@@ -4817,7 +5105,7 @@ function registerWholesaleRoutes(app2) {
         WHERE o.buyer_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my orders:", error);
@@ -4839,7 +5127,7 @@ function registerWholesaleRoutes(app2) {
         WHERE id = '${id}' AND buyer_id = '${userId}' AND status = 'delivered'
         RETURNING product_id
       `;
-      const result = await db.execute(sql3.raw(updateOrder));
+      const result = await db.execute(sql4.raw(updateOrder));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Sipari\u015F bulunamad\u0131 veya de\u011Ferlendirilemez" });
       }
@@ -4856,7 +5144,7 @@ function registerWholesaleRoutes(app2) {
         )
         WHERE id = '${productId}'
       `;
-      await db.execute(sql3.raw(updateRating));
+      await db.execute(sql4.raw(updateRating));
       res.json({ success: true });
     } catch (error) {
       console.error("Error rating order:", error);
@@ -4885,7 +5173,7 @@ function registerFarmTVRoutes(app2) {
           END,
           s.scheduled_at ASC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching streams:", error);
@@ -4895,7 +5183,7 @@ function registerFarmTVRoutes(app2) {
   app2.get("/api/farm-tv/streams/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await db.execute(sql3.raw(`
+      await db.execute(sql4.raw(`
         UPDATE farm_tv_streams SET total_views = total_views + 1 WHERE id = '${id}'
       `));
       const query = `
@@ -4905,7 +5193,7 @@ function registerFarmTVRoutes(app2) {
         INNER JOIN users u ON s.streamer_id = u.id
         WHERE s.id = '${id}'
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Yay\u0131n bulunamad\u0131" });
       }
@@ -4935,7 +5223,7 @@ function registerFarmTVRoutes(app2) {
                 false)
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating stream:", error);
@@ -4958,8 +5246,8 @@ function registerFarmTVRoutes(app2) {
                 ${quantity || 1}, ${tokenValue}, ${message ? `'${message}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
-      await db.execute(sql3.raw(`
+      const result = await db.execute(sql4.raw(query));
+      await db.execute(sql4.raw(`
         UPDATE farm_tv_streams 
         SET total_gifts = total_gifts + ${quantity || 1},
             total_earnings = total_earnings + ${tokenValue * (quantity || 1)}
@@ -4988,7 +5276,7 @@ function registerVerificationRoutes(app2) {
         AND status IN ('pending', 'approved')
         LIMIT 1
       `;
-      const existing = await db.execute(sql3.raw(existingQuery));
+      const existing = await db.execute(sql4.raw(existingQuery));
       if (existing.rows.length > 0) {
         const existingStatus = existing.rows[0].status;
         if (existingStatus === "approved") {
@@ -5007,7 +5295,7 @@ function registerVerificationRoutes(app2) {
                 ${notes ? `'${notes.replace(/'/g, "''")}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json({ success: true, verification: result.rows[0] });
     } catch (error) {
       console.error("Error creating verification request:", error);
@@ -5026,7 +5314,7 @@ function registerVerificationRoutes(app2) {
         WHERE pv.user_id = '${userId}'
         ORDER BY pv.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching verification status:", error);
@@ -5053,7 +5341,7 @@ function registerVerificationRoutes(app2) {
           CASE pv.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END,
           pv.created_at DESC
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching verifications:", error);
@@ -5080,18 +5368,18 @@ function registerVerificationRoutes(app2) {
         WHERE id = '${id}'
         RETURNING *
       `;
-      const result = await db.execute(sql3.raw(query));
+      const result = await db.execute(sql4.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Do\u011Frulama talebi bulunamad\u0131" });
       }
       const verification = result.rows[0];
       if (status === "approved") {
         if (verification.professional_type === "veterinarian") {
-          await db.execute(sql3.raw(`
+          await db.execute(sql4.raw(`
             UPDATE vet_services SET verified = true WHERE vet_id = '${verification.user_id}'
           `));
         } else if (verification.professional_type === "transporter") {
-          await db.execute(sql3.raw(`
+          await db.execute(sql4.raw(`
             UPDATE transport_services SET verified = true WHERE transporter_id = '${verification.user_id}'
           `));
         }
@@ -5344,12 +5632,12 @@ var LOGIN_FAIL_WINDOW_MS = 15 * 60 * 1e3;
 async function recentFailedLogins(userId) {
   try {
     const pencereBasi = new Date(Date.now() - LOGIN_FAIL_WINDOW_MS);
-    const [sonBasarili] = await db.select({ at: loginHistory.createdAt }).from(loginHistory).where(and4(eq4(loginHistory.userId, userId), eq4(loginHistory.success, true))).orderBy(desc3(loginHistory.createdAt)).limit(1);
+    const [sonBasarili] = await db.select({ at: loginHistory.createdAt }).from(loginHistory).where(and5(eq5(loginHistory.userId, userId), eq5(loginHistory.success, true))).orderBy(desc4(loginHistory.createdAt)).limit(1);
     const baslangic = sonBasarili?.at && sonBasarili.at > pencereBasi ? sonBasarili.at : pencereBasi;
     const [satir] = await db.select({ n: count() }).from(loginHistory).where(
-      and4(
-        eq4(loginHistory.userId, userId),
-        eq4(loginHistory.success, false),
+      and5(
+        eq5(loginHistory.userId, userId),
+        eq5(loginHistory.success, false),
         gte2(loginHistory.createdAt, baslangic)
       )
     );
@@ -5405,7 +5693,7 @@ function getUserId2(user) {
   return id;
 }
 async function isEmailVerified(user) {
-  const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq4(users.id, getUserId2(user))).limit(1);
+  const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq5(users.id, getUserId2(user))).limit(1);
   return !!row?.emailVerified;
 }
 function parseUserAgent(userAgent) {
@@ -5456,14 +5744,14 @@ async function registerDevice(userId, req) {
     const deviceName = `${browser} - ${os}`;
     const deviceId = crypto.randomUUID();
     const existingDevice = await db.query.userDevices.findFirst({
-      where: and4(
-        eq4(userDevices.userId, userId),
-        eq4(userDevices.browser, browser),
-        eq4(userDevices.os, os)
+      where: and5(
+        eq5(userDevices.userId, userId),
+        eq5(userDevices.browser, browser),
+        eq5(userDevices.os, os)
       )
     });
     if (existingDevice) {
-      await db.update(userDevices).set({ lastActive: /* @__PURE__ */ new Date(), ipAddress }).where(eq4(userDevices.id, existingDevice.id));
+      await db.update(userDevices).set({ lastActive: /* @__PURE__ */ new Date(), ipAddress }).where(eq5(userDevices.id, existingDevice.id));
     } else {
       await db.insert(userDevices).values({
         id: deviceId,
@@ -5485,6 +5773,7 @@ async function registerDevice(userId, req) {
 async function registerRoutes(app2, existingServer) {
   app2.get("/readiness", readinessCheck);
   registerSitemapRoutes(app2);
+  registerCronRoutes(app2);
   if (process.env.NODE_ENV === "production") {
     registerPrerenderRoutes(app2);
   }
@@ -5548,7 +5837,7 @@ async function registerRoutes(app2, existingServer) {
   });
   const getOrCreateConversation = async (participant1Id, participant2Id, listingId) => {
     const conversationId = generateConversationId(participant1Id, participant2Id);
-    const [existing] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+    const [existing] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
     if (existing) {
       return existing;
     }
@@ -5608,7 +5897,7 @@ async function registerRoutes(app2, existingServer) {
         try {
           const message = JSON.parse(data.toString());
           if (message.type === "auth" && message.userId) {
-            const [dbUser2] = await db.select().from(users).where(eq4(users.id, message.userId)).limit(1);
+            const [dbUser2] = await db.select().from(users).where(eq5(users.id, message.userId)).limit(1);
             if (dbUser2) {
               setupAuthenticatedConnection(ws, message.userId, dbUser2);
               ws.send(JSON.stringify({ type: "auth_success" }));
@@ -5624,7 +5913,7 @@ async function registerRoutes(app2, existingServer) {
       });
       return;
     }
-    const [dbUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
+    const [dbUser] = await db.select().from(users).where(eq5(users.id, userId)).limit(1);
     if (dbUser) {
       setupAuthenticatedConnection(ws, userId, dbUser);
     } else {
@@ -5643,9 +5932,9 @@ async function registerRoutes(app2, existingServer) {
     clients.set(userId, clientInfo);
     await updateUserPresence(userId, true, `ws_${Date.now()}`);
     const userConversations = await db.select().from(conversations).where(
-      or2(
-        eq4(conversations.participant1Id, userId),
-        eq4(conversations.participant2Id, userId)
+      or3(
+        eq5(conversations.participant1Id, userId),
+        eq5(conversations.participant2Id, userId)
       )
     );
     for (const conv of userConversations) {
@@ -5739,13 +6028,13 @@ async function registerRoutes(app2, existingServer) {
               status: "read",
               readAt: /* @__PURE__ */ new Date()
             }).where(
-              and4(
-                inArray2(messages.id, messageIds),
-                eq4(messages.receiverId, userId)
+              and5(
+                inArray3(messages.id, messageIds),
+                eq5(messages.receiverId, userId)
               )
             );
             for (const msgId of messageIds) {
-              const [msg] = await db.select().from(messages).where(eq4(messages.id, msgId)).limit(1);
+              const [msg] = await db.select().from(messages).where(eq5(messages.id, msgId)).limit(1);
               if (msg) {
                 broadcastToUser(msg.senderId, {
                   type: "message_read",
@@ -5756,10 +6045,10 @@ async function registerRoutes(app2, existingServer) {
               }
             }
           }
-          const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+          const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
           if (conv) {
             const updateData = conv.participant1Id === userId ? { participant1UnreadCount: 0, participant1LastReadAt: /* @__PURE__ */ new Date() } : { participant2UnreadCount: 0, participant2LastReadAt: /* @__PURE__ */ new Date() };
-            await db.update(conversations).set(updateData).where(eq4(conversations.id, conversationId));
+            await db.update(conversations).set(updateData).where(eq5(conversations.id, conversationId));
           }
           ws.send(JSON.stringify({ type: "marked_read", conversationId }));
         } else if (message.type === "chat") {
@@ -5783,8 +6072,8 @@ async function registerRoutes(app2, existingServer) {
             lastMessageId: newMessage.id,
             lastMessageAt: /* @__PURE__ */ new Date(),
             updatedAt: /* @__PURE__ */ new Date(),
-            ...isParticipant1Receiver ? { participant1UnreadCount: sql4`${conversations.participant1UnreadCount} + 1` } : { participant2UnreadCount: sql4`${conversations.participant2UnreadCount} + 1` }
-          }).where(eq4(conversations.id, conversation.id));
+            ...isParticipant1Receiver ? { participant1UnreadCount: sql5`${conversations.participant1UnreadCount} + 1` } : { participant2UnreadCount: sql5`${conversations.participant2UnreadCount} + 1` }
+          }).where(eq5(conversations.id, conversation.id));
           const receiverOnline = broadcastToUser(message.receiverId, {
             type: "chat",
             message: {
@@ -5802,7 +6091,7 @@ async function registerRoutes(app2, existingServer) {
             await db.update(messages).set({
               status: "delivered",
               deliveredAt: /* @__PURE__ */ new Date()
-            }).where(eq4(messages.id, newMessage.id));
+            }).where(eq5(messages.id, newMessage.id));
             ws.send(JSON.stringify({
               type: "message_delivered",
               messageId: newMessage.id,
@@ -5849,13 +6138,13 @@ async function registerRoutes(app2, existingServer) {
           }
         } else if (message.type === "delete_message") {
           const messageId = message.messageId;
-          const [msg] = await db.select().from(messages).where(and4(eq4(messages.id, messageId), eq4(messages.senderId, userId))).limit(1);
+          const [msg] = await db.select().from(messages).where(and5(eq5(messages.id, messageId), eq5(messages.senderId, userId))).limit(1);
           if (msg) {
             await db.update(messages).set({
               isDeleted: true,
               deletedAt: /* @__PURE__ */ new Date(),
               content: "Bu mesaj silindi"
-            }).where(eq4(messages.id, messageId));
+            }).where(eq5(messages.id, messageId));
             broadcastToUser(msg.receiverId, {
               type: "message_deleted",
               messageId,
@@ -5870,13 +6159,13 @@ async function registerRoutes(app2, existingServer) {
         } else if (message.type === "edit_message") {
           const messageId = message.messageId;
           const newContent = message.content;
-          const [msg] = await db.select().from(messages).where(and4(eq4(messages.id, messageId), eq4(messages.senderId, userId))).limit(1);
+          const [msg] = await db.select().from(messages).where(and5(eq5(messages.id, messageId), eq5(messages.senderId, userId))).limit(1);
           if (msg && !msg.isDeleted) {
             await db.update(messages).set({
               content: newContent,
               isEdited: true,
               editedAt: /* @__PURE__ */ new Date()
-            }).where(eq4(messages.id, messageId));
+            }).where(eq5(messages.id, messageId));
             broadcastToUser(msg.receiverId, {
               type: "message_edited",
               messageId,
@@ -5894,7 +6183,7 @@ async function registerRoutes(app2, existingServer) {
           }
         } else if (message.type === "get_presence") {
           const targetUserId = message.userId;
-          const [presence] = await db.select().from(userPresence).where(eq4(userPresence.userId, targetUserId)).limit(1);
+          const [presence] = await db.select().from(userPresence).where(eq5(userPresence.userId, targetUserId)).limit(1);
           ws.send(JSON.stringify({
             type: "presence",
             userId: targetUserId,
@@ -5902,7 +6191,7 @@ async function registerRoutes(app2, existingServer) {
             lastSeenAt: presence?.lastSeenAt?.toISOString() || null
           }));
         } else if (message.type === "bid") {
-          const [auction] = await db.select().from(auctions).where(eq4(auctions.id, message.auctionId)).limit(1);
+          const [auction] = await db.select().from(auctions).where(eq5(auctions.id, message.auctionId)).limit(1);
           if (!auction) {
             ws.send(JSON.stringify({ type: "error", message: "Auction not found" }));
             return;
@@ -5952,9 +6241,9 @@ async function registerRoutes(app2, existingServer) {
       clearTimeout(idleTimeout);
       await updateUserPresence(userId, false);
       const userConvs = await db.select().from(conversations).where(
-        or2(
-          eq4(conversations.participant1Id, userId),
-          eq4(conversations.participant2Id, userId)
+        or3(
+          eq5(conversations.participant1Id, userId),
+          eq5(conversations.participant2Id, userId)
         )
       );
       for (const conv of userConvs) {
@@ -5989,14 +6278,14 @@ async function registerRoutes(app2, existingServer) {
       }
       const normalizedPhone = phone ? String(phone).startsWith("+90") ? String(phone) : String(phone).replace(/^0/, "+90") : null;
       const existingEmailUser = await db.query.users.findFirst({
-        where: eq4(users.email, email)
+        where: eq5(users.email, email)
       });
       if (existingEmailUser) {
         return res.status(400).json({ message: "Bu email adresi zaten kay\u0131tl\u0131" });
       }
       if (normalizedPhone) {
         const existingPhoneUser = await db.query.users.findFirst({
-          where: eq4(users.phone, normalizedPhone)
+          where: eq5(users.phone, normalizedPhone)
         });
         if (existingPhoneUser) {
           return res.status(400).json({ message: "Bu telefon numaras\u0131 zaten kay\u0131tl\u0131" });
@@ -6051,10 +6340,10 @@ async function registerRoutes(app2, existingServer) {
         normalizedIdentifier = digits.startsWith("90") ? `+${digits}` : `+90${digits.replace(/^0/, "")}`;
       }
       const user = await db.query.users.findFirst({
-        where: or2(
-          eq4(users.email, loginIdentifier),
-          eq4(users.phone, normalizedIdentifier),
-          eq4(users.username, loginIdentifier)
+        where: or3(
+          eq5(users.email, loginIdentifier),
+          eq5(users.phone, normalizedIdentifier),
+          eq5(users.username, loginIdentifier)
         )
       });
       if (!user || !user.password) {
@@ -6117,14 +6406,14 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Email gereklidir" });
       }
       const user = await db.query.users.findFirst({
-        where: eq4(users.email, email)
+        where: eq5(users.email, email)
       });
       if (!user) {
         return res.json({ message: "E\u011Fer bu email kay\u0131tl\u0131ysa, \u015Fifre s\u0131f\u0131rlama linki g\xF6nderildi" });
       }
       const resetToken = generateVerificationToken();
       const resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1e3);
-      await db.update(users).set({ resetToken, resetTokenExpiry }).where(eq4(users.id, user.id));
+      await db.update(users).set({ resetToken, resetTokenExpiry }).where(eq5(users.id, user.id));
       await emailService.sendPasswordResetEmail(
         email,
         resetToken,
@@ -6146,8 +6435,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "\u015Eifre en az 8 karakter olmal\u0131d\u0131r" });
       }
       const user = await db.query.users.findFirst({
-        where: and4(
-          eq4(users.resetToken, token),
+        where: and5(
+          eq5(users.resetToken, token),
           gte2(users.resetTokenExpiry, /* @__PURE__ */ new Date())
         )
       });
@@ -6159,7 +6448,7 @@ async function registerRoutes(app2, existingServer) {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null
-      }).where(eq4(users.id, user.id));
+      }).where(eq5(users.id, user.id));
       res.json({ message: "\u015Eifreniz ba\u015Far\u0131yla g\xFCncellendi" });
     } catch (error) {
       console.error("Reset password error:", error);
@@ -6173,8 +6462,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7ersiz do\u011Frulama linki" });
       }
       const user = await db.query.users.findFirst({
-        where: and4(
-          eq4(users.verificationToken, token),
+        where: and5(
+          eq5(users.verificationToken, token),
           gte2(users.verificationTokenExpiry, /* @__PURE__ */ new Date())
         )
       });
@@ -6185,7 +6474,7 @@ async function registerRoutes(app2, existingServer) {
         emailVerified: true,
         verificationToken: null,
         verificationTokenExpiry: null
-      }).where(eq4(users.id, user.id));
+      }).where(eq5(users.id, user.id));
       res.json({ message: "Email adresiniz ba\u015Far\u0131yla do\u011Fruland\u0131!" });
     } catch (error) {
       console.error("Email verification error:", error);
@@ -6197,7 +6486,7 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const currentUser = await db.query.users.findFirst({
-        where: eq4(users.id, userId)
+        where: eq5(users.id, userId)
       });
       if (!currentUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
@@ -6225,13 +6514,13 @@ async function registerRoutes(app2, existingServer) {
       await db.update(users).set({
         verificationToken,
         verificationTokenExpiry
-      }).where(eq4(users.id, userId));
+      }).where(eq5(users.id, userId));
       if (shouldAutoVerifyEmail()) {
         await db.update(users).set({
           emailVerified: true,
           verificationToken: null,
           verificationTokenExpiry: null
-        }).where(eq4(users.id, userId));
+        }).where(eq5(users.id, userId));
         return res.json({
           message: "Geli\u015Ftirme modunda: E-posta otomatik do\u011Fruland\u0131",
           autoVerified: true
@@ -6293,7 +6582,7 @@ async function registerRoutes(app2, existingServer) {
         district: district || void 0,
         bio: bio || void 0,
         profileImageUrl: profileImageUrl || void 0
-      }).where(eq4(users.id, userId)).returning();
+      }).where(eq5(users.id, userId)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -6317,7 +6606,7 @@ async function registerRoutes(app2, existingServer) {
       if (newPassword.length < 8) {
         return res.status(400).json({ message: "Yeni \u015Fifre en az 8 karakter olmal\u0131d\u0131r" });
       }
-      const [existingUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
+      const [existingUser] = await db.select().from(users).where(eq5(users.id, userId)).limit(1);
       if (!existingUser || !existingUser.password) {
         return res.status(400).json({ message: "Bu hesap i\xE7in \u015Fifre de\u011Fi\u015Ftirilemez" });
       }
@@ -6326,7 +6615,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "Mevcut \u015Fifre hatal\u0131" });
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await db.update(users).set({ password: hashedPassword }).where(eq4(users.id, userId));
+      await db.update(users).set({ password: hashedPassword }).where(eq5(users.id, userId));
       res.json({ message: "\u015Eifreniz ba\u015Far\u0131yla g\xFCncellendi" });
     } catch (error) {
       console.error("Change password error:", error);
@@ -6337,7 +6626,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const [existingSettings] = await db.select().from(userSettings).where(eq4(userSettings.userId, userId)).limit(1);
+      const [existingSettings] = await db.select().from(userSettings).where(eq5(userSettings.userId, userId)).limit(1);
       if (existingSettings) {
         return res.json(existingSettings);
       }
@@ -6375,13 +6664,13 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const settingsData = req.body;
-      const [existingSettings] = await db.select().from(userSettings).where(eq4(userSettings.userId, userId)).limit(1);
+      const [existingSettings] = await db.select().from(userSettings).where(eq5(userSettings.userId, userId)).limit(1);
       let updatedSettings;
       if (existingSettings) {
         [updatedSettings] = await db.update(userSettings).set({
           ...settingsData,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq4(userSettings.userId, userId)).returning();
+        }).where(eq5(userSettings.userId, userId)).returning();
       } else {
         [updatedSettings] = await db.insert(userSettings).values({
           userId,
@@ -6398,7 +6687,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const devices = await db.select().from(userDevices).where(eq4(userDevices.userId, userId)).orderBy(desc3(userDevices.lastActive));
+      const devices = await db.select().from(userDevices).where(eq5(userDevices.userId, userId)).orderBy(desc4(userDevices.lastActive));
       res.json(devices);
     } catch (error) {
       console.error("Get devices error:", error);
@@ -6410,9 +6699,9 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const { deviceId } = req.params;
-      await db.delete(userDevices).where(and4(
-        eq4(userDevices.id, deviceId),
-        eq4(userDevices.userId, userId)
+      await db.delete(userDevices).where(and5(
+        eq5(userDevices.id, deviceId),
+        eq5(userDevices.userId, userId)
       ));
       res.json({ message: "Cihaz kald\u0131r\u0131ld\u0131" });
     } catch (error) {
@@ -6424,7 +6713,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const history = await db.select().from(loginHistory).where(eq4(loginHistory.userId, userId)).orderBy(desc3(loginHistory.createdAt)).limit(50);
+      const history = await db.select().from(loginHistory).where(eq5(loginHistory.userId, userId)).orderBy(desc4(loginHistory.createdAt)).limit(50);
       res.json(history);
     } catch (error) {
       console.error("Get login history error:", error);
@@ -6439,7 +6728,7 @@ async function registerRoutes(app2, existingServer) {
       if (confirmation !== "DELETE") {
         return res.status(400).json({ message: "Hesap silme onay\u0131 gereklidir" });
       }
-      const [existingUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
+      const [existingUser] = await db.select().from(users).where(eq5(users.id, userId)).limit(1);
       if (existingUser?.password && password) {
         const isValidPassword = await bcrypt.compare(password, existingUser.password);
         if (!isValidPassword) {
@@ -6447,9 +6736,9 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const objectStorage2 = new ObjectStorageService();
-      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
+      const userListings = await db.select().from(listings).where(eq5(listings.sellerId, userId));
       for (const listing of userListings) {
-        const listingImgs = await db.select().from(listingImages).where(eq4(listingImages.listingId, listing.id));
+        const listingImgs = await db.select().from(listingImages).where(eq5(listingImages.listingId, listing.id));
         for (const img of listingImgs) {
           const pathsToDelete = [
             img.originalKey,
@@ -6466,7 +6755,7 @@ async function registerRoutes(app2, existingServer) {
       if (existingUser?.profileImageUrl) {
         await objectStorage2.deleteFile(existingUser.profileImageUrl);
       }
-      const [userStore] = await db.select().from(stores).where(eq4(stores.ownerId, userId)).limit(1);
+      const [userStore] = await db.select().from(stores).where(eq5(stores.ownerId, userId)).limit(1);
       if (userStore) {
         if (userStore.logo) {
           await objectStorage2.deleteFile(userStore.logo);
@@ -6474,14 +6763,14 @@ async function registerRoutes(app2, existingServer) {
         if (userStore.banner) {
           await objectStorage2.deleteFile(userStore.banner);
         }
-        const storeMediaItems = await db.select().from(storeMedia).where(eq4(storeMedia.storeId, userStore.id));
+        const storeMediaItems = await db.select().from(storeMedia).where(eq5(storeMedia.storeId, userStore.id));
         for (const media of storeMediaItems) {
           if (media.url) {
             await objectStorage2.deleteFile(media.url);
           }
         }
       }
-      const userMessages = await db.select().from(messages).where(eq4(messages.senderId, userId));
+      const userMessages = await db.select().from(messages).where(eq5(messages.senderId, userId));
       for (const msg of userMessages) {
         if (msg.attachments && Array.isArray(msg.attachments)) {
           for (const attachment of msg.attachments) {
@@ -6491,7 +6780,7 @@ async function registerRoutes(app2, existingServer) {
           }
         }
       }
-      await db.delete(users).where(eq4(users.id, userId));
+      await db.delete(users).where(eq5(users.id, userId));
       req.logout((err) => {
         if (err) {
           console.error("Logout error:", err);
@@ -6507,13 +6796,13 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const [userData] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
-      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
-      const userFavorites = await db.select().from(favorites).where(eq4(favorites.userId, userId));
+      const [userData] = await db.select().from(users).where(eq5(users.id, userId)).limit(1);
+      const userListings = await db.select().from(listings).where(eq5(listings.sellerId, userId));
+      const userFavorites = await db.select().from(favorites).where(eq5(favorites.userId, userId));
       const userMessages = await db.select().from(messages).where(
-        or2(eq4(messages.senderId, userId), eq4(messages.receiverId, userId))
+        or3(eq5(messages.senderId, userId), eq5(messages.receiverId, userId))
       );
-      const userSettings_ = await db.select().from(userSettings).where(eq4(userSettings.userId, userId));
+      const userSettings_ = await db.select().from(userSettings).where(eq5(userSettings.userId, userId));
       if (userData) {
         delete userData.password;
         delete userData.verificationToken;
@@ -6537,7 +6826,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/categories/main", async (_req, res) => {
     try {
-      const mainCategories = await db.select().from(categories).where(eq4(categories.depth, 0)).orderBy(categories.order);
+      const mainCategories = await db.select().from(categories).where(eq5(categories.depth, 0)).orderBy(categories.order);
       res.json(mainCategories);
     } catch (error) {
       console.error("Error fetching main categories:", error);
@@ -6549,7 +6838,7 @@ async function registerRoutes(app2, existingServer) {
       const stats = await db.select({
         categoryId: listings.categoryId,
         count: count()
-      }).from(listings).where(eq4(listings.status, "active")).groupBy(listings.categoryId);
+      }).from(listings).where(eq5(listings.status, "active")).groupBy(listings.categoryId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching category stats:", error);
@@ -6610,16 +6899,16 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/categories/:slug", async (req, res) => {
     try {
-      const [category] = await db.select().from(categories).where(eq4(categories.slug, req.params.slug)).limit(1);
+      const [category] = await db.select().from(categories).where(eq5(categories.slug, req.params.slug)).limit(1);
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
       }
-      const childCategories = await db.select().from(categories).where(eq4(categories.parentId, category.id)).orderBy(categories.order);
+      const childCategories = await db.select().from(categories).where(eq5(categories.parentId, category.id)).orderBy(categories.order);
       const categoryWithChildren = {
         ...category,
         children: await Promise.all(
           childCategories.map(async (child) => {
-            const grandchildren = await db.select().from(categories).where(eq4(categories.parentId, child.id)).orderBy(categories.order);
+            const grandchildren = await db.select().from(categories).where(eq5(categories.parentId, child.id)).orderBy(categories.order);
             return {
               ...child,
               children: grandchildren
@@ -6636,19 +6925,19 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/categories/:slug/restrictions", async (req, res) => {
     try {
       const { slug } = req.params;
-      const kisitlamalar = await db.select().from(restrictedCategories).where(and4(
-        eq4(restrictedCategories.categorySlug, slug),
-        eq4(restrictedCategories.isActive, true)
+      const kisitlamalar = await db.select().from(restrictedCategories).where(and5(
+        eq5(restrictedCategories.categorySlug, slug),
+        eq5(restrictedCategories.isActive, true)
       ));
-      const [kategori] = await db.select({ path: categories.path }).from(categories).where(eq4(categories.slug, slug)).limit(1);
+      const [kategori] = await db.select({ path: categories.path }).from(categories).where(eq5(categories.slug, slug)).limit(1);
       const atalar = Array.isArray(kategori?.path) ? kategori.path : [];
       let devralinan = [];
       if (atalar.length > 0) {
-        const atalarinSluglari = await db.select({ slug: categories.slug }).from(categories).where(inArray2(categories.id, atalar));
+        const atalarinSluglari = await db.select({ slug: categories.slug }).from(categories).where(inArray3(categories.id, atalar));
         if (atalarinSluglari.length > 0) {
-          devralinan = await db.select().from(restrictedCategories).where(and4(
-            inArray2(restrictedCategories.categorySlug, atalarinSluglari.map((a) => a.slug)),
-            eq4(restrictedCategories.isActive, true)
+          devralinan = await db.select().from(restrictedCategories).where(and5(
+            inArray3(restrictedCategories.categorySlug, atalarinSluglari.map((a) => a.slug)),
+            eq5(restrictedCategories.isActive, true)
           ));
         }
       }
@@ -6667,13 +6956,13 @@ async function registerRoutes(app2, existingServer) {
         if (parent === null || parent === "") {
           conditions.push(isNull(locations.parentId));
         } else {
-          conditions.push(eq4(locations.parentId, parent));
+          conditions.push(eq5(locations.parentId, parent));
         }
       }
       if (type) {
-        conditions.push(eq4(locations.type, type));
+        conditions.push(eq5(locations.type, type));
       }
-      const result = await query.where(conditions.length > 0 ? and4(...conditions) : void 0);
+      const result = await query.where(conditions.length > 0 ? and5(...conditions) : void 0);
       res.json(result);
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -6685,11 +6974,11 @@ async function registerRoutes(app2, existingServer) {
       const q = (req.query.q || "").trim();
       if (!q || q.length < 2) return res.json({ listings: [], categories: [] });
       const [listingSuggestions, categorySuggestions] = await Promise.all([
-        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and4(
-          sql4`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
-          eq4(listings.status, "active")
-        )).orderBy(desc3(listings.createdAt)).limit(6),
-        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(sql4`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`).limit(4)
+        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and5(
+          sql5`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
+          eq5(listings.status, "active")
+        )).orderBy(desc4(listings.createdAt)).limit(6),
+        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(sql5`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`).limit(4)
       ]);
       res.json({ listings: listingSuggestions, categories: categorySuggestions });
     } catch (err) {
@@ -6752,21 +7041,21 @@ async function registerRoutes(app2, existingServer) {
         };
         const categoryIds = getAllDescendants(categoryId);
         if (categoryIds.length > 1) {
-          conditions.push(inArray2(listings.categoryId, categoryIds));
+          conditions.push(inArray3(listings.categoryId, categoryIds));
         } else {
-          conditions.push(eq4(listings.categoryId, categoryId));
+          conditions.push(eq5(listings.categoryId, categoryId));
         }
       }
       if (city) {
-        conditions.push(eq4(listings.city, city));
+        conditions.push(eq5(listings.city, city));
       }
       if (district) {
-        conditions.push(eq4(listings.district, district));
+        conditions.push(eq5(listings.district, district));
       }
       if (status) {
-        conditions.push(eq4(listings.status, status));
+        conditions.push(eq5(listings.status, status));
       } else {
-        conditions.push(eq4(listings.status, "active"));
+        conditions.push(eq5(listings.status, "active"));
       }
       if (minPrice) {
         const minPriceNum = parseFloat(minPrice);
@@ -6783,7 +7072,7 @@ async function registerRoutes(app2, existingServer) {
       if (search) {
         const searchTerm = `%${search}%`;
         conditions.push(
-          sql4`(
+          sql5`(
             public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${searchTerm})
             OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${searchTerm})
             OR public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${searchTerm})
@@ -6793,37 +7082,37 @@ async function registerRoutes(app2, existingServer) {
       if (minAge) {
         const minAgeNum = parseInt(minAge, 10);
         if (!isNaN(minAgeNum)) {
-          conditions.push(sql4`CAST(${listings.age} AS INTEGER) >= ${minAgeNum}`);
+          conditions.push(sql5`CAST(${listings.age} AS INTEGER) >= ${minAgeNum}`);
         }
       }
       if (maxAge) {
         const maxAgeNum = parseInt(maxAge, 10);
         if (!isNaN(maxAgeNum)) {
-          conditions.push(sql4`CAST(${listings.age} AS INTEGER) <= ${maxAgeNum}`);
+          conditions.push(sql5`CAST(${listings.age} AS INTEGER) <= ${maxAgeNum}`);
         }
       }
       if (gender && gender !== "all") {
-        conditions.push(eq4(listings.gender, gender));
+        conditions.push(eq5(listings.gender, gender));
       }
       if (breed && typeof breed === "string" && breed.trim()) {
         conditions.push(
-          sql4`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
+          sql5`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
         );
       }
       if (healthStatus && healthStatus !== "all") {
-        conditions.push(eq4(listings.healthStatus, healthStatus));
+        conditions.push(eq5(listings.healthStatus, healthStatus));
       }
       if (vaccinated !== void 0 && vaccinated !== "all") {
         const isVaccinated = vaccinated === "true" || vaccinated === "1";
-        conditions.push(eq4(listings.vaccinated, isVaccinated));
+        conditions.push(eq5(listings.vaccinated, isVaccinated));
       }
       if (neutered !== void 0 && neutered !== "all") {
         const isNeutered = neutered === "true" || neutered === "1";
-        conditions.push(eq4(listings.neutered, isNeutered));
+        conditions.push(eq5(listings.neutered, isNeutered));
       }
       if (pedigree !== void 0 && pedigree !== "all") {
         const hasPedigree = pedigree === "true" || pedigree === "1";
-        conditions.push(eq4(listings.pedigree, hasPedigree));
+        conditions.push(eq5(listings.pedigree, hasPedigree));
       }
       if (ageCategory && ageCategory !== "all") {
         const ageRanges = {
@@ -6837,7 +7126,7 @@ async function registerRoutes(app2, existingServer) {
         const range = ageRanges[ageCategory];
         if (range) {
           conditions.push(
-            sql4`(${listings.age} = ${ageCategory} OR 
+            sql5`(${listings.age} = ${ageCategory} OR 
                 (${listings.age} ~ '^[0-9]+$' AND CAST(${listings.age} AS INTEGER) >= ${range[0]} AND CAST(${listings.age} AS INTEGER) < ${range[1]}))`
           );
         }
@@ -6851,13 +7140,13 @@ async function registerRoutes(app2, existingServer) {
         }
         if (traitsArray.length > 0) {
           const traitConditions = traitsArray.map(
-            (trait) => sql4`${listings.characterTraits}::jsonb @> ${JSON.stringify([trait])}::jsonb`
+            (trait) => sql5`${listings.characterTraits}::jsonb @> ${JSON.stringify([trait])}::jsonb`
           );
-          conditions.push(sql4`(${sql4.join(traitConditions, sql4` OR `)})`);
+          conditions.push(sql5`(${sql5.join(traitConditions, sql5` OR `)})`);
         }
       }
       const validConditions = conditions.filter(Boolean);
-      const [{ count: totalCount }] = await db.select({ count: count() }).from(listings).where(validConditions.length > 0 ? and4(...validConditions) : void 0);
+      const [{ count: totalCount }] = await db.select({ count: count() }).from(listings).where(validConditions.length > 0 ? and5(...validConditions) : void 0);
       const ALLOWED_SORT_COLUMNS = {
         createdAt: "createdAt",
         price: "price",
@@ -6866,7 +7155,7 @@ async function registerRoutes(app2, existingServer) {
       const ALLOWED_SORT_ORDERS = /* @__PURE__ */ new Set(["asc", "desc"]);
       const sortCol = typeof sortBy === "string" && ALLOWED_SORT_COLUMNS[sortBy] ? ALLOWED_SORT_COLUMNS[sortBy] : "createdAt";
       const sortDir = typeof sortOrder === "string" && ALLOWED_SORT_ORDERS.has(sortOrder) ? sortOrder : "desc";
-      const sortExpression = sortCol === "price" ? sortDir === "asc" ? asc(listings.price) : desc3(listings.price) : sortCol === "views" ? sortDir === "asc" ? asc(listings.views) : desc3(listings.views) : sortDir === "asc" ? asc(listings.createdAt) : desc3(listings.createdAt);
+      const sortExpression = sortCol === "price" ? sortDir === "asc" ? asc(listings.price) : desc4(listings.price) : sortCol === "views" ? sortDir === "asc" ? asc(listings.views) : desc4(listings.views) : sortDir === "asc" ? asc(listings.createdAt) : desc4(listings.createdAt);
       const listingsData = await db.select({
         listing: listings,
         store: {
@@ -6875,14 +7164,14 @@ async function registerRoutes(app2, existingServer) {
           displayName: stores.displayName,
           logo: stores.logo
         }
-      }).from(listings).leftJoin(stores, eq4(listings.storeId, stores.id)).where(validConditions.length > 0 ? and4(...validConditions) : void 0).orderBy(sortExpression).limit(limitNum).offset(offset);
+      }).from(listings).leftJoin(stores, eq5(listings.storeId, stores.id)).where(validConditions.length > 0 ? and5(...validConditions) : void 0).orderBy(sortExpression).limit(limitNum).offset(offset);
       const flattenedListings = listingsData.map((row) => ({
         ...row.listing,
         store: row.store?.id ? row.store : null
       }));
       let listingsWithFavorites = flattenedListings;
       if (req.user) {
-        const userFavorites = await db.select().from(favorites).where(eq4(favorites.userId, getUserId2(req.user)));
+        const userFavorites = await db.select().from(favorites).where(eq5(favorites.userId, getUserId2(req.user)));
         const favoriteIds = new Set(userFavorites.map((f) => f.listingId));
         listingsWithFavorites = flattenedListings.map((listing) => ({
           ...listing,
@@ -6908,7 +7197,7 @@ async function registerRoutes(app2, existingServer) {
       if (cached) {
         return res.json(cached);
       }
-      const hotListings = await db.select().from(listings).where(eq4(listings.status, "active")).orderBy(desc3(listings.views)).limit(12);
+      const hotListings = await db.select().from(listings).where(eq5(listings.status, "active")).orderBy(desc4(listings.views)).limit(12);
       await cache.set(cacheKey, hotListings, cacheTTL.hotListings);
       res.json(hotListings);
     } catch (error) {
@@ -6918,18 +7207,18 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/:id/similar", async (req, res) => {
     try {
-      const [currentListing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
+      const [currentListing] = await db.select().from(listings).where(eq5(listings.id, req.params.id)).limit(1);
       if (!currentListing) {
         return res.status(404).json({ message: "Listing not found" });
       }
       const similarListings = await db.select().from(listings).where(
-        and4(
-          eq4(listings.categoryId, currentListing.categoryId),
-          eq4(listings.status, "active"),
-          sql4`${listings.id} != ${req.params.id}`
+        and5(
+          eq5(listings.categoryId, currentListing.categoryId),
+          eq5(listings.status, "active"),
+          sql5`${listings.id} != ${req.params.id}`
           // Exclude current listing
         )
-      ).orderBy(desc3(listings.views)).limit(8);
+      ).orderBy(desc4(listings.views)).limit(8);
       res.json(similarListings);
     } catch (error) {
       console.error("Error fetching similar listings:", error);
@@ -6940,15 +7229,15 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listings/:id", async (req, res, next) => {
     if (LISTE_SABIT_YOLLARI.has(req.params.id)) return next();
     try {
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
-      await db.update(listings).set({ views: sql4`${listings.views} + 1` }).where(eq4(listings.id, req.params.id));
-      const [seller] = await db.select().from(users).where(eq4(users.id, listing.sellerId)).limit(1);
+      await db.update(listings).set({ views: sql5`${listings.views} + 1` }).where(eq5(listings.id, req.params.id));
+      const [seller] = await db.select().from(users).where(eq5(users.id, listing.sellerId)).limit(1);
       let categoryInfo = null;
       if (listing.categoryId) {
-        const [category] = await db.select().from(categories).where(eq4(categories.id, listing.categoryId)).limit(1);
+        const [category] = await db.select().from(categories).where(eq5(categories.id, listing.categoryId)).limit(1);
         categoryInfo = category || null;
       }
       let storeInfo = null;
@@ -6958,15 +7247,15 @@ async function registerRoutes(app2, existingServer) {
           slug: stores.slug,
           displayName: stores.displayName,
           logo: stores.logo
-        }).from(stores).where(eq4(stores.id, listing.storeId)).limit(1);
+        }).from(stores).where(eq5(stores.id, listing.storeId)).limit(1);
         storeInfo = store || null;
       }
       let isFavorite = false;
       if (req.user) {
         const [favorite] = await db.select().from(favorites).where(
-          and4(
-            eq4(favorites.userId, getUserId2(req.user)),
-            eq4(favorites.listingId, listing.id)
+          and5(
+            eq5(favorites.userId, getUserId2(req.user)),
+            eq5(favorites.listingId, listing.id)
           )
         ).limit(1);
         isFavorite = !!favorite;
@@ -7008,12 +7297,12 @@ async function registerRoutes(app2, existingServer) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3);
       const normalizedTitle = req.body.title.toLowerCase().trim();
       const duplicates = await db.select().from(listings).where(
-        and4(
-          eq4(listings.sellerId, sellerId),
-          sql4`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
+        and5(
+          eq5(listings.sellerId, sellerId),
+          sql5`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
           gte2(listings.createdAt, oneHourAgo),
           // Ignore rejected/deleted listings
-          sql4`${listings.status} NOT IN ('rejected', 'deleted')`
+          sql5`${listings.status} NOT IN ('rejected', 'deleted')`
         )
       ).limit(1);
       if (duplicates.length > 0) {
@@ -7023,10 +7312,10 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const recentListings = await db.select({ count: count() }).from(listings).where(
-        and4(
-          eq4(listings.sellerId, sellerId),
+        and5(
+          eq5(listings.sellerId, sellerId),
           gte2(listings.createdAt, oneHourAgo),
-          sql4`${listings.status} NOT IN ('rejected', 'deleted')`
+          sql5`${listings.status} NOT IN ('rejected', 'deleted')`
         )
       );
       if (recentListings[0] && Number(recentListings[0].count) >= 5) {
@@ -7037,12 +7326,12 @@ async function registerRoutes(app2, existingServer) {
       }
       const categoryId = req.body.categoryId;
       if (categoryId) {
-        const categoryInfo = await db.select().from(categories).where(eq4(categories.id, categoryId)).limit(1);
+        const categoryInfo = await db.select().from(categories).where(eq5(categories.id, categoryId)).limit(1);
         if (categoryInfo.length > 0) {
           const categorySlug = categoryInfo[0].slug;
-          const restrictions = await db.select().from(restrictedCategories).where(and4(
-            eq4(restrictedCategories.categorySlug, categorySlug),
-            eq4(restrictedCategories.isActive, true)
+          const restrictions = await db.select().from(restrictedCategories).where(and5(
+            eq5(restrictedCategories.categorySlug, categorySlug),
+            eq5(restrictedCategories.isActive, true)
           ));
           if (restrictions.length > 0) {
             const restriction = restrictions[0];
@@ -7081,11 +7370,11 @@ async function registerRoutes(app2, existingServer) {
           }
           if (categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
             for (const parentId of categoryInfo[0].path) {
-              const parentCat = await db.select().from(categories).where(eq4(categories.id, parentId)).limit(1);
+              const parentCat = await db.select().from(categories).where(eq5(categories.id, parentId)).limit(1);
               if (parentCat.length > 0) {
-                const parentRestrictions = await db.select().from(restrictedCategories).where(and4(
-                  eq4(restrictedCategories.categorySlug, parentCat[0].slug),
-                  eq4(restrictedCategories.isActive, true)
+                const parentRestrictions = await db.select().from(restrictedCategories).where(and5(
+                  eq5(restrictedCategories.categorySlug, parentCat[0].slug),
+                  eq5(restrictedCategories.isActive, true)
                 ));
                 if (parentRestrictions.length > 0) {
                   const restriction = parentRestrictions[0];
@@ -7165,7 +7454,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/listings/:id", isAuthenticated, async (req, res) => {
     try {
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -7198,10 +7487,10 @@ async function registerRoutes(app2, existingServer) {
       if ("storeId" in safeBody) {
         updateData.listingSource = safeBody.storeId ? "store" : "individual";
       }
-      const [updated] = await db.update(listings).set(updateData).where(eq4(listings.id, req.params.id)).returning();
+      const [updated] = await db.update(listings).set(updateData).where(eq5(listings.id, req.params.id)).returning();
       if (isPriceDrop && listing.status === "active") {
         try {
-          const favoritedUsers = await db.select({ userId: favorites.userId }).from(favorites).where(eq4(favorites.listingId, req.params.id));
+          const favoritedUsers = await db.select({ userId: favorites.userId }).from(favorites).where(eq5(favorites.listingId, req.params.id));
           const discountPercent = Math.round((oldPrice - newPrice) / oldPrice * 100);
           if (favoritedUsers.length > 0) {
             const notificationValues = favoritedUsers.map((fav) => ({
@@ -7227,7 +7516,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/listings/:id", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -7235,8 +7524,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       const objectStorage2 = new ObjectStorageService();
-      await db.delete(favorites).where(eq4(favorites.listingId, listingId));
-      const imagesToDelete = await db.select().from(listingImages).where(eq4(listingImages.listingId, listingId));
+      await db.delete(favorites).where(eq5(favorites.listingId, listingId));
+      const imagesToDelete = await db.select().from(listingImages).where(eq5(listingImages.listingId, listingId));
       for (const img of imagesToDelete) {
         const pathsToDelete = [
           img.originalKey,
@@ -7246,21 +7535,21 @@ async function registerRoutes(app2, existingServer) {
         ].filter(Boolean);
         await objectStorage2.deleteMultipleFiles(pathsToDelete);
       }
-      await db.delete(listingImages).where(eq4(listingImages.listingId, listingId));
+      await db.delete(listingImages).where(eq5(listingImages.listingId, listingId));
       if (listing.images && Array.isArray(listing.images)) {
         await objectStorage2.deleteMultipleFiles(listing.images);
       }
       await db.delete(reports).where(
-        and4(eq4(reports.reportedType, "listing"), eq4(reports.reportedId, listingId))
+        and5(eq5(reports.reportedType, "listing"), eq5(reports.reportedId, listingId))
       );
-      await db.delete(offers).where(eq4(offers.listingId, listingId));
-      await db.update(conversations).set({ listingId: null }).where(eq4(conversations.listingId, listingId));
-      const relatedAuctions = await db.select({ id: auctions.id }).from(auctions).where(eq4(auctions.listingId, listingId));
+      await db.delete(offers).where(eq5(offers.listingId, listingId));
+      await db.update(conversations).set({ listingId: null }).where(eq5(conversations.listingId, listingId));
+      const relatedAuctions = await db.select({ id: auctions.id }).from(auctions).where(eq5(auctions.listingId, listingId));
       for (const auction of relatedAuctions) {
-        await db.delete(bids).where(eq4(bids.auctionId, auction.id));
+        await db.delete(bids).where(eq5(bids.auctionId, auction.id));
       }
-      await db.delete(auctions).where(eq4(auctions.listingId, listingId));
-      await db.delete(listings).where(eq4(listings.id, listingId));
+      await db.delete(auctions).where(eq5(auctions.listingId, listingId));
+      await db.delete(listings).where(eq5(listings.id, listingId));
       res.json({ message: "Listing deleted successfully" });
     } catch (error) {
       console.error("Error deleting listing:", error);
@@ -7270,14 +7559,14 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/listings/:id/deactivate", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Bu i\u015Flem i\xE7in yetkiniz yok" });
       }
-      const [updated] = await db.update(listings).set({ status: "draft", updatedAt: /* @__PURE__ */ new Date() }).where(eq4(listings.id, listingId)).returning();
+      const [updated] = await db.update(listings).set({ status: "draft", updatedAt: /* @__PURE__ */ new Date() }).where(eq5(listings.id, listingId)).returning();
       res.json({ message: "\u0130lan pasife al\u0131nd\u0131", listing: updated });
     } catch (error) {
       console.error("Error deactivating listing:", error);
@@ -7287,14 +7576,14 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/listings/:id/activate", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Bu i\u015Flem i\xE7in yetkiniz yok" });
       }
-      const [updated] = await db.update(listings).set({ status: "active", updatedAt: /* @__PURE__ */ new Date() }).where(eq4(listings.id, listingId)).returning();
+      const [updated] = await db.update(listings).set({ status: "active", updatedAt: /* @__PURE__ */ new Date() }).where(eq5(listings.id, listingId)).returning();
       res.json({ message: "\u0130lan aktifle\u015Ftirildi", listing: updated });
     } catch (error) {
       console.error("Error activating listing:", error);
@@ -7303,7 +7592,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/mine", isAuthenticated, async (req, res) => {
     try {
-      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, getUserId2(req.user))).orderBy(desc3(listings.createdAt));
+      const userListings = await db.select().from(listings).where(eq5(listings.sellerId, getUserId2(req.user))).orderBy(desc4(listings.createdAt));
       res.json(userListings);
     } catch (error) {
       console.error("Error fetching user listings:", error);
@@ -7312,7 +7601,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/users/:id/listings", async (req, res) => {
     try {
-      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, req.params.id)).orderBy(desc3(listings.createdAt));
+      const userListings = await db.select().from(listings).where(eq5(listings.sellerId, req.params.id)).orderBy(desc4(listings.createdAt));
       res.json(userListings);
     } catch (error) {
       console.error("Error fetching user listings:", error);
@@ -7324,9 +7613,9 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(auctions);
       if (status) {
-        query = query.where(eq4(auctions.status, status));
+        query = query.where(eq5(auctions.status, status));
       }
-      const allAuctions = await query.orderBy(desc3(auctions.createdAt));
+      const allAuctions = await query.orderBy(desc4(auctions.createdAt));
       res.json(allAuctions);
     } catch (error) {
       console.error("Failed to fetch auctions:", error);
@@ -7335,12 +7624,12 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/auctions/:id", async (req, res) => {
     try {
-      const [auction] = await db.select().from(auctions).where(eq4(auctions.id, req.params.id)).limit(1);
+      const [auction] = await db.select().from(auctions).where(eq5(auctions.id, req.params.id)).limit(1);
       if (!auction) {
         return res.status(404).json({ message: "Auction not found" });
       }
-      const auctionBids = await db.select().from(bids).where(eq4(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, auction.listingId)).limit(1);
+      const auctionBids = await db.select().from(bids).where(eq5(bids.auctionId, req.params.id)).orderBy(desc4(bids.amount));
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, auction.listingId)).limit(1);
       res.json({
         ...auction,
         bids: auctionBids,
@@ -7354,7 +7643,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/auctions", isAuthenticated, async (req, res) => {
     try {
       const data = insertAuctionSchema.parse(req.body);
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, data.listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, data.listingId)).limit(1);
       if (!listing || listing.sellerId !== getUserId2(req.user)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
@@ -7367,7 +7656,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/auctions/:id/bids", async (req, res) => {
     try {
-      const auctionBids = await db.select().from(bids).where(eq4(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
+      const auctionBids = await db.select().from(bids).where(eq5(bids.auctionId, req.params.id)).orderBy(desc4(bids.amount));
       res.json(auctionBids);
     } catch (error) {
       console.error("Failed to fetch bids:", error);
@@ -7376,7 +7665,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/auctions/:id/bids", isAuthenticated, async (req, res) => {
     try {
-      const [auction] = await db.select().from(auctions).where(eq4(auctions.id, req.params.id)).limit(1);
+      const [auction] = await db.select().from(auctions).where(eq5(auctions.id, req.params.id)).limit(1);
       if (!auction) {
         return res.status(404).json({ message: "Auction not found" });
       }
@@ -7399,7 +7688,7 @@ async function registerRoutes(app2, existingServer) {
       await db.update(auctions).set({
         currentPrice: bidAmount.toString(),
         totalBids: (auction.totalBids || 0) + 1
-      }).where(eq4(auctions.id, req.params.id));
+      }).where(eq5(auctions.id, req.params.id));
       wss?.clients?.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
@@ -7426,9 +7715,9 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(liveStreams);
       if (status) {
-        query = query.where(eq4(liveStreams.status, status));
+        query = query.where(eq5(liveStreams.status, status));
       }
-      const allStreams = await query.orderBy(desc3(liveStreams.createdAt));
+      const allStreams = await query.orderBy(desc4(liveStreams.createdAt));
       res.json(allStreams);
     } catch (error) {
       console.error("Failed to fetch streams:", error);
@@ -7437,14 +7726,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/streams/:id", async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq5(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
-      const [streamer] = await db.select().from(users).where(eq4(users.id, stream.streamerId)).limit(1);
+      const [streamer] = await db.select().from(users).where(eq5(users.id, stream.streamerId)).limit(1);
       let listing = null;
       if (stream.listingId) {
-        [listing] = await db.select().from(listings).where(eq4(listings.id, stream.listingId)).limit(1);
+        [listing] = await db.select().from(listings).where(eq5(listings.id, stream.listingId)).limit(1);
       }
       res.json({
         ...stream,
@@ -7472,14 +7761,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/streams/:id", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq5(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
       if (stream.streamerId !== getUserId2(req.user)) {
         return res.status(403).json({ message: "Not authorized" });
       }
-      const [updated] = await db.update(liveStreams).set(req.body).where(eq4(liveStreams.id, req.params.id)).returning();
+      const [updated] = await db.update(liveStreams).set(req.body).where(eq5(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to update stream:", error);
@@ -7488,7 +7777,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/streams/:id/join", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq5(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
@@ -7500,7 +7789,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(liveStreams).set({
         viewerCount: newViewerCount,
         peakViewers: newPeakViewers
-      }).where(eq4(liveStreams.id, req.params.id)).returning();
+      }).where(eq5(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to join stream:", error);
@@ -7509,14 +7798,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/streams/:id/leave", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq5(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
       const newViewerCount = Math.max(0, (stream.viewerCount || 0) - 1);
       const [updated] = await db.update(liveStreams).set({
         viewerCount: newViewerCount
-      }).where(eq4(liveStreams.id, req.params.id)).returning();
+      }).where(eq5(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to leave stream:", error);
@@ -7525,7 +7814,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/streams/:id/token", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq5(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
@@ -7568,8 +7857,8 @@ async function registerRoutes(app2, existingServer) {
       const limit = parseInt(req.query.limit) || 20;
       const unreadOnly = req.query.unreadOnly === "true";
       let query = db.select().from(notifications).where(
-        unreadOnly ? and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)) : eq4(notifications.userId, userId)
-      ).orderBy(desc3(notifications.createdAt)).limit(limit);
+        unreadOnly ? and5(eq5(notifications.userId, userId), eq5(notifications.isRead, false)) : eq5(notifications.userId, userId)
+      ).orderBy(desc4(notifications.createdAt)).limit(limit);
       const userNotifications = await query;
       res.json(userNotifications);
     } catch (error) {
@@ -7580,7 +7869,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/notifications/count", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const [result] = await db.select({ count: count() }).from(notifications).where(and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)));
+      const [result] = await db.select({ count: count() }).from(notifications).where(and5(eq5(notifications.userId, userId), eq5(notifications.isRead, false)));
       res.json({ count: result?.count || 0 });
     } catch (error) {
       console.error("Failed to fetch notification count:", error);
@@ -7591,7 +7880,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const notificationId = req.params.id;
-      const [notification] = await db.update(notifications).set({ isRead: true }).where(and4(eq4(notifications.id, notificationId), eq4(notifications.userId, userId))).returning();
+      const [notification] = await db.update(notifications).set({ isRead: true }).where(and5(eq5(notifications.id, notificationId), eq5(notifications.userId, userId))).returning();
       if (!notification) {
         return res.status(404).json({ message: "Notification not found" });
       }
@@ -7604,7 +7893,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/notifications/read-all", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      await db.update(notifications).set({ isRead: true }).where(and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)));
+      await db.update(notifications).set({ isRead: true }).where(and5(eq5(notifications.userId, userId), eq5(notifications.isRead, false)));
       res.json({ message: "All notifications marked as read" });
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
@@ -7615,7 +7904,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const notificationId = req.params.id;
-      const [deleted] = await db.delete(notifications).where(and4(eq4(notifications.id, notificationId), eq4(notifications.userId, userId))).returning();
+      const [deleted] = await db.delete(notifications).where(and5(eq5(notifications.id, notificationId), eq5(notifications.userId, userId))).returning();
       if (!deleted) {
         return res.status(404).json({ message: "Notification not found" });
       }
@@ -7629,9 +7918,9 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const userConvs = await db.select().from(conversations).where(
-        or2(
-          eq4(conversations.participant1Id, userId),
-          eq4(conversations.participant2Id, userId)
+        or3(
+          eq5(conversations.participant1Id, userId),
+          eq5(conversations.participant2Id, userId)
         )
       );
       let totalUnread = 0;
@@ -7664,16 +7953,16 @@ async function registerRoutes(app2, existingServer) {
           lastName: users.lastName,
           profileImageUrl: users.profileImageUrl
         }
-      }).from(messages).leftJoin(users, eq4(messages.senderId, users.id)).where(
-        and4(
-          or2(
-            eq4(messages.senderId, userId),
-            eq4(messages.receiverId, userId)
+      }).from(messages).leftJoin(users, eq5(messages.senderId, users.id)).where(
+        and5(
+          or3(
+            eq5(messages.senderId, userId),
+            eq5(messages.receiverId, userId)
           ),
-          ilike2(messages.content, `%${query}%`),
-          eq4(messages.isDeleted, false)
+          ilike3(messages.content, `%${query}%`),
+          eq5(messages.isDeleted, false)
         )
-      ).orderBy(desc3(messages.createdAt)).limit(limit);
+      ).orderBy(desc4(messages.createdAt)).limit(limit);
       res.json(results.map((r) => ({
         ...r.message,
         sender: r.sender
@@ -7688,23 +7977,23 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const showArchived = req.query.archived === "true";
       const userConvs = await db.select().from(conversations).where(
-        and4(
-          or2(
-            eq4(conversations.participant1Id, userId),
-            eq4(conversations.participant2Id, userId)
+        and5(
+          or3(
+            eq5(conversations.participant1Id, userId),
+            eq5(conversations.participant2Id, userId)
           ),
           // Filter archived based on query param
-          showArchived ? or2(
-            and4(eq4(conversations.participant1Id, userId), eq4(conversations.participant1Archived, true)),
-            and4(eq4(conversations.participant2Id, userId), eq4(conversations.participant2Archived, true))
-          ) : and4(
-            or2(
-              and4(eq4(conversations.participant1Id, userId), eq4(conversations.participant1Archived, false)),
-              and4(eq4(conversations.participant2Id, userId), eq4(conversations.participant2Archived, false))
+          showArchived ? or3(
+            and5(eq5(conversations.participant1Id, userId), eq5(conversations.participant1Archived, true)),
+            and5(eq5(conversations.participant2Id, userId), eq5(conversations.participant2Archived, true))
+          ) : and5(
+            or3(
+              and5(eq5(conversations.participant1Id, userId), eq5(conversations.participant1Archived, false)),
+              and5(eq5(conversations.participant2Id, userId), eq5(conversations.participant2Archived, false))
             )
           )
         )
-      ).orderBy(desc3(conversations.lastMessageAt));
+      ).orderBy(desc4(conversations.lastMessageAt));
       if (userConvs.length === 0) {
         return res.json([]);
       }
@@ -7719,7 +8008,7 @@ async function registerRoutes(app2, existingServer) {
         firstName: users.firstName,
         lastName: users.lastName,
         profileImageUrl: users.profileImageUrl
-      }).from(users).where(inArray2(users.id, partnerIds)) : [];
+      }).from(users).where(inArray3(users.id, partnerIds)) : [];
       const lastMsgs = messageIds.length > 0 ? await db.select({
         message: messages,
         listing: {
@@ -7730,8 +8019,8 @@ async function registerRoutes(app2, existingServer) {
           city: listings.city,
           district: listings.district
         }
-      }).from(messages).leftJoin(listings, eq4(messages.listingId, listings.id)).where(inArray2(messages.id, messageIds)) : [];
-      const presences = partnerIds.length > 0 ? await db.select().from(userPresence).where(inArray2(userPresence.userId, partnerIds)) : [];
+      }).from(messages).leftJoin(listings, eq5(messages.listingId, listings.id)).where(inArray3(messages.id, messageIds)) : [];
+      const presences = partnerIds.length > 0 ? await db.select().from(userPresence).where(inArray3(userPresence.userId, partnerIds)) : [];
       const partnersMap = new Map(partners.map((p) => [p.id, p]));
       const messagesMap = new Map(lastMsgs.map((m) => [m.message.id, { ...m.message, listing: m.listing }]));
       const presenceMap = new Map(presences.map((p) => [p.userId, p]));
@@ -7777,7 +8066,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { archived } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7785,7 +8074,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Archived: archived } : { participant2Archived: archived };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq5(conversations.id, conversationId));
       res.json({ message: archived ? "Konu\u015Fma ar\u015Fivlendi" : "Konu\u015Fma ar\u015Fivden \xE7\u0131kar\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to archive conversation:", error);
@@ -7797,7 +8086,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { pinned } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7805,7 +8094,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Pinned: pinned } : { participant2Pinned: pinned };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq5(conversations.id, conversationId));
       res.json({ message: pinned ? "Konu\u015Fma sabitlendi" : "Konu\u015Fma sabitten \xE7\u0131kar\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to pin conversation:", error);
@@ -7817,7 +8106,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { muted } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7825,7 +8114,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Muted: muted } : { participant2Muted: muted };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq5(conversations.id, conversationId));
       res.json({ message: muted ? "Konu\u015Fma sessize al\u0131nd\u0131" : "Konu\u015Fma sesi a\xE7\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to mute conversation:", error);
@@ -7836,7 +8125,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
-      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7844,15 +8133,15 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1UnreadCount: 0, participant1LastReadAt: /* @__PURE__ */ new Date() } : { participant2UnreadCount: 0, participant2LastReadAt: /* @__PURE__ */ new Date() };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq5(conversations.id, conversationId));
       await db.update(messages).set({
         status: "read",
         readAt: /* @__PURE__ */ new Date()
       }).where(
-        and4(
-          eq4(messages.conversationId, conversationId),
-          eq4(messages.receiverId, userId),
-          sql4`${messages.status} != 'read'`
+        and5(
+          eq5(messages.conversationId, conversationId),
+          eq5(messages.receiverId, userId),
+          sql5`${messages.status} != 'read'`
         )
       );
       res.json({ message: "Konu\u015Fma okundu olarak i\u015Faretlendi" });
@@ -7926,8 +8215,8 @@ async function registerRoutes(app2, existingServer) {
           city: listings.city,
           district: listings.district
         }
-      }).from(messages).leftJoin(listings, eq4(messages.listingId, listings.id)).where(
-        sql4`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
+      }).from(messages).leftJoin(listings, eq5(messages.listingId, listings.id)).where(
+        sql5`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
       ).orderBy(messages.createdAt);
       const result = msgs.map((row) => ({
         ...row.message,
@@ -7951,7 +8240,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Al\u0131c\u0131 ve mesaj i\xE7eri\u011Fi gereklidir" });
       }
       if (listingId) {
-        const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq4(listings.id, listingId)).limit(1);
+        const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq5(listings.id, listingId)).limit(1);
         if (listing?.isExampleListing) {
           return res.status(403).json({
             message: "\xD6rnek ilanlara mesaj g\xF6nderilemez. Bu ilan sadece \xF6rnek ama\xE7l\u0131d\u0131r."
@@ -7959,7 +8248,7 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const conversationId = [senderId, receiverId].sort().join("_");
-      const [existingConv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [existingConv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (!existingConv) {
         const [p1, p2] = [senderId, receiverId].sort();
         await db.insert(conversations).values({
@@ -7985,15 +8274,15 @@ async function registerRoutes(app2, existingServer) {
         replyToId: replyToId || null,
         attachments: attachments || []
       }).returning();
-      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq5(conversations.id, conversationId)).limit(1);
       if (conv) {
         const isParticipant1Receiver = conv.participant1Id === receiverId;
         await db.update(conversations).set({
           lastMessageId: message.id,
           lastMessageAt: /* @__PURE__ */ new Date(),
           updatedAt: /* @__PURE__ */ new Date(),
-          ...isParticipant1Receiver ? { participant1UnreadCount: sql4`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` } : { participant2UnreadCount: sql4`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }
-        }).where(eq4(conversations.id, conversationId));
+          ...isParticipant1Receiver ? { participant1UnreadCount: sql5`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` } : { participant2UnreadCount: sql5`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }
+        }).where(eq5(conversations.id, conversationId));
       }
       try {
         const sender = req.user;
@@ -8024,8 +8313,8 @@ async function registerRoutes(app2, existingServer) {
       }
       const published = req.query.published !== "false";
       const posts = await db.query.blogPosts.findMany({
-        where: published ? eq4(blogPosts.published, true) : void 0,
-        orderBy: (posts2, { desc: desc4 }) => [desc4(posts2.createdAt)],
+        where: published ? eq5(blogPosts.published, true) : void 0,
+        orderBy: (posts2, { desc: desc5 }) => [desc5(posts2.createdAt)],
         with: {
           author: true
         }
@@ -8054,7 +8343,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/blog/:slug", async (req, res) => {
     try {
       const post = await db.query.blogPosts.findFirst({
-        where: (posts, { eq: eq5 }) => eq5(posts.slug, req.params.slug),
+        where: (posts, { eq: eq6 }) => eq6(posts.slug, req.params.slug),
         with: {
           author: true
         }
@@ -8101,9 +8390,9 @@ async function registerRoutes(app2, existingServer) {
       const city = req.query.city;
       let query = db.select().from(vetServices);
       if (city) {
-        query = query.where(eq4(vetServices.city, city));
+        query = query.where(eq5(vetServices.city, city));
       }
-      const services = await query.orderBy(desc3(vetServices.createdAt));
+      const services = await query.orderBy(desc4(vetServices.createdAt));
       res.json(services);
     } catch (error) {
       console.error("Failed to fetch vet services:", error);
@@ -8112,15 +8401,15 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/vet-services/:id", async (req, res) => {
     try {
-      const [service] = await db.select().from(vetServices).where(eq4(vetServices.id, req.params.id)).limit(1);
+      const [service] = await db.select().from(vetServices).where(eq5(vetServices.id, req.params.id)).limit(1);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      const [vet] = await db.select().from(users).where(eq4(users.id, service.vetId)).limit(1);
+      const [vet] = await db.select().from(users).where(eq5(users.id, service.vetId)).limit(1);
       const serviceReviews = await db.select().from(reviews).where(
-        and4(
-          eq4(reviews.targetId, req.params.id),
-          eq4(reviews.targetType, "vet_service")
+        and5(
+          eq5(reviews.targetId, req.params.id),
+          eq5(reviews.targetType, "vet_service")
         )
       );
       const sanitizedVet = publicUserFields(vet);
@@ -8152,7 +8441,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/transport-services", async (req, res) => {
     try {
-      const services = await db.select().from(transportServices).orderBy(desc3(transportServices.createdAt));
+      const services = await db.select().from(transportServices).orderBy(desc4(transportServices.createdAt));
       res.json(services);
     } catch (error) {
       console.error("Failed to fetch transport services:", error);
@@ -8161,15 +8450,15 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/transport-services/:id", async (req, res) => {
     try {
-      const [service] = await db.select().from(transportServices).where(eq4(transportServices.id, req.params.id)).limit(1);
+      const [service] = await db.select().from(transportServices).where(eq5(transportServices.id, req.params.id)).limit(1);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      const [transporter] = await db.select().from(users).where(eq4(users.id, service.transporterId)).limit(1);
+      const [transporter] = await db.select().from(users).where(eq5(users.id, service.transporterId)).limit(1);
       const serviceReviews = await db.select().from(reviews).where(
-        and4(
-          eq4(reviews.targetId, req.params.id),
-          eq4(reviews.targetType, "transport_service")
+        and5(
+          eq5(reviews.targetId, req.params.id),
+          eq5(reviews.targetType, "transport_service")
         )
       );
       const sanitizedTransporter = publicUserFields(transporter);
@@ -8214,7 +8503,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/favorites", isAuthenticated, async (req, res) => {
     try {
-      const favs = await db.select().from(favorites).where(eq4(favorites.userId, getUserId2(req.user)));
+      const favs = await db.select().from(favorites).where(eq5(favorites.userId, getUserId2(req.user)));
       res.json(favs);
     } catch (error) {
       console.error("Failed to fetch favorites:", error);
@@ -8229,7 +8518,7 @@ async function registerRoutes(app2, existingServer) {
       });
       const [favorite] = await db.insert(favorites).values(data).returning();
       try {
-        const [listing] = await db.select().from(listings).where(eq4(listings.id, data.listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq5(listings.id, data.listingId)).limit(1);
         if (listing && listing.sellerId !== getUserId2(req.user)) {
           const favUser = req.user;
           const userName = favUser.firstName ? `${favUser.firstName} ${favUser.lastName || ""}`.trim() : favUser.username || "Birisi";
@@ -8258,9 +8547,9 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/favorites/:listingId", isAuthenticated, async (req, res) => {
     try {
       await db.delete(favorites).where(
-        and4(
-          eq4(favorites.userId, getUserId2(req.user)),
-          eq4(favorites.listingId, req.params.listingId)
+        and5(
+          eq5(favorites.userId, getUserId2(req.user)),
+          eq5(favorites.listingId, req.params.listingId)
         )
       );
       res.json({ message: "Favorite removed" });
@@ -8272,7 +8561,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/saved-searches", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userSearches = await db.select().from(savedSearches).where(eq4(savedSearches.userId, userId)).orderBy(desc3(savedSearches.createdAt));
+      const userSearches = await db.select().from(savedSearches).where(eq5(savedSearches.userId, userId)).orderBy(desc4(savedSearches.createdAt));
       res.json(userSearches);
     } catch (error) {
       console.error("Failed to fetch saved searches:", error);
@@ -8286,7 +8575,7 @@ async function registerRoutes(app2, existingServer) {
       if (!name || !filters) {
         return res.status(400).json({ message: "Arama ad\u0131 ve filtreler gereklidir" });
       }
-      const existingSearches = await db.select({ count: sql4`count(*)::int` }).from(savedSearches).where(eq4(savedSearches.userId, userId));
+      const existingSearches = await db.select({ count: sql5`count(*)::int` }).from(savedSearches).where(eq5(savedSearches.userId, userId));
       const searchCount = existingSearches[0]?.count ?? 0;
       if (searchCount >= 10) {
         return res.status(400).json({ message: "En fazla 10 arama kaydedebilirsiniz" });
@@ -8308,9 +8597,9 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const { id } = req.params;
       const { name, filters, notifyEnabled } = req.body;
-      const [existingSearch] = await db.select().from(savedSearches).where(and4(
-        eq4(savedSearches.id, id),
-        eq4(savedSearches.userId, userId)
+      const [existingSearch] = await db.select().from(savedSearches).where(and5(
+        eq5(savedSearches.id, id),
+        eq5(savedSearches.userId, userId)
       )).limit(1);
       if (!existingSearch) {
         return res.status(404).json({ message: "Kay\u0131tl\u0131 arama bulunamad\u0131" });
@@ -8319,7 +8608,7 @@ async function registerRoutes(app2, existingServer) {
       if (name !== void 0) updateData.name = name;
       if (filters !== void 0) updateData.filters = filters;
       if (notifyEnabled !== void 0) updateData.notifyEnabled = notifyEnabled;
-      const [updated] = await db.update(savedSearches).set(updateData).where(eq4(savedSearches.id, id)).returning();
+      const [updated] = await db.update(savedSearches).set(updateData).where(eq5(savedSearches.id, id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to update saved search:", error);
@@ -8330,9 +8619,9 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const { id } = req.params;
-      await db.delete(savedSearches).where(and4(
-        eq4(savedSearches.id, id),
-        eq4(savedSearches.userId, userId)
+      await db.delete(savedSearches).where(and5(
+        eq5(savedSearches.id, id),
+        eq5(savedSearches.userId, userId)
       ));
       res.json({ message: "Kay\u0131tl\u0131 arama silindi" });
     } catch (error) {
@@ -8357,7 +8646,7 @@ async function registerRoutes(app2, existingServer) {
           status: listings.status,
           createdAt: listings.createdAt
         }
-      }).from(viewedListings).innerJoin(listings, eq4(viewedListings.listingId, listings.id)).where(eq4(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt)).limit(limit);
+      }).from(viewedListings).innerJoin(listings, eq5(viewedListings.listingId, listings.id)).where(eq5(viewedListings.userId, userId)).orderBy(desc4(viewedListings.viewedAt)).limit(limit);
       res.json(viewed.map((v) => ({
         ...v.listing,
         viewedAt: v.viewedAt
@@ -8374,22 +8663,22 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId) {
         return res.status(400).json({ message: "\u0130lan ID gerekli" });
       }
-      const [listing] = await db.select({ id: listings.id }).from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select({ id: listings.id }).from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      await db.delete(viewedListings).where(and4(
-        eq4(viewedListings.userId, userId),
-        eq4(viewedListings.listingId, listingId)
+      await db.delete(viewedListings).where(and5(
+        eq5(viewedListings.userId, userId),
+        eq5(viewedListings.listingId, listingId)
       ));
       await db.insert(viewedListings).values({
         userId,
         listingId
       });
-      const userViews = await db.select({ id: viewedListings.id }).from(viewedListings).where(eq4(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt));
+      const userViews = await db.select({ id: viewedListings.id }).from(viewedListings).where(eq5(viewedListings.userId, userId)).orderBy(desc4(viewedListings.viewedAt));
       if (userViews.length > 50) {
         const idsToDelete = userViews.slice(50).map((v) => v.id);
-        await db.delete(viewedListings).where(inArray2(viewedListings.id, idsToDelete));
+        await db.delete(viewedListings).where(inArray3(viewedListings.id, idsToDelete));
       }
       res.json({ success: true });
     } catch (error) {
@@ -8400,7 +8689,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/viewed-listings", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      await db.delete(viewedListings).where(eq4(viewedListings.userId, userId));
+      await db.delete(viewedListings).where(eq5(viewedListings.userId, userId));
       res.json({ message: "G\xF6r\xFCnt\xFCleme ge\xE7mi\u015Fi temizlendi" });
     } catch (error) {
       console.error("Failed to clear viewed listings:", error);
@@ -8417,7 +8706,7 @@ async function registerRoutes(app2, existingServer) {
       if (listingIds.length === 0 || listingIds.length > 4) {
         return res.status(400).json({ message: "1-4 aras\u0131 ilan se\xE7ebilirsiniz" });
       }
-      const compareListings = await db.select().from(listings).where(inArray2(listings.id, listingIds));
+      const compareListings = await db.select().from(listings).where(inArray3(listings.id, listingIds));
       res.json(compareListings);
     } catch (error) {
       console.error("Failed to fetch listings for comparison:", error);
@@ -8445,34 +8734,34 @@ async function registerRoutes(app2, existingServer) {
           title: listings.title,
           images: listings.images
         }
-      }).from(sellerReviews).leftJoin(users, eq4(sellerReviews.reviewerId, users.id)).leftJoin(listings, eq4(sellerReviews.listingId, listings.id)).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+      }).from(sellerReviews).leftJoin(users, eq5(sellerReviews.reviewerId, users.id)).leftJoin(listings, eq5(sellerReviews.listingId, listings.id)).where(
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
-      ).orderBy(desc3(sellerReviews.createdAt)).limit(limitNum).offset(offset);
-      const [countResult] = await db.select({ count: sql4`count(*)` }).from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+      ).orderBy(desc4(sellerReviews.createdAt)).limit(limitNum).offset(offset);
+      const [countResult] = await db.select({ count: sql5`count(*)` }).from(sellerReviews).where(
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
       );
       const [avgResult] = await db.select({
-        avgRating: sql4`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql4`count(*)`
+        avgRating: sql5`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql5`count(*)`
       }).from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
       );
       const ratingDistribution = await db.select({
         rating: sellerReviews.rating,
-        count: sql4`count(*)`
+        count: sql5`count(*)`
       }).from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
       ).groupBy(sellerReviews.rating);
       res.json({
@@ -8496,12 +8785,12 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { sellerId } = req.params;
       const [result] = await db.select({
-        avgRating: sql4`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql4`count(*)`
+        avgRating: sql5`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql5`count(*)`
       }).from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
       );
       res.json({
@@ -8526,10 +8815,10 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7erli bir puan verin (1-5)" });
       }
       const existingReview = await db.select().from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.reviewerId, reviewerId),
-          listingId ? eq4(sellerReviews.listingId, listingId) : sql4`true`
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.reviewerId, reviewerId),
+          listingId ? eq5(sellerReviews.listingId, listingId) : sql5`true`
         )
       ).limit(1);
       if (existingReview.length > 0) {
@@ -8548,18 +8837,18 @@ async function registerRoutes(app2, existingServer) {
         isVerifiedPurchase
       }).returning();
       const [avgResult] = await db.select({
-        avgRating: sql4`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql4`count(*)`
+        avgRating: sql5`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql5`count(*)`
       }).from(sellerReviews).where(
-        and4(
-          eq4(sellerReviews.sellerId, sellerId),
-          eq4(sellerReviews.status, "active")
+        and5(
+          eq5(sellerReviews.sellerId, sellerId),
+          eq5(sellerReviews.status, "active")
         )
       );
       await db.update(users).set({
         sellerRating: avgResult?.avgRating?.toString() || "0",
         sellerReviewCount: Number(avgResult?.totalReviews || 0)
-      }).where(eq4(users.id, sellerId));
+      }).where(eq5(users.id, sellerId));
       await db.insert(notifications).values({
         userId: sellerId,
         type: "system",
@@ -8582,7 +8871,7 @@ async function registerRoutes(app2, existingServer) {
       if (!response || response.length < 5) {
         return res.status(400).json({ message: "Yan\u0131t en az 5 karakter olmal\u0131" });
       }
-      const [review] = await db.select().from(sellerReviews).where(eq4(sellerReviews.id, reviewId)).limit(1);
+      const [review] = await db.select().from(sellerReviews).where(eq5(sellerReviews.id, reviewId)).limit(1);
       if (!review) {
         return res.status(404).json({ message: "De\u011Ferlendirme bulunamad\u0131" });
       }
@@ -8596,7 +8885,7 @@ async function registerRoutes(app2, existingServer) {
         sellerResponse: response,
         sellerResponseAt: /* @__PURE__ */ new Date(),
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq4(sellerReviews.id, reviewId)).returning();
+      }).where(eq5(sellerReviews.id, reviewId)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to respond to review:", error);
@@ -8607,8 +8896,8 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { reviewId } = req.params;
       const [updated] = await db.update(sellerReviews).set({
-        helpfulCount: sql4`helpful_count + 1`
-      }).where(eq4(sellerReviews.id, reviewId)).returning();
+        helpfulCount: sql5`helpful_count + 1`
+      }).where(eq5(sellerReviews.id, reviewId)).returning();
       if (!updated) {
         return res.status(404).json({ message: "De\u011Ferlendirme bulunamad\u0131" });
       }
@@ -8621,42 +8910,42 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/category-stats/:categorySlug", async (req, res) => {
     try {
       const { categorySlug } = req.params;
-      const category = await db.select().from(categories).where(eq4(categories.slug, categorySlug)).limit(1);
+      const category = await db.select().from(categories).where(eq5(categories.slug, categorySlug)).limit(1);
       if (!category.length) {
         return res.status(404).json({ message: "Kategori bulunamad\u0131" });
       }
       const allCategories = await db.select({ id: categories.id, slug: categories.slug }).from(categories).where(
-        or2(
-          eq4(categories.slug, categorySlug),
-          ilike2(categories.slug, `${categorySlug}-%`)
+        or3(
+          eq5(categories.slug, categorySlug),
+          ilike3(categories.slug, `${categorySlug}-%`)
         )
       );
       const categoryIds = allCategories.map((c) => c.id);
       const [stats] = await db.select({
-        totalListings: sql4`count(*)`,
-        avgPrice: sql4`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
-        minPrice: sql4`COALESCE(MIN(CAST(${listings.price} AS DECIMAL)), 0)`,
-        maxPrice: sql4`COALESCE(MAX(CAST(${listings.price} AS DECIMAL)), 0)`,
-        medianPrice: sql4`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(${listings.price} AS DECIMAL))`,
-        totalViews: sql4`COALESCE(SUM(${listings.views}), 0)`,
-        totalFavorites: sql4`COALESCE(SUM(${listings.favoriteCount}), 0)`
+        totalListings: sql5`count(*)`,
+        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
+        minPrice: sql5`COALESCE(MIN(CAST(${listings.price} AS DECIMAL)), 0)`,
+        maxPrice: sql5`COALESCE(MAX(CAST(${listings.price} AS DECIMAL)), 0)`,
+        medianPrice: sql5`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(${listings.price} AS DECIMAL))`,
+        totalViews: sql5`COALESCE(SUM(${listings.views}), 0)`,
+        totalFavorites: sql5`COALESCE(SUM(${listings.favoriteCount}), 0)`
       }).from(listings).where(
-        and4(
-          inArray2(listings.categoryId, categoryIds),
-          eq4(listings.status, "active")
+        and5(
+          inArray3(listings.categoryId, categoryIds),
+          eq5(listings.status, "active")
         )
       );
       const cityDistribution = await db.select({
         city: listings.city,
-        count: sql4`count(*)`
+        count: sql5`count(*)`
       }).from(listings).where(
-        and4(
-          inArray2(listings.categoryId, categoryIds),
-          eq4(listings.status, "active")
+        and5(
+          inArray3(listings.categoryId, categoryIds),
+          eq5(listings.status, "active")
         )
-      ).groupBy(listings.city).orderBy(desc3(sql4`count(*)`)).limit(10);
+      ).groupBy(listings.city).orderBy(desc4(sql5`count(*)`)).limit(10);
       const priceRanges = await db.select({
-        range: sql4`
+        range: sql5`
             CASE 
               WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
               WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
@@ -8666,13 +8955,13 @@ async function registerRoutes(app2, existingServer) {
               ELSE '50K+'
             END
           `,
-        count: sql4`count(*)`
+        count: sql5`count(*)`
       }).from(listings).where(
-        and4(
-          inArray2(listings.categoryId, categoryIds),
-          eq4(listings.status, "active")
+        and5(
+          inArray3(listings.categoryId, categoryIds),
+          eq5(listings.status, "active")
         )
-      ).groupBy(sql4`
+      ).groupBy(sql5`
           CASE 
             WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
             WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
@@ -8683,14 +8972,14 @@ async function registerRoutes(app2, existingServer) {
           END
         `);
       const listingsByDate = await db.select({
-        date: sql4`DATE(${listings.createdAt})`,
-        count: sql4`count(*)`
+        date: sql5`DATE(${listings.createdAt})`,
+        count: sql5`count(*)`
       }).from(listings).where(
-        and4(
-          inArray2(listings.categoryId, categoryIds),
-          sql4`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
+        and5(
+          inArray3(listings.categoryId, categoryIds),
+          sql5`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
         )
-      ).groupBy(sql4`DATE(${listings.createdAt})`).orderBy(sql4`DATE(${listings.createdAt})`);
+      ).groupBy(sql5`DATE(${listings.createdAt})`).orderBy(sql5`DATE(${listings.createdAt})`);
       res.json({
         categorySlug,
         categoryName: category[0].name,
@@ -8718,9 +9007,9 @@ async function registerRoutes(app2, existingServer) {
       const { days = "30" } = req.query;
       const daysNum = parseInt(days) || 30;
       const trends = await db.select().from(categoryStats).where(
-        and4(
-          eq4(categoryStats.categorySlug, categorySlug),
-          sql4`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
+        and5(
+          eq5(categoryStats.categorySlug, categorySlug),
+          sql5`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
         )
       ).orderBy(categoryStats.date);
       res.json(trends);
@@ -8740,7 +9029,7 @@ async function registerRoutes(app2, existingServer) {
       } catch (e) {
         console.warn("TCMB fetch failed, skipping currencies:", e);
       }
-      const livestockItems = await db.select().from(marketPrices).orderBy(desc3(marketPrices.date)).limit(50);
+      const livestockItems = await db.select().from(marketPrices).orderBy(desc4(marketPrices.date)).limit(50);
       const allItems = [
         ...livestockItems.map((p) => ({
           id: p.id,
@@ -8769,22 +9058,22 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/market-stats", async (req, res) => {
     try {
       const [overallStats] = await db.select({
-        totalListings: sql4`count(*)`,
-        activeListings: sql4`count(*) FILTER (WHERE ${listings.status} = 'active')`,
-        avgPrice: sql4`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)) FILTER (WHERE ${listings.status} = 'active'), 0)`,
-        totalViews: sql4`COALESCE(SUM(${listings.views}), 0)`
+        totalListings: sql5`count(*)`,
+        activeListings: sql5`count(*) FILTER (WHERE ${listings.status} = 'active')`,
+        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)) FILTER (WHERE ${listings.status} = 'active'), 0)`,
+        totalViews: sql5`COALESCE(SUM(${listings.views}), 0)`
       }).from(listings);
       const topCategories = await db.select({
         categoryId: listings.categoryId,
         categoryName: categories.name,
         categorySlug: categories.slug,
-        count: sql4`count(*)`,
-        avgPrice: sql4`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`
-      }).from(listings).leftJoin(categories, eq4(listings.categoryId, categories.id)).where(eq4(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc3(sql4`count(*)`)).limit(10);
+        count: sql5`count(*)`,
+        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`
+      }).from(listings).leftJoin(categories, eq5(listings.categoryId, categories.id)).where(eq5(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc4(sql5`count(*)`)).limit(10);
       const recentActivity = await db.select({
-        date: sql4`DATE(${listings.createdAt})`,
-        count: sql4`count(*)`
-      }).from(listings).where(sql4`${listings.createdAt} >= CURRENT_DATE - INTERVAL '7 days'`).groupBy(sql4`DATE(${listings.createdAt})`).orderBy(sql4`DATE(${listings.createdAt})`);
+        date: sql5`DATE(${listings.createdAt})`,
+        count: sql5`count(*)`
+      }).from(listings).where(sql5`${listings.createdAt} >= CURRENT_DATE - INTERVAL '7 days'`).groupBy(sql5`DATE(${listings.createdAt})`).orderBy(sql5`DATE(${listings.createdAt})`);
       res.json({
         overview: {
           totalListings: Number(overallStats?.totalListings || 0),
@@ -8814,7 +9103,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId) {
         return res.status(400).json({ message: "\u0130lan ID'si belirtilmemi\u015F." });
       }
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
@@ -8830,7 +9119,7 @@ async function registerRoutes(app2, existingServer) {
       if (file.size > maxSize) {
         return res.status(400).json({ message: `Video boyutu ${maxVideoMb}MB'\u0131 ge\xE7emez.` });
       }
-      const existingVideos = await db.select({ count: sql4`count(*)` }).from(listingVideos).where(eq4(listingVideos.listingId, listingId));
+      const existingVideos = await db.select({ count: sql5`count(*)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
       if (Number(existingVideos[0]?.count || 0) >= 3) {
         return res.status(400).json({ message: "Bir ilan i\xE7in en fazla 3 video y\xFCkleyebilirsiniz." });
       }
@@ -8846,7 +9135,7 @@ async function registerRoutes(app2, existingServer) {
           file.buffer,
           file.mimetype
         );
-        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq4(listingVideos.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql5`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
         const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1;
         const [video] = await db.insert(listingVideos).values({
           listingId,
@@ -8869,7 +9158,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listing-videos/:listingId", async (req, res) => {
     try {
       const { listingId } = req.params;
-      const videos = await db.select().from(listingVideos).where(eq4(listingVideos.listingId, listingId)).orderBy(listingVideos.order);
+      const videos = await db.select().from(listingVideos).where(eq5(listingVideos.listingId, listingId)).orderBy(listingVideos.order);
       res.json(videos);
     } catch (error) {
       console.error("Failed to fetch listing videos:", error);
@@ -8883,7 +9172,7 @@ async function registerRoutes(app2, existingServer) {
       const [video] = await db.select({
         video: listingVideos,
         listing: { sellerId: listings.sellerId }
-      }).from(listingVideos).leftJoin(listings, eq4(listingVideos.listingId, listings.id)).where(eq4(listingVideos.id, videoId)).limit(1);
+      }).from(listingVideos).leftJoin(listings, eq5(listingVideos.listingId, listings.id)).where(eq5(listingVideos.id, videoId)).limit(1);
       if (!video) {
         return res.status(404).json({ message: "Video bulunamad\u0131." });
       }
@@ -8897,7 +9186,7 @@ async function registerRoutes(app2, existingServer) {
       } catch (e) {
         console.warn("Failed to delete video from storage:", e);
       }
-      await db.delete(listingVideos).where(eq4(listingVideos.id, videoId));
+      await db.delete(listingVideos).where(eq5(listingVideos.id, videoId));
       res.json({ success: true });
     } catch (error) {
       console.error("Failed to delete video:", error);
@@ -8913,7 +9202,7 @@ async function registerRoutes(app2, existingServer) {
       const [listing] = await db.select({
         sellerId: listings.sellerId,
         isExampleListing: listings.isExampleListing
-      }).from(listings).where(eq4(listings.id, listingId)).limit(1);
+      }).from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -8958,13 +9247,13 @@ async function registerRoutes(app2, existingServer) {
       let query = db.select({
         contactRequest: contactRequests,
         listing: listings
-      }).from(contactRequests).leftJoin(listings, eq4(contactRequests.listingId, listings.id)).where(eq4(contactRequests.sellerId, userId)).orderBy(desc3(contactRequests.createdAt));
-      const conditions = [eq4(contactRequests.sellerId, userId)];
+      }).from(contactRequests).leftJoin(listings, eq5(contactRequests.listingId, listings.id)).where(eq5(contactRequests.sellerId, userId)).orderBy(desc4(contactRequests.createdAt));
+      const conditions = [eq5(contactRequests.sellerId, userId)];
       if (status && typeof status === "string") {
-        conditions.push(eq4(contactRequests.status, status));
+        conditions.push(eq5(contactRequests.status, status));
       }
       if (listingId && typeof listingId === "string") {
-        conditions.push(eq4(contactRequests.listingId, listingId));
+        conditions.push(eq5(contactRequests.listingId, listingId));
       }
       const results = await db.select({
         contactRequest: contactRequests,
@@ -8973,7 +9262,7 @@ async function registerRoutes(app2, existingServer) {
           title: listings.title,
           images: listings.images
         }
-      }).from(contactRequests).leftJoin(listings, eq4(contactRequests.listingId, listings.id)).where(and4(...conditions)).orderBy(desc3(contactRequests.createdAt));
+      }).from(contactRequests).leftJoin(listings, eq5(contactRequests.listingId, listings.id)).where(and5(...conditions)).orderBy(desc4(contactRequests.createdAt));
       res.json(results);
     } catch (error) {
       console.error("Failed to fetch contact requests:", error);
@@ -8988,9 +9277,9 @@ async function registerRoutes(app2, existingServer) {
         status: "replied",
         repliedAt: /* @__PURE__ */ new Date()
       }).where(
-        and4(
-          eq4(contactRequests.id, id),
-          eq4(contactRequests.sellerId, userId)
+        and5(
+          eq5(contactRequests.id, id),
+          eq5(contactRequests.sellerId, userId)
         )
       ).returning();
       if (!updated) {
@@ -9011,9 +9300,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7ersiz durum" });
       }
       const [updated] = await db.update(contactRequests).set({ status }).where(
-        and4(
-          eq4(contactRequests.id, id),
-          eq4(contactRequests.sellerId, userId)
+        and5(
+          eq5(contactRequests.id, id),
+          eq5(contactRequests.sellerId, userId)
         )
       ).returning();
       if (!updated) {
@@ -9028,10 +9317,10 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/contact-requests/count", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const [result] = await db.select({ count: sql4`count(*)` }).from(contactRequests).where(
-        and4(
-          eq4(contactRequests.sellerId, userId),
-          eq4(contactRequests.status, "pending")
+      const [result] = await db.select({ count: sql5`count(*)` }).from(contactRequests).where(
+        and5(
+          eq5(contactRequests.sellerId, userId),
+          eq5(contactRequests.status, "pending")
         )
       );
       res.json({ count: Number(result?.count || 0) });
@@ -9075,7 +9364,7 @@ async function registerRoutes(app2, existingServer) {
       if (!userId) {
         return res.status(401).json({ message: "User not found" });
       }
-      const [listing] = await db.select({ sellerId: listings.sellerId }).from(listings).where(eq4(listings.id, req.params.listingId)).limit(1);
+      const [listing] = await db.select({ sellerId: listings.sellerId }).from(listings).where(eq5(listings.id, req.params.listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -9091,7 +9380,7 @@ async function registerRoutes(app2, existingServer) {
           profileImageUrl: users.profileImageUrl,
           sellerLevel: users.sellerLevel
         }
-      }).from(offers).innerJoin(users, eq4(offers.buyerId, users.id)).where(eq4(offers.listingId, req.params.listingId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(users, eq5(offers.buyerId, users.id)).where(eq5(offers.listingId, req.params.listingId)).orderBy(desc4(offers.createdAt));
       res.json(listingOffers.map((o) => ({
         ...o.offer,
         buyer: o.buyer
@@ -9121,7 +9410,7 @@ async function registerRoutes(app2, existingServer) {
           firstName: users.firstName,
           lastName: users.lastName
         }
-      }).from(offers).innerJoin(listings, eq4(offers.listingId, listings.id)).innerJoin(users, eq4(offers.sellerId, users.id)).where(eq4(offers.buyerId, userId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(listings, eq5(offers.listingId, listings.id)).innerJoin(users, eq5(offers.sellerId, users.id)).where(eq5(offers.buyerId, userId)).orderBy(desc4(offers.createdAt));
       res.json(sentOffers.map((o) => ({
         ...o.offer,
         listing: o.listing,
@@ -9154,7 +9443,7 @@ async function registerRoutes(app2, existingServer) {
           profileImageUrl: users.profileImageUrl,
           sellerLevel: users.sellerLevel
         }
-      }).from(offers).innerJoin(listings, eq4(offers.listingId, listings.id)).innerJoin(users, eq4(offers.buyerId, users.id)).where(eq4(offers.sellerId, userId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(listings, eq5(offers.listingId, listings.id)).innerJoin(users, eq5(offers.buyerId, users.id)).where(eq5(offers.sellerId, userId)).orderBy(desc4(offers.createdAt));
       res.json(receivedOffers.map((o) => ({
         ...o.offer,
         listing: o.listing,
@@ -9173,7 +9462,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "User not found" });
       }
       const { listingId, amount, message, expiresAt } = req.body;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -9189,10 +9478,10 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const [existingOffer] = await db.select().from(offers).where(
-        and4(
-          eq4(offers.listingId, listingId),
-          eq4(offers.buyerId, userId),
-          eq4(offers.status, "pending")
+        and5(
+          eq5(offers.listingId, listingId),
+          eq5(offers.buyerId, userId),
+          eq5(offers.status, "pending")
         )
       ).limit(1);
       if (existingOffer) {
@@ -9233,7 +9522,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "User not found" });
       }
       const { status, counterAmount, counterMessage } = req.body;
-      const [offer] = await db.select().from(offers).where(eq4(offers.id, req.params.id)).limit(1);
+      const [offer] = await db.select().from(offers).where(eq5(offers.id, req.params.id)).limit(1);
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
       }
@@ -9251,8 +9540,8 @@ async function registerRoutes(app2, existingServer) {
         updateData.counterAmount = String(counterAmount);
         updateData.counterMessage = counterMessage;
       }
-      const [updatedOffer] = await db.update(offers).set(updateData).where(eq4(offers.id, req.params.id)).returning();
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, offer.listingId)).limit(1);
+      const [updatedOffer] = await db.update(offers).set(updateData).where(eq5(offers.id, req.params.id)).returning();
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, offer.listingId)).limit(1);
       try {
         let notifMessage = "";
         if (status === "accepted") {
@@ -9286,7 +9575,7 @@ async function registerRoutes(app2, existingServer) {
       if (!userId) {
         return res.status(401).json({ message: "User not found" });
       }
-      const [offer] = await db.select().from(offers).where(eq4(offers.id, req.params.id)).limit(1);
+      const [offer] = await db.select().from(offers).where(eq5(offers.id, req.params.id)).limit(1);
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
       }
@@ -9296,7 +9585,7 @@ async function registerRoutes(app2, existingServer) {
       if (offer.status !== "pending") {
         return res.status(400).json({ message: "Can only withdraw pending offers" });
       }
-      await db.update(offers).set({ status: "withdrawn" }).where(eq4(offers.id, req.params.id));
+      await db.update(offers).set({ status: "withdrawn" }).where(eq5(offers.id, req.params.id));
       res.json({ message: "Offer withdrawn" });
     } catch (error) {
       console.error("Failed to withdraw offer:", error);
@@ -9305,7 +9594,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/listings/:id/share", async (req, res) => {
     try {
-      await db.update(listings).set({ shareCount: sql4`COALESCE(share_count, 0) + 1` }).where(eq4(listings.id, req.params.id));
+      await db.update(listings).set({ shareCount: sql5`COALESCE(share_count, 0) + 1` }).where(eq5(listings.id, req.params.id));
       res.json({ success: true });
     } catch (error) {
       console.error("Failed to track share:", error);
@@ -9314,7 +9603,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/:id/compare", async (req, res) => {
     try {
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -9329,12 +9618,12 @@ async function registerRoutes(app2, existingServer) {
         views: listings.views,
         createdAt: listings.createdAt
       }).from(listings).where(
-        and4(
-          eq4(listings.categoryId, listing.categoryId),
-          eq4(listings.status, "active"),
-          sql4`${listings.id} != ${listing.id}`
+        and5(
+          eq5(listings.categoryId, listing.categoryId),
+          eq5(listings.status, "active"),
+          sql5`${listings.id} != ${listing.id}`
         )
-      ).orderBy(sql4`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`).limit(6);
+      ).orderBy(sql5`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`).limit(6);
       const allPrices = [parseFloat(listing.price), ...similarListings.map((l) => parseFloat(l.price))];
       const avgPrice = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
       const minPrice = Math.min(...allPrices);
@@ -9427,7 +9716,7 @@ async function registerRoutes(app2, existingServer) {
       }
       const listingId = req.body.listingId;
       if (listingId) {
-        const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
         if (!listing) {
           return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
         }
@@ -9443,7 +9732,7 @@ async function registerRoutes(app2, existingServer) {
       }
       let currentMaxOrder = 0;
       if (listingId) {
-        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq4(listingImages.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql5`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq5(listingImages.listingId, listingId));
         currentMaxOrder = maxOrderResult[0]?.maxOrder || 0;
       }
       const uploadedImages = [];
@@ -9496,7 +9785,7 @@ async function registerRoutes(app2, existingServer) {
         });
         return res.json(cached);
       }
-      const images = await db.select().from(listingImages).where(eq4(listingImages.listingId, req.params.listingId)).orderBy(listingImages.displayOrder);
+      const images = await db.select().from(listingImages).where(eq5(listingImages.listingId, req.params.listingId)).orderBy(listingImages.displayOrder);
       await cache.set(cacheKey, images, 300);
       res.set({
         "Cache-Control": "public, max-age=300, s-maxage=600",
@@ -9511,12 +9800,12 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.delete("/api/listing-images/:imageId", isAuthenticated, async (req, res) => {
     try {
-      const [image] = await db.select().from(listingImages).where(eq4(listingImages.id, req.params.imageId)).limit(1);
+      const [image] = await db.select().from(listingImages).where(eq5(listingImages.id, req.params.imageId)).limit(1);
       if (!image) {
         return res.status(404).json({ message: "G\xF6rsel bulunamad\u0131." });
       }
       if (image.listingId) {
-        const [listing] = await db.select().from(listings).where(eq4(listings.id, image.listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq5(listings.id, image.listingId)).limit(1);
         if (listing && listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
           return res.status(403).json({ message: "Bu g\xF6rseli silme yetkiniz yok." });
         }
@@ -9528,7 +9817,7 @@ async function registerRoutes(app2, existingServer) {
         image.largeKey
       ].filter(Boolean);
       await deleteImageVariants(keysToDelete);
-      await db.delete(listingImages).where(eq4(listingImages.id, req.params.imageId));
+      await db.delete(listingImages).where(eq5(listingImages.id, req.params.imageId));
       res.json({ message: "G\xF6rsel ba\u015Far\u0131yla silindi." });
     } catch (error) {
       console.error("Error deleting listing image:", error);
@@ -9541,7 +9830,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId || !Array.isArray(imageIds)) {
         return res.status(400).json({ message: "Ge\xE7ersiz istek." });
       }
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
@@ -9549,9 +9838,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
       for (let i = 0; i < imageIds.length; i++) {
-        await db.update(listingImages).set({ displayOrder: i }).where(and4(
-          eq4(listingImages.id, imageIds[i]),
-          eq4(listingImages.listingId, listingId)
+        await db.update(listingImages).set({ displayOrder: i }).where(and5(
+          eq5(listingImages.id, imageIds[i]),
+          eq5(listingImages.listingId, listingId)
         ));
       }
       res.json({ message: "G\xF6rsel s\u0131ralamas\u0131 g\xFCncellendi." });
@@ -9562,19 +9851,19 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/listing-images/:imageId/cover", isAuthenticated, async (req, res) => {
     try {
-      const [image] = await db.select().from(listingImages).where(eq4(listingImages.id, req.params.imageId)).limit(1);
+      const [image] = await db.select().from(listingImages).where(eq5(listingImages.id, req.params.imageId)).limit(1);
       if (!image || !image.listingId) {
         return res.status(404).json({ message: "G\xF6rsel bulunamad\u0131." });
       }
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, image.listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, image.listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
-      await db.update(listingImages).set({ isCover: false }).where(eq4(listingImages.listingId, image.listingId));
-      await db.update(listingImages).set({ isCover: true }).where(eq4(listingImages.id, req.params.imageId));
+      await db.update(listingImages).set({ isCover: false }).where(eq5(listingImages.listingId, image.listingId));
+      await db.update(listingImages).set({ isCover: true }).where(eq5(listingImages.id, req.params.imageId));
       res.json({ message: "Kapak g\xF6rseli g\xFCncellendi." });
     } catch (error) {
       console.error("Error setting cover image:", error);
@@ -9630,7 +9919,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { listingId } = req.params;
       const sellerId = getUserId2(req.user);
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -9673,7 +9962,7 @@ async function registerRoutes(app2, existingServer) {
           updateData.price = priceNum.toFixed(2);
         }
       }
-      const [updatedListing] = await db.update(listings).set(updateData).where(eq4(listings.id, listingId)).returning();
+      const [updatedListing] = await db.update(listings).set(updateData).where(eq5(listings.id, listingId)).returning();
       res.json({
         message: "Taslak g\xFCncellendi",
         listing: updatedListing
@@ -9686,10 +9975,10 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listings/drafts", isAuthenticated, async (req, res) => {
     try {
       const sellerId = getUserId2(req.user);
-      const drafts = await db.select().from(listings).where(and4(
-        eq4(listings.sellerId, sellerId),
-        eq4(listings.status, "draft")
-      )).orderBy(desc3(listings.updatedAt));
+      const drafts = await db.select().from(listings).where(and5(
+        eq5(listings.sellerId, sellerId),
+        eq5(listings.status, "draft")
+      )).orderBy(desc4(listings.updatedAt));
       res.json(drafts);
     } catch (error) {
       console.error("Failed to fetch draft listings:", error);
@@ -9701,7 +9990,7 @@ async function registerRoutes(app2, existingServer) {
       const { listingId } = req.params;
       const sellerId = getUserId2(req.user);
       const user = req.user;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -9730,10 +10019,10 @@ async function registerRoutes(app2, existingServer) {
       const [publishedListing] = await db.update(listings).set({
         status: newStatus,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq4(listings.id, listingId)).returning();
+      }).where(eq5(listings.id, listingId)).returning();
       await db.update(users).set({
-        totalListings: sql4`${users.totalListings} + 1`
-      }).where(eq4(users.id, sellerId));
+        totalListings: sql5`${users.totalListings} + 1`
+      }).where(eq5(users.id, sellerId));
       res.json({
         message: newStatus === "pending" ? "\u0130lan\u0131n\u0131z yay\u0131nland\u0131 ve onay bekliyor" : "\u0130lan\u0131n\u0131z ba\u015Far\u0131yla yay\u0131nland\u0131",
         listing: publishedListing
@@ -9759,7 +10048,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/reports/my", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userReports = await db.select().from(reports).where(eq4(reports.reporterId, userId)).orderBy(desc3(reports.createdAt));
+      const userReports = await db.select().from(reports).where(eq5(reports.reporterId, userId)).orderBy(desc4(reports.createdAt));
       res.json(userReports);
     } catch (error) {
       console.error("Failed to fetch user reports:", error);
@@ -9774,9 +10063,9 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(reports);
       if (status && status !== "all") {
-        query = query.where(eq4(reports.status, status));
+        query = query.where(eq5(reports.status, status));
       }
-      const allReports = await query.orderBy(desc3(reports.createdAt));
+      const allReports = await query.orderBy(desc4(reports.createdAt));
       res.json(allReports);
     } catch (error) {
       console.error("Failed to fetch reports:", error);
@@ -9797,7 +10086,7 @@ async function registerRoutes(app2, existingServer) {
         updateData.resolvedAt = /* @__PURE__ */ new Date();
         updateData.resolvedBy = getUserId2(req.user);
       }
-      const [updatedReport] = await db.update(reports).set(updateData).where(eq4(reports.id, reportId)).returning();
+      const [updatedReport] = await db.update(reports).set(updateData).where(eq5(reports.id, reportId)).returning();
       if (!updatedReport) {
         return res.status(404).json({ message: "\u015Eikayet bulunamad\u0131" });
       }
@@ -9812,7 +10101,7 @@ async function registerRoutes(app2, existingServer) {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
     const userId = getUserId2(req.user);
-    const [dbUser] = await db.select({ role: users.role, status: users.status }).from(users).where(eq4(users.id, userId)).limit(1);
+    const [dbUser] = await db.select({ role: users.role, status: users.status }).from(users).where(eq5(users.id, userId)).limit(1);
     if (!dbUser || dbUser.role !== "admin") {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
@@ -9870,7 +10159,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/admin/users/:id/activity", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const [kullanici] = await db.select({ id: users.id, createdAt: users.createdAt }).from(users).where(eq4(users.id, id)).limit(1);
+      const [kullanici] = await db.select({ id: users.id, createdAt: users.createdAt }).from(users).where(eq5(users.id, id)).limit(1);
       if (!kullanici) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -9882,9 +10171,9 @@ async function registerRoutes(app2, existingServer) {
         success: loginHistory.success,
         failureReason: loginHistory.failureReason,
         createdAt: loginHistory.createdAt
-      }).from(loginHistory).where(eq4(loginHistory.userId, id)).orderBy(desc3(loginHistory.createdAt)).limit(25);
-      const [basarisiz] = await db.select({ n: count() }).from(loginHistory).where(and4(eq4(loginHistory.userId, id), eq4(loginHistory.success, false)));
-      const ilanDurumlari = await db.select({ status: listings.status, n: count() }).from(listings).where(eq4(listings.sellerId, id)).groupBy(listings.status);
+      }).from(loginHistory).where(eq5(loginHistory.userId, id)).orderBy(desc4(loginHistory.createdAt)).limit(25);
+      const [basarisiz] = await db.select({ n: count() }).from(loginHistory).where(and5(eq5(loginHistory.userId, id), eq5(loginHistory.success, false)));
+      const ilanDurumlari = await db.select({ status: listings.status, n: count() }).from(listings).where(eq5(listings.sellerId, id)).groupBy(listings.status);
       res.json({
         // Ham user-agent yerine okunabilir cihaz bilgisi döndürülüyor.
         logins: girisler.map((g) => {
@@ -9912,7 +10201,7 @@ async function registerRoutes(app2, existingServer) {
     const kok = slugify(taban) || "kategori";
     for (let i = 1; i < 200; i++) {
       const aday = i === 1 ? kok : `${kok}-${i}`;
-      const [carpisan] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.slug, aday)).limit(1);
+      const [carpisan] = await db.select({ id: categories.id }).from(categories).where(eq5(categories.slug, aday)).limit(1);
       if (!carpisan || carpisan.id === haricId) return aday;
     }
     return `${kok}-${Date.now()}`;
@@ -9937,21 +10226,21 @@ async function registerRoutes(app2, existingServer) {
     const kuyruk = [kokId];
     while (kuyruk.length) {
       const id = kuyruk.shift();
-      const [dugum] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
+      const [dugum] = await db.select().from(categories).where(eq5(categories.id, id)).limit(1);
       if (!dugum) continue;
       let derinlik = 0;
       let yol = [];
       if (dugum.parentId) {
-        const [ebeveyn] = await db.select({ depth: categories.depth, path: categories.path, id: categories.id }).from(categories).where(eq4(categories.id, dugum.parentId)).limit(1);
+        const [ebeveyn] = await db.select({ depth: categories.depth, path: categories.path, id: categories.id }).from(categories).where(eq5(categories.id, dugum.parentId)).limit(1);
         if (ebeveyn) {
           derinlik = (ebeveyn.depth ?? 0) + 1;
           yol = [...ebeveyn.path || [], ebeveyn.id];
         }
       }
       if (derinlik !== dugum.depth || JSON.stringify(yol) !== JSON.stringify(dugum.path)) {
-        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq4(categories.id, id));
+        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq5(categories.id, id));
       }
-      const cocuklar = await db.select({ id: categories.id }).from(categories).where(eq4(categories.parentId, id));
+      const cocuklar = await db.select({ id: categories.id }).from(categories).where(eq5(categories.parentId, id));
       kuyruk.push(...cocuklar.map((c) => c.id));
     }
   }
@@ -9964,7 +10253,7 @@ async function registerRoutes(app2, existingServer) {
       let derinlik = 0;
       let yol = [];
       if (parentId) {
-        const [ebeveyn] = await db.select().from(categories).where(eq4(categories.id, parentId)).limit(1);
+        const [ebeveyn] = await db.select().from(categories).where(eq5(categories.id, parentId)).limit(1);
         if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
         derinlik = (ebeveyn.depth ?? 0) + 1;
         yol = [...ebeveyn.path || [], ebeveyn.id];
@@ -9990,7 +10279,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { id } = req.params;
       const { name, slug, parentId, icon, description, order } = req.body;
-      const [mevcut] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
+      const [mevcut] = await db.select().from(categories).where(eq5(categories.id, id)).limit(1);
       if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
       const ebeveynDegisti = parentId !== void 0 && (parentId || null) !== mevcut.parentId;
       if (ebeveynDegisti && parentId) {
@@ -10001,7 +10290,7 @@ async function registerRoutes(app2, existingServer) {
         if (altlar.includes(parentId)) {
           return res.status(400).json({ message: "Bir kategori kendi alt dal\u0131n\u0131n alt\u0131na ta\u015F\u0131namaz" });
         }
-        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.id, parentId)).limit(1);
+        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq5(categories.id, parentId)).limit(1);
         if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
       }
       const guncelleme = {};
@@ -10014,7 +10303,7 @@ async function registerRoutes(app2, existingServer) {
       if (Object.keys(guncelleme).length === 0) {
         return res.status(400).json({ message: "G\xFCncellenecek alan verilmedi" });
       }
-      const [guncel] = await db.update(categories).set(guncelleme).where(eq4(categories.id, id)).returning();
+      const [guncel] = await db.update(categories).set(guncelleme).where(eq5(categories.id, id)).returning();
       if (ebeveynDegisti) await agaciYenidenHesapla(id);
       await kategoriOnbelleginiTemizle();
       res.json(guncel);
@@ -10026,21 +10315,21 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const [mevcut] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
+      const [mevcut] = await db.select().from(categories).where(eq5(categories.id, id)).limit(1);
       if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
-      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.parentId, id)).limit(1);
+      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq5(categories.parentId, id)).limit(1);
       if (cocuk) {
         return res.status(409).json({
           message: "Bu kategorinin alt kategorileri var. \xD6nce onlar\u0131 silin veya ba\u015Fka bir kategoriye ta\u015F\u0131y\u0131n."
         });
       }
-      const [{ n }] = await db.select({ n: count() }).from(listings).where(eq4(listings.categoryId, id));
+      const [{ n }] = await db.select({ n: count() }).from(listings).where(eq5(listings.categoryId, id));
       if (Number(n) > 0) {
         return res.status(409).json({
           message: `Bu kategoride ${n} ilan var. Kategori silinemez; \xF6nce ilanlar\u0131 ba\u015Fka kategoriye ta\u015F\u0131y\u0131n.`
         });
       }
-      await db.delete(categories).where(eq4(categories.id, id));
+      await db.delete(categories).where(eq5(categories.id, id));
       await kategoriOnbelleginiTemizle();
       res.json({ success: true, message: `"${mevcut.name}" kategorisi silindi` });
     } catch (error) {
@@ -10074,12 +10363,12 @@ async function registerRoutes(app2, existingServer) {
       ] = await Promise.all([
         db.select({ count: count() }).from(users),
         db.select({ count: count() }).from(listings),
-        db.select({ count: count() }).from(listings).where(eq4(listings.status, "active")),
-        db.select({ count: count() }).from(listings).where(eq4(listings.status, "pending")),
-        db.select({ count: count() }).from(users).where(eq4(users.emailVerified, true)),
+        db.select({ count: count() }).from(listings).where(eq5(listings.status, "active")),
+        db.select({ count: count() }).from(listings).where(eq5(listings.status, "pending")),
+        db.select({ count: count() }).from(users).where(eq5(users.emailVerified, true)),
         db.select({ count: count() }).from(stores),
-        db.select({ count: count() }).from(stores).where(eq4(stores.status, "pending")),
-        db.select({ count: count() }).from(reports).where(eq4(reports.status, "pending")),
+        db.select({ count: count() }).from(stores).where(eq5(stores.status, "pending")),
+        db.select({ count: count() }).from(reports).where(eq5(reports.status, "pending")),
         db.select({ count: count() }).from(listings).where(gte2(listings.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, weekStart))
@@ -10112,7 +10401,7 @@ async function registerRoutes(app2, existingServer) {
       const { status } = req.query;
       const conditions = [];
       if (status && status !== "all") {
-        conditions.push(eq4(listings.status, status));
+        conditions.push(eq5(listings.status, status));
       }
       const allListings = await db.select({
         id: listings.id,
@@ -10131,7 +10420,7 @@ async function registerRoutes(app2, existingServer) {
         sellerUsername: users.username,
         sellerEmail: users.email,
         sellerIsVerified: users.emailVerified
-      }).from(listings).leftJoin(users, eq4(listings.sellerId, users.id)).where(conditions.length > 0 ? and4(...conditions) : void 0).orderBy(desc3(listings.createdAt)).limit(100);
+      }).from(listings).leftJoin(users, eq5(listings.sellerId, users.id)).where(conditions.length > 0 ? and5(...conditions) : void 0).orderBy(desc4(listings.createdAt)).limit(100);
       res.json(allListings);
     } catch (error) {
       console.error("Error fetching listings for admin:", error);
@@ -10148,7 +10437,7 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const { status, reason } = validationResult.data;
-      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq5(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -10171,7 +10460,7 @@ async function registerRoutes(app2, existingServer) {
         moderatedBy: getUserId2(req.user),
         moderatedAt: /* @__PURE__ */ new Date(),
         moderationReason: status === "rejected" ? reason : null
-      }).where(eq4(listings.id, req.params.id)).returning();
+      }).where(eq5(listings.id, req.params.id)).returning();
       try {
         if (status === "active") {
           const [notification] = await db.insert(notifications).values({
@@ -10229,7 +10518,7 @@ async function registerRoutes(app2, existingServer) {
         emailVerified: users.emailVerified,
         profileImageUrl: users.profileImageUrl,
         createdAt: users.createdAt
-      }).from(users).orderBy(desc3(users.createdAt)).limit(200);
+      }).from(users).orderBy(desc4(users.createdAt)).limit(200);
       res.json(allUsers);
     } catch (error) {
       console.error("Error fetching users for admin:", error);
@@ -10244,13 +10533,13 @@ async function registerRoutes(app2, existingServer) {
       if (!validRoles.includes(role)) {
         return res.status(400).json({ message: "Ge\xE7ersiz rol" });
       }
-      const [updatedUser] = await db.update(users).set({ role }).where(eq4(users.id, id)).returning();
+      const [updatedUser] = await db.update(users).set({ role }).where(eq5(users.id, id)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
       try {
         await db.execute(
-          sql4`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+          sql5`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
         );
         console.log(`\u{1F512} Rol de\u011Fi\u015Fti, oturumlar sonland\u0131r\u0131ld\u0131: ${id} \u2192 ${role}`);
       } catch (sessionErr) {
@@ -10279,14 +10568,14 @@ async function registerRoutes(app2, existingServer) {
         statusChangedAt: /* @__PURE__ */ new Date(),
         statusChangedBy: adminId,
         statusReason: reason || null
-      }).where(eq4(users.id, id)).returning();
+      }).where(eq5(users.id, id)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
       if (status !== "active") {
         try {
           await db.execute(
-            sql4`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+            sql5`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
           );
           console.log(`\u{1F512} Oturumlar sonland\u0131r\u0131ld\u0131: ${id} (${status})`);
         } catch (sessionErr) {
@@ -10311,9 +10600,9 @@ async function registerRoutes(app2, existingServer) {
         status: stores.status,
         createdAt: stores.createdAt,
         ownerId: stores.ownerId,
-        ownerName: sql4`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
+        ownerName: sql5`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
         ownerEmail: users.email
-      }).from(stores).leftJoin(users, eq4(stores.ownerId, users.id)).orderBy(desc3(stores.createdAt)).limit(100);
+      }).from(stores).leftJoin(users, eq5(stores.ownerId, users.id)).orderBy(desc4(stores.createdAt)).limit(100);
       res.json(allStores);
     } catch (error) {
       console.error("Error fetching stores for admin:", error);
@@ -10328,7 +10617,7 @@ async function registerRoutes(app2, existingServer) {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Ge\xE7ersiz durum" });
       }
-      const [updatedStore] = await db.update(stores).set({ status }).where(eq4(stores.id, id)).returning();
+      const [updatedStore] = await db.update(stores).set({ status }).where(eq5(stores.id, id)).returning();
       if (!updatedStore) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
       }
@@ -10383,8 +10672,8 @@ async function registerRoutes(app2, existingServer) {
         createdAt: blogPosts.createdAt,
         updatedAt: blogPosts.updatedAt,
         authorId: blogPosts.authorId,
-        authorName: sql4`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`
-      }).from(blogPosts).leftJoin(users, eq4(blogPosts.authorId, users.id)).orderBy(desc3(blogPosts.createdAt));
+        authorName: sql5`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`
+      }).from(blogPosts).leftJoin(users, eq5(blogPosts.authorId, users.id)).orderBy(desc4(blogPosts.createdAt));
       res.json(allBlogs);
     } catch (error) {
       console.error("Error fetching admin blog posts:", error);
@@ -10425,7 +10714,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(blogPosts).set({
         ...validationResult.data,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq4(blogPosts.id, req.params.id)).returning();
+      }).where(eq5(blogPosts.id, req.params.id)).returning();
       if (!updated) {
         return res.status(404).json({ message: "Blog yaz\u0131s\u0131 bulunamad\u0131" });
       }
@@ -10440,7 +10729,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.delete("/api/admin/blog/:id", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
-      const [deleted] = await db.delete(blogPosts).where(eq4(blogPosts.id, req.params.id)).returning();
+      const [deleted] = await db.delete(blogPosts).where(eq5(blogPosts.id, req.params.id)).returning();
       if (!deleted) {
         return res.status(404).json({ message: "Blog yaz\u0131s\u0131 bulunamad\u0131" });
       }
@@ -10465,14 +10754,14 @@ async function registerRoutes(app2, existingServer) {
         createdAt: auditLogs.createdAt
       }).from(auditLogs).$dynamic();
       if (level && level !== "all") {
-        query = query.where(eq4(auditLogs.level, level));
+        query = query.where(eq5(auditLogs.level, level));
       }
       if (entity && entity !== "all") {
-        query = query.where(eq4(auditLogs.entity, entity));
+        query = query.where(eq5(auditLogs.entity, entity));
       }
-      const logs = await query.orderBy(desc3(auditLogs.createdAt)).limit(parseInt(limit)).offset(parseInt(offset));
+      const logs = await query.orderBy(desc4(auditLogs.createdAt)).limit(parseInt(limit)).offset(parseInt(offset));
       const userIds = Array.from(new Set(logs.filter((l) => l.userId).map((l) => l.userId)));
-      const userNames = userIds.length > 0 ? await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(sql4`${users.id} IN ${userIds}`) : [];
+      const userNames = userIds.length > 0 ? await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(sql5`${users.id} IN ${userIds}`) : [];
       const userMap = Object.fromEntries(userNames.map((u) => [u.id, `${u.firstName || ""} ${u.lastName || ""}`.trim() || "Anonim"]));
       const logsWithUserNames = logs.map((log) => ({
         ...log,
@@ -10491,8 +10780,8 @@ async function registerRoutes(app2, existingServer) {
       const [totalCount, todayCount, warningCount, errorCount] = await Promise.all([
         db.select({ count: count() }).from(auditLogs),
         db.select({ count: count() }).from(auditLogs).where(gte2(auditLogs.createdAt, todayStart)),
-        db.select({ count: count() }).from(auditLogs).where(eq4(auditLogs.level, "warning")),
-        db.select({ count: count() }).from(auditLogs).where(eq4(auditLogs.level, "error"))
+        db.select({ count: count() }).from(auditLogs).where(eq5(auditLogs.level, "warning")),
+        db.select({ count: count() }).from(auditLogs).where(eq5(auditLogs.level, "error"))
       ]);
       res.json({
         totalActions: Number(totalCount[0].count),
@@ -10526,7 +10815,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const updates = req.body;
       for (const [key, value] of Object.entries(updates)) {
-        await db.update(systemSettings).set({ value, updatedBy: userId, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(systemSettings.key, key));
+        await db.update(systemSettings).set({ value, updatedBy: userId, updatedAt: /* @__PURE__ */ new Date() }).where(eq5(systemSettings.key, key));
       }
       await db.insert(auditLogs).values({
         userId,
@@ -10544,7 +10833,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/admin/broadcasts", isAuthenticated, adminMiddleware, async (_req, res) => {
     try {
-      const broadcasts = await db.select().from(adminBroadcasts).orderBy(desc3(adminBroadcasts.createdAt)).limit(100);
+      const broadcasts = await db.select().from(adminBroadcasts).orderBy(desc4(adminBroadcasts.createdAt)).limit(100);
       res.json(broadcasts);
     } catch (error) {
       console.error("Error fetching broadcasts:", error);
@@ -10581,10 +10870,10 @@ async function registerRoutes(app2, existingServer) {
         const [result] = await db.select({ count: count() }).from(users);
         recipientCount = Number(result.count);
       } else if (targetAudience === "verified") {
-        const [result] = await db.select({ count: count() }).from(users).where(eq4(users.emailVerified, true));
+        const [result] = await db.select({ count: count() }).from(users).where(eq5(users.emailVerified, true));
         recipientCount = Number(result.count);
       } else if (targetAudience === "sellers") {
-        const [result] = await db.select({ count: count() }).from(users).where(eq4(users.role, "seller"));
+        const [result] = await db.select({ count: count() }).from(users).where(eq5(users.role, "seller"));
         recipientCount = Number(result.count);
       } else {
         const [result] = await db.select({ count: count() }).from(users);
@@ -10645,23 +10934,23 @@ async function registerRoutes(app2, existingServer) {
         totalListings: stores.totalListings,
         verifiedAt: stores.verifiedAt,
         createdAt: stores.createdAt
-      }).from(stores).where(eq4(stores.status, "active")).$dynamic();
+      }).from(stores).where(eq5(stores.status, "active")).$dynamic();
       if (type) {
-        query = query.where(eq4(stores.storeType, type));
+        query = query.where(eq5(stores.storeType, type));
       }
       if (city) {
-        query = query.where(eq4(stores.city, city));
+        query = query.where(eq5(stores.city, city));
       }
       if (search) {
         query = query.where(
           // Türkçe arama — bkz. ilan aramasındaki açıklama.
-          sql4`(
+          sql5`(
             public.tr_normalize(${stores.displayName}) LIKE public.tr_normalize(${`%${search}%`})
             OR public.tr_normalize(coalesce(${stores.summary}, '')) LIKE public.tr_normalize(${`%${search}%`})
           )`
         );
       }
-      const storesList = await query.orderBy(desc3(stores.rating), desc3(stores.reviewCount)).limit(parseInt(limit)).offset(parseInt(offset));
+      const storesList = await query.orderBy(desc4(stores.rating), desc4(stores.reviewCount)).limit(parseInt(limit)).offset(parseInt(offset));
       res.json(storesList);
     } catch (error) {
       console.error("Error fetching stores:", error);
@@ -10675,7 +10964,7 @@ async function registerRoutes(app2, existingServer) {
         return res.json({ available: false, message: "Slug en az 3 karakter olmal\u0131" });
       }
       const existingStore = await db.query.stores.findFirst({
-        where: eq4(stores.slug, slug.toLowerCase())
+        where: eq5(stores.slug, slug.toLowerCase())
       });
       res.json({
         available: !existingStore,
@@ -10689,7 +10978,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/store/:slug", async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.slug, req.params.slug),
+        where: eq5(stores.slug, req.params.slug),
         with: {
           owner: {
             columns: {
@@ -10705,10 +10994,10 @@ async function registerRoutes(app2, existingServer) {
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
       }
-      const storeListings = await db.select().from(listings).where(and4(
-        eq4(listings.storeId, store.id),
-        eq4(listings.status, "active")
-      )).orderBy(desc3(listings.createdAt)).limit(20);
+      const storeListings = await db.select().from(listings).where(and5(
+        eq5(listings.storeId, store.id),
+        eq5(listings.status, "active")
+      )).orderBy(desc4(listings.createdAt)).limit(20);
       const storeReviewsList = await db.select({
         id: storeReviews.id,
         rating: storeReviews.rating,
@@ -10719,10 +11008,10 @@ async function registerRoutes(app2, existingServer) {
         reviewerFirstName: users.firstName,
         reviewerLastName: users.lastName,
         reviewerProfileImage: users.profileImageUrl
-      }).from(storeReviews).leftJoin(users, eq4(storeReviews.reviewerId, users.id)).where(and4(
-        eq4(storeReviews.storeId, store.id),
-        eq4(storeReviews.status, "approved")
-      )).orderBy(desc3(storeReviews.createdAt)).limit(10);
+      }).from(storeReviews).leftJoin(users, eq5(storeReviews.reviewerId, users.id)).where(and5(
+        eq5(storeReviews.storeId, store.id),
+        eq5(storeReviews.status, "approved")
+      )).orderBy(desc4(storeReviews.createdAt)).limit(10);
       res.json({
         ...store,
         listings: storeListings,
@@ -10736,7 +11025,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store", isAuthenticated, async (req, res) => {
     try {
       const existingStore = await db.query.stores.findFirst({
-        where: eq4(stores.ownerId, getUserId2(req.user))
+        where: eq5(stores.ownerId, getUserId2(req.user))
       });
       if (existingStore) {
         return res.status(400).json({ message: "Zaten bir ma\u011Fazan\u0131z var" });
@@ -10764,7 +11053,7 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/store/:id", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, req.params.id)
+        where: eq5(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10782,7 +11071,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(stores).set({
         ...validationResult.data,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq4(stores.id, req.params.id)).returning();
+      }).where(eq5(stores.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Error updating store:", error);
@@ -10795,7 +11084,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/store/:id", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, req.params.id)
+        where: eq5(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10819,7 +11108,7 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const storeMediaList = await db.query.storeMedia.findMany({
-        where: eq4(storeMedia.storeId, store.id)
+        where: eq5(storeMedia.storeId, store.id)
       });
       for (const media of storeMediaList) {
         try {
@@ -10828,11 +11117,11 @@ async function registerRoutes(app2, existingServer) {
           console.warn("Failed to delete store media:", e);
         }
       }
-      await db.delete(storeMedia).where(eq4(storeMedia.storeId, store.id));
-      await db.delete(storeFollowers).where(eq4(storeFollowers.storeId, store.id));
-      await db.delete(storeReviews).where(eq4(storeReviews.storeId, store.id));
-      await db.update(listings).set({ storeId: null }).where(eq4(listings.storeId, store.id));
-      await db.delete(stores).where(eq4(stores.id, store.id));
+      await db.delete(storeMedia).where(eq5(storeMedia.storeId, store.id));
+      await db.delete(storeFollowers).where(eq5(storeFollowers.storeId, store.id));
+      await db.delete(storeReviews).where(eq5(storeReviews.storeId, store.id));
+      await db.update(listings).set({ storeId: null }).where(eq5(listings.storeId, store.id));
+      await db.delete(stores).where(eq5(stores.id, store.id));
       res.json({ message: "Ma\u011Faza ba\u015Far\u0131yla silindi" });
     } catch (error) {
       console.error("Error deleting store:", error);
@@ -10842,12 +11131,12 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/store/my/dashboard", isAuthenticated, async (req, res) => {
     try {
       const myStore = await db.query.stores.findFirst({
-        where: eq4(stores.ownerId, getUserId2(req.user))
+        where: eq5(stores.ownerId, getUserId2(req.user))
       });
       if (!myStore) {
         return res.status(404).json({ message: "Ma\u011Fazan\u0131z hen\xFCz yok" });
       }
-      const storeListingsCount = await db.select({ count: sql4`count(*)` }).from(listings).where(eq4(listings.storeId, myStore.id));
+      const storeListingsCount = await db.select({ count: sql5`count(*)` }).from(listings).where(eq5(listings.storeId, myStore.id));
       res.json({
         ...myStore,
         stats: {
@@ -10862,7 +11151,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/seller/analytics", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
+      const userListings = await db.select().from(listings).where(eq5(listings.sellerId, userId));
       const totalListings = userListings.length;
       const activeListings = userListings.filter((l) => l.status === "active").length;
       const pendingListings = userListings.filter((l) => l.status === "pending").length;
@@ -10871,10 +11160,10 @@ async function registerRoutes(app2, existingServer) {
       const listingIds = userListings.map((l) => l.id);
       let totalFavorites = 0;
       if (listingIds.length > 0) {
-        const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(inArray2(favorites.listingId, listingIds));
+        const favResult = await db.select({ count: sql5`count(*)::int` }).from(favorites).where(inArray3(favorites.listingId, listingIds));
         totalFavorites = favResult[0]?.count || 0;
       }
-      const messagesResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(eq4(messages.receiverId, userId));
+      const messagesResult = await db.select({ count: sql5`count(*)::int` }).from(messages).where(eq5(messages.receiverId, userId));
       const totalMessages = messagesResult[0]?.count || 0;
       const topListings = userListings.filter((l) => l.status === "active").sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5).map((l) => ({
         id: l.id,
@@ -10923,18 +11212,18 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const { id } = req.params;
-      const [listing] = await db.select().from(listings).where(and4(
-        eq4(listings.id, id),
-        eq4(listings.sellerId, userId)
+      const [listing] = await db.select().from(listings).where(and5(
+        eq5(listings.id, id),
+        eq5(listings.sellerId, userId)
       )).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(eq4(favorites.listingId, id));
+      const favResult = await db.select({ count: sql5`count(*)::int` }).from(favorites).where(eq5(favorites.listingId, id));
       const favoritesCount = favResult[0]?.count || 0;
-      const msgResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(and4(
-        eq4(messages.receiverId, userId),
-        sql4`${messages.content} LIKE '%' || ${listing.title} || '%'`
+      const msgResult = await db.select({ count: sql5`count(*)::int` }).from(messages).where(and5(
+        eq5(messages.receiverId, userId),
+        sql5`${messages.content} LIKE '%' || ${listing.title} || '%'`
       ));
       const messageCount = msgResult[0]?.count || 0;
       res.json({
@@ -10955,7 +11244,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/review", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, req.params.id)
+        where: eq5(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10964,9 +11253,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Kendi ma\u011Fazan\u0131z\u0131 de\u011Ferlendiremezsiniz" });
       }
       const existingReview = await db.query.storeReviews.findFirst({
-        where: and4(
-          eq4(storeReviews.storeId, req.params.id),
-          eq4(storeReviews.reviewerId, getUserId2(req.user))
+        where: and5(
+          eq5(storeReviews.storeId, req.params.id),
+          eq5(storeReviews.reviewerId, getUserId2(req.user))
         )
       });
       if (existingReview) {
@@ -10984,15 +11273,15 @@ async function registerRoutes(app2, existingServer) {
         storeId: req.params.id,
         reviewerId: getUserId2(req.user)
       }).returning();
-      const allReviews = await db.select({ rating: storeReviews.rating }).from(storeReviews).where(and4(
-        eq4(storeReviews.storeId, req.params.id),
-        eq4(storeReviews.status, "approved")
+      const allReviews = await db.select({ rating: storeReviews.rating }).from(storeReviews).where(and5(
+        eq5(storeReviews.storeId, req.params.id),
+        eq5(storeReviews.status, "approved")
       ));
       const avgRating = allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
       await db.update(stores).set({
         rating: avgRating.toFixed(2),
         reviewCount: allReviews.length
-      }).where(eq4(stores.id, req.params.id));
+      }).where(eq5(stores.id, req.params.id));
       try {
         const reviewer = req.user;
         const reviewerName = reviewer.firstName ? `${reviewer.firstName} ${reviewer.lastName || ""}`.trim() : reviewer.username || "Birisi";
@@ -11030,10 +11319,10 @@ async function registerRoutes(app2, existingServer) {
         reviewerFirstName: users.firstName,
         reviewerLastName: users.lastName,
         reviewerProfileImage: users.profileImageUrl
-      }).from(storeReviews).leftJoin(users, eq4(storeReviews.reviewerId, users.id)).where(and4(
-        eq4(storeReviews.storeId, req.params.id),
-        eq4(storeReviews.status, "approved")
-      )).orderBy(desc3(storeReviews.createdAt));
+      }).from(storeReviews).leftJoin(users, eq5(storeReviews.reviewerId, users.id)).where(and5(
+        eq5(storeReviews.storeId, req.params.id),
+        eq5(storeReviews.status, "approved")
+      )).orderBy(desc4(storeReviews.createdAt));
       res.json(reviewsList);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -11043,7 +11332,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/media", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, req.params.id)
+        where: eq5(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -11061,9 +11350,9 @@ async function registerRoutes(app2, existingServer) {
         url
       }).returning();
       if (mediaType === "logo") {
-        await db.update(stores).set({ logo: url }).where(eq4(stores.id, req.params.id));
+        await db.update(stores).set({ logo: url }).where(eq5(stores.id, req.params.id));
       } else if (mediaType === "banner") {
-        await db.update(stores).set({ banner: url }).where(eq4(stores.id, req.params.id));
+        await db.update(stores).set({ banner: url }).where(eq5(stores.id, req.params.id));
       }
       res.status(201).json(media);
     } catch (error) {
@@ -11074,7 +11363,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/upload-image", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, req.params.id)
+        where: eq5(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -11108,9 +11397,9 @@ async function registerRoutes(app2, existingServer) {
         url: result.originalUrl
       }).returning();
       if (imageType === "logo") {
-        await db.update(stores).set({ logo: result.originalUrl }).where(eq4(stores.id, store.id));
+        await db.update(stores).set({ logo: result.originalUrl }).where(eq5(stores.id, store.id));
       } else if (imageType === "banner") {
-        await db.update(stores).set({ banner: result.originalUrl }).where(eq4(stores.id, store.id));
+        await db.update(stores).set({ banner: result.originalUrl }).where(eq5(stores.id, store.id));
       }
       console.log(`Store ${imageType} uploaded successfully:`, result.originalUrl);
       res.status(201).json({
@@ -11134,7 +11423,7 @@ async function registerRoutes(app2, existingServer) {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
       const store = await db.query.stores.findFirst({
-        where: eq4(stores.id, storeId)
+        where: eq5(stores.id, storeId)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -11143,9 +11432,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Kendi ma\u011Fazan\u0131z\u0131 takip edemezsiniz" });
       }
       const existingFollow = await db.query.storeFollowers.findFirst({
-        where: and4(
-          eq4(storeFollowers.storeId, storeId),
-          eq4(storeFollowers.userId, userId)
+        where: and5(
+          eq5(storeFollowers.storeId, storeId),
+          eq5(storeFollowers.userId, userId)
         )
       });
       if (existingFollow) {
@@ -11155,7 +11444,7 @@ async function registerRoutes(app2, existingServer) {
         storeId,
         userId
       });
-      await db.update(stores).set({ followerCount: sql4`COALESCE(follower_count, 0) + 1` }).where(eq4(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql5`COALESCE(follower_count, 0) + 1` }).where(eq5(stores.id, storeId));
       try {
         const follower = req.user;
         const followerName = follower.firstName ? `${follower.firstName} ${follower.lastName || ""}`.trim() : follower.username || "Birisi";
@@ -11184,14 +11473,14 @@ async function registerRoutes(app2, existingServer) {
     try {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
-      const result = await db.delete(storeFollowers).where(and4(
-        eq4(storeFollowers.storeId, storeId),
-        eq4(storeFollowers.userId, userId)
+      const result = await db.delete(storeFollowers).where(and5(
+        eq5(storeFollowers.storeId, storeId),
+        eq5(storeFollowers.userId, userId)
       )).returning();
       if (result.length === 0) {
         return res.status(404).json({ message: "Bu ma\u011Fazay\u0131 takip etmiyorsunuz" });
       }
-      await db.update(stores).set({ followerCount: sql4`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq4(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql5`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq5(stores.id, storeId));
       res.json({ message: "Takipten \xE7\u0131k\u0131ld\u0131", following: false });
     } catch (error) {
       console.error("Error unfollowing store:", error);
@@ -11217,7 +11506,7 @@ async function registerRoutes(app2, existingServer) {
         followerCount: stores.followerCount,
         badges: stores.badges,
         followedAt: storeFollowers.createdAt
-      }).from(storeFollowers).innerJoin(stores, eq4(storeFollowers.storeId, stores.id)).where(eq4(storeFollowers.userId, userId)).orderBy(desc3(storeFollowers.createdAt));
+      }).from(storeFollowers).innerJoin(stores, eq5(storeFollowers.storeId, stores.id)).where(eq5(storeFollowers.userId, userId)).orderBy(desc4(storeFollowers.createdAt));
       res.json(followedStores);
     } catch (error) {
       console.error("Error fetching followed stores:", error);
@@ -11229,9 +11518,9 @@ async function registerRoutes(app2, existingServer) {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
       const follow = await db.query.storeFollowers.findFirst({
-        where: and4(
-          eq4(storeFollowers.storeId, storeId),
-          eq4(storeFollowers.userId, userId)
+        where: and5(
+          eq5(storeFollowers.storeId, storeId),
+          eq5(storeFollowers.userId, userId)
         )
       });
       res.json({ following: !!follow });
@@ -11243,7 +11532,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/view", async (req, res) => {
     try {
       const storeId = req.params.id;
-      await db.update(stores).set({ viewCount: sql4`COALESCE(view_count, 0) + 1` }).where(eq4(stores.id, storeId));
+      await db.update(stores).set({ viewCount: sql5`COALESCE(view_count, 0) + 1` }).where(eq5(stores.id, storeId));
       res.json({ success: true });
     } catch (error) {
       console.error("Error incrementing view count:", error);
@@ -11283,10 +11572,10 @@ async function registerRoutes(app2, existingServer) {
         totalListings: stores.totalListings,
         verifiedAt: stores.verifiedAt,
         createdAt: stores.createdAt
-      }).from(stores).where(and4(
-        eq4(stores.categoryId, categoryId),
-        eq4(stores.status, "active")
-      )).orderBy(desc3(stores.rating), desc3(stores.reviewCount));
+      }).from(stores).where(and5(
+        eq5(stores.categoryId, categoryId),
+        eq5(stores.status, "active")
+      )).orderBy(desc4(stores.rating), desc4(stores.reviewCount));
       res.json(storesList);
     } catch (error) {
       console.error("Error fetching stores by category:", error);
@@ -11315,7 +11604,7 @@ Sitemap: https://sahibindenhayvan.com/sitemap.xml
     try {
       const baseUrl = "https://sahibindenhayvan.com";
       const allCategories = await db.select({ slug: categories.slug }).from(categories);
-      const activeListings = await db.select({ id: listings.id }).from(listings).where(eq4(listings.status, "active")).limit(1e3);
+      const activeListings = await db.select({ id: listings.id }).from(listings).where(eq5(listings.status, "active")).limit(1e3);
       const allBlogPosts = await db.select({ slug: blogPosts.slug }).from(blogPosts);
       let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

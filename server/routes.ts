@@ -12,6 +12,7 @@ import { slugify } from "@shared/utils";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
 import { registerSitemapRoutes } from "./sitemap";
 import { registerPrerenderRoutes } from "./prerender";
+import { registerCronRoutes } from "./cron";
 
 // Global notification event emitter for real-time WebSocket notifications
 export const notificationEmitter = new EventEmitter();
@@ -537,6 +538,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // SEO: dinamik sitemap (robots.txt statik olarak client/public altinda)
   registerSitemapRoutes(app);
+
+  // Zamanlanmis gorevler (Vercel Cron tarafindan tetiklenir)
+  registerCronRoutes(app);
 
   // SEO: icerik sayfalarina sunucu tarafinda sayfaya ozel meta etiketleri.
   // Yalnizca uretimde: gelistirmede index.html Vite tarafindan HMR ile
