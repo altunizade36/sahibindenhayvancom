@@ -21,11 +21,37 @@ export default defineConfig({
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        // Büyük satıcı paketlerini ayır — ilk yükleme süresini kısaltır
+        /*
+         * Satıcı paketlerini ayrı parçalara böler.
+         *
+         * Amaç yalnızca "ilk yüklemeyi küçültmek" değil, aynı zamanda
+         * ÖNBELLEĞİ KORUMAK: uygulama kodu her dağıtımda değişir, satıcı
+         * paketleri neredeyse hiç değişmez. Ayrı tutulduklarında kullanıcı
+         * her güncellemede React'i ve arayüz kütüphanesini yeniden indirmez.
+         *
+         * Sayfa kodları zaten rota bazında tembel yükleniyor (App.tsx);
+         * buradaki bölme onun tamamlayıcısı.
+         */
         manualChunks: {
           react: ["react", "react-dom", "wouter"],
           query: ["@tanstack/react-query"],
           charts: ["recharts"],
+          // Radix arayüz ilkelleri: çok sayıda küçük paket, hepsi birlikte
+          // kullanılıyor ve sürümleri seyrek değişiyor.
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-accordion",
+            "@radix-ui/react-alert-dialog",
+            "@radix-ui/react-toast",
+            "@radix-ui/react-tooltip",
+          ],
+          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
+          icons: ["lucide-react", "react-icons"],
+          dates: ["date-fns"],
         },
       },
     },

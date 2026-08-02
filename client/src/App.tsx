@@ -19,11 +19,8 @@ import { Loader2 } from "lucide-react";
 // Critical pages - loaded immediately
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import ListingList from "@/pages/listing-list";
-import ListingDetail from "@/pages/listing-detail";
-import CategoryDetail from "@/pages/category-detail";
+
+
 
 // Lazy loaded pages - loaded on demand for better initial load time
 const ForgotPassword = lazy(() => import("@/pages/sifremi-unuttum"));
@@ -46,6 +43,13 @@ const LiveStreamWatch = lazy(() => import("@/pages/live-stream-watch"));
 const LiveStreamCreate = lazy(() => import("@/pages/live-stream-create"));
 const AdminDashboard = lazy(() => import("@/pages/admin/index"));
 const AdminPinVerify = lazy(() => import("@/pages/admin/pin-verify"));
+// Ana sayfa ve 404 disindaki tum sayfalar tembel yuklenir: bunlarin kodu
+// ilk acilista inmez, kullanici o sayfaya gittiginde ayri parca olarak gelir.
+const ListingList = lazy(() => import("@/pages/listing-list"));
+const ListingDetail = lazy(() => import("@/pages/listing-detail"));
+const CategoryDetail = lazy(() => import("@/pages/category-detail"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
 const AdminUsers = lazy(() => import("@/pages/admin/users"));
 const AdminListings = lazy(() => import("@/pages/admin/listings"));
 const AdminStores = lazy(() => import("@/pages/admin/stores"));
@@ -116,8 +120,8 @@ function SidebarLayout() {
           </div>
           <Switch>
             <Route path="/" component={Home} />
-            <Route path="/ilanlar" component={ListingList} />
-            <Route path="/arama" component={ListingList} />
+            <Route path="/ilanlar">{() => <LazyRoute component={ListingList} />}</Route>
+            <Route path="/arama">{() => <LazyRoute component={ListingList} />}</Route>
             <Route component={NotFound} />
           </Switch>
         </main>
@@ -142,17 +146,17 @@ function NoSidebarLayout() {
       {!isAdminRoute && <Navbar />}
       <main className={`flex-1 ${isAdminRoute ? 'p-0' : ''}`}>
         <Switch>
-          <Route path="/giris" component={Login} />
-          <Route path="/login" component={Login} />
-          <Route path="/kayit" component={Register} />
-          <Route path="/register" component={Register} />
+          <Route path="/giris">{() => <LazyRoute component={Login} />}</Route>
+          <Route path="/login">{() => <LazyRoute component={Login} />}</Route>
+          <Route path="/kayit">{() => <LazyRoute component={Register} />}</Route>
+          <Route path="/register">{() => <LazyRoute component={Register} />}</Route>
           <Route path="/forgot-password">{() => <LazyRoute component={ForgotPassword} />}</Route>
           <Route path="/sifremi-unuttum">{() => <LazyRoute component={ForgotPassword} />}</Route>
           <Route path="/reset-password">{() => <LazyRoute component={ResetPassword} />}</Route>
           <Route path="/verify-email">{() => <LazyRoute component={VerifyEmail} />}</Route>
           <Route path="/ilan-ver">{() => <LazyRoute component={CreateListing} />}</Route>
           <Route path="/ilan-duzenle/:id">{() => <LazyRoute component={EditListing} />}</Route>
-          <Route path="/ilan/:id" component={ListingDetail} />
+          <Route path="/ilan/:id">{() => <LazyRoute component={ListingDetail} />}</Route>
           <Route path="/profil">{() => <LazyRoute component={Profile} />}</Route>
           <Route path="/profil-duzenle">{() => <LazyRoute component={EditProfile} />}</Route>
           <Route path="/panel">{() => <LazyRoute component={PanelDashboard} />}</Route>
@@ -183,7 +187,7 @@ function NoSidebarLayout() {
           <Route path="/canli-yayinlar">{() => <LazyRoute component={LiveStreamList} />}</Route>
           <Route path="/canli-yayin/:id">{() => <LazyRoute component={LiveStreamWatch} />}</Route>
           <Route path="/yayin-baslat">{() => <LazyRoute component={LiveStreamCreate} />}</Route>
-          <Route path="/kategori/:slug" component={CategoryDetail} />
+          <Route path="/kategori/:slug">{() => <LazyRoute component={CategoryDetail} />}</Route>
           <Route path="/karsilastir">{() => <LazyRoute component={ComparePage} />}</Route>
           <Route path="/admin/pin-dogrula">{() => <LazyRoute component={AdminPinVerify} />}</Route>
           <Route path="/admin">{() => <LazyRoute component={AdminDashboard} />}</Route>
