@@ -8275,17 +8275,37 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   app.patch("/api/admin/stores/:id/status", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
-      
-      // Validate status
-      const validStatuses = ['pending', 'approved', 'rejected', 'suspended'];
-      if (!validStatuses.includes(status)) {
+
+      /*
+       * store_status enum'u: draft | pending | active | suspended | closed
+       *
+       * Bu uç eskiden 'approved' ve 'rejected' bekliyordu; ikisi de enum'da
+       * yok. Yönetici "Onayla" dediğinde PostgreSQL "invalid input value for
+       * enum store_status" hatası veriyordu, yani hiçbir mağaza onaylanamıyordu.
+       * Asıl gereken 'active' ise izinli listede bile değildi.
+       *
+       * Eski arayüzden gelen istekler kırılmasın diye iki eski ad karşılığına
+       * eşlenir.
+       */
+      const ESKI_ADLAR: Record<string, string> = {
+        approved: "active",
+        rejected: "closed",
+      };
+      const status = ESKI_ADLAR[req.body?.status] ?? req.body?.status;
+
+      const GECERLI_DURUMLAR = ["pending", "active", "suspended", "closed"];
+      if (!GECERLI_DURUMLAR.includes(status)) {
         return res.status(400).json({ message: "Geçersiz durum" });
       }
-      
+
       const [updatedStore] = await db
         .update(stores)
-        .set({ status })
+        .set({
+          status,
+          // Onay anı kayda geçer; "doğrulanmış mağaza" göstergesi buna bakar.
+          ...(status === "active" ? { verifiedAt: new Date() } : {}),
+          updatedAt: new Date(),
+        } as any)
         .where(eq(stores.id, id))
         .returning();
       
@@ -8295,7 +8315,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       
       // Send notification to store owner
       try {
-        if (status === 'approved') {
+        if (status === 'active') {
           const [notification] = await db.insert(notifications).values({
             userId: updatedStore.ownerId,
             type: 'system',
@@ -8309,13 +8329,17 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             userId: updatedStore.ownerId,
             notification,
           });
-        } else if (status === 'rejected') {
+        } else if (status === 'closed' || status === 'suspended') {
           const [notification] = await db.insert(notifications).values({
             userId: updatedStore.ownerId,
             type: 'system',
-            title: 'Mağaza Reddedildi',
-            message: `"${updatedStore.displayName}" mağaza başvurunuz reddedildi`,
-            link: `/panel/magaza`,
+            title: status === 'suspended' ? 'Mağaza Askıya Alındı' : 'Mağaza Başvurusu Reddedildi',
+            message: status === 'suspended'
+              ? `"${updatedStore.displayName}" mağazanız geçici olarak yayından kaldırıldı.`
+              : `"${updatedStore.displayName}" mağaza başvurunuz onaylanmadı.`,
+            // Rota /panel/magazam; /panel/magaza diye bir sayfa yok, eski
+            // bağlantı 404'e düşüyordu.
+            link: `/panel/magazam`,
             relatedId: updatedStore.id,
           }).returning();
           
@@ -8840,8 +8864,42 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   });
 
   // Create new store (authenticated sellers only)
+  /**
+   * Mağaza sahibinin kendi düzenleyebileceği alanlar.
+   *
+   * `insertStoreSchema` sayaçları ve `verifiedAt`'i zaten dışarıda bırakıyor
+   * ama `status`'ü bırakmıyordu. Bu yüzden istek gövdesine
+   * `{"status":"active"}` yazan biri mağazasını doğrudan yayına alıp
+   * yönetici onayını tamamen atlayabiliyordu. Durum artık yalnızca
+   * /api/admin/stores/:id/status ucundan değişir; buradan geçen alanlar
+   * açıkça sayılır, gövde serbestçe yayılmaz.
+   */
+  const MAGAZA_SAHIBI_ALANLARI = [
+    "slug", "displayName", "storeType", "categoryId", "summary", "description",
+    "phone", "email", "website", "address", "city", "district",
+    "logo", "banner", "primaryColor", "secondaryColor", "bannerTemplate",
+    "workingHours", "services", "specializations",
+  ] as const;
+
+  function magazaAlanlariniSuz(veri: Record<string, any>): Record<string, any> {
+    const temiz: Record<string, any> = {};
+    for (const alan of MAGAZA_SAHIBI_ALANLARI) {
+      if (veri[alan] !== undefined) temiz[alan] = veri[alan];
+    }
+    return temiz;
+  }
+
   app.post("/api/store", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      // Mağaza herkese açık bir işletme sayfası; ilan vermekten daha büyük bir
+      // taahhüt. İlan oluşturmada aranan e-posta doğrulaması burada da aranır.
+      if (process.env.NODE_ENV === 'production' && !(await isEmailVerified(req.user))) {
+        return res.status(403).json({
+          message: "Mağaza açabilmek için önce e-posta adresinizi doğrulamanız gerekiyor.",
+          requiresVerification: true,
+        });
+      }
+
       // Check if user already has a store
       const existingStore = await db.query.stores.findFirst({
         where: eq(stores.ownerId, getUserId(req.user)),
@@ -8862,8 +8920,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const [newStore] = await db
         .insert(stores)
         .values({
-          ...validationResult.data,
+          ...magazaAlanlariniSuz(validationResult.data as Record<string, any>),
           ownerId: getUserId(req.user),
+          // Yeni mağaza her zaman onay sırasına girer. Tablonun varsayılanı
+          // 'draft' idi ve taslaktan çıkışın hiçbir yolu yoktu: dürüstçe
+          // açılan mağaza listede sonsuza dek görünmüyordu.
+          status: "pending",
         } as any)
         .returning();
       
@@ -8900,12 +8962,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
       }
       
+      // Durum alanı burada da geçmez: aksi halde yönetici tarafından askıya
+      // alınan bir mağazanın sahibi kendini yeniden yayına alabilirdi.
       const [updated] = await db
         .update(stores)
         .set({
-          ...validationResult.data as any,
+          ...magazaAlanlariniSuz(validationResult.data as Record<string, any>),
           updatedAt: new Date(),
-        })
+        } as any)
         .where(eq(stores.id, req.params.id))
         .returning();
       
@@ -8916,6 +8980,56 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Bu slug zaten kullanımda" });
       }
       res.status(500).json({ message: "Mağaza güncellenemedi" });
+    }
+  });
+
+  /**
+   * Taslakta kalmış mağazayı onay sırasına gönderir.
+   *
+   * Durum makinesinde bir çıkmaz vardı: tablo varsayılanı 'draft', mağaza
+   * listesi yalnızca 'active' gösteriyor ve arada taslaktan çıkışı sağlayan
+   * hiçbir uç yok. Yeni mağazalar artık doğrudan 'pending' ile açılıyor;
+   * bu uç ise eski/yarım kalmış taslakların da onaya girebilmesi için var.
+   */
+  app.post("/api/store/:id/submit", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const store = await db.query.stores.findFirst({
+        where: eq(stores.id, req.params.id),
+      });
+
+      if (!store) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+
+      if (store.ownerId !== getUserId(req.user)) {
+        return res.status(403).json({ message: "Bu mağazayı gönderemezsiniz" });
+      }
+
+      if (process.env.NODE_ENV === 'production' && !(await isEmailVerified(req.user))) {
+        return res.status(403).json({
+          message: "Mağazanızı onaya gönderebilmek için önce e-posta adresinizi doğrulamanız gerekiyor.",
+          requiresVerification: true,
+        });
+      }
+
+      if (store.status !== "draft") {
+        return res.status(400).json({
+          message: store.status === "pending"
+            ? "Mağazanız zaten onay bekliyor."
+            : "Mağazanız onay sürecinde değil.",
+        });
+      }
+
+      const [updated] = await db
+        .update(stores)
+        .set({ status: "pending", updatedAt: new Date() } as any)
+        .where(eq(stores.id, store.id))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error submitting store for review:", error);
+      res.status(500).json({ message: "Mağaza onaya gönderilemedi" });
     }
   });
 

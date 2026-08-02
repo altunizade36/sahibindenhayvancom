@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight, Plus, Loader2, Package, Users } from "lucide-react";
+import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight, Plus, Loader2, Package, Users, UserCheck, MailCheck, ClipboardCheck, ShieldCheck, Megaphone, BarChart3, MessageSquare } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -320,14 +320,12 @@ export default function StoresList() {
           <p className="text-base sm:text-lg opacity-90 max-w-2xl">
             Güvenilir satıcılarımızı keşfedin. Her mağaza profesyonel hizmet sunmak için hazır!
           </p>
-          {user && (
-            <Link href="/panel/magazam">
-              <Button variant="secondary" className="mt-4" data-testid="button-open-store-header">
-                <Plus className="w-4 h-4 mr-2" />
-                Mağaza Aç
-              </Button>
-            </Link>
-          )}
+          <Link href="/panel/magazam">
+            <Button variant="secondary" className="mt-4 w-full sm:w-auto h-11" data-testid="button-open-store-header">
+              <Plus className="w-4 h-4 mr-2" />
+              {user ? "Mağaza Aç" : "Ücretsiz Mağaza Aç"}
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -456,21 +454,12 @@ export default function StoresList() {
                     ? "Arama kriterlerinize uygun mağaza bulunamadı. Farklı filtreler deneyebilirsiniz."
                     : "Henüz kayıtlı mağaza bulunmuyor."}
                 </p>
-                {user && (
-                  <Link href="/panel/magazam">
-                    <Button data-testid="button-open-store">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Mağaza Aç
-                    </Button>
-                  </Link>
-                )}
-                {!user && (
-                  <Link href="/giris">
-                    <Button variant="outline" data-testid="button-login-to-open-store">
-                      Mağaza Açmak İçin Giriş Yapın
-                    </Button>
-                  </Link>
-                )}
+                <Link href="/panel/magazam">
+                  <Button className="w-full sm:w-auto h-11" data-testid="button-open-store">
+                    <Plus className="w-4 h-4 mr-2" />
+                    İlk Mağazayı Sen Aç
+                  </Button>
+                </Link>
               </Card>
             ) : (
               <>
@@ -489,6 +478,121 @@ export default function StoresList() {
           </div>
         </div>
       </div>
+
+      <MagazaRehberi />
     </div>
+  );
+}
+
+/**
+ * Mağaza açmanın kurallarını ve adımlarını anlatan bölüm.
+ *
+ * Sayfada mağaza açmaya davet eden bir düğme vardı ama mağazanın ne olduğunu,
+ * kimin açabileceğini ve açtıktan sonra ne olacağını (onay süreci) söyleyen
+ * hiçbir şey yoktu. Ziyaretçi düğmeye basıp sihirbazın ortasında kalıyordu.
+ */
+function MagazaRehberi() {
+  const kimler = [
+    { ikon: UserCheck, metin: "Sitede ücretsiz hesabı olan herkes — bireysel satıcı, yetiştirici, petshop, veteriner, kuluçka ve ekipman satıcısı." },
+    { ikon: MailCheck, metin: "E-posta adresi doğrulanmış olmalı. Doğrulama bağlantısı kayıt sırasında gönderilir." },
+    { ikon: Building2, metin: "Her hesap yalnızca bir mağaza açabilir." },
+  ];
+
+  const neler = [
+    { ikon: Package, metin: "Tüm ilanlarınız tek bir kurumsal sayfada toplanır." },
+    { ikon: Megaphone, metin: "Logo, kapak görseli ve mağaza renkleriyle kendi kimliğinizi kurarsınız." },
+    { ikon: Users, metin: "Ziyaretçiler mağazanızı takip eder, yeni ilanlarınızdan haberdar olur." },
+    { ikon: MessageSquare, metin: "Alıcılar doğrudan mağaza sayfanızdan size ulaşır, yorum ve puan bırakır." },
+    { ikon: BarChart3, metin: "Görüntülenme ve takipçi istatistiklerinizi panelden izlersiniz." },
+  ];
+
+  const adimlar = [
+    { baslik: "Bilgileri doldurun", metin: "Mağaza adı, kategori, şehir ve iletişim bilgilerinizi girin. 3 adımlık sihirbaz birkaç dakika sürer." },
+    { baslik: "Onaya gönderin", metin: "Kaydettiğinizde başvurunuz otomatik olarak inceleme sırasına girer." },
+    { baslik: "Yayına girin", metin: "Onaylandığında bildirim alırsınız ve mağazanız bu sayfada listelenir." },
+  ];
+
+  return (
+    <section className="border-t bg-muted/30">
+      <div className="container mx-auto px-4 py-10 sm:py-14">
+        <div className="text-center mb-8 sm:mb-10">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Mağaza açmak hakkında</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+            Mağaza, ilanlarınızı tek bir profesyonel sayfada toplayan ücretsiz satıcı profilidir.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-primary" />
+                Kimler açabilir?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              {kimler.map((m, i) => (
+                <div key={i} className="flex gap-2.5">
+                  <m.ikon className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground leading-relaxed">{m.metin}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Store className="w-4 h-4 text-primary" />
+                Neler kazanırsınız?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              {neler.map((m, i) => (
+                <div key={i} className="flex gap-2.5">
+                  <m.ikon className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground leading-relaxed">{m.metin}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ClipboardCheck className="w-4 h-4 text-primary" />
+                Nasıl açılır?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-4">
+              {adimlar.map((a, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="w-6 h-6 shrink-0 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{a.baslik}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{a.metin}</p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-8 text-center">
+          <Button asChild size="lg" className="w-full sm:w-auto h-12" data-testid="button-open-store-guide">
+            <Link href="/panel/magazam">
+              <Plus className="w-4 h-4 mr-2" />
+              Ücretsiz Mağaza Aç
+            </Link>
+          </Button>
+          <p className="text-xs text-muted-foreground mt-3 flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Mağaza açmak ve kullanmak ücretsizdir.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }

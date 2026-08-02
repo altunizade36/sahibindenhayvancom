@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useLocation } from "wouter";
-import { Building2, Edit, Eye, Upload, X, Users, Star, Calendar, Image, Palette, Loader2, Trash2, MapPin, ExternalLink, Check, ArrowRight, ArrowLeft, AlertCircle, Phone, Mail, Globe, MapPinned, Info, CheckCircle } from "lucide-react";
+import { Building2, Edit, Eye, Upload, X, Users, Star, Calendar, Image, Palette, Loader2, Trash2, MapPin, ExternalLink, Check, ArrowRight, ArrowLeft, AlertCircle, Phone, Mail, Globe, MapPinned, Info, CheckCircle, Clock, ShieldCheck, Ban, LogIn, MailCheck, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { redirectQuery } from "@/lib/redirect";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -513,9 +516,9 @@ function StoreCreationWizard({
 
                 <div>
                   <Label htmlFor="slug">Mağaza URL'si *</Label>
-                  <div className="flex items-center mt-1.5">
-                    <span className="text-sm text-muted-foreground mr-1">sahibindenhayvan.com/magaza/</span>
-                    <div className="relative flex-1">
+                  <div className="mt-1.5 space-y-1.5 sm:space-y-0 sm:flex sm:items-center sm:gap-1">
+                    <span className="block text-xs sm:text-sm text-muted-foreground sm:shrink-0">sahibindenhayvan.com/magaza/</span>
+                    <div className="relative sm:flex-1">
                       <Input
                         id="slug"
                         {...form.register("slug")}
@@ -902,6 +905,8 @@ function StoreDashboard({ store, categories }: { store: any; categories: StoreCa
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <MagazaDurumBildirimi store={store} />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Building2 className="w-6 h-6" />
@@ -1195,18 +1200,94 @@ function StoreDashboard({ store, categories }: { store: any; categories: StoreCa
   );
 }
 
+/**
+ * Mağaza durumunu sahibine anlatan bildirim şeridi.
+ *
+ * Mağaza açıldıktan sonra onay sırasına giriyor ama panelde bunu söyleyen
+ * hiçbir şey yoktu: kullanıcı "Mağaza oluşturuldu!" mesajını görüyor, sonra
+ * mağazasını listede bulamayınca sitede bir aksaklık olduğunu sanıyordu.
+ */
+function MagazaDurumBildirimi({ store }: { store: any }) {
+  const { toast } = useToast();
+
+  const onayaGonder = useMutation({
+    mutationFn: async () => apiRequest("POST", `/api/store/${store.id}/submit`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] });
+      toast({ title: "Onaya gönderildi", description: "Mağazanız inceleme sırasına alındı." });
+    },
+    onError: (e: any) => {
+      toast({ variant: "destructive", title: "Gönderilemedi", description: e?.message || "Bir sorun oluştu." });
+    },
+  });
+
+  if (store.status === "active") return null;
+
+  if (store.status === "pending") {
+    return (
+      <Alert className="mb-6 border-yellow-500/50 bg-yellow-500/10">
+        <Clock className="h-4 w-4 text-yellow-600" />
+        <AlertTitle>Mağazanız onay bekliyor</AlertTitle>
+        <AlertDescription className="text-sm">
+          Başvurunuz inceleniyor. Onaylandığında e-posta ve bildirim alacaksınız; mağazanız o
+          anda <strong>Mağazalar</strong> sayfasında yayına girer. Bu sırada mağaza bilgilerinizi
+          düzenlemeye devam edebilirsiniz.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (store.status === "draft") {
+    return (
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Mağazanız henüz taslak</AlertTitle>
+        <AlertDescription className="space-y-3 text-sm">
+          <p>Yayına girmesi için mağazanızı incelemeye göndermeniz gerekiyor.</p>
+          <Button
+            size="sm"
+            onClick={() => onayaGonder.mutate()}
+            disabled={onayaGonder.isPending}
+            data-testid="button-submit-store"
+          >
+            {onayaGonder.isPending
+              ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              : <Send className="w-4 h-4 mr-2" />}
+            Onaya Gönder
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <Alert variant="destructive" className="mb-6">
+      <Ban className="h-4 w-4" />
+      <AlertTitle>
+        {store.status === "suspended" ? "Mağazanız askıya alındı" : "Mağazanız yayında değil"}
+      </AlertTitle>
+      <AlertDescription className="text-sm">
+        Mağaza sayfanız şu anda ziyaretçilere görünmüyor. Gerekçe ve sonraki adımlar için{" "}
+        <Link href="/iletisim" className="underline font-medium">destek ekibimize yazın</Link>.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export default function MyStore() {
+  const { isAuthenticated, user, isLoading: oturumYukleniyor } = useAuth();
+
   const { data: myStore, isLoading } = useQuery<any>({
     queryKey: ["/api/store/my/dashboard"],
+    // Oturum yokken 401 istemeye gerek yok; boş yere hata üretmesin.
+    enabled: isAuthenticated,
   });
 
   const { data: categories = [] } = useQuery<StoreCategory[]>({
     queryKey: ["/api/store-categories"],
   });
 
-  const hasStore = !!myStore && !('message' in myStore);
-
-  if (isLoading) {
+  if (oturumYukleniyor || (isAuthenticated && isLoading)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4 max-w-3xl mx-auto">
@@ -1218,9 +1299,115 @@ export default function MyStore() {
     );
   }
 
+  // Oturum yoksa sihirbazı göstermenin anlamı yok: kullanıcı üç adımı
+  // doldurup en sonda 401 alıyordu. Girişten sonra buraya geri döner.
+  if (!isAuthenticated) {
+    return <GirisGerekli />;
+  }
+
+  // E-posta doğrulanmadan mağaza açılamıyor (sunucu da reddediyor). Bunu
+  // sihirbazın sonunda değil, en başında söylüyoruz.
+  if (user && !user.emailVerified) {
+    return <EpostaDogrulamaGerekli email={user.email ?? ""} />;
+  }
+
+  const hasStore = !!myStore && !('message' in myStore);
+
   if (!hasStore) {
     return <StoreCreationWizard categories={categories} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["/api/store/my/dashboard"] })} />;
   }
 
   return <StoreDashboard store={myStore} categories={categories} />;
+}
+
+/** Oturumu olmayan ziyaretçiye mağaza açmanın ne olduğunu da anlatan ekran. */
+function GirisGerekli() {
+  return (
+    <div className="container mx-auto px-4 py-10 max-w-lg">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Building2 className="w-7 h-7 text-primary" />
+          </div>
+          <CardTitle>Mağaza açmak için giriş yapın</CardTitle>
+          <CardDescription>
+            Mağaza; ilanlarınızın tek bir kurumsal sayfada toplandığı, ziyaretçilerin sizi
+            takip edebildiği ücretsiz satıcı profilidir.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button asChild className="w-full h-11" data-testid="button-login-for-store">
+            <Link href={`/giris${redirectQuery() || "?redirect=%2Fpanel%2Fmagazam"}`}>
+              <LogIn className="w-4 h-4 mr-2" />
+              Giriş Yap
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full h-11">
+            <Link href={`/kayit${redirectQuery() || "?redirect=%2Fpanel%2Fmagazam"}`}>
+              Ücretsiz Kayıt Ol
+            </Link>
+          </Button>
+          <p className="text-center text-xs text-muted-foreground pt-1">
+            <Link href="/magazalar" className="underline">Mağazalara göz atın</Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/** E-postası doğrulanmamış kullanıcı için kapı. */
+function EpostaDogrulamaGerekli({ email }: { email: string }) {
+  const { toast } = useToast();
+
+  const tekrarGonder = useMutation({
+    mutationFn: async () => apiRequest("POST", "/api/auth/resend-verification", {}),
+    onSuccess: () => {
+      toast({
+        title: "E-posta gönderildi",
+        description: "Gelen kutunuzu kontrol edin. Bulamazsanız spam klasörüne de bakın.",
+      });
+    },
+    onError: (e: any) => {
+      toast({ variant: "destructive", title: "Gönderilemedi", description: e?.message || "Bir sorun oluştu." });
+    },
+  });
+
+  return (
+    <div className="container mx-auto px-4 py-10 max-w-lg">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <MailCheck className="w-7 h-7 text-primary" />
+          </div>
+          <CardTitle>Önce e-postanızı doğrulayın</CardTitle>
+          <CardDescription>
+            Mağaza herkese açık bir işletme sayfasıdır. Alıcıların güvenini korumak için
+            mağaza açmadan önce e-posta adresinizi doğrulamanızı istiyoruz.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {email && (
+            <p className="text-sm text-center text-muted-foreground break-all">
+              Doğrulama bağlantısı <strong className="text-foreground">{email}</strong> adresine gönderildi.
+            </p>
+          )}
+          <Button
+            className="w-full h-11"
+            onClick={() => tekrarGonder.mutate()}
+            disabled={tekrarGonder.isPending}
+            data-testid="button-resend-verification"
+          >
+            {tekrarGonder.isPending
+              ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              : <Mail className="w-4 h-4 mr-2" />}
+            Doğrulama E-postasını Tekrar Gönder
+          </Button>
+          <Button asChild variant="outline" className="w-full h-11">
+            <Link href="/">Ana Sayfaya Dön</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

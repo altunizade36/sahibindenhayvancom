@@ -80,9 +80,9 @@ interface StoreData {
 
 interface StoreStats {
   total: number;
-  approved: number;
+  active: number;
   pending: number;
-  rejected: number;
+  closed: number;
   suspended: number;
 }
 
@@ -109,9 +109,9 @@ export default function AdminStoresPage() {
 
   const stats: StoreStats = {
     total: stores.length,
-    approved: stores.filter((s) => s.status === "approved").length,
+    active: stores.filter((s) => s.status === "active").length,
     pending: stores.filter((s) => s.status === "pending").length,
-    rejected: stores.filter((s) => s.status === "rejected").length,
+    closed: stores.filter((s) => s.status === "closed").length,
     suspended: stores.filter((s) => s.status === "suspended").length,
   };
 
@@ -134,15 +134,15 @@ export default function AdminStoresPage() {
 
   const filteredStores = stores.filter((store) => {
     if (statusFilter === "pending") return store.status === "pending";
-    if (statusFilter === "approved") return store.status === "approved";
-    if (statusFilter === "rejected") return store.status === "rejected";
+    if (statusFilter === "active") return store.status === "active";
+    if (statusFilter === "closed") return store.status === "closed";
     if (statusFilter === "suspended") return store.status === "suspended";
     return true;
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "approved":
+      case "active":
         return (
           <Badge variant="default" className="bg-green-500 gap-1">
             <CheckCircle className="h-3 w-3" />
@@ -156,7 +156,7 @@ export default function AdminStoresPage() {
             Beklemede
           </Badge>
         );
-      case "rejected":
+      case "closed":
         return (
           <Badge variant="destructive" className="gap-1">
             <XCircle className="h-3 w-3" />
@@ -168,6 +168,13 @@ export default function AdminStoresPage() {
           <Badge variant="destructive" className="gap-1">
             <Ban className="h-3 w-3" />
             Askıda
+          </Badge>
+        );
+      case "draft":
+        return (
+          <Badge variant="outline" className="gap-1">
+            <Clock className="h-3 w-3" />
+            Taslak
           </Badge>
         );
       default:
@@ -278,7 +285,7 @@ export default function AdminStoresPage() {
           />
           <StatCard
             title="Onaylı"
-            value={stats.approved}
+            value={stats.active}
             icon={<CheckCircle className="h-4 w-4" />}
             variant="success"
           />
@@ -290,7 +297,7 @@ export default function AdminStoresPage() {
           />
           <StatCard
             title="Reddedilen"
-            value={stats.rejected}
+            value={stats.closed}
             icon={<XCircle className="h-4 w-4" />}
             variant="danger"
           />
@@ -317,8 +324,8 @@ export default function AdminStoresPage() {
                       </Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="approved">Onaylı</TabsTrigger>
-                  <TabsTrigger value="rejected">Reddedilen</TabsTrigger>
+                  <TabsTrigger value="active">Onaylı</TabsTrigger>
+                  <TabsTrigger value="closed">Reddedilen</TabsTrigger>
                   <TabsTrigger value="suspended">Askıda</TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -348,7 +355,7 @@ export default function AdminStoresPage() {
                   label: "Onayla",
                   icon: <Check className="h-4 w-4" />,
                   onClick: (store) =>
-                    updateStatusMutation.mutate({ id: store.id, status: "approved" }),
+                    updateStatusMutation.mutate({ id: store.id, status: "active" }),
                 },
                 {
                   label: "Reddet",
@@ -375,7 +382,7 @@ export default function AdminStoresPage() {
         title={selectedStore?.name || ""}
         subtitle={storeTypeLabels[selectedStore?.storeType || ""] || selectedStore?.storeType}
         badge={
-          selectedStore?.status === "approved"
+          selectedStore?.status === "active"
             ? { label: "Onaylı", variant: "default" }
             : selectedStore?.status === "pending"
             ? { label: "Beklemede", variant: "secondary" }
@@ -390,7 +397,7 @@ export default function AdminStoresPage() {
                 onClick={() => {
                   updateStatusMutation.mutate({
                     id: selectedStore.id,
-                    status: "approved",
+                    status: "active",
                   });
                   setSelectedStore(null);
                 }}
@@ -547,7 +554,7 @@ export default function AdminStoresPage() {
                 if (rejectStore) {
                   updateStatusMutation.mutate({
                     id: rejectStore.id,
-                    status: "rejected",
+                    status: "closed",
                   });
                 }
               }}
@@ -578,7 +585,7 @@ export default function AdminStoresPage() {
                 if (suspendStore) {
                   updateStatusMutation.mutate({
                     id: suspendStore.id,
-                    status: suspendStore.status === "suspended" ? "approved" : "suspended",
+                    status: suspendStore.status === "suspended" ? "active" : "suspended",
                   });
                 }
               }}

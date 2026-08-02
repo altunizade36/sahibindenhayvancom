@@ -53,6 +53,9 @@ export function redirectReason(): string | null {
   if (hedef.startsWith("/ilan-ver")) return "Ücretsiz ilan verebilmek için önce hesabınıza giriş yapın.";
   if (hedef.startsWith("/mesajlar")) return "Mesajlarınızı görmek için giriş yapın.";
   if (hedef.startsWith("/favoriler")) return "Favorilerinizi görmek için giriş yapın.";
+  if (hedef.startsWith("/panel/magazam") || hedef.startsWith("/magazam"))
+    return "Mağaza açmak için önce hesabınıza giriş yapın. Kayıt olmak ücretsiz.";
+  if (hedef.startsWith("/magaza/")) return "Mağaza sayfasında işlem yapmak için giriş yapın.";
   if (hedef.startsWith("/panel")) return "Panelinize erişmek için giriş yapın.";
   return "Devam etmek için giriş yapın.";
 }
