@@ -88,8 +88,12 @@ export class SavedSearchNotifier {
           console.error(`❌ Failed to process saved search ${search.id}:`, error);
         }
       }
+
+      // Cagiran taraf (zamanlanmis gorev ucu) kac kayit islendigini bilmeli.
+      return activeSearches.length;
     } catch (error) {
       console.error('❌ Saved search notification check failed:', error);
+      return 0;
     }
   }
 

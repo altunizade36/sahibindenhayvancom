@@ -48,23 +48,35 @@ export function registerCronRoutes(app: Express) {
   /**
    * Kayıtlı aramalar için yeni ilan kontrolü.
    *
-   * Yanıt her zaman hızlı dönmeli: Vercel cron isteklerinin süre sınırı var
-   * ve iş uzarsa istek koparılır. Bu yüzden sonuç beklenmeden 202 dönülüyor,
-   * iş arka planda tamamlanıyor.
+   * İş BİTİRİLMEDEN yanıt dönülmez.
+   *
+   * İlk sürüm "hızlı 202 dön, işi arka planda sürdür" şeklindeydi ve hiç
+   * çalışmadı: sunucusuz ortamda yanıt gönderildiği anda fonksiyon dondurulur,
+   * ondan sonraki iş tamamlanmaz. Cron isteği 202 alıyor, e-posta hiç
+   * gitmiyordu (canlı testte doğrulandı). Bu, sunucusuz ortamın klasik
+   * tuzağıdır: uzun ömürlü sunucu alışkanlığıyla yazılan kod sessizce çalışmaz.
+   *
+   * Süre sınırı vercel.json'da 30 saniye. Kayıtlı arama sayısı bunu aşacak
+   * kadar büyürse iş partilere bölünmeli; şu anki ölçekte gerekli değil,
+   * ama bunu görebilmek için işlenen kayıt sayısı ve süre yanıtta dönüyor.
    */
   app.get("/api/cron/saved-searches", async (req: Request, res: Response) => {
     if (!yetkiliMi(req)) {
       return res.status(401).json({ message: "Yetkisiz" });
     }
 
+    const baslangic = Date.now();
     console.log("⏰ Zamanlanmış görev: kayıtlı arama bildirimleri başlıyor");
 
-    savedSearchNotifier
-      .checkAndNotify()
-      .then(() => console.log("⏰ Kayıtlı arama bildirimleri tamamlandı"))
-      .catch((err) => console.error("⏰ Kayıtlı arama bildirimleri hata verdi:", err));
-
-    res.status(202).json({ started: true, at: new Date().toISOString() });
+    try {
+      const islenen = await savedSearchNotifier.checkAndNotify();
+      const sure = Date.now() - baslangic;
+      console.log(`⏰ Kayıtlı arama bildirimleri tamamlandı (${sure} ms)`);
+      res.json({ ok: true, islenenAramaSayisi: islenen ?? null, sureMs: sure });
+    } catch (error) {
+      console.error("⏰ Kayıtlı arama bildirimleri hata verdi:", error);
+      res.status(500).json({ ok: false, message: "Görev tamamlanamadı" });
+    }
   });
 
   /** Zamanlanmış görevlerin ayakta olup olmadığını görmek için. */

@@ -3493,8 +3493,10 @@ var SavedSearchNotifier = class {
           console.error(`\u274C Failed to process saved search ${search.id}:`, error);
         }
       }
+      return activeSearches.length;
     } catch (error) {
       console.error("\u274C Saved search notification check failed:", error);
+      return 0;
     }
   }
   async processSearch(search, user) {
@@ -3710,9 +3712,17 @@ function registerCronRoutes(app2) {
     if (!yetkiliMi(req)) {
       return res.status(401).json({ message: "Yetkisiz" });
     }
+    const baslangic = Date.now();
     console.log("\u23F0 Zamanlanm\u0131\u015F g\xF6rev: kay\u0131tl\u0131 arama bildirimleri ba\u015Fl\u0131yor");
-    savedSearchNotifier.checkAndNotify().then(() => console.log("\u23F0 Kay\u0131tl\u0131 arama bildirimleri tamamland\u0131")).catch((err) => console.error("\u23F0 Kay\u0131tl\u0131 arama bildirimleri hata verdi:", err));
-    res.status(202).json({ started: true, at: (/* @__PURE__ */ new Date()).toISOString() });
+    try {
+      const islenen = await savedSearchNotifier.checkAndNotify();
+      const sure = Date.now() - baslangic;
+      console.log(`\u23F0 Kay\u0131tl\u0131 arama bildirimleri tamamland\u0131 (${sure} ms)`);
+      res.json({ ok: true, islenenAramaSayisi: islenen ?? null, sureMs: sure });
+    } catch (error) {
+      console.error("\u23F0 Kay\u0131tl\u0131 arama bildirimleri hata verdi:", error);
+      res.status(500).json({ ok: false, message: "G\xF6rev tamamlanamad\u0131" });
+    }
   });
   app2.get("/api/cron/health", (req, res) => {
     if (!yetkiliMi(req)) return res.status(401).json({ message: "Yetkisiz" });
