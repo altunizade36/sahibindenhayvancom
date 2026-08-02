@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Star, MapPin, Phone, Mail, Search, Clock, Shield, Stethoscope, Plus, Info, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { HizmetKaydi } from "@/components/services/hizmet-kaydi";
 import type { Listing } from "@shared/schema";
 
 type VetService = {
@@ -303,16 +304,7 @@ export default function VetServices() {
           </div>
         )}
 
-        <Card className="mt-8">
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">
-            <p>Veteriner olarak platformumuza katılmak ister misiniz?</p>
-            <Link href="/ilan-ver?category=veteriner-hizmetleri">
-              <Button variant="ghost" className="mt-2 text-primary hover:text-primary/80">
-                Veteriner Kaydı Oluştur
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <HizmetKaydi tur="veteriner" />
       </div>
     </div>
   );

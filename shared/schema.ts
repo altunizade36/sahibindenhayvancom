@@ -1776,6 +1776,59 @@ export const transportRequestStatusEnum = pgEnum("transport_request_status", [
   "cancelled"        // İptal edildi
 ]);
 
+/*
+ * Meslek doğrulama başvuruları.
+ *
+ * Bu tablo koda yazılmıştı ama ŞEMADA YOKTU: `server/advancedFeatureRoutes.ts`
+ * ham SQL ile `professional_verifications`'a yazıyor/okuyordu, tablo ise
+ * veritabanında hiç oluşturulmamıştı. Sonuç: /panel/dogrulama ve
+ * /admin/dogrulamalar sayfalarının tamamı 500 veriyordu.
+ *
+ * Bu akış sitedeki tek "meslek sahibi olma" kapısı: onaylanan kullanıcıya
+ * `vet` / `transporter` rolü veriliyor ve ancak ondan sonra klinik veya
+ * nakliye hizmeti kaydı açabiliyor. Tablo olmadığı için hizmetler bölümü
+ * baştan beri boştu.
+ */
+export const professionalVerificationStatusEnum = pgEnum("professional_verification_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const professionalVerifications = pgTable("professional_verifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  professionalType: varchar("professional_type").notNull(), // veterinarian | transporter | b2b_seller | dairy_seller
+  documentType: varchar("document_type").notNull(),
+  documentNumber: text("document_number"),
+  issuingAuthority: text("issuing_authority"),
+  documentUrl: text("document_url"),
+  documentKey: text("document_key"),
+  notes: text("notes"),
+  status: professionalVerificationStatusEnum("status").default("pending").notNull(),
+  adminNotes: text("admin_notes"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("prof_verif_user_idx").on(table.userId),
+  statusIdx: index("prof_verif_status_idx").on(table.status),
+  typeIdx: index("prof_verif_type_idx").on(table.professionalType),
+}));
+
+export const insertProfessionalVerificationSchema = createInsertSchema(professionalVerifications).omit({
+  id: true,
+  userId: true,
+  status: true,
+  adminNotes: true,
+  reviewedBy: true,
+  reviewedAt: true,
+  createdAt: true,
+});
+
+export type InsertProfessionalVerification = z.infer<typeof insertProfessionalVerificationSchema>;
+export type ProfessionalVerification = typeof professionalVerifications.$inferSelect;
+
 export const transportRequests = pgTable("transport_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

@@ -6,6 +6,7 @@ import { timingSafeEqual } from "crypto";
 import { db } from "./db";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./auth";
+import { adminRoleMiddleware, adminPinMiddleware, adminMiddleware } from "./admin-guard";
 import passport from "passport";
 import { cache, cacheKeys, cacheTTL } from "./cache";
 import { slugify } from "@shared/utils";
@@ -4875,23 +4876,55 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  /**
+   * Klinik kaydında sahibin belirleyebileceği alanlar.
+   *
+   * `insertVetServiceSchema` yalnızca sayaçları çıkarıyordu; `verified`
+   * açıkta kalıyordu. İstek gövdesine `{"verified":true}` yazan biri
+   * kendini "doğrulanmış veteriner" gösterebilirdi. Doğrulama rozetini
+   * yalnızca belge incelemesi verir.
+   */
+  const VET_HIZMET_ALANLARI = [
+    "clinicName", "address", "city", "district", "phone", "email",
+    "specializations", "services", "workingHours", "emergencyService",
+  ] as const;
+
   app.post("/api/vet-services", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      if ((req.user as any).role !== "vet") {
-        return res.status(403).json({ message: "Only veterinarians can create services" });
+      // Rol veritabanından okunur; oturumdaki değer bayat olabilir (kullanıcı
+      // doğrulaması onaylandığında rolü oturum açıkken değişir).
+      const [kullanici] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, getUserId(req.user)))
+        .limit(1);
+
+      if (kullanici?.role !== "vet" && kullanici?.role !== "admin") {
+        return res.status(403).json({
+          message: "Klinik kaydı açmak için önce veteriner hekim doğrulamanızı tamamlamanız gerekiyor.",
+          requiresProfessionalVerification: true,
+          verificationPath: "/panel/dogrulama",
+        });
+      }
+
+      const govde = req.body ?? {};
+      const temiz: Record<string, any> = {};
+      for (const alan of VET_HIZMET_ALANLARI) {
+        if (govde[alan] !== undefined) temiz[alan] = govde[alan];
       }
 
       const data = insertVetServiceSchema.parse({
-        ...req.body,
+        ...temiz,
         vetId: getUserId(req.user),
       });
 
-      // Create vet service in PostgreSQL
+      // Doğrulama rozeti belgeleri onaylanmış hekime kendiliğinden verilir;
+      // istek gövdesinden ASLA alınmaz.
       const [service] = await db
         .insert(vetServices)
-        .values(data as any)
+        .values({ ...(data as any), verified: kullanici?.role === "vet" })
         .returning();
-      
+
       res.status(201).json(service);
     } catch (error) {
       console.error("Failed to create vet service:", error);
@@ -4960,23 +4993,44 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     }
   });
 
+  /** Nakliye kaydında sahibin belirleyebileceği alanlar (bkz. VET_HIZMET_ALANLARI). */
+  const NAKLIYE_HIZMET_ALANLARI = [
+    "companyName", "serviceAreas", "vehicleTypes", "animalTypes",
+    "phone", "pricePerKm", "minPrice", "insurance",
+  ] as const;
+
   app.post("/api/transport-services", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      if ((req.user as any).role !== "transporter") {
-        return res.status(403).json({ message: "Only transporters can create services" });
+      const [kullanici] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, getUserId(req.user)))
+        .limit(1);
+
+      if (kullanici?.role !== "transporter" && kullanici?.role !== "admin") {
+        return res.status(403).json({
+          message: "Nakliye hizmeti kaydı açmak için önce taşımacı doğrulamanızı tamamlamanız gerekiyor.",
+          requiresProfessionalVerification: true,
+          verificationPath: "/panel/dogrulama",
+        });
+      }
+
+      const govde = req.body ?? {};
+      const temiz: Record<string, any> = {};
+      for (const alan of NAKLIYE_HIZMET_ALANLARI) {
+        if (govde[alan] !== undefined) temiz[alan] = govde[alan];
       }
 
       const data = insertTransportServiceSchema.parse({
-        ...req.body,
+        ...temiz,
         transporterId: getUserId(req.user),
       });
 
-      // Create transport service in PostgreSQL
       const [service] = await db
         .insert(transportServices)
-        .values(data as any)
+        .values({ ...(data as any), verified: kullanici?.role === "transporter" })
         .returning();
-      
+
       res.status(201).json(service);
     } catch (error) {
       console.error("Failed to create transport service:", error);
@@ -7477,62 +7531,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Admin Routes ============
   // Admin middleware - checks role from database for real-time admin access
-  async function adminRoleMiddleware(req: Request, res: Response, next: Function) {
-    if (!req.user) {
-      return res.status(403).json({ message: "Admin yetkisi gereklidir" });
-    }
-    
-    // Rol ve hesap durumu oturumdan DEĞİL veritabanından okunur; böylece
-    // yetkisi alınan veya yasaklanan bir hesap oturumu dolmadan da engellenir.
-    const userId = getUserId(req.user);
-    const [dbUser] = await db
-      .select({ role: users.role, status: users.status })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (!dbUser || dbUser.role !== "admin") {
-      return res.status(403).json({ message: "Admin yetkisi gereklidir" });
-    }
-
-    if (dbUser.status !== "active") {
-      return res.status(403).json({ message: "Hesabınız aktif değil" });
-    }
-
-    // Update session with current role
-    (req.user as any).role = dbUser.role;
-    next();
-  }
-
-  // Admin PIN verification middleware
-  function adminPinMiddleware(req: Request, res: Response, next: Function) {
-    const session = req.session as any;
-    if (!session.adminPinVerified) {
-      return res.status(403).json({
-        message: "Admin PIN doğrulaması gereklidir",
-        requirePin: true
-      });
-    }
-    next();
-  }
-
-  /**
-   * Yönetim uçlarının standart koruması: önce rol (veritabanından), sonra PIN.
-   *
-   * PIN kontrolü daha önce HİÇBİR rotaya bağlı değildi — `adminPinMiddleware`
-   * tanımlanmış ama kullanılmamıştı. Arayüzde PIN ekranı vardı ve doğrulama
-   * yalnızca istemcide tutuluyordu; yani PIN'i bilmeyen ama yönetici oturumu
-   * ele geçirmiş biri, arayüzü hiç kullanmadan doğrudan /api/admin/... çağırıp
-   * tüm yönetim işlemlerini yapabiliyordu. PIN ikinci bir katman olarak
-   * konulmuşken hiçbir şey korumuyordu.
-   *
-   * PIN'in kendi uçları (`/api/admin/verify-pin` ve `/api/admin/pin-status`)
-   * bilinçli olarak yalnızca `adminRoleMiddleware` kullanır — aksi hâlde PIN'i
-   * doğrulamak için PIN doğrulanmış olmak gerekir ve panele hiç girilemez.
-   */
-  async function adminMiddleware(req: Request, res: Response, next: Function) {
-    return adminRoleMiddleware(req, res, () => adminPinMiddleware(req, res, next));
-  }
+  // Yönetim ara katmanları `server/admin-guard.ts` içinde tanımlıdır.
 
   // Admin PIN verification endpoint
   app.post("/api/admin/verify-pin", pinAttemptLimiter, isAuthenticated, adminRoleMiddleware, async (req: Request, res: Response) => {

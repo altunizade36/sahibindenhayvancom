@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { HizmetKaydi } from "@/components/services/hizmet-kaydi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
@@ -182,7 +183,7 @@ function CreateRequestForm({ onClose }: { onClose: () => void }) {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest('/api/transport/requests', 'POST', data);
+      return apiRequest('POST', '/api/transport/requests', data);
     },
     onSuccess: () => {
       toast({ title: "Talep Oluşturuldu", description: "Nakliye talebiniz yayınlandı." });
@@ -371,7 +372,7 @@ export default function TransportServices() {
           {/* Info alert about example listings and services */}
           <Alert className="mt-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
             <Info className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-sm"> Nakliyeci olarak hizmet vermek için <strong>"Nakliye Talebi Oluştur"</strong> butonuna tıklayarak taşımacılık hizmeti sunabilirsiniz.
+            <AlertDescription className="text-sm"> Hayvanınızı taşıtmak istiyorsanız <strong>"Nakliye Talebi Oluştur"</strong> ile talebinizi yayınlayın, nakliyeciler size teklif versin. Kendiniz taşımacılık hizmeti vermek istiyorsanız sayfanın altındaki <strong>"Nakliye hizmetinizi listeleyin"</strong> bölümünü kullanın.
             </AlertDescription>
           </Alert>
         </div>
@@ -497,6 +498,8 @@ export default function TransportServices() {
             </div>
           </CardContent>
         </Card>
+
+        <HizmetKaydi tur="nakliye" />
       </div>
     </div>
   );

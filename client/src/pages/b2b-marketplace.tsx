@@ -108,7 +108,7 @@ function B2BListingCard({ listing }: { listing: B2BListing }) {
   
   const orderMutation = useMutation({
     mutationFn: async (data: { listingId: string; quantity: number; deliveryAddress: string; deliveryCity: string }) => {
-      return apiRequest('/api/b2b/orders', 'POST', data);
+      return apiRequest('POST', '/api/b2b/orders', data);
     },
     onSuccess: () => {
       toast({ title: "Sipariş Oluşturuldu", description: "Siparişiniz satıcıya iletildi." });

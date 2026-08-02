@@ -1,7 +1,15 @@
 import type { Express, Request, Response } from "express";
 import { db } from "./db";
 import { isAuthenticated } from "./auth";
-import { sql } from "drizzle-orm";
+import { sql, eq, and, desc, inArray } from "drizzle-orm";
+import { adminMiddleware } from "./admin-guard";
+import {
+  professionalVerifications,
+  users,
+  vetServices,
+  transportServices,
+  notifications,
+} from "@shared/schema";
 
 // Helper to get user ID from request
 const getUserId = (user: any): string => {
@@ -1125,49 +1133,89 @@ export function registerFarmTVRoutes(app: Express) {
 }
 
 // ============ PROFESSIONAL VERIFICATION API ============
+/*
+ * Meslek doğrulama: sitedeki tek "meslek sahibi olma" kapısı.
+ *
+ * Önceki sürüm baştan sona ham SQL metniyle yazılmıştı (`sql.raw` içine
+ * şablon dizesiyle gömülen istek verisi). İki ayrı sorun vardı:
+ *
+ *   1. SQL ENJEKSİYONU. `professionalType`, `documentType` ve yönetici
+ *      listesindeki `status`/`type` süzgeçleri hiç kaçışlanmadan sorguya
+ *      giriyordu. `db.execute` basit sorgu protokolü kullandığı için
+ *      noktalı virgülle ikinci bir ifade eklemek mümkündü.
+ *   2. Tablo `professional_verifications` şemada tanımlı DEĞİLDİ; veritabanında
+ *      hiç oluşturulmamıştı, dolayısıyla beş ucun tamamı 500 dönüyordu.
+ *      Veteriner/nakliyeci rolüne geçiş yalnızca buradan mümkün olduğu için
+ *      hizmetler bölümü baştan beri boştu.
+ *
+ * Artık tablo şemada (`shared/schema.ts`) ve tüm sorgular Drizzle ile
+ * parametreli.
+ */
+
+/** Onaylanan meslek türünün karşılığı olan kullanıcı rolü. */
+const MESLEK_ROLU: Record<string, "vet" | "transporter" | undefined> = {
+  veterinarian: "vet",
+  transporter: "transporter",
+  // b2b_seller ve dairy_seller ayrı bir rol gerektirmiyor; rozet olarak
+  // gösteriliyorlar.
+};
+
+const GECERLI_MESLEKLER = ["veterinarian", "transporter", "b2b_seller", "dairy_seller"];
+
 export function registerVerificationRoutes(app: Express) {
   // Submit a verification request
   app.post("/api/verify/request", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = req.user as any;
-      const userId = getUserId(user);
+      const userId = getUserId(req.user);
       if (!userId) return res.status(401).json({ message: "Giriş yapmalısınız" });
 
-      const { professionalType, documentType, documentNumber, issuingAuthority, documentUrl, documentKey, notes } = req.body;
+      const { professionalType, documentType, documentNumber, issuingAuthority, documentUrl, documentKey, notes } = req.body ?? {};
 
       if (!professionalType || !documentType) {
         return res.status(400).json({ message: "Meslek türü ve belge türü zorunludur" });
       }
 
-      // Check if pending/approved request already exists
-      const existingQuery = `
-        SELECT id, status FROM professional_verifications 
-        WHERE user_id = '${userId}' AND professional_type = '${professionalType}'
-        AND status IN ('pending', 'approved')
-        LIMIT 1
-      `;
-      const existing = await db.execute(sql.raw(existingQuery));
-      if (existing.rows.length > 0) {
-        const existingStatus = (existing.rows[0] as any).status;
-        if (existingStatus === 'approved') {
-          return res.status(409).json({ message: "Bu meslek türü için zaten onaylanmış bir doğrulama var" });
-        }
-        return res.status(409).json({ message: "Bu meslek türü için bekleyen bir doğrulama talebi zaten var" });
+      if (!GECERLI_MESLEKLER.includes(professionalType)) {
+        return res.status(400).json({ message: "Geçersiz meslek türü" });
       }
 
-      const query = `
-        INSERT INTO professional_verifications 
-        (user_id, professional_type, document_type, document_number, issuing_authority, document_url, document_key, notes)
-        VALUES ('${userId}', '${professionalType}', '${documentType}',
-                ${documentNumber ? `'${documentNumber.replace(/'/g, "''")}'` : 'NULL'},
-                ${issuingAuthority ? `'${issuingAuthority.replace(/'/g, "''")}'` : 'NULL'},
-                ${documentUrl ? `'${documentUrl.replace(/'/g, "''")}'` : 'NULL'},
-                ${documentKey ? `'${documentKey.replace(/'/g, "''")}'` : 'NULL'},
-                ${notes ? `'${notes.replace(/'/g, "''")}'` : 'NULL'})
-        RETURNING *
-      `;
-      const result = await db.execute(sql.raw(query));
-      res.json({ success: true, verification: result.rows[0] });
+      const [mevcut] = await db
+        .select({ id: professionalVerifications.id, status: professionalVerifications.status })
+        .from(professionalVerifications)
+        .where(
+          and(
+            eq(professionalVerifications.userId, userId),
+            eq(professionalVerifications.professionalType, professionalType),
+            inArray(professionalVerifications.status, ["pending", "approved"]),
+          ),
+        )
+        .limit(1);
+
+      if (mevcut) {
+        return res.status(409).json({
+          message: mevcut.status === "approved"
+            ? "Bu meslek türü için zaten onaylanmış bir doğrulama var"
+            : "Bu meslek türü için bekleyen bir doğrulama talebi zaten var",
+        });
+      }
+
+      const [olusan] = await db
+        .insert(professionalVerifications)
+        .values({
+          userId,
+          professionalType,
+          documentType,
+          documentNumber: documentNumber || null,
+          issuingAuthority: issuingAuthority || null,
+          documentUrl: documentUrl || null,
+          documentKey: documentKey || null,
+          notes: notes || null,
+          // Durum istekten ALINMAZ: başvuru her zaman incelemeye girer.
+          status: "pending",
+        })
+        .returning();
+
+      res.json({ success: true, verification: olusan });
     } catch (error) {
       console.error("Error creating verification request:", error);
       res.status(500).json({ message: "Doğrulama talebi oluşturulamadı" });
@@ -1177,19 +1225,30 @@ export function registerVerificationRoutes(app: Express) {
   // Get own verification status
   app.get("/api/verify/status", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = req.user as any;
-      const userId = getUserId(user);
+      const userId = getUserId(req.user);
       if (!userId) return res.status(401).json({ message: "Giriş yapmalısınız" });
 
-      const query = `
-        SELECT pv.*, u.first_name as reviewer_first_name, u.last_name as reviewer_last_name
-        FROM professional_verifications pv
-        LEFT JOIN users u ON pv.reviewed_by = u.id
-        WHERE pv.user_id = '${userId}'
-        ORDER BY pv.created_at DESC
-      `;
-      const result = await db.execute(sql.raw(query));
-      res.json(result.rows);
+      const kayitlar = await db
+        .select({
+          id: professionalVerifications.id,
+          professional_type: professionalVerifications.professionalType,
+          document_type: professionalVerifications.documentType,
+          document_number: professionalVerifications.documentNumber,
+          issuing_authority: professionalVerifications.issuingAuthority,
+          notes: professionalVerifications.notes,
+          status: professionalVerifications.status,
+          admin_notes: professionalVerifications.adminNotes,
+          reviewed_at: professionalVerifications.reviewedAt,
+          created_at: professionalVerifications.createdAt,
+          reviewer_first_name: users.firstName,
+          reviewer_last_name: users.lastName,
+        })
+        .from(professionalVerifications)
+        .leftJoin(users, eq(professionalVerifications.reviewedBy, users.id))
+        .where(eq(professionalVerifications.userId, userId))
+        .orderBy(desc(professionalVerifications.createdAt));
+
+      res.json(kayitlar);
     } catch (error) {
       console.error("Error fetching verification status:", error);
       res.status(500).json({ message: "Doğrulama durumu getirilemedi" });
@@ -1197,30 +1256,47 @@ export function registerVerificationRoutes(app: Express) {
   });
 
   // Admin: List all verification requests
-  app.get("/api/admin/verifications", isAuthenticated, async (req: Request, res: Response) => {
+  app.get("/api/admin/verifications", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
-      const user = req.user as any;
-      if (!user || user.role !== 'admin') return res.status(403).json({ message: "Yetkiniz yok" });
+      const { status, type } = req.query as { status?: string; type?: string };
 
-      const { status, type } = req.query;
-      let conditions = '1=1';
-      if (status) conditions += ` AND pv.status = '${status}'`;
-      if (type) conditions += ` AND pv.professional_type = '${type}'`;
+      const kosullar = [];
+      // Süzgeçler beyaz listeden geçer; serbest metin sorguya girmez.
+      if (status && ["pending", "approved", "rejected"].includes(status)) {
+        kosullar.push(eq(professionalVerifications.status, status as any));
+      }
+      if (type && GECERLI_MESLEKLER.includes(type)) {
+        kosullar.push(eq(professionalVerifications.professionalType, type));
+      }
 
-      const query = `
-        SELECT pv.*, 
-               u.first_name, u.last_name, u.email, u.city,
-               r.first_name as reviewer_first_name, r.last_name as reviewer_last_name
-        FROM professional_verifications pv
-        INNER JOIN users u ON pv.user_id = u.id
-        LEFT JOIN users r ON pv.reviewed_by = r.id
-        WHERE ${conditions}
-        ORDER BY 
-          CASE pv.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END,
-          pv.created_at DESC
-      `;
-      const result = await db.execute(sql.raw(query));
-      res.json(result.rows);
+      const kayitlar = await db
+        .select({
+          id: professionalVerifications.id,
+          user_id: professionalVerifications.userId,
+          professional_type: professionalVerifications.professionalType,
+          document_type: professionalVerifications.documentType,
+          document_number: professionalVerifications.documentNumber,
+          issuing_authority: professionalVerifications.issuingAuthority,
+          document_url: professionalVerifications.documentUrl,
+          notes: professionalVerifications.notes,
+          status: professionalVerifications.status,
+          admin_notes: professionalVerifications.adminNotes,
+          reviewed_at: professionalVerifications.reviewedAt,
+          created_at: professionalVerifications.createdAt,
+          first_name: users.firstName,
+          last_name: users.lastName,
+          email: users.email,
+          city: users.city,
+        })
+        .from(professionalVerifications)
+        .innerJoin(users, eq(professionalVerifications.userId, users.id))
+        .where(kosullar.length ? and(...kosullar) : undefined)
+        .orderBy(
+          sql`CASE ${professionalVerifications.status} WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END`,
+          desc(professionalVerifications.createdAt),
+        );
+
+      res.json(kayitlar);
     } catch (error) {
       console.error("Error fetching verifications:", error);
       res.status(500).json({ message: "Doğrulama listesi getirilemedi" });
@@ -1228,49 +1304,81 @@ export function registerVerificationRoutes(app: Express) {
   });
 
   // Admin: Approve or reject a verification
-  app.patch("/api/admin/verifications/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/admin/verifications/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
     try {
-      const user = req.user as any;
-      if (!user || user.role !== 'admin') return res.status(403).json({ message: "Yetkiniz yok" });
-
-      const adminId = getUserId(user);
+      const adminId = getUserId(req.user);
       const { id } = req.params;
-      const { status, adminNotes } = req.body;
+      const { status, adminNotes } = req.body ?? {};
 
-      if (!['approved', 'rejected'].includes(status)) {
+      if (!["approved", "rejected"].includes(status)) {
         return res.status(400).json({ message: "Geçersiz durum" });
       }
 
-      const query = `
-        UPDATE professional_verifications 
-        SET status = '${status}',
-            admin_notes = ${adminNotes ? `'${adminNotes.replace(/'/g, "''")}'` : 'NULL'},
-            reviewed_by = '${adminId}',
-            reviewed_at = NOW(),
-            updated_at = NOW()
-        WHERE id = '${id}'
-        RETURNING *
-      `;
-      const result = await db.execute(sql.raw(query));
-      if (result.rows.length === 0) {
+      const [guncel] = await db
+        .update(professionalVerifications)
+        .set({
+          status,
+          adminNotes: adminNotes || null,
+          reviewedBy: adminId,
+          reviewedAt: new Date(),
+        })
+        .where(eq(professionalVerifications.id, id))
+        .returning();
+
+      if (!guncel) {
         return res.status(404).json({ message: "Doğrulama talebi bulunamadı" });
       }
 
-      // If approved as veterinarian, update vet_services verified flag
-      const verification = result.rows[0] as any;
-      if (status === 'approved') {
-        if (verification.professional_type === 'veterinarian') {
-          await db.execute(sql.raw(`
-            UPDATE vet_services SET verified = true WHERE vet_id = '${verification.user_id}'
-          `));
-        } else if (verification.professional_type === 'transporter') {
-          await db.execute(sql.raw(`
-            UPDATE transport_services SET verified = true WHERE transporter_id = '${verification.user_id}'
-          `));
+      if (status === "approved") {
+        /*
+         * Onay, kullanıcıya MESLEK ROLÜNÜ verir.
+         *
+         * Eksik olan halka buydu: klinik veya nakliye hizmeti kaydı açmak
+         * `vet`/`transporter` rolü istiyor, rolü değiştiren tek uç ise
+         * yönetici paneliydi. Yani belgelerini doğrulatan kullanıcı yine de
+         * hizmet veremiyordu. Artık onayla birlikte rol geliyor.
+         *
+         * Yönetici rolü ASLA düşürülmez; yanlışlıkla kendi yetkisini
+         * kaybetmek istemeyiz.
+         */
+        const rol = MESLEK_ROLU[guncel.professionalType];
+        if (rol) {
+          const [hedef] = await db
+            .select({ role: users.role })
+            .from(users)
+            .where(eq(users.id, guncel.userId))
+            .limit(1);
+
+          if (hedef && hedef.role !== "admin" && hedef.role !== rol) {
+            await db.update(users).set({ role: rol }).where(eq(users.id, guncel.userId));
+          }
+        }
+
+        // Zaten kayıtlı hizmetleri "doğrulanmış" olarak işaretle.
+        if (guncel.professionalType === "veterinarian") {
+          await db.update(vetServices).set({ verified: true }).where(eq(vetServices.vetId, guncel.userId));
+        } else if (guncel.professionalType === "transporter") {
+          await db.update(transportServices).set({ verified: true }).where(eq(transportServices.transporterId, guncel.userId));
         }
       }
 
-      res.json({ success: true, verification: result.rows[0] });
+      // Başvuru sahibi sonucu öğrenmeli.
+      try {
+        await db.insert(notifications).values({
+          userId: guncel.userId,
+          type: "system",
+          title: status === "approved" ? "Meslek Doğrulaması Onaylandı" : "Meslek Doğrulaması Reddedildi",
+          message: status === "approved"
+            ? "Belgeleriniz onaylandı. Artık hizmet kaydı oluşturabilirsiniz."
+            : `Doğrulama başvurunuz onaylanmadı${guncel.adminNotes ? ": " + guncel.adminNotes : "."}`,
+          link: "/panel/dogrulama",
+          relatedId: guncel.id,
+        });
+      } catch (bildirimHatasi) {
+        console.error("Failed to create verification notification:", bildirimHatasi);
+      }
+
+      res.json({ success: true, verification: guncel });
     } catch (error) {
       console.error("Error updating verification:", error);
       res.status(500).json({ message: "Doğrulama güncellenemedi" });

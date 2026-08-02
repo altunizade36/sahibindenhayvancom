@@ -110,7 +110,7 @@ function ProductCard({ product }: { product: WholesaleProduct }) {
   
   const orderMutation = useMutation({
     mutationFn: async (data: { productId: string; quantity: number; deliveryAddress: string; deliveryCity: string }) => {
-      return apiRequest('/api/wholesale/orders', 'POST', data);
+      return apiRequest('POST', '/api/wholesale/orders', data);
     },
     onSuccess: () => {
       toast({ title: "Sipariş Oluşturuldu", description: "Siparişiniz üreticiye iletildi." });
