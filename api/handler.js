@@ -4107,6 +4107,15 @@ var DevelopmentEmailService = class {
     console.log(`\xD6nizleme: ${data.preview}`);
     console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
   }
+  async sendEventNotice(data) {
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log(`\u{1F514} ${data.title.toUpperCase()} (DEV MODE)`);
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log(`Al\u0131c\u0131: ${data.to}`);
+    console.log(data.body);
+    (data.details || []).forEach(([k, v]) => console.log(`   ${k}: ${v}`));
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
+  }
 };
 var ProductionEmailService = class {
   resend;
@@ -4324,6 +4333,51 @@ var ProductionEmailService = class {
       console.log(`\u2705 New message notice sent to ${data.to}`);
     } catch (error) {
       console.error("\u274C Failed to send new message notice:", error);
+    }
+  }
+  /**
+   * Genel olay bildirimi (ilan onayı, teklif, iletişim talebi...).
+   *
+   * Tek bir biçim kullanılıyor: başlık, açıklama, isteğe bağlı ayrıntı satırları
+   * ve tek bir eylem düğmesi. Böylece yeni bir olay türü eklerken burada
+   * değişiklik gerekmiyor.
+   */
+  async sendEventNotice(data) {
+    const appUrl = (process.env.APP_URL || "https://sahibindenhayvan.com").replace(/\/$/, "");
+    const link = data.actionPath ? /^https?:\/\//i.test(data.actionPath) ? data.actionPath : `${appUrl}${data.actionPath}` : appUrl;
+    const hitap = data.recipientName ? `Merhaba ${escapeHtml(data.recipientName)},` : "Merhaba,";
+    const ayrinti = (data.details || []).map(
+      ([k, v]) => `<tr><td style="padding:6px 12px;color:#666;white-space:nowrap">${escapeHtml(k)}</td><td style="padding:6px 12px"><b>${escapeHtml(v)}</b></td></tr>`
+    ).join("");
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.to,
+        subject: data.title,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:20px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com</h2>
+            </div>
+            <div style="padding:28px 24px;background:#f5f5f5">
+              <p style="margin:0 0 12px">${hitap}</p>
+              <p style="margin:0 0 18px;font-size:16px">${escapeHtml(data.body)}</p>
+              ${ayrinti ? `<table style="width:100%;border-collapse:collapse;background:#fff;margin-bottom:20px">${ayrinti}</table>` : ""}
+              <div style="text-align:center;margin:26px 0">
+                <a href="${link}" style="background:#0066CC;color:#fff;padding:14px 28px;text-decoration:none;border-radius:5px;display:inline-block">
+                  ${escapeHtml(data.actionLabel || "Siteye Git")}
+                </a>
+              </div>
+              <p style="color:#999;font-size:12px;margin:0">
+                Bu bildirimleri istemiyorsan\u0131z hesap ayarlar\u0131n\u0131zdan kapatabilirsiniz.
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`\u2705 Event notice "${data.title}" sent to ${data.to}`);
+    } catch (error) {
+      console.error("\u274C Failed to send event notice:", error);
     }
   }
 };
@@ -5771,6 +5825,26 @@ function getUserId2(user) {
     throw new Error("User ID not found in session");
   }
   return id;
+}
+async function olayEpostasiGonder(userId, icerik, tercih = "notifyListingUpdates") {
+  try {
+    const [ayar] = await db.select({
+      emailNotifications: userSettings.emailNotifications,
+      notifyMessages: userSettings.notifyMessages,
+      notifyListingUpdates: userSettings.notifyListingUpdates,
+      notifyFavorites: userSettings.notifyFavorites
+    }).from(userSettings).where(eq5(userSettings.userId, userId)).limit(1);
+    if (ayar && (!ayar.emailNotifications || !ayar[tercih])) return;
+    const [kullanici] = await db.select({ email: users.email, firstName: users.firstName }).from(users).where(eq5(users.id, userId)).limit(1);
+    if (!kullanici?.email) return;
+    await emailService.sendEventNotice({
+      to: kullanici.email,
+      recipientName: kullanici.firstName,
+      ...icerik
+    });
+  } catch (error) {
+    console.error("Olay e-postas\u0131 g\xF6nderilemedi:", error);
+  }
 }
 async function isEmailVerified(user) {
   const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq5(users.id, getUserId2(user))).limit(1);
@@ -9321,6 +9395,7 @@ async function registerRoutes(app2, existingServer) {
       }
       const [listing] = await db.select({
         sellerId: listings.sellerId,
+        title: listings.title,
         isExampleListing: listings.isExampleListing
       }).from(listings).where(eq5(listings.id, listingId)).limit(1);
       if (!listing) {
@@ -9351,6 +9426,23 @@ async function registerRoutes(app2, existingServer) {
         relatedId: contactRequest.id,
         isRead: false
       });
+      const iletisimAyrintilari = [
+        ["G\xF6nderen", senderName],
+        ["E-posta", senderEmail]
+      ];
+      if (senderPhone) iletisimAyrintilari.push(["Telefon", String(senderPhone)]);
+      iletisimAyrintilari.push(["\u0130lan", listing.title || "\u2014"]);
+      void olayEpostasiGonder(
+        listing.sellerId,
+        {
+          title: "\u0130lan\u0131n\u0131z i\xE7in ileti\u015Fim talebi",
+          body: String(message).replace(/\s+/g, " ").trim().slice(0, 300),
+          details: iletisimAyrintilari,
+          actionPath: `/ilan/${listingId}`,
+          actionLabel: "\u0130lan\u0131 G\xF6r\xFCnt\xFCle"
+        },
+        "notifyMessages"
+      );
       res.status(201).json({
         message: "Mesaj\u0131n\u0131z sat\u0131c\u0131ya iletildi. En k\u0131sa s\xFCrede sizinle ileti\u015Fime ge\xE7ilecektir.",
         id: contactRequest.id
@@ -9624,6 +9716,13 @@ async function registerRoutes(app2, existingServer) {
           message: `${listing.title} ilan\u0131n\u0131za \u20BA${amount} teklif geldi`,
           link: `/ilan/${listing.id}`,
           relatedId: newOffer.id
+        });
+        void olayEpostasiGonder(listing.sellerId, {
+          title: "\u0130lan\u0131n\u0131za teklif geldi",
+          body: `"${listing.title}" ilan\u0131n\u0131za yeni bir teklif var.`,
+          details: [["Teklif", `\u20BA${amount}`]],
+          actionPath: `/ilan/${listing.id}`,
+          actionLabel: "Teklifi G\xF6r\xFCnt\xFCle"
         });
       } catch (notifError) {
         console.error("Failed to create offer notification:", notifError);
@@ -10595,6 +10694,12 @@ async function registerRoutes(app2, existingServer) {
             userId: listing.sellerId,
             notification
           });
+          void olayEpostasiGonder(listing.sellerId, {
+            title: "\u0130lan\u0131n\u0131z yay\u0131nland\u0131",
+            body: `"${listing.title}" ilan\u0131n\u0131z onayland\u0131 ve yay\u0131na girdi.`,
+            actionPath: `/ilan/${listing.id}`,
+            actionLabel: "\u0130lan\u0131 G\xF6r\xFCnt\xFCle"
+          });
         } else if (status === "rejected") {
           const yayindaydi = listing.status === "active";
           const [notification] = await db.insert(notifications).values({
@@ -10608,6 +10713,13 @@ async function registerRoutes(app2, existingServer) {
           notificationEmitter.emit("notification", {
             userId: listing.sellerId,
             notification
+          });
+          void olayEpostasiGonder(listing.sellerId, {
+            title: yayindaydi ? "\u0130lan\u0131n\u0131z yay\u0131ndan kald\u0131r\u0131ld\u0131" : "\u0130lan\u0131n\u0131z yay\u0131nlanmad\u0131",
+            body: yayindaydi ? `"${listing.title}" ilan\u0131n\u0131z yay\u0131ndan kald\u0131r\u0131ld\u0131.` : `"${listing.title}" ilan\u0131n\u0131z yay\u0131nlanmad\u0131.`,
+            details: reason ? [["Gerek\xE7e", reason]] : void 0,
+            actionPath: "/panel/ilanlarim",
+            actionLabel: "\u0130lanlar\u0131m"
           });
         }
       } catch (notifError) {

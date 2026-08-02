@@ -396,6 +396,62 @@ function getUserId(user: any): string {
 }
 
 /**
+ * Bir kullanıcıya olay bildirimi e-postası gönderir.
+ *
+ * Site içi bildirim (notifications tablosu) kullanıcı siteye girmediği sürece
+ * görülmez. Önemli olaylarda — ilan onayı, teklif, iletişim talebi — kullanıcı
+ * dışarıdan haberdar edilmezse fırsat kaçar. Bu yardımcı o boşluğu kapatıyor.
+ *
+ * Kullanıcı tercihi her zaman kontrol edilir. Ayar KAYDI OLMAYAN kullanıcıya
+ * gönderilir (varsayılan açık), açıkça kapatmış olana gönderilmez.
+ *
+ * Çağıran taraf beklemek zorunda değildir ve hata fırlatmaz: bildirim
+ * gönderilemedi diye ilan onayı ya da teklif işlemi başarısız sayılmamalı.
+ */
+async function olayEpostasiGonder(
+  userId: string,
+  icerik: {
+    title: string;
+    body: string;
+    actionPath?: string;
+    actionLabel?: string;
+    details?: Array<[string, string]>;
+  },
+  tercih: "notifyMessages" | "notifyListingUpdates" | "notifyFavorites" = "notifyListingUpdates"
+): Promise<void> {
+  try {
+    const [ayar] = await db
+      .select({
+        emailNotifications: userSettings.emailNotifications,
+        notifyMessages: userSettings.notifyMessages,
+        notifyListingUpdates: userSettings.notifyListingUpdates,
+        notifyFavorites: userSettings.notifyFavorites,
+      })
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId))
+      .limit(1);
+
+    if (ayar && (!ayar.emailNotifications || !ayar[tercih])) return;
+
+    const [kullanici] = await db
+      .select({ email: users.email, firstName: users.firstName })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!kullanici?.email) return;
+
+    await emailService.sendEventNotice({
+      to: kullanici.email,
+      recipientName: kullanici.firstName,
+      ...icerik,
+    });
+  } catch (error) {
+    console.error("Olay e-postası gönderilemedi:", error);
+  }
+}
+
+/**
  * Oturumdaki kullanıcının e-postasının doğrulanmış olup olmadığını
  * VERİTABANINDAN okur.
  *
@@ -6030,6 +6086,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const [listing] = await db
         .select({ 
           sellerId: listings.sellerId,
+          title: listings.title,
           isExampleListing: listings.isExampleListing 
         })
         .from(listings)
@@ -6080,6 +6137,36 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         relatedId: contactRequest.id,
         isRead: false,
       });
+
+      /*
+       * Satıcıya e-posta.
+       *
+       * Bu form üye OLMAYAN ziyaretçiler içindir; talebi bırakan kişi siteye
+       * geri dönüp "acaba cevap geldi mi" diye bakmaz. Satıcı site içi
+       * bildirimi görmezse temas tamamen kaybolur — üstelik burada karşı taraf
+       * hesabı bile olmadığı için ikinci bir kanal yok.
+       *
+       * Ziyaretçinin iletişim bilgileri e-postaya konuyor ki satıcı siteye
+       * girmeden de dönüş yapabilsin.
+       */
+      const iletisimAyrintilari: Array<[string, string]> = [
+        ["Gönderen", senderName],
+        ["E-posta", senderEmail],
+      ];
+      if (senderPhone) iletisimAyrintilari.push(["Telefon", String(senderPhone)]);
+      iletisimAyrintilari.push(["İlan", listing.title || "—"]);
+
+      void olayEpostasiGonder(
+        listing.sellerId,
+        {
+          title: "İlanınız için iletişim talebi",
+          body: String(message).replace(/\s+/g, " ").trim().slice(0, 300),
+          details: iletisimAyrintilari,
+          actionPath: `/ilan/${listingId}`,
+          actionLabel: "İlanı Görüntüle",
+        },
+        "notifyMessages"
+      );
 
       res.status(201).json({ 
         message: "Mesajınız satıcıya iletildi. En kısa sürede sizinle iletişime geçilecektir.",
@@ -6486,6 +6573,15 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           message: `${listing.title} ilanınıza ₺${amount} teklif geldi`,
           link: `/ilan/${listing.id}`,
           relatedId: newOffer.id,
+        });
+
+        // Para teklifi: satıcının bunu geç görmesi doğrudan kayıp.
+        void olayEpostasiGonder(listing.sellerId, {
+          title: 'İlanınıza teklif geldi',
+          body: `"${listing.title}" ilanınıza yeni bir teklif var.`,
+          details: [['Teklif', `₺${amount}`]],
+          actionPath: `/ilan/${listing.id}`,
+          actionLabel: 'Teklifi Görüntüle',
         });
       } catch (notifError) {
         console.error("Failed to create offer notification:", notifError);
@@ -7957,6 +8053,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             userId: listing.sellerId,
             notification,
           });
+
+          // Satıcı moderasyonu bekliyor; siteye girmeden sonucu öğrenemezdi.
+          void olayEpostasiGonder(listing.sellerId, {
+            title: 'İlanınız yayınlandı',
+            body: `"${listing.title}" ilanınız onaylandı ve yayına girdi.`,
+            actionPath: `/ilan/${listing.id}`,
+            actionLabel: 'İlanı Görüntüle',
+          });
         } else if (status === 'rejected') {
           // Yayındaki bir ilan kaldırıldıysa "reddedildi" demek yanlış olur —
           // satıcı ilanın zaten yayında olduğunu biliyor.
@@ -7975,6 +8079,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           notificationEmitter.emit('notification', {
             userId: listing.sellerId,
             notification,
+          });
+
+          void olayEpostasiGonder(listing.sellerId, {
+            title: yayindaydi ? 'İlanınız yayından kaldırıldı' : 'İlanınız yayınlanmadı',
+            body: yayindaydi
+              ? `"${listing.title}" ilanınız yayından kaldırıldı.`
+              : `"${listing.title}" ilanınız yayınlanmadı.`,
+            details: reason ? [['Gerekçe', reason]] : undefined,
+            actionPath: '/panel/ilanlarim',
+            actionLabel: 'İlanlarım',
           });
         }
       } catch (notifError) {

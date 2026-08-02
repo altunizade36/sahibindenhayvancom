@@ -20,12 +20,33 @@ export interface NewMessageNotice {
   listingTitle?: string | null;
 }
 
+/**
+ * Genel olay bildirimi.
+ *
+ * İlan onaylandı, teklif geldi, iletişim talebi düştü... Bunların her biri
+ * için ayrı bir e-posta şablonu yazmak yerine tek bir biçim kullanılıyor:
+ * başlık, açıklama ve tek bir eylem düğmesi. Yeni bir olay eklemek için
+ * e-posta katmanına dokunmak gerekmiyor.
+ */
+export interface EventNotice {
+  to: string;
+  recipientName?: string | null;
+  title: string;
+  body: string;
+  /** Uygulama içi yol ("/ilan/123") ya da tam adres. */
+  actionPath?: string;
+  actionLabel?: string;
+  /** Ek satırlar: "Teklif: 8.000 TL" gibi. */
+  details?: Array<[string, string]>;
+}
+
 // Email service configuration
 export interface EmailService {
   sendVerificationEmail(to: string, token: string, username: string): Promise<void>;
   sendPasswordResetEmail(to: string, token: string, username: string): Promise<void>;
   sendContactMessage(data: ContactMessage): Promise<void>;
   sendNewMessageNotice(data: NewMessageNotice): Promise<void>;
+  sendEventNotice(data: EventNotice): Promise<void>;
 }
 
 /**
@@ -99,6 +120,16 @@ class DevelopmentEmailService implements EmailService {
     console.log(`Alıcı: ${data.to}`);
     console.log(`Gönderen: ${data.senderName}`);
     console.log(`Önizleme: ${data.preview}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  }
+
+  async sendEventNotice(data: EventNotice): Promise<void> {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`🔔 ${data.title.toUpperCase()} (DEV MODE)`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Alıcı: ${data.to}`);
+    console.log(data.body);
+    (data.details || []).forEach(([k, v]) => console.log(`   ${k}: ${v}`));
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 }
@@ -338,6 +369,62 @@ class ProductionEmailService implements EmailService {
     } catch (error) {
       // Bildirim gönderilemese de mesaj gönderimi başarılıdır; hata yutuluyor.
       console.error('❌ Failed to send new message notice:', error);
+    }
+  }
+
+  /**
+   * Genel olay bildirimi (ilan onayı, teklif, iletişim talebi...).
+   *
+   * Tek bir biçim kullanılıyor: başlık, açıklama, isteğe bağlı ayrıntı satırları
+   * ve tek bir eylem düğmesi. Böylece yeni bir olay türü eklerken burada
+   * değişiklik gerekmiyor.
+   */
+  async sendEventNotice(data: EventNotice): Promise<void> {
+    const appUrl = (process.env.APP_URL || 'https://sahibindenhayvan.com').replace(/\/$/, '');
+    const link = data.actionPath
+      ? (/^https?:\/\//i.test(data.actionPath) ? data.actionPath : `${appUrl}${data.actionPath}`)
+      : appUrl;
+    const hitap = data.recipientName ? `Merhaba ${escapeHtml(data.recipientName)},` : 'Merhaba,';
+
+    const ayrinti = (data.details || [])
+      .map(
+        ([k, v]) =>
+          `<tr><td style="padding:6px 12px;color:#666;white-space:nowrap">${escapeHtml(k)}</td>` +
+          `<td style="padding:6px 12px"><b>${escapeHtml(v)}</b></td></tr>`
+      )
+      .join('');
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.to,
+        subject: data.title,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:20px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com</h2>
+            </div>
+            <div style="padding:28px 24px;background:#f5f5f5">
+              <p style="margin:0 0 12px">${hitap}</p>
+              <p style="margin:0 0 18px;font-size:16px">${escapeHtml(data.body)}</p>
+              ${ayrinti ? `<table style="width:100%;border-collapse:collapse;background:#fff;margin-bottom:20px">${ayrinti}</table>` : ''}
+              <div style="text-align:center;margin:26px 0">
+                <a href="${link}" style="background:#0066CC;color:#fff;padding:14px 28px;text-decoration:none;border-radius:5px;display:inline-block">
+                  ${escapeHtml(data.actionLabel || 'Siteye Git')}
+                </a>
+              </div>
+              <p style="color:#999;font-size:12px;margin:0">
+                Bu bildirimleri istemiyorsanız hesap ayarlarınızdan kapatabilirsiniz.
+              </p>
+            </div>
+          </div>
+        `,
+      });
+
+      console.log(`✅ Event notice "${data.title}" sent to ${data.to}`);
+    } catch (error) {
+      // Bildirim, tetikleyen işlemin başarısını etkilememeli.
+      console.error('❌ Failed to send event notice:', error);
     }
   }
 }
