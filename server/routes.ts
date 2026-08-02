@@ -1951,18 +1951,36 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     try {
       const user = req.user as any;
       const userId = getUserId(user);
-      
-      const settingsData = req.body;
-      
+
+      // Kullanıcının değiştirebileceği ayar alanları açıkça sayılır.
+      //
+      // Önceki hâli `req.body`'yi olduğu gibi set/insert ediyordu. Insert
+      // tarafında `values({ userId, ...settingsData })` yayılımı, gövdede
+      // `userId` gelirse KENDİ userId'sini eziyordu — yani başka bir kullanıcı
+      // için ayar kaydı oluşturmak mümkündü. `id`/`createdAt` gibi alanlar da
+      // dışarıdan atanabiliyordu.
+      const AYAR_ALANLARI = [
+        "emailNotifications", "pushNotifications", "notifyMessages", "notifyFavorites",
+        "notifyPriceDrops", "notifyListingUpdates", "notifyPromotions", "notifyNewsletter",
+        "showEmail", "showPhone", "showLocation", "showOnlineStatus", "allowMessages",
+        "profileVisibility", "defaultCity", "defaultDistrict", "defaultCategoryId",
+        "autoRenewListings", "theme", "language", "currency",
+      ] as const;
+
+      const settingsData: Record<string, any> = {};
+      for (const alan of AYAR_ALANLARI) {
+        if (req.body?.[alan] !== undefined) settingsData[alan] = req.body[alan];
+      }
+
       // Check if settings exist
       const [existingSettings] = await db
         .select()
         .from(userSettings)
         .where(eq(userSettings.userId, userId))
         .limit(1);
-      
+
       let updatedSettings;
-      
+
       if (existingSettings) {
         // Update existing settings
         [updatedSettings] = await db
@@ -1970,17 +1988,17 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           .set({
             ...settingsData,
             updatedAt: new Date(),
-          })
+          } as any)
           .where(eq(userSettings.userId, userId))
           .returning();
       } else {
-        // Create new settings
+        // Create new settings — userId yayılımdan SONRA gelir ki gövde ezemesin
         [updatedSettings] = await db
           .insert(userSettings)
           .values({
-            userId,
             ...settingsData,
-          })
+            userId,
+          } as any)
           .returning();
       }
       
@@ -2061,15 +2079,26 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (confirmation !== 'DELETE') {
         return res.status(400).json({ message: "Hesap silme onayı gereklidir" });
       }
-      
-      // If user has password-based auth, verify password
+
       const [existingUser] = await db
         .select()
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
-      
-      if (existingUser?.password && password) {
+
+      // Şifreyle giriş yapan kullanıcıda şifre ZORUNLU ve DOĞRU olmalı.
+      //
+      // Önceki hâli `if (existingUser?.password && password)` idi: kullanıcı
+      // gövdede `password` alanını hiç göndermezse şifre kontrolü tamamen
+      // atlanıyor ve hesap yalnızca `confirmation: "DELETE"` ile siliniyordu.
+      // Hesap silme geri alınamaz ve tüm görselleri de siler; oturumu ele
+      // geçiren biri tek istekle her şeyi yok edebilirdi.
+      //
+      // OAuth ile giren (şifresi olmayan) kullanıcıda şifre aranmaz.
+      if (existingUser?.password) {
+        if (!password) {
+          return res.status(400).json({ message: "Hesabınızı silmek için şifrenizi girin" });
+        }
         const isValidPassword = await bcrypt.compare(password, existingUser.password);
         if (!isValidPassword) {
           return res.status(401).json({ message: "Şifre hatalı" });
