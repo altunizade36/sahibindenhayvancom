@@ -90,6 +90,34 @@ export default function AdminUsersPage() {
     queryKey: ["/api/admin/users"],
   });
 
+  interface GirisKaydi {
+    id: string;
+    method: string | null;
+    ipAddress: string | null;
+    success: boolean;
+    failureReason: string | null;
+    createdAt: string;
+    device: { deviceType: string; browser: string; os: string };
+  }
+
+  interface AktiviteYaniti {
+    logins: GirisKaydi[];
+    failedLoginCount: number;
+    listingsByStatus: Record<string, number>;
+    memberSince: string;
+  }
+
+  /**
+   * Seçili kullanıcının giriş geçmişi.
+   *
+   * Yalnızca detay çekmecesi açıkken çekilir — listedeki her kullanıcı için
+   * peşin sorgu atmanın anlamı yok.
+   */
+  const { data: aktivite, isLoading: aktiviteYukleniyor } = useQuery<AktiviteYaniti>({
+    queryKey: [`/api/admin/users/${selectedUser?.id}/activity`],
+    enabled: !!selectedUser?.id,
+  });
+
   const stats: UserStats = {
     total: users.length,
     verified: users.filter((u) => u.emailVerified).length,
@@ -472,9 +500,64 @@ export default function AdminUsersPage() {
                     </CardContent>
                   </Card>
                 </div>
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Detaylı aktivite geçmişi yakında eklenecek
-                </p>
+                {/* Giriş geçmişi — login_history tablosundan */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold">Son Giriş Denemeleri</h4>
+                    {!!aktivite?.failedLoginCount && (
+                      <Badge variant="secondary" data-testid="badge-failed-logins">
+                        {aktivite.failedLoginCount} başarısız
+                      </Badge>
+                    )}
+                  </div>
+
+                  {aktiviteYukleniyor ? (
+                    <p className="text-sm text-muted-foreground py-3">Yükleniyor…</p>
+                  ) : !aktivite?.logins?.length ? (
+                    <p className="text-sm text-muted-foreground py-3">
+                      Bu hesap için henüz giriş kaydı yok.
+                    </p>
+                  ) : (
+                    <div className="rounded-md border divide-y" data-testid="list-login-history">
+                      {aktivite.logins.map((g) => (
+                        <div key={g.id} className="flex items-start justify-between gap-3 p-3 text-sm">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={g.success ? "text-green-600" : "text-destructive"}>
+                                {g.success ? "Başarılı" : "Başarısız"}
+                              </span>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="text-muted-foreground">{g.method || "e-posta"}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {g.device.browser} / {g.device.os} ({g.device.deviceType})
+                              {g.ipAddress ? ` · ${g.ipAddress}` : ""}
+                            </p>
+                            {!g.success && g.failureReason && (
+                              <p className="text-xs text-destructive">{g.failureReason}</p>
+                            )}
+                          </div>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {new Date(g.createdAt).toLocaleString("tr-TR")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {aktivite && Object.keys(aktivite.listingsByStatus).length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">İlan Dağılımı</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(aktivite.listingsByStatus).map(([durum, adet]) => (
+                          <Badge key={durum} variant="outline">
+                            {durum}: {adet}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ),
           },

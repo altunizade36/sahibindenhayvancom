@@ -7264,6 +7264,74 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     res.json({ verified: !!session.adminPinVerified });
   });
 
+  /**
+   * Bir kullanıcının aktivite geçmişi.
+   *
+   * Yönetim panelindeki kullanıcı detayında "Detaylı aktivite geçmişi yakında
+   * eklenecek" yazıyordu; oysa `login_history` tablosu her giriş denemesini
+   * (yöntem, IP, cihaz, başarı/başarısızlık ve gerekçe) zaten kaydediyordu.
+   * Veri vardı, yalnızca ekrana bağlanmamıştı.
+   *
+   * Moderasyon açısından değerli: bir hesabın farklı IP'lerden art arda
+   * başarısız giriş alması ya da alışılmadık bir cihazdan açılması şüphe
+   * işaretidir.
+   */
+  app.get("/api/admin/users/:id/activity", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const [kullanici] = await db
+        .select({ id: users.id, createdAt: users.createdAt })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!kullanici) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+
+      const girisler = await db
+        .select({
+          id: loginHistory.id,
+          method: loginHistory.loginMethod,
+          ipAddress: loginHistory.ipAddress,
+          userAgent: loginHistory.userAgent,
+          success: loginHistory.success,
+          failureReason: loginHistory.failureReason,
+          createdAt: loginHistory.createdAt,
+        })
+        .from(loginHistory)
+        .where(eq(loginHistory.userId, id))
+        .orderBy(desc(loginHistory.createdAt))
+        .limit(25);
+
+      const [basarisiz] = await db
+        .select({ n: count() })
+        .from(loginHistory)
+        .where(and(eq(loginHistory.userId, id), eq(loginHistory.success, false)));
+
+      const ilanDurumlari = await db
+        .select({ status: listings.status, n: count() })
+        .from(listings)
+        .where(eq(listings.sellerId, id))
+        .groupBy(listings.status);
+
+      res.json({
+        // Ham user-agent yerine okunabilir cihaz bilgisi döndürülüyor.
+        logins: girisler.map((g) => {
+          const { userAgent, ...kalan } = g;
+          return { ...kalan, device: parseUserAgent(userAgent ?? undefined) };
+        }),
+        failedLoginCount: Number(basarisiz?.n ?? 0),
+        listingsByStatus: Object.fromEntries(ilanDurumlari.map((s) => [s.status ?? "bilinmiyor", Number(s.n)])),
+        memberSince: kullanici.createdAt,
+      });
+    } catch (error) {
+      console.error("Kullanıcı aktivitesi alınamadı:", error);
+      res.status(500).json({ message: "Aktivite geçmişi alınamadı" });
+    }
+  });
+
   // ============ Kategori Yönetimi ============
   //
   // Yönetim panelindeki kategori sayfası vardı ama tamamen göstermelikti:

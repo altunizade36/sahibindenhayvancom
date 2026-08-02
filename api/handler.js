@@ -9609,6 +9609,39 @@ async function registerRoutes(app2, existingServer) {
     const session2 = req.session;
     res.json({ verified: !!session2.adminPinVerified });
   });
+  app2.get("/api/admin/users/:id/activity", isAuthenticated, adminMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [kullanici] = await db.select({ id: users.id, createdAt: users.createdAt }).from(users).where(eq3(users.id, id)).limit(1);
+      if (!kullanici) {
+        return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
+      }
+      const girisler = await db.select({
+        id: loginHistory.id,
+        method: loginHistory.loginMethod,
+        ipAddress: loginHistory.ipAddress,
+        userAgent: loginHistory.userAgent,
+        success: loginHistory.success,
+        failureReason: loginHistory.failureReason,
+        createdAt: loginHistory.createdAt
+      }).from(loginHistory).where(eq3(loginHistory.userId, id)).orderBy(desc3(loginHistory.createdAt)).limit(25);
+      const [basarisiz] = await db.select({ n: count() }).from(loginHistory).where(and3(eq3(loginHistory.userId, id), eq3(loginHistory.success, false)));
+      const ilanDurumlari = await db.select({ status: listings.status, n: count() }).from(listings).where(eq3(listings.sellerId, id)).groupBy(listings.status);
+      res.json({
+        // Ham user-agent yerine okunabilir cihaz bilgisi döndürülüyor.
+        logins: girisler.map((g) => {
+          const { userAgent, ...kalan } = g;
+          return { ...kalan, device: parseUserAgent(userAgent ?? void 0) };
+        }),
+        failedLoginCount: Number(basarisiz?.n ?? 0),
+        listingsByStatus: Object.fromEntries(ilanDurumlari.map((s) => [s.status ?? "bilinmiyor", Number(s.n)])),
+        memberSince: kullanici.createdAt
+      });
+    } catch (error) {
+      console.error("Kullan\u0131c\u0131 aktivitesi al\u0131namad\u0131:", error);
+      res.status(500).json({ message: "Aktivite ge\xE7mi\u015Fi al\u0131namad\u0131" });
+    }
+  });
   async function kategoriOnbelleginiTemizle() {
     await Promise.all([
       cache.del(cacheKeys.categories()),
