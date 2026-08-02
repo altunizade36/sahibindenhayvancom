@@ -6653,14 +6653,29 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
       
       const { listingId, amount, message, expiresAt } = req.body;
-      
+
+      // Teklif tutarı doğrulanmalı. Önceden `String(amount)` ile doğrudan
+      // yazılıyordu: negatif ya da sıfır teklif kaydedilebiliyor, geçersiz
+      // metin de anlamsız bir 500'e düşüyordu. İlan fiyatıyla aynı kurallar.
+      let tutar = amount;
+      if (typeof tutar === "string") {
+        tutar = tutar.replace(/\./g, "").replace(/,/g, ".");
+      }
+      const numericAmount = parseFloat(tutar);
+      if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+        return res.status(400).json({ message: "Geçerli bir teklif tutarı girin" });
+      }
+      if (numericAmount > 99999999.99) {
+        return res.status(400).json({ message: "Teklif tutarı en fazla 99.999.999,99 TL olabilir" });
+      }
+
       // Get listing details
       const [listing] = await db
         .select()
         .from(listings)
         .where(eq(listings.id, listingId))
         .limit(1);
-      
+
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -6704,7 +6719,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           listingId,
           buyerId: userId,
           sellerId: listing.sellerId,
-          amount: String(amount),
+          amount: numericAmount.toString(),
           message,
           expiresAt: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days default
         } as any)
@@ -6716,7 +6731,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           userId: listing.sellerId,
           type: 'system',
           title: 'Yeni Teklif',
-          message: `${listing.title} ilanınıza ₺${amount} teklif geldi`,
+          message: `${listing.title} ilanınıza ₺${numericAmount.toLocaleString("tr-TR")} teklif geldi`,
           link: `/ilan/${listing.id}`,
           relatedId: newOffer.id,
         });
@@ -6725,7 +6740,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         await olayEpostasiGonder(listing.sellerId, {
           title: 'İlanınıza teklif geldi',
           body: `"${listing.title}" ilanınıza yeni bir teklif var.`,
-          details: [['Teklif', `₺${amount}`]],
+          details: [['Teklif', `₺${numericAmount.toLocaleString("tr-TR")}`]],
           actionPath: `/ilan/${listing.id}`,
           actionLabel: 'Teklifi Görüntüle',
         });
@@ -6751,33 +6766,49 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
       
       const { status, counterAmount, counterMessage } = req.body;
-      
+
+      // Durum beyaz listeden geçmeli; aksi halde enum-dışı bir değer doğrudan
+      // güncellemeye gidip anlamsız bir 500 üretiyordu.
+      if (!['accepted', 'rejected', 'countered'].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz yanıt" });
+      }
+
       // Get offer
       const [offer] = await db
         .select()
         .from(offers)
         .where(eq(offers.id, req.params.id))
         .limit(1);
-      
+
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
       }
-      
+
       if (offer.sellerId !== userId) {
         return res.status(403).json({ message: "Not authorized to respond to this offer" });
       }
-      
+
       if (offer.status !== 'pending') {
         return res.status(400).json({ message: "Can only respond to pending offers" });
       }
-      
+
       const updateData: any = {
         status,
         respondedAt: new Date(),
       };
-      
-      if (status === 'countered' && counterAmount) {
-        updateData.counterAmount = String(counterAmount);
+
+      if (status === 'countered') {
+        // Karşı teklif tutarı da teklif tutarı gibi doğrulanır (pozitif, sınırlı).
+        let ct = counterAmount;
+        if (typeof ct === "string") ct = ct.replace(/\./g, "").replace(/,/g, ".");
+        const numericCounter = parseFloat(ct);
+        if (!Number.isFinite(numericCounter) || numericCounter <= 0) {
+          return res.status(400).json({ message: "Geçerli bir karşı teklif tutarı girin" });
+        }
+        if (numericCounter > 99999999.99) {
+          return res.status(400).json({ message: "Karşı teklif en fazla 99.999.999,99 TL olabilir" });
+        }
+        updateData.counterAmount = numericCounter.toString();
         updateData.counterMessage = counterMessage;
       }
       

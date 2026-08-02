@@ -632,6 +632,9 @@ export const insertAuctionSchema = createInsertSchema(auctions, {
   currentPrice: true,
   totalBids: true,
   winnerId: true,
+  // status sunucuda belirlenir (DB varsayılanı 'upcoming'); kullanıcı gövdeyle
+  // açık artırmayı doğrudan 'active' yapıp başlatamamalı.
+  status: true,
 });
 
 export type InsertAuction = z.infer<typeof insertAuctionSchema>;
@@ -724,6 +727,9 @@ export const insertLiveStreamSchema = createInsertSchema(liveStreams).omit({
   peakViewers: true,
   startedAt: true,
   endedAt: true,
+  // status sunucuda belirlenir (DB varsayılanı 'scheduled'); kullanıcı gövdeyle
+  // yayını doğrudan 'live' gösteremmeli.
+  status: true,
 });
 
 export type InsertLiveStream = z.infer<typeof insertLiveStreamSchema>;
