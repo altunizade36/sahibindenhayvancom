@@ -26,7 +26,7 @@ export type NotificationEvent = {
     createdAt: Date;
   };
 };
-import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, categoryDocumentRequirements, listingDocuments, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
+import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
 import { eq, and, isNull, asc, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -2276,160 +2276,67 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // ============ Legal Compliance: Document Requirements ============
   // Get document requirements for a category
-  app.get("/api/categories/:slug/document-requirements", async (req: Request, res: Response) => {
+  /**
+   * Kategoriye ait yasal satış kısıtlamaları.
+   *
+   * Bu uç eskiden belge gereksinimlerini de döndürüyordu (adı
+   * "document-requirements" idi). Belge özelliği kaldırıldı; kısıtlamalar ise
+   * KALDI çünkü ayrı bir konudur: koruma altındaki türlerin satışı 5199 sayılı
+   * Hayvanları Koruma Kanunu kapsamında yasaktır ve kullanıcı ilan vermeden
+   * önce uyarılmalıdır. İkisinin aynı uçta servis edilmesi tesadüftü.
+   */
+  app.get("/api/categories/:slug/restrictions", async (req: Request, res: Response) => {
     try {
       const { slug } = req.params;
-      
-      // Get direct document requirements for this category
-      const requirements = await db
-        .select()
-        .from(categoryDocumentRequirements)
-        .where(eq(categoryDocumentRequirements.categorySlug, slug));
-      
-      // Get category restrictions
-      const restrictions = await db
+
+      const kisitlamalar = await db
         .select()
         .from(restrictedCategories)
         .where(and(
           eq(restrictedCategories.categorySlug, slug),
           eq(restrictedCategories.isActive, true)
         ));
-      
-      // Get category info to check parent categories
-      const categoryInfo = await db
-        .select()
+
+      // Üst kategoriden devralınan kısıtlamalar da geçerlidir: üst kategori
+      // kısıtlıysa altındaki her tür de kısıtlıdır.
+      const [kategori] = await db
+        .select({ path: categories.path })
         .from(categories)
         .where(eq(categories.slug, slug))
         .limit(1);
-      
-      let parentRequirements: typeof requirements = [];
-      let parentRestrictions: typeof restrictions = [];
-      
-      // Check parent categories for inherited requirements
-      if (categoryInfo.length > 0 && categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
-        for (const parentId of categoryInfo[0].path) {
-          const parentCat = await db.select().from(categories).where(eq(categories.id, parentId)).limit(1);
-          if (parentCat.length > 0) {
-            const parentReqs = await db
-              .select()
-              .from(categoryDocumentRequirements)
-              .where(eq(categoryDocumentRequirements.categorySlug, parentCat[0].slug));
-            parentRequirements.push(...parentReqs);
-            
-            const parentRestr = await db
-              .select()
-              .from(restrictedCategories)
-              .where(and(
-                eq(restrictedCategories.categorySlug, parentCat[0].slug),
-                eq(restrictedCategories.isActive, true)
-              ));
-            parentRestrictions.push(...parentRestr);
-          }
+
+      const atalar = Array.isArray(kategori?.path) ? (kategori.path as string[]) : [];
+      let devralinan: typeof kisitlamalar = [];
+
+      if (atalar.length > 0) {
+        const atalarinSluglari = await db
+          .select({ slug: categories.slug })
+          .from(categories)
+          .where(inArray(categories.id, atalar));
+
+        if (atalarinSluglari.length > 0) {
+          devralinan = await db
+            .select()
+            .from(restrictedCategories)
+            .where(and(
+              inArray(restrictedCategories.categorySlug, atalarinSluglari.map((a) => a.slug)),
+              eq(restrictedCategories.isActive, true)
+            ));
         }
       }
-      
-      res.json({
-        requirements: [...requirements, ...parentRequirements],
-        restrictions: [...restrictions, ...parentRestrictions],
-        categorySlug: slug,
-      });
+
+      res.json({ restrictions: [...kisitlamalar, ...devralinan], categorySlug: slug });
     } catch (error) {
-      console.error("Failed to fetch document requirements:", error);
-      res.status(500).json({ message: "Belge gereksinimleri alınamadı" });
+      console.error("Kategori kısıtlamaları alınamadı:", error);
+      res.status(500).json({ message: "Kategori kısıtlamaları alınamadı" });
     }
   });
 
   // Get all document requirements (for admin)
-  app.get("/api/admin/document-requirements", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Sadece adminler erişebilir" });
-      }
-      
-      const allRequirements = await db.select().from(categoryDocumentRequirements);
-      const allRestrictions = await db.select().from(restrictedCategories);
-      
-      res.json({
-        requirements: allRequirements,
-        restrictions: allRestrictions,
-      });
-    } catch (error) {
-      console.error("Failed to fetch all document requirements:", error);
-      res.status(500).json({ message: "Belge gereksinimleri alınamadı" });
-    }
-  });
 
   // Get pending documents for admin verification
-  app.get("/api/admin/listing-documents", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Sadece adminler erişebilir" });
-      }
-      
-      const { status = 'pending' } = req.query;
-      
-      const documents = await db
-        .select({
-          document: listingDocuments,
-          listing: listings,
-          seller: users,
-        })
-        .from(listingDocuments)
-        .leftJoin(listings, eq(listingDocuments.listingId, listings.id))
-        .leftJoin(users, eq(listings.sellerId, users.id))
-        .where(sql`${listingDocuments.status} = ${status}`)
-        .orderBy(desc(listingDocuments.createdAt));
-      
-      res.json(documents);
-    } catch (error) {
-      console.error("Failed to fetch listing documents:", error);
-      res.status(500).json({ message: "Belgeler alınamadı" });
-    }
-  });
 
   // Verify or reject a document (admin only)
-  app.patch("/api/admin/listing-documents/:id", isAuthenticated, adminMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Sadece adminler erişebilir" });
-      }
-      
-      const { id } = req.params;
-      const { status, rejectionReason } = req.body;
-      
-      if (!['verified', 'rejected'].includes(status)) {
-        return res.status(400).json({ message: "Geçersiz durum" });
-      }
-      
-      const updateData: any = {
-        status,
-        verifiedBy: user.id,
-        verifiedAt: new Date(),
-      };
-      
-      if (status === 'rejected' && rejectionReason) {
-        updateData.rejectionReason = rejectionReason;
-      }
-      
-      const [updated] = await db
-        .update(listingDocuments)
-        .set(updateData)
-        .where(eq(listingDocuments.id, id))
-        .returning();
-      
-      if (!updated) {
-        return res.status(404).json({ message: "Belge bulunamadı" });
-      }
-      
-      res.json(updated);
-    } catch (error) {
-      console.error("Failed to update document status:", error);
-      res.status(500).json({ message: "Belge durumu güncellenemedi" });
-    }
-  });
   
   // ============ Location Routes ============
   app.get("/api/locations", async (req: Request, res: Response) => {
@@ -2924,18 +2831,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         isFavorite = !!favorite;
       }
 
-      // Get listing documents
-      const listingDocs = await db
-        .select({
-          id: listingDocuments.id,
-          documentType: listingDocuments.documentType,
-          documentUrl: listingDocuments.documentUrl,
-          documentNumber: listingDocuments.documentNumber,
-          status: listingDocuments.status,
-        })
-        .from(listingDocuments)
-        .where(eq(listingDocuments.listingId, listing.id));
-
       // Sanitize seller object
       let sanitizedSeller = null;
       if (seller) {
@@ -2950,7 +2845,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         category: categoryInfo,
         store: storeInfo,
         isFavorite,
-        documents: listingDocs,
       });
     } catch (error) {
       console.error("Error fetching listing:", error);
@@ -6936,153 +6830,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // ============ Listing Documents Routes ============
 
   // Upload document for a listing
-  app.post("/api/listings/:listingId/documents", isAuthenticated, uploadDocuments.single('document'), async (req: Request, res: Response) => {
-    try {
-      const { listingId } = req.params;
-      const file = req.file;
-      
-      if (!file) {
-        return res.status(400).json({ message: "Belge dosyası gereklidir" });
-      }
-
-      // Verify listing ownership
-      const [listing] = await db
-        .select()
-        .from(listings)
-        .where(eq(listings.id, listingId))
-        .limit(1);
-      
-      if (!listing) {
-        return res.status(404).json({ message: "İlan bulunamadı" });
-      }
-      
-      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
-        return res.status(403).json({ message: "Bu ilana belge yükleme yetkiniz yok" });
-      }
-
-      // Only allow document uploads for draft or pending listings
-      if (!['draft', 'pending', 'active'].includes(listing.status || '')) {
-        return res.status(400).json({ message: "Bu ilan durumunda belge yüklenemez" });
-      }
-
-      // Parse document metadata from request body
-      const documentType = req.body.documentType as string;
-      if (!documentType) {
-        return res.status(400).json({ message: "Belge tipi belirtilmelidir" });
-      }
-
-      const validDocTypes = ['microchip', 'passport', 'vaccination', 'health_certificate', 'pedigree', 'cites', 'turkvet', 'transport', 'ear_tag', 'breeding_permit', 'dkmp_permit', 'import_permit', 'other'];
-      if (!validDocTypes.includes(documentType)) {
-        return res.status(400).json({ message: "Geçersiz belge tipi" });
-      }
-
-      // Validate file type (PDF, JPEG, PNG)
-      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        return res.status(400).json({ message: "Sadece PDF, JPEG, PNG veya WebP dosyaları yüklenebilir" });
-      }
-
-      // Upload to object storage
-      const objectStorage = new ObjectStorageService();
-      const documentPath = await objectStorage.uploadFileBuffer(file.buffer, file.mimetype);
-      
-      // The path returned is like /objects/uploads/xxx
-      // For display URL, we use the same path which will be served via /objects/:path route
-      const documentUrl = documentPath;
-      const documentKey = documentPath;
-
-      // Create document record
-      const [document] = await db.insert(listingDocuments).values({
-        listingId,
-        documentType: documentType as any,
-        documentUrl,
-        documentKey,
-        documentNumber: req.body.documentNumber || null,
-        issueDate: req.body.issueDate ? new Date(req.body.issueDate) : null,
-        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : null,
-        issuingAuthority: req.body.issuingAuthority || null,
-        status: 'pending',
-      }).returning();
-
-      res.status(201).json({
-        message: "Belge başarıyla yüklendi",
-        document,
-      });
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      res.status(500).json({ message: "Belge yüklenirken bir hata oluştu" });
-    }
-  });
 
   // Get documents for a listing
-  app.get("/api/listings/:listingId/documents", async (req: Request, res: Response) => {
-    try {
-      const { listingId } = req.params;
-      
-      const documents = await db
-        .select()
-        .from(listingDocuments)
-        .where(eq(listingDocuments.listingId, listingId))
-        .orderBy(listingDocuments.createdAt);
-      
-      res.json(documents);
-    } catch (error) {
-      console.error("Error fetching listing documents:", error);
-      res.status(500).json({ message: "Belgeler getirilemedi" });
-    }
-  });
 
   // Delete a document
-  app.delete("/api/listings/:listingId/documents/:documentId", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { listingId, documentId } = req.params;
-
-      // Verify listing ownership
-      const [listing] = await db
-        .select()
-        .from(listings)
-        .where(eq(listings.id, listingId))
-        .limit(1);
-      
-      if (!listing) {
-        return res.status(404).json({ message: "İlan bulunamadı" });
-      }
-      
-      if (listing.sellerId !== getUserId(req.user) && (req.user as any).role !== "admin") {
-        return res.status(403).json({ message: "Bu belgeyi silme yetkiniz yok" });
-      }
-
-      // Get document
-      const [document] = await db
-        .select()
-        .from(listingDocuments)
-        .where(and(
-          eq(listingDocuments.id, documentId),
-          eq(listingDocuments.listingId, listingId)
-        ))
-        .limit(1);
-
-      if (!document) {
-        return res.status(404).json({ message: "Belge bulunamadı" });
-      }
-
-      // Delete from storage
-      try {
-        const objectStorage = new ObjectStorageService();
-        await objectStorage.deleteFile(document.documentKey);
-      } catch (storageError) {
-        console.error("Error deleting document from storage:", storageError);
-      }
-
-      // Delete from database
-      await db.delete(listingDocuments).where(eq(listingDocuments.id, documentId));
-
-      res.json({ message: "Belge başarıyla silindi" });
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      res.status(500).json({ message: "Belge silinirken bir hata oluştu" });
-    }
-  });
 
   // ============ Draft Listing Routes ============
 
@@ -7756,7 +7507,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         storesCount,
         pendingStores,
         pendingReports,
-        pendingDocuments,
         todayListings,
         todayUsers,
         lastWeekUsers
@@ -7769,7 +7519,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         db.select({ count: count() }).from(stores),
         db.select({ count: count() }).from(stores).where(eq(stores.status, "pending")),
         db.select({ count: count() }).from(reports).where(eq(reports.status, "pending")),
-        db.select({ count: count() }).from(listingDocuments).where(eq(listingDocuments.status, "pending")),
         db.select({ count: count() }).from(listings).where(gte(listings.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte(users.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte(users.createdAt, weekStart))
@@ -7788,7 +7537,6 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         totalStores: Number(storesCount[0].count),
         pendingStores: Number(pendingStores[0].count),
         pendingReports: Number(pendingReports[0].count),
-        pendingDocuments: Number(pendingDocuments[0].count),
         todayListings: Number(todayListings[0].count),
         todayUsers: Number(todayUsers[0].count),
         weeklyGrowth: weeklyGrowth,

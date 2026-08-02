@@ -19,7 +19,6 @@ import {
   FileText,
   Users,
   Store,
-  FileCheck,
   Flag,
   BookOpen,
   Settings,
@@ -47,7 +46,6 @@ interface AdminStats {
   pendingListings: number;
   pendingStores: number;
   pendingReports: number;
-  pendingDocuments: number;
 }
 
 interface NavItem {
@@ -173,14 +171,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           icon: Flag,
           badge: stats?.pendingReports,
           badgeVariant: stats?.pendingReports ? "destructive" : undefined,
-        },
-        { 
-          id: "documents", 
-          label: "Belgeler", 
-          href: "/admin/belgeler", 
-          icon: FileCheck,
-          badge: stats?.pendingDocuments,
-          badgeVariant: stats?.pendingDocuments ? "secondary" : undefined,
         },
       ],
     },

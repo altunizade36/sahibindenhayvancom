@@ -53,13 +53,6 @@ interface CategoryNode {
   children: CategoryNode[];
 }
 
-interface UploadedDocument {
-  id: string;
-  documentType: string;
-  documentUrl: string;
-  documentNumber?: string;
-  status: string;
-}
 
 const listingFormSchema = z.object({
   categoryId: z.string().min(1, "Kategori seçiniz"),
@@ -94,26 +87,10 @@ const listingFormSchema = z.object({
   acceptAnimalLaws: z.boolean().refine((val) => val === true, {
     message: "Hayvan hakları beyanını onaylamanız gerekmektedir",
   }),
-  hasRequiredDocuments: z.boolean().refine((val) => val === true, {
-    message: "Gerekli belgelere sahip olduğunuzu onaylamanız gerekmektedir",
-  }),
 });
 
 type ListingFormData = z.infer<typeof listingFormSchema>;
 
-const DOCUMENT_TYPES = [
-  { value: "microchip", label: "Mikroçip Belgesi" },
-  { value: "passport", label: "Hayvan Pasaportu" },
-  { value: "vaccination", label: "Aşı Kartı" },
-  { value: "health_certificate", label: "Veteriner Sağlık Raporu" },
-  { value: "pedigree", label: "Soy Belgesi (Pedigree)" },
-  { value: "cites", label: "CITES Belgesi" },
-  { value: "turkvet", label: "TÜRKVET Kayıt Belgesi" },
-  { value: "ear_tag", label: "Kulak Küpesi Belgesi" },
-  { value: "transport", label: "Nakil Belgesi" },
-  { value: "breeding_permit", label: "Yetiştiricilik Belgesi" },
-  { value: "other", label: "Diğer" },
-];
 
 const getCategoryType = (categorySlug: string | null): 'pet' | 'livestock' | 'bird' | 'fish' | 'other' => {
   if (!categorySlug) return 'other';
@@ -139,8 +116,6 @@ export default function CreateListing() {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
-  const [uploadingDocument, setUploadingDocument] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -179,7 +154,6 @@ export default function CreateListing() {
       warrantyInfo: "",
       acceptListingRules: false,
       acceptAnimalLaws: false,
-      hasRequiredDocuments: false,
     },
   });
 
@@ -222,16 +196,6 @@ export default function CreateListing() {
   const selectedCategorySlug = getSelectedCategorySlug();
   const categoryType = getCategoryType(selectedCategorySlug);
 
-  interface DocumentRequirement {
-    id: string;
-    categorySlug: string;
-    documentType: string;
-    requirement: 'required' | 'recommended' | 'optional';
-    description: string | null;
-    legalReference: string | null;
-    penaltyInfo: string | null;
-  }
-
   interface CategoryRestriction {
     id: string;
     categorySlug: string;
@@ -243,39 +207,30 @@ export default function CreateListing() {
     isActive: boolean;
   }
 
-  interface DocumentRequirementsResponse {
-    requirements: DocumentRequirement[];
+  interface CategoryRestrictionsResponse {
     restrictions: CategoryRestriction[];
     categorySlug: string;
   }
 
-  const { data: documentRequirements } = useQuery<DocumentRequirementsResponse>({
-    queryKey: ['/api/categories', selectedCategorySlug, 'document-requirements'],
+  /**
+   * Kategoriye ait yasal satış kısıtlamaları.
+   *
+   * Belge yükleme özelliği kaldırıldı, bu uyarı kaldı: koruma altındaki
+   * türlerin satışı 5199 sayılı Hayvanları Koruma Kanunu kapsamında yasaktır
+   * ve kullanıcı ilan vermeye başlamadan önce uyarılmalıdır.
+   */
+  const { data: kategoriKisitlamalari } = useQuery<CategoryRestrictionsResponse>({
+    queryKey: ['/api/categories', selectedCategorySlug, 'restrictions'],
     queryFn: async () => {
       if (!selectedCategorySlug) return null;
-      const response = await fetch(`/api/categories/${selectedCategorySlug}/document-requirements`);
+      const response = await fetch(`/api/categories/${selectedCategorySlug}/restrictions`);
       if (!response.ok) return null;
       return response.json();
     },
     enabled: !!selectedCategorySlug && selectedCategorySlug.length > 0,
   });
 
-  const hasBlockingRestriction = documentRequirements?.restrictions.some(
-    r => r.restrictionType === 'banned' || r.restrictionType === 'individual_only'
-  );
-
-  const requiredDocuments = documentRequirements?.requirements.filter(
-    r => r.requirement === 'required'
-  ) || [];
-
-  const recommendedDocuments = documentRequirements?.requirements.filter(
-    r => r.requirement === 'recommended'
-  ) || [];
-
-  const getDocumentTypeName = (type: string): string => {
-    const doc = DOCUMENT_TYPES.find(d => d.value === type);
-    return doc?.label || type;
-  };
+  const kisitlamalar = kategoriKisitlamalari?.restrictions ?? [];
 
   const createDraftMutation = useMutation({
     mutationFn: async (data: Partial<ListingFormData>) => {
@@ -432,39 +387,6 @@ export default function CreateListing() {
     }
   }, [uploadedImages, toast]);
 
-  const handleDocumentUpload = useCallback(async (file: File, documentType: string, documentNumber?: string) => {
-    if (!draftId) {
-      toast({ title: "Uyarı", description: "Önce ilanınızı taslak olarak kaydedin", variant: "destructive" });
-      return;
-    }
-
-    setUploadingDocument(true);
-    try {
-      const formData = new FormData();
-      formData.append('document', file);
-      formData.append('documentType', documentType);
-      if (documentNumber) formData.append('documentNumber', documentNumber);
-
-      const response = await fetch(`/api/listings/${draftId}/documents`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setUploadedDocuments(prev => [...prev, result.document]);
-        toast({ title: "Başarılı", description: "Belge yüklendi" });
-      } else {
-        const error = await response.json();
-        toast({ title: "Hata", description: error.message || "Belge yüklenemedi", variant: "destructive" });
-      }
-    } catch {
-      toast({ title: "Hata", description: "Belge yüklenirken bir hata oluştu", variant: "destructive" });
-    } finally {
-      setUploadingDocument(false);
-    }
-  }, [draftId, toast]);
 
   const removeImage = (index: number) => {
     setUploadedImages(prev => {
@@ -537,7 +459,7 @@ export default function CreateListing() {
 
   const canProceedStep1 = form.watch("categoryId") && form.watch("city") && form.watch("district");
   const canProceedStep2 = form.watch("title") && form.watch("description") && form.watch("price");
-  const canSubmit = form.watch("acceptListingRules") && form.watch("acceptAnimalLaws") && form.watch("hasRequiredDocuments");
+  const canSubmit = form.watch("acceptListingRules") && form.watch("acceptAnimalLaws");
 
   const progressPercent = (step / totalSteps) * 100;
 
@@ -565,7 +487,7 @@ export default function CreateListing() {
                 Adım {step} / {totalSteps} - {
                   step === 1 ? "Kategori ve Konum" : 
                   step === 2 ? "İlan Detayları ve Medya" : 
-                  "Belgeler ve Önizleme"
+                  "Önizleme ve Onay"
                 }
               </CardDescription>
             </div>
@@ -599,7 +521,7 @@ export default function CreateListing() {
                 }`}
                 data-testid={`step-indicator-${s}`}
               >
-                {s === 1 ? "Kategori" : s === 2 ? "Detaylar" : "Belgeler"}
+                {s === 1 ? "Kategori" : s === 2 ? "Detaylar" : "Önizleme"}
               </button>
             ))}
           </div>
@@ -676,68 +598,26 @@ export default function CreateListing() {
                     </div>
                   </div>
 
-                  {/* Document Requirements Alerts */}
-                  {selectedCategorySlug && documentRequirements && (documentRequirements.requirements.length > 0 || documentRequirements.restrictions.length > 0) && (
-                    <div className="space-y-3" data-testid="document-requirements-section">
-                      {documentRequirements.restrictions.length > 0 && (
-                        <Alert variant="destructive">
-                          <AlertTriangle className="h-4 w-4" />
-                          <AlertDescription>
-                            <div className="space-y-2">
-                              <p className="font-semibold">Yasal Uyarı</p>
-                              {documentRequirements.restrictions.map((restriction, idx) => (
-                                <div key={idx} className="text-sm">
-                                  <p>{restriction.reason}</p>
-                                  {restriction.legalReference && (
-                                    <p className="text-xs opacity-80 mt-1">Dayanak: {restriction.legalReference}</p>
-                                  )}
-                                  {restriction.penaltyAmount && (
-                                    <p className="text-xs font-medium mt-1">Ceza: {restriction.penaltyAmount}</p>
-                                  )}
-                                </div>
-                              ))}
+                  {kisitlamalar.length > 0 && (
+                    <Alert variant="destructive" data-testid="category-restrictions">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <p className="font-semibold">Yasal Uyarı</p>
+                          {kisitlamalar.map((restriction, idx) => (
+                            <div key={idx} className="text-sm">
+                              <p>{restriction.reason}</p>
+                              {restriction.legalReference && (
+                                <p className="text-xs opacity-80 mt-1">Dayanak: {restriction.legalReference}</p>
+                              )}
+                              {restriction.penaltyAmount && (
+                                <p className="text-xs font-medium mt-1">Ceza: {restriction.penaltyAmount}</p>
+                              )}
                             </div>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                      {requiredDocuments.length > 0 && (
-                        <Alert className="border-primary/50 bg-primary/5">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <AlertDescription>
-                            <div className="space-y-2">
-                              <p className="font-semibold text-primary">Zorunlu Belgeler</p>
-                              <ul className="list-disc pl-4 space-y-1 text-sm">
-                                {requiredDocuments.map((doc, idx) => (
-                                  <li key={idx}>
-                                    <span className="font-medium">{getDocumentTypeName(doc.documentType)}</span>
-                                    {doc.description && <span className="text-muted-foreground"> - {doc.description}</span>}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                      {recommendedDocuments.length > 0 && (
-                        <Alert className="border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20">
-                          <AlertDescription>
-                            <div className="space-y-2">
-                              <p className="font-semibold text-yellow-700 dark:text-yellow-400">Önerilen Belgeler</p>
-                              <ul className="list-disc pl-4 space-y-1 text-sm">
-                                {recommendedDocuments.map((doc, idx) => (
-                                  <li key={idx}>
-                                    <span className="font-medium">{getDocumentTypeName(doc.documentType)}</span>
-                                    {doc.description && <span className="text-muted-foreground"> - {doc.description}</span>}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
+                          ))}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
                   )}
 
                   <div className="space-y-3 md:space-y-4">
@@ -1168,67 +1048,9 @@ export default function CreateListing() {
                 </div>
               )}
 
-              {/* Step 3: Documents & Final Review */}
+              {/* Adım 3: Önizleme, ek bilgiler ve onaylar */}
               {step === 3 && (
                 <div className="space-y-5 md:space-y-6">
-                  {/* Document Upload Section */}
-                  {draftId && (
-                    <div className="space-y-3 md:space-y-4">
-                      <h3 className="text-base md:text-lg font-semibold flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        Belgeler
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        Aşı kartı, sağlık raporu, soy belgesi gibi belgeleri yükleyebilirsiniz.
-                      </p>
-
-                      {uploadedDocuments.length > 0 && (
-                        <div className="space-y-2">
-                          {uploadedDocuments.map((doc) => (
-                            <div key={doc.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                              <FileText className="w-5 h-5 text-primary" />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{getDocumentTypeName(doc.documentType)}</p>
-                                {doc.documentNumber && <p className="text-xs text-muted-foreground">No: {doc.documentNumber}</p>}
-                              </div>
-                              <Badge variant={doc.status === 'verified' ? 'default' : 'secondary'}>
-                                {doc.status === 'verified' ? 'Onaylı' : 'Beklemede'}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="p-4 border-2 border-dashed rounded-lg">
-                        <p className="text-sm font-medium mb-3">Yeni Belge Yükle</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <Select>
-                            <SelectTrigger data-testid="select-document-type">
-                              <SelectValue placeholder="Belge türü seçin" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DOCUMENT_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <label className="flex items-center justify-center gap-2 h-10 px-4 border rounded-md cursor-pointer hover:bg-accent">
-                            <input type="file" accept=".pdf,image/*" className="hidden" disabled={uploadingDocument} />
-                            {uploadingDocument ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                            <span className="text-sm">Dosya Seç</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!draftId && (
-                    <Alert>
-                      <AlertDescription>
-                        Belge yüklemek için önce ilanınızı "Taslak Kaydet" butonu ile kaydedin.
-                      </AlertDescription>
-                    </Alert>
-                  )}
 
                   {/* Delivery & Warranty Info */}
                   <div className="space-y-3 md:space-y-4">
@@ -1305,24 +1127,6 @@ export default function CreateListing() {
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-sm font-normal cursor-pointer">
                               5199 sayılı Hayvanları Koruma Kanunu ve ilgili yönetmeliklere uygun hareket edeceğimi beyan ederim.
-                            </FormLabel>
-                            <FormMessage />
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="hasRequiredDocuments"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-has-required-documents" />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-sm font-normal cursor-pointer">
-                              İlanladığım hayvanın tüm yasal belgelerine sahip olduğumu ve alıcıya teslim edeceğimi beyan ederim.
                             </FormLabel>
                             <FormMessage />
                           </div>

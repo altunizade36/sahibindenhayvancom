@@ -50,7 +50,6 @@ const AdminUsers = lazy(() => import("@/pages/admin/users"));
 const AdminListings = lazy(() => import("@/pages/admin/listings"));
 const AdminStores = lazy(() => import("@/pages/admin/stores"));
 const AdminReports = lazy(() => import("@/pages/admin/reports"));
-const AdminDocuments = lazy(() => import("@/pages/admin/documents"));
 const AdminCategories = lazy(() => import("@/pages/admin/categories"));
 const AdminBlog = lazy(() => import("@/pages/admin/blog"));
 const AdminNotifications = lazy(() => import("@/pages/admin/notifications"));
@@ -192,7 +191,6 @@ function NoSidebarLayout() {
           <Route path="/admin/ilanlar">{() => <LazyRoute component={AdminListings} />}</Route>
           <Route path="/admin/magazalar">{() => <LazyRoute component={AdminStores} />}</Route>
           <Route path="/admin/sikayetler">{() => <LazyRoute component={AdminReports} />}</Route>
-          <Route path="/admin/belgeler">{() => <LazyRoute component={AdminDocuments} />}</Route>
           <Route path="/admin/kategoriler">{() => <LazyRoute component={AdminCategories} />}</Route>
           <Route path="/admin/blog">{() => <LazyRoute component={AdminBlog} />}</Route>
           <Route path="/admin/bildirimler">{() => <LazyRoute component={AdminNotifications} />}</Route>

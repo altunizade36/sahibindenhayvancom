@@ -26,7 +26,6 @@ import {
   Wifi,
   ShieldCheck,
   RefreshCw,
-  FileCheck,
   MessageSquare,
   Bell,
   Heart,
@@ -44,7 +43,6 @@ interface AdminStats {
   pendingListings: number;
   pendingStores: number;
   pendingReports: number;
-  pendingDocuments: number;
   totalStores: number;
   totalMessages: number;
   todayListings: number;
@@ -211,12 +209,6 @@ export default function AdminDashboardPage() {
                 value={stats?.todayUsers || 0}
                 description="yeni kullanıcı"
                 icon={<Users className="h-4 w-4" />}
-              />
-              <StatCard
-                title="Bekleyen Belge"
-                value={stats?.pendingDocuments || 0}
-                icon={<FileCheck className="h-4 w-4" />}
-                variant={stats?.pendingDocuments ? "warning" : "default"}
               />
             </StatCardGrid>
           </>
@@ -422,12 +414,6 @@ export default function AdminDashboardPage() {
                   <Link href="/admin/kategoriler">
                     <FileText className="h-6 w-6" />
                     <span>Kategoriler</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
-                  <Link href="/admin/belgeler">
-                    <FileCheck className="h-6 w-6" />
-                    <span>Belgeler</span>
                   </Link>
                 </Button>
                 <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>

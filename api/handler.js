@@ -6408,103 +6408,29 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Failed to fetch category" });
     }
   });
-  app2.get("/api/categories/:slug/document-requirements", async (req, res) => {
+  app2.get("/api/categories/:slug/restrictions", async (req, res) => {
     try {
       const { slug } = req.params;
-      const requirements = await db.select().from(categoryDocumentRequirements).where(eq3(categoryDocumentRequirements.categorySlug, slug));
-      const restrictions = await db.select().from(restrictedCategories).where(and3(
+      const kisitlamalar = await db.select().from(restrictedCategories).where(and3(
         eq3(restrictedCategories.categorySlug, slug),
         eq3(restrictedCategories.isActive, true)
       ));
-      const categoryInfo = await db.select().from(categories).where(eq3(categories.slug, slug)).limit(1);
-      let parentRequirements = [];
-      let parentRestrictions = [];
-      if (categoryInfo.length > 0 && categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
-        for (const parentId of categoryInfo[0].path) {
-          const parentCat = await db.select().from(categories).where(eq3(categories.id, parentId)).limit(1);
-          if (parentCat.length > 0) {
-            const parentReqs = await db.select().from(categoryDocumentRequirements).where(eq3(categoryDocumentRequirements.categorySlug, parentCat[0].slug));
-            parentRequirements.push(...parentReqs);
-            const parentRestr = await db.select().from(restrictedCategories).where(and3(
-              eq3(restrictedCategories.categorySlug, parentCat[0].slug),
-              eq3(restrictedCategories.isActive, true)
-            ));
-            parentRestrictions.push(...parentRestr);
-          }
+      const [kategori] = await db.select({ path: categories.path }).from(categories).where(eq3(categories.slug, slug)).limit(1);
+      const atalar = Array.isArray(kategori?.path) ? kategori.path : [];
+      let devralinan = [];
+      if (atalar.length > 0) {
+        const atalarinSluglari = await db.select({ slug: categories.slug }).from(categories).where(inArray2(categories.id, atalar));
+        if (atalarinSluglari.length > 0) {
+          devralinan = await db.select().from(restrictedCategories).where(and3(
+            inArray2(restrictedCategories.categorySlug, atalarinSluglari.map((a) => a.slug)),
+            eq3(restrictedCategories.isActive, true)
+          ));
         }
       }
-      res.json({
-        requirements: [...requirements, ...parentRequirements],
-        restrictions: [...restrictions, ...parentRestrictions],
-        categorySlug: slug
-      });
+      res.json({ restrictions: [...kisitlamalar, ...devralinan], categorySlug: slug });
     } catch (error) {
-      console.error("Failed to fetch document requirements:", error);
-      res.status(500).json({ message: "Belge gereksinimleri al\u0131namad\u0131" });
-    }
-  });
-  app2.get("/api/admin/document-requirements", isAuthenticated, adminMiddleware, async (req, res) => {
-    try {
-      const user = req.user;
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Sadece adminler eri\u015Febilir" });
-      }
-      const allRequirements = await db.select().from(categoryDocumentRequirements);
-      const allRestrictions = await db.select().from(restrictedCategories);
-      res.json({
-        requirements: allRequirements,
-        restrictions: allRestrictions
-      });
-    } catch (error) {
-      console.error("Failed to fetch all document requirements:", error);
-      res.status(500).json({ message: "Belge gereksinimleri al\u0131namad\u0131" });
-    }
-  });
-  app2.get("/api/admin/listing-documents", isAuthenticated, adminMiddleware, async (req, res) => {
-    try {
-      const user = req.user;
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Sadece adminler eri\u015Febilir" });
-      }
-      const { status = "pending" } = req.query;
-      const documents = await db.select({
-        document: listingDocuments,
-        listing: listings,
-        seller: users
-      }).from(listingDocuments).leftJoin(listings, eq3(listingDocuments.listingId, listings.id)).leftJoin(users, eq3(listings.sellerId, users.id)).where(sql4`${listingDocuments.status} = ${status}`).orderBy(desc3(listingDocuments.createdAt));
-      res.json(documents);
-    } catch (error) {
-      console.error("Failed to fetch listing documents:", error);
-      res.status(500).json({ message: "Belgeler al\u0131namad\u0131" });
-    }
-  });
-  app2.patch("/api/admin/listing-documents/:id", isAuthenticated, adminMiddleware, async (req, res) => {
-    try {
-      const user = req.user;
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Sadece adminler eri\u015Febilir" });
-      }
-      const { id } = req.params;
-      const { status, rejectionReason } = req.body;
-      if (!["verified", "rejected"].includes(status)) {
-        return res.status(400).json({ message: "Ge\xE7ersiz durum" });
-      }
-      const updateData = {
-        status,
-        verifiedBy: user.id,
-        verifiedAt: /* @__PURE__ */ new Date()
-      };
-      if (status === "rejected" && rejectionReason) {
-        updateData.rejectionReason = rejectionReason;
-      }
-      const [updated] = await db.update(listingDocuments).set(updateData).where(eq3(listingDocuments.id, id)).returning();
-      if (!updated) {
-        return res.status(404).json({ message: "Belge bulunamad\u0131" });
-      }
-      res.json(updated);
-    } catch (error) {
-      console.error("Failed to update document status:", error);
-      res.status(500).json({ message: "Belge durumu g\xFCncellenemedi" });
+      console.error("Kategori k\u0131s\u0131tlamalar\u0131 al\u0131namad\u0131:", error);
+      res.status(500).json({ message: "Kategori k\u0131s\u0131tlamalar\u0131 al\u0131namad\u0131" });
     }
   });
   app2.get("/api/locations", async (req, res) => {
@@ -6811,13 +6737,6 @@ async function registerRoutes(app2, existingServer) {
         ).limit(1);
         isFavorite = !!favorite;
       }
-      const listingDocs = await db.select({
-        id: listingDocuments.id,
-        documentType: listingDocuments.documentType,
-        documentUrl: listingDocuments.documentUrl,
-        documentNumber: listingDocuments.documentNumber,
-        status: listingDocuments.status
-      }).from(listingDocuments).where(eq3(listingDocuments.listingId, listing.id));
       let sanitizedSeller = null;
       if (seller) {
         const { password: _, ...safe } = seller;
@@ -6830,8 +6749,7 @@ async function registerRoutes(app2, existingServer) {
         seller: sanitizedSeller,
         category: categoryInfo,
         store: storeInfo,
-        isFavorite,
-        documents: listingDocs
+        isFavorite
       });
     } catch (error) {
       console.error("Error fetching listing:", error);
@@ -9405,99 +9323,6 @@ async function registerRoutes(app2, existingServer) {
       res.status(500).json({ message: "Kapak g\xF6rseli g\xFCncellenirken bir hata olu\u015Ftu." });
     }
   });
-  app2.post("/api/listings/:listingId/documents", isAuthenticated, uploadDocuments.single("document"), async (req, res) => {
-    try {
-      const { listingId } = req.params;
-      const file = req.file;
-      if (!file) {
-        return res.status(400).json({ message: "Belge dosyas\u0131 gereklidir" });
-      }
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
-      if (!listing) {
-        return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
-      }
-      if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
-        return res.status(403).json({ message: "Bu ilana belge y\xFCkleme yetkiniz yok" });
-      }
-      if (!["draft", "pending", "active"].includes(listing.status || "")) {
-        return res.status(400).json({ message: "Bu ilan durumunda belge y\xFCklenemez" });
-      }
-      const documentType = req.body.documentType;
-      if (!documentType) {
-        return res.status(400).json({ message: "Belge tipi belirtilmelidir" });
-      }
-      const validDocTypes = ["microchip", "passport", "vaccination", "health_certificate", "pedigree", "cites", "turkvet", "transport", "ear_tag", "breeding_permit", "dkmp_permit", "import_permit", "other"];
-      if (!validDocTypes.includes(documentType)) {
-        return res.status(400).json({ message: "Ge\xE7ersiz belge tipi" });
-      }
-      const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        return res.status(400).json({ message: "Sadece PDF, JPEG, PNG veya WebP dosyalar\u0131 y\xFCklenebilir" });
-      }
-      const objectStorage2 = new ObjectStorageService();
-      const documentPath = await objectStorage2.uploadFileBuffer(file.buffer, file.mimetype);
-      const documentUrl = documentPath;
-      const documentKey = documentPath;
-      const [document] = await db.insert(listingDocuments).values({
-        listingId,
-        documentType,
-        documentUrl,
-        documentKey,
-        documentNumber: req.body.documentNumber || null,
-        issueDate: req.body.issueDate ? new Date(req.body.issueDate) : null,
-        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : null,
-        issuingAuthority: req.body.issuingAuthority || null,
-        status: "pending"
-      }).returning();
-      res.status(201).json({
-        message: "Belge ba\u015Far\u0131yla y\xFCklendi",
-        document
-      });
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      res.status(500).json({ message: "Belge y\xFCklenirken bir hata olu\u015Ftu" });
-    }
-  });
-  app2.get("/api/listings/:listingId/documents", async (req, res) => {
-    try {
-      const { listingId } = req.params;
-      const documents = await db.select().from(listingDocuments).where(eq3(listingDocuments.listingId, listingId)).orderBy(listingDocuments.createdAt);
-      res.json(documents);
-    } catch (error) {
-      console.error("Error fetching listing documents:", error);
-      res.status(500).json({ message: "Belgeler getirilemedi" });
-    }
-  });
-  app2.delete("/api/listings/:listingId/documents/:documentId", isAuthenticated, async (req, res) => {
-    try {
-      const { listingId, documentId } = req.params;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
-      if (!listing) {
-        return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
-      }
-      if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
-        return res.status(403).json({ message: "Bu belgeyi silme yetkiniz yok" });
-      }
-      const [document] = await db.select().from(listingDocuments).where(and3(
-        eq3(listingDocuments.id, documentId),
-        eq3(listingDocuments.listingId, listingId)
-      )).limit(1);
-      if (!document) {
-        return res.status(404).json({ message: "Belge bulunamad\u0131" });
-      }
-      try {
-        const objectStorage2 = new ObjectStorageService();
-        await objectStorage2.deleteFile(document.documentKey);
-      } catch (storageError) {
-        console.error("Error deleting document from storage:", storageError);
-      }
-      await db.delete(listingDocuments).where(eq3(listingDocuments.id, documentId));
-      res.json({ message: "Belge ba\u015Far\u0131yla silindi" });
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      res.status(500).json({ message: "Belge silinirken bir hata olu\u015Ftu" });
-    }
-  });
   app2.post("/api/listings/draft", isAuthenticated, async (req, res) => {
     try {
       const user = req.user;
@@ -9952,7 +9777,6 @@ async function registerRoutes(app2, existingServer) {
         storesCount,
         pendingStores,
         pendingReports,
-        pendingDocuments,
         todayListings,
         todayUsers,
         lastWeekUsers
@@ -9965,7 +9789,6 @@ async function registerRoutes(app2, existingServer) {
         db.select({ count: count() }).from(stores),
         db.select({ count: count() }).from(stores).where(eq3(stores.status, "pending")),
         db.select({ count: count() }).from(reports).where(eq3(reports.status, "pending")),
-        db.select({ count: count() }).from(listingDocuments).where(eq3(listingDocuments.status, "pending")),
         db.select({ count: count() }).from(listings).where(gte2(listings.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, weekStart))
@@ -9982,7 +9805,6 @@ async function registerRoutes(app2, existingServer) {
         totalStores: Number(storesCount[0].count),
         pendingStores: Number(pendingStores[0].count),
         pendingReports: Number(pendingReports[0].count),
-        pendingDocuments: Number(pendingDocuments[0].count),
         todayListings: Number(todayListings[0].count),
         todayUsers: Number(todayUsers[0].count),
         weeklyGrowth
