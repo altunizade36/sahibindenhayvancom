@@ -27,6 +27,8 @@
  * Sır tanımlı değilse uç ÜRETİMDE tamamen kapalıdır (fail-closed).
  */
 import type { Express, Request, Response } from "express";
+import { sql } from "drizzle-orm";
+import { db } from "./db";
 import { savedSearchNotifier } from "./saved-search-notifier";
 
 function yetkiliMi(req: Request): boolean {
@@ -76,6 +78,28 @@ export function registerCronRoutes(app: Express) {
     } catch (error) {
       console.error("⏰ Kayıtlı arama bildirimleri hata verdi:", error);
       res.status(500).json({ ok: false, message: "Görev tamamlanamadı" });
+    }
+  });
+
+  /**
+   * Süresi dolmuş oturumları siler.
+   *
+   * `connect-pg-simple` normalde belirli aralıklarla kendi temizliğini yapar,
+   * ama bu uzun ömürlü bir süreç gerektirir. Sunucusuz ortamda o zamanlayıcı
+   * çalışmaz; `sessions` tablosu süresi dolmuş kayıtlarla sınırsız büyür.
+   * Temizlik bu yüzden zamanlanmış göreve bağlandı.
+   */
+  app.get("/api/cron/temizlik", async (req: Request, res: Response) => {
+    if (!yetkiliMi(req)) return res.status(401).json({ message: "Yetkisiz" });
+
+    try {
+      const sonuc = await db.execute(sql`DELETE FROM sessions WHERE expire < now()`);
+      const silinen = (sonuc as any).rowCount ?? 0;
+      console.log(`🧹 Süresi dolmuş oturum temizliği: ${silinen} kayıt silindi`);
+      res.json({ ok: true, silinenOturum: silinen });
+    } catch (error) {
+      console.error("🧹 Oturum temizliği başarısız:", error);
+      res.status(500).json({ ok: false });
     }
   });
 

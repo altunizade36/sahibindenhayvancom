@@ -3451,6 +3451,9 @@ function registerPrerenderRoutes(app2) {
   app2.get("/magaza/:slug", isle((slug) => magazaMetasi(slug)));
 }
 
+// server/cron.ts
+import { sql as sql4 } from "drizzle-orm";
+
 // server/saved-search-notifier.ts
 import { Resend } from "resend";
 import { eq as eq4, and as and4, gt, desc as desc3, sql as sql3, or as or2, ilike as ilike2, inArray as inArray2 } from "drizzle-orm";
@@ -3737,6 +3740,18 @@ function registerCronRoutes(app2) {
     } catch (error) {
       console.error("\u23F0 Kay\u0131tl\u0131 arama bildirimleri hata verdi:", error);
       res.status(500).json({ ok: false, message: "G\xF6rev tamamlanamad\u0131" });
+    }
+  });
+  app2.get("/api/cron/temizlik", async (req, res) => {
+    if (!yetkiliMi(req)) return res.status(401).json({ message: "Yetkisiz" });
+    try {
+      const sonuc = await db.execute(sql4`DELETE FROM sessions WHERE expire < now()`);
+      const silinen = sonuc.rowCount ?? 0;
+      console.log(`\u{1F9F9} S\xFCresi dolmu\u015F oturum temizli\u011Fi: ${silinen} kay\u0131t silindi`);
+      res.json({ ok: true, silinenOturum: silinen });
+    } catch (error) {
+      console.error("\u{1F9F9} Oturum temizli\u011Fi ba\u015Far\u0131s\u0131z:", error);
+      res.status(500).json({ ok: false });
     }
   });
   app2.get("/api/cron/health", (req, res) => {
@@ -4045,7 +4060,7 @@ async function processStoreImage(buffer, config) {
 }
 
 // server/routes.ts
-import { eq as eq5, ne, and as and5, isNull, asc, desc as desc4, sql as sql5, count, inArray as inArray3, gte as gte2, lte as lte2, ilike as ilike3, or as or3 } from "drizzle-orm";
+import { eq as eq5, ne, and as and5, isNull, asc, desc as desc4, sql as sql6, count, inArray as inArray3, gte as gte2, lte as lte2, ilike as ilike3, or as or3 } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -4448,7 +4463,7 @@ var moderateListingSchema = z2.object({
 );
 
 // server/advancedFeatureRoutes.ts
-import { sql as sql4 } from "drizzle-orm";
+import { sql as sql5 } from "drizzle-orm";
 var getUserId = (user) => {
   if (user?.dbUserId) return user.dbUserId;
   if (user?.claims?.sub) return user.claims.sub;
@@ -4468,7 +4483,7 @@ function registerMarketPriceRoutes(app2) {
         ORDER BY date DESC 
         LIMIT ${parseInt(limit)}
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching market prices:", error);
@@ -4486,7 +4501,7 @@ function registerMarketPriceRoutes(app2) {
         ${type ? `WHERE type = '${type}'` : ""}
         ORDER BY category, city, date DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching latest prices:", error);
@@ -4506,7 +4521,7 @@ function registerMarketPriceRoutes(app2) {
         AND date >= '${daysAgo.toISOString()}'
         ORDER BY date ASC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching price history:", error);
@@ -4527,7 +4542,7 @@ function registerMarketPriceRoutes(app2) {
                 ${source ? `'${source}'` : "NULL"}, NOW())
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error adding market price:", error);
@@ -4549,7 +4564,7 @@ function registerVetOnlineRoutes(app2) {
           AND vs.verified_at IS NOT NULL
         ORDER BY vs.rating DESC NULLS LAST
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching online vets:", error);
@@ -4575,7 +4590,7 @@ function registerVetOnlineRoutes(app2) {
                 ${scheduledAt ? `'${scheduledAt}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating consultation:", error);
@@ -4598,7 +4613,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE c.client_id = '${userId}'
         ORDER BY c.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching consultations:", error);
@@ -4621,7 +4636,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE c.vet_id = '${userId}'
         ORDER BY c.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching vet consultations:", error);
@@ -4651,7 +4666,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE id = '${id}' AND (vet_id = '${userId}' OR client_id = '${userId}')
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Kons\xFCltasyon bulunamad\u0131" });
       }
@@ -4676,7 +4691,7 @@ function registerVetOnlineRoutes(app2) {
         WHERE id = '${id}' AND client_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Kons\xFCltasyon bulunamad\u0131" });
       }
@@ -4726,7 +4741,7 @@ function registerTransportRoutes(app2) {
                 ${specialRequirements ? `'${specialRequirements}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating transport request:", error);
@@ -4747,7 +4762,7 @@ function registerTransportRoutes(app2) {
         WHERE ${conditions}
         ORDER BY r.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching transport requests:", error);
@@ -4768,7 +4783,7 @@ function registerTransportRoutes(app2) {
         WHERE r.user_id = '${userId}'
         ORDER BY r.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my requests:", error);
@@ -4796,7 +4811,7 @@ function registerTransportRoutes(app2) {
                 ${expiresAt ? `'${expiresAt}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error submitting quote:", error);
@@ -4821,7 +4836,7 @@ function registerTransportRoutes(app2) {
         WHERE q.request_id = '${id}'
         ORDER BY q.price ASC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching quotes:", error);
@@ -4839,7 +4854,7 @@ function registerTransportRoutes(app2) {
       const updateQuote = `
         UPDATE transport_quotes SET is_accepted = true WHERE id = '${id}' RETURNING request_id
       `;
-      const quoteResult = await db.execute(sql4.raw(updateQuote));
+      const quoteResult = await db.execute(sql5.raw(updateQuote));
       if (quoteResult.rows.length === 0) {
         return res.status(404).json({ message: "Teklif bulunamad\u0131" });
       }
@@ -4850,7 +4865,7 @@ function registerTransportRoutes(app2) {
         WHERE id = '${requestId}' AND user_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(updateRequest));
+      const result = await db.execute(sql5.raw(updateRequest));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error accepting quote:", error);
@@ -4877,7 +4892,7 @@ function registerB2BRoutes(app2) {
         ${city ? `AND u.city ILIKE '%${city}%'` : ""}
         ORDER BY l.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching B2B listings:", error);
@@ -4887,7 +4902,7 @@ function registerB2BRoutes(app2) {
   app2.get("/api/b2b/listings/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await db.execute(sql4.raw(`
+      await db.execute(sql5.raw(`
         UPDATE b2b_listings SET view_count = view_count + 1 WHERE id = '${id}'
       `));
       const query = `
@@ -4899,7 +4914,7 @@ function registerB2BRoutes(app2) {
         LEFT JOIN stores s ON l.store_id = s.id
         WHERE l.id = '${id}'
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -4948,7 +4963,7 @@ function registerB2BRoutes(app2) {
                 '${JSON.stringify(deliveryOptions || [])}')
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating B2B listing:", error);
@@ -4964,7 +4979,7 @@ function registerB2BRoutes(app2) {
       }
       const { listingId, quantity, deliveryAddress, deliveryCity, deliveryNotes } = req.body;
       const listingQuery = `SELECT * FROM b2b_listings WHERE id = '${listingId}' AND status = 'active'`;
-      const listingResult = await db.execute(sql4.raw(listingQuery));
+      const listingResult = await db.execute(sql5.raw(listingQuery));
       if (listingResult.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131 veya stokta yok" });
       }
@@ -4991,8 +5006,8 @@ function registerB2BRoutes(app2) {
                 ${deliveryNotes ? `'${deliveryNotes}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
-      await db.execute(sql4.raw(`
+      const result = await db.execute(sql5.raw(query));
+      await db.execute(sql5.raw(`
         UPDATE b2b_listings SET order_count = order_count + 1 WHERE id = '${listingId}'
       `));
       res.json(result.rows[0]);
@@ -5018,7 +5033,7 @@ function registerB2BRoutes(app2) {
         WHERE o.buyer_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my orders:", error);
@@ -5043,7 +5058,7 @@ function registerB2BRoutes(app2) {
         WHERE o.seller_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching seller orders:", error);
@@ -5071,7 +5086,7 @@ function registerB2BRoutes(app2) {
         WHERE id = '${id}' AND seller_id = '${userId}'
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Sipari\u015F bulunamad\u0131" });
       }
@@ -5101,7 +5116,7 @@ function registerWholesaleRoutes(app2) {
         ${city ? `AND u.city ILIKE '%${city}%'` : ""}
         ORDER BY p.is_certified DESC, p.rating DESC, p.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching wholesale products:", error);
@@ -5120,7 +5135,7 @@ function registerWholesaleRoutes(app2) {
         LEFT JOIN stores s ON p.store_id = s.id
         WHERE p.id = '${id}'
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -5170,7 +5185,7 @@ function registerWholesaleRoutes(app2) {
                 '${JSON.stringify(deliveryZones || [])}')
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating wholesale product:", error);
@@ -5186,7 +5201,7 @@ function registerWholesaleRoutes(app2) {
       }
       const { productId, quantity, deliveryAddress, deliveryCity, deliveryNotes } = req.body;
       const productQuery = `SELECT * FROM wholesale_products WHERE id = '${productId}' AND status = 'active'`;
-      const productResult = await db.execute(sql4.raw(productQuery));
+      const productResult = await db.execute(sql5.raw(productQuery));
       if (productResult.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
       }
@@ -5212,8 +5227,8 @@ function registerWholesaleRoutes(app2) {
                 ${deliveryNotes ? `'${deliveryNotes}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
-      await db.execute(sql4.raw(`
+      const result = await db.execute(sql5.raw(query));
+      await db.execute(sql5.raw(`
         UPDATE wholesale_products SET order_count = order_count + 1 WHERE id = '${productId}'
       `));
       res.json(result.rows[0]);
@@ -5239,7 +5254,7 @@ function registerWholesaleRoutes(app2) {
         WHERE o.buyer_id = '${userId}'
         ORDER BY o.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching my orders:", error);
@@ -5261,7 +5276,7 @@ function registerWholesaleRoutes(app2) {
         WHERE id = '${id}' AND buyer_id = '${userId}' AND status = 'delivered'
         RETURNING product_id
       `;
-      const result = await db.execute(sql4.raw(updateOrder));
+      const result = await db.execute(sql5.raw(updateOrder));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Sipari\u015F bulunamad\u0131 veya de\u011Ferlendirilemez" });
       }
@@ -5278,7 +5293,7 @@ function registerWholesaleRoutes(app2) {
         )
         WHERE id = '${productId}'
       `;
-      await db.execute(sql4.raw(updateRating));
+      await db.execute(sql5.raw(updateRating));
       res.json({ success: true });
     } catch (error) {
       console.error("Error rating order:", error);
@@ -5307,7 +5322,7 @@ function registerFarmTVRoutes(app2) {
           END,
           s.scheduled_at ASC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching streams:", error);
@@ -5317,7 +5332,7 @@ function registerFarmTVRoutes(app2) {
   app2.get("/api/farm-tv/streams/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await db.execute(sql4.raw(`
+      await db.execute(sql5.raw(`
         UPDATE farm_tv_streams SET total_views = total_views + 1 WHERE id = '${id}'
       `));
       const query = `
@@ -5327,7 +5342,7 @@ function registerFarmTVRoutes(app2) {
         INNER JOIN users u ON s.streamer_id = u.id
         WHERE s.id = '${id}'
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Yay\u0131n bulunamad\u0131" });
       }
@@ -5357,7 +5372,7 @@ function registerFarmTVRoutes(app2) {
                 false)
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows[0]);
     } catch (error) {
       console.error("Error creating stream:", error);
@@ -5380,8 +5395,8 @@ function registerFarmTVRoutes(app2) {
                 ${quantity || 1}, ${tokenValue}, ${message ? `'${message}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
-      await db.execute(sql4.raw(`
+      const result = await db.execute(sql5.raw(query));
+      await db.execute(sql5.raw(`
         UPDATE farm_tv_streams 
         SET total_gifts = total_gifts + ${quantity || 1},
             total_earnings = total_earnings + ${tokenValue * (quantity || 1)}
@@ -5410,7 +5425,7 @@ function registerVerificationRoutes(app2) {
         AND status IN ('pending', 'approved')
         LIMIT 1
       `;
-      const existing = await db.execute(sql4.raw(existingQuery));
+      const existing = await db.execute(sql5.raw(existingQuery));
       if (existing.rows.length > 0) {
         const existingStatus = existing.rows[0].status;
         if (existingStatus === "approved") {
@@ -5429,7 +5444,7 @@ function registerVerificationRoutes(app2) {
                 ${notes ? `'${notes.replace(/'/g, "''")}'` : "NULL"})
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json({ success: true, verification: result.rows[0] });
     } catch (error) {
       console.error("Error creating verification request:", error);
@@ -5448,7 +5463,7 @@ function registerVerificationRoutes(app2) {
         WHERE pv.user_id = '${userId}'
         ORDER BY pv.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching verification status:", error);
@@ -5475,7 +5490,7 @@ function registerVerificationRoutes(app2) {
           CASE pv.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END,
           pv.created_at DESC
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       res.json(result.rows);
     } catch (error) {
       console.error("Error fetching verifications:", error);
@@ -5502,18 +5517,18 @@ function registerVerificationRoutes(app2) {
         WHERE id = '${id}'
         RETURNING *
       `;
-      const result = await db.execute(sql4.raw(query));
+      const result = await db.execute(sql5.raw(query));
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Do\u011Frulama talebi bulunamad\u0131" });
       }
       const verification = result.rows[0];
       if (status === "approved") {
         if (verification.professional_type === "veterinarian") {
-          await db.execute(sql4.raw(`
+          await db.execute(sql5.raw(`
             UPDATE vet_services SET verified = true WHERE vet_id = '${verification.user_id}'
           `));
         } else if (verification.professional_type === "transporter") {
-          await db.execute(sql4.raw(`
+          await db.execute(sql5.raw(`
             UPDATE transport_services SET verified = true WHERE transporter_id = '${verification.user_id}'
           `));
         }
@@ -6226,7 +6241,7 @@ async function registerRoutes(app2, existingServer) {
             lastMessageId: newMessage.id,
             lastMessageAt: /* @__PURE__ */ new Date(),
             updatedAt: /* @__PURE__ */ new Date(),
-            ...isParticipant1Receiver ? { participant1UnreadCount: sql5`${conversations.participant1UnreadCount} + 1` } : { participant2UnreadCount: sql5`${conversations.participant2UnreadCount} + 1` }
+            ...isParticipant1Receiver ? { participant1UnreadCount: sql6`${conversations.participant1UnreadCount} + 1` } : { participant2UnreadCount: sql6`${conversations.participant2UnreadCount} + 1` }
           }).where(eq5(conversations.id, conversation.id));
           const receiverOnline = broadcastToUser(message.receiverId, {
             type: "chat",
@@ -7129,10 +7144,10 @@ async function registerRoutes(app2, existingServer) {
       if (!q || q.length < 2) return res.json({ listings: [], categories: [] });
       const [listingSuggestions, categorySuggestions] = await Promise.all([
         db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and5(
-          sql5`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
+          sql6`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
           eq5(listings.status, "active")
         )).orderBy(desc4(listings.createdAt)).limit(6),
-        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(sql5`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`).limit(4)
+        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(sql6`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`).limit(4)
       ]);
       res.json({ listings: listingSuggestions, categories: categorySuggestions });
     } catch (err) {
@@ -7226,7 +7241,7 @@ async function registerRoutes(app2, existingServer) {
       if (search) {
         const searchTerm = `%${search}%`;
         conditions.push(
-          sql5`(
+          sql6`(
             public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${searchTerm})
             OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${searchTerm})
             OR public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${searchTerm})
@@ -7236,13 +7251,13 @@ async function registerRoutes(app2, existingServer) {
       if (minAge) {
         const minAgeNum = parseInt(minAge, 10);
         if (!isNaN(minAgeNum)) {
-          conditions.push(sql5`CAST(${listings.age} AS INTEGER) >= ${minAgeNum}`);
+          conditions.push(sql6`CAST(${listings.age} AS INTEGER) >= ${minAgeNum}`);
         }
       }
       if (maxAge) {
         const maxAgeNum = parseInt(maxAge, 10);
         if (!isNaN(maxAgeNum)) {
-          conditions.push(sql5`CAST(${listings.age} AS INTEGER) <= ${maxAgeNum}`);
+          conditions.push(sql6`CAST(${listings.age} AS INTEGER) <= ${maxAgeNum}`);
         }
       }
       if (gender && gender !== "all") {
@@ -7250,7 +7265,7 @@ async function registerRoutes(app2, existingServer) {
       }
       if (breed && typeof breed === "string" && breed.trim()) {
         conditions.push(
-          sql5`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
+          sql6`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
         );
       }
       if (healthStatus && healthStatus !== "all") {
@@ -7280,7 +7295,7 @@ async function registerRoutes(app2, existingServer) {
         const range = ageRanges[ageCategory];
         if (range) {
           conditions.push(
-            sql5`(${listings.age} = ${ageCategory} OR 
+            sql6`(${listings.age} = ${ageCategory} OR 
                 (${listings.age} ~ '^[0-9]+$' AND CAST(${listings.age} AS INTEGER) >= ${range[0]} AND CAST(${listings.age} AS INTEGER) < ${range[1]}))`
           );
         }
@@ -7294,9 +7309,9 @@ async function registerRoutes(app2, existingServer) {
         }
         if (traitsArray.length > 0) {
           const traitConditions = traitsArray.map(
-            (trait) => sql5`${listings.characterTraits}::jsonb @> ${JSON.stringify([trait])}::jsonb`
+            (trait) => sql6`${listings.characterTraits}::jsonb @> ${JSON.stringify([trait])}::jsonb`
           );
-          conditions.push(sql5`(${sql5.join(traitConditions, sql5` OR `)})`);
+          conditions.push(sql6`(${sql6.join(traitConditions, sql6` OR `)})`);
         }
       }
       const validConditions = conditions.filter(Boolean);
@@ -7369,7 +7384,7 @@ async function registerRoutes(app2, existingServer) {
         and5(
           eq5(listings.categoryId, currentListing.categoryId),
           eq5(listings.status, "active"),
-          sql5`${listings.id} != ${req.params.id}`
+          sql6`${listings.id} != ${req.params.id}`
           // Exclude current listing
         )
       ).orderBy(desc4(listings.views)).limit(8);
@@ -7387,7 +7402,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
-      await db.update(listings).set({ views: sql5`${listings.views} + 1` }).where(eq5(listings.id, req.params.id));
+      await db.update(listings).set({ views: sql6`${listings.views} + 1` }).where(eq5(listings.id, req.params.id));
       const [seller] = await db.select().from(users).where(eq5(users.id, listing.sellerId)).limit(1);
       let categoryInfo = null;
       if (listing.categoryId) {
@@ -7453,10 +7468,10 @@ async function registerRoutes(app2, existingServer) {
       const duplicates = await db.select().from(listings).where(
         and5(
           eq5(listings.sellerId, sellerId),
-          sql5`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
+          sql6`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
           gte2(listings.createdAt, oneHourAgo),
           // Ignore rejected/deleted listings
-          sql5`${listings.status} NOT IN ('rejected', 'deleted')`
+          sql6`${listings.status} NOT IN ('rejected', 'deleted')`
         )
       ).limit(1);
       if (duplicates.length > 0) {
@@ -7469,7 +7484,7 @@ async function registerRoutes(app2, existingServer) {
         and5(
           eq5(listings.sellerId, sellerId),
           gte2(listings.createdAt, oneHourAgo),
-          sql5`${listings.status} NOT IN ('rejected', 'deleted')`
+          sql6`${listings.status} NOT IN ('rejected', 'deleted')`
         )
       );
       if (recentListings[0] && Number(recentListings[0].count) >= 5) {
@@ -8308,7 +8323,7 @@ async function registerRoutes(app2, existingServer) {
         and5(
           eq5(messages.conversationId, conversationId),
           eq5(messages.receiverId, userId),
-          sql5`${messages.status} != 'read'`
+          sql6`${messages.status} != 'read'`
         )
       );
       res.json({ message: "Konu\u015Fma okundu olarak i\u015Faretlendi" });
@@ -8383,7 +8398,7 @@ async function registerRoutes(app2, existingServer) {
           district: listings.district
         }
       }).from(messages).leftJoin(listings, eq5(messages.listingId, listings.id)).where(
-        sql5`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
+        sql6`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
       ).orderBy(messages.createdAt);
       const result = msgs.map((row) => ({
         ...row.message,
@@ -8448,7 +8463,7 @@ async function registerRoutes(app2, existingServer) {
           lastMessageId: message.id,
           lastMessageAt: /* @__PURE__ */ new Date(),
           updatedAt: /* @__PURE__ */ new Date(),
-          ...isParticipant1Receiver ? { participant1UnreadCount: sql5`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` } : { participant2UnreadCount: sql5`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }
+          ...isParticipant1Receiver ? { participant1UnreadCount: sql6`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` } : { participant2UnreadCount: sql6`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }
         }).where(eq5(conversations.id, conversationId));
       }
       try {
@@ -8769,7 +8784,7 @@ async function registerRoutes(app2, existingServer) {
       if (!name || !filters) {
         return res.status(400).json({ message: "Arama ad\u0131 ve filtreler gereklidir" });
       }
-      const existingSearches = await db.select({ count: sql5`count(*)::int` }).from(savedSearches).where(eq5(savedSearches.userId, userId));
+      const existingSearches = await db.select({ count: sql6`count(*)::int` }).from(savedSearches).where(eq5(savedSearches.userId, userId));
       const searchCount = existingSearches[0]?.count ?? 0;
       if (searchCount >= 10) {
         return res.status(400).json({ message: "En fazla 10 arama kaydedebilirsiniz" });
@@ -8934,15 +8949,15 @@ async function registerRoutes(app2, existingServer) {
           eq5(sellerReviews.status, "active")
         )
       ).orderBy(desc4(sellerReviews.createdAt)).limit(limitNum).offset(offset);
-      const [countResult] = await db.select({ count: sql5`count(*)` }).from(sellerReviews).where(
+      const [countResult] = await db.select({ count: sql6`count(*)` }).from(sellerReviews).where(
         and5(
           eq5(sellerReviews.sellerId, sellerId),
           eq5(sellerReviews.status, "active")
         )
       );
       const [avgResult] = await db.select({
-        avgRating: sql5`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql5`count(*)`
+        avgRating: sql6`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql6`count(*)`
       }).from(sellerReviews).where(
         and5(
           eq5(sellerReviews.sellerId, sellerId),
@@ -8951,7 +8966,7 @@ async function registerRoutes(app2, existingServer) {
       );
       const ratingDistribution = await db.select({
         rating: sellerReviews.rating,
-        count: sql5`count(*)`
+        count: sql6`count(*)`
       }).from(sellerReviews).where(
         and5(
           eq5(sellerReviews.sellerId, sellerId),
@@ -8979,8 +8994,8 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { sellerId } = req.params;
       const [result] = await db.select({
-        avgRating: sql5`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql5`count(*)`
+        avgRating: sql6`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql6`count(*)`
       }).from(sellerReviews).where(
         and5(
           eq5(sellerReviews.sellerId, sellerId),
@@ -9012,7 +9027,7 @@ async function registerRoutes(app2, existingServer) {
         and5(
           eq5(sellerReviews.sellerId, sellerId),
           eq5(sellerReviews.reviewerId, reviewerId),
-          listingId ? eq5(sellerReviews.listingId, listingId) : sql5`true`
+          listingId ? eq5(sellerReviews.listingId, listingId) : sql6`true`
         )
       ).limit(1);
       if (existingReview.length > 0) {
@@ -9031,8 +9046,8 @@ async function registerRoutes(app2, existingServer) {
         isVerifiedPurchase
       }).returning();
       const [avgResult] = await db.select({
-        avgRating: sql5`COALESCE(AVG(rating), 0)`,
-        totalReviews: sql5`count(*)`
+        avgRating: sql6`COALESCE(AVG(rating), 0)`,
+        totalReviews: sql6`count(*)`
       }).from(sellerReviews).where(
         and5(
           eq5(sellerReviews.sellerId, sellerId),
@@ -9090,7 +9105,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { reviewId } = req.params;
       const [updated] = await db.update(sellerReviews).set({
-        helpfulCount: sql5`helpful_count + 1`
+        helpfulCount: sql6`helpful_count + 1`
       }).where(eq5(sellerReviews.id, reviewId)).returning();
       if (!updated) {
         return res.status(404).json({ message: "De\u011Ferlendirme bulunamad\u0131" });
@@ -9116,13 +9131,13 @@ async function registerRoutes(app2, existingServer) {
       );
       const categoryIds = allCategories.map((c) => c.id);
       const [stats] = await db.select({
-        totalListings: sql5`count(*)`,
-        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
-        minPrice: sql5`COALESCE(MIN(CAST(${listings.price} AS DECIMAL)), 0)`,
-        maxPrice: sql5`COALESCE(MAX(CAST(${listings.price} AS DECIMAL)), 0)`,
-        medianPrice: sql5`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(${listings.price} AS DECIMAL))`,
-        totalViews: sql5`COALESCE(SUM(${listings.views}), 0)`,
-        totalFavorites: sql5`COALESCE(SUM(${listings.favoriteCount}), 0)`
+        totalListings: sql6`count(*)`,
+        avgPrice: sql6`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`,
+        minPrice: sql6`COALESCE(MIN(CAST(${listings.price} AS DECIMAL)), 0)`,
+        maxPrice: sql6`COALESCE(MAX(CAST(${listings.price} AS DECIMAL)), 0)`,
+        medianPrice: sql6`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(${listings.price} AS DECIMAL))`,
+        totalViews: sql6`COALESCE(SUM(${listings.views}), 0)`,
+        totalFavorites: sql6`COALESCE(SUM(${listings.favoriteCount}), 0)`
       }).from(listings).where(
         and5(
           inArray3(listings.categoryId, categoryIds),
@@ -9131,15 +9146,15 @@ async function registerRoutes(app2, existingServer) {
       );
       const cityDistribution = await db.select({
         city: listings.city,
-        count: sql5`count(*)`
+        count: sql6`count(*)`
       }).from(listings).where(
         and5(
           inArray3(listings.categoryId, categoryIds),
           eq5(listings.status, "active")
         )
-      ).groupBy(listings.city).orderBy(desc4(sql5`count(*)`)).limit(10);
+      ).groupBy(listings.city).orderBy(desc4(sql6`count(*)`)).limit(10);
       const priceRanges = await db.select({
-        range: sql5`
+        range: sql6`
             CASE 
               WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
               WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
@@ -9149,13 +9164,13 @@ async function registerRoutes(app2, existingServer) {
               ELSE '50K+'
             END
           `,
-        count: sql5`count(*)`
+        count: sql6`count(*)`
       }).from(listings).where(
         and5(
           inArray3(listings.categoryId, categoryIds),
           eq5(listings.status, "active")
         )
-      ).groupBy(sql5`
+      ).groupBy(sql6`
           CASE 
             WHEN CAST(${listings.price} AS DECIMAL) < 1000 THEN '0-1K'
             WHEN CAST(${listings.price} AS DECIMAL) < 5000 THEN '1K-5K'
@@ -9166,14 +9181,14 @@ async function registerRoutes(app2, existingServer) {
           END
         `);
       const listingsByDate = await db.select({
-        date: sql5`DATE(${listings.createdAt})`,
-        count: sql5`count(*)`
+        date: sql6`DATE(${listings.createdAt})`,
+        count: sql6`count(*)`
       }).from(listings).where(
         and5(
           inArray3(listings.categoryId, categoryIds),
-          sql5`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
+          sql6`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
         )
-      ).groupBy(sql5`DATE(${listings.createdAt})`).orderBy(sql5`DATE(${listings.createdAt})`);
+      ).groupBy(sql6`DATE(${listings.createdAt})`).orderBy(sql6`DATE(${listings.createdAt})`);
       res.json({
         categorySlug,
         categoryName: category[0].name,
@@ -9203,7 +9218,7 @@ async function registerRoutes(app2, existingServer) {
       const trends = await db.select().from(categoryStats).where(
         and5(
           eq5(categoryStats.categorySlug, categorySlug),
-          sql5`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
+          sql6`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
         )
       ).orderBy(categoryStats.date);
       res.json(trends);
@@ -9252,22 +9267,22 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/market-stats", async (req, res) => {
     try {
       const [overallStats] = await db.select({
-        totalListings: sql5`count(*)`,
-        activeListings: sql5`count(*) FILTER (WHERE ${listings.status} = 'active')`,
-        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)) FILTER (WHERE ${listings.status} = 'active'), 0)`,
-        totalViews: sql5`COALESCE(SUM(${listings.views}), 0)`
+        totalListings: sql6`count(*)`,
+        activeListings: sql6`count(*) FILTER (WHERE ${listings.status} = 'active')`,
+        avgPrice: sql6`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)) FILTER (WHERE ${listings.status} = 'active'), 0)`,
+        totalViews: sql6`COALESCE(SUM(${listings.views}), 0)`
       }).from(listings);
       const topCategories = await db.select({
         categoryId: listings.categoryId,
         categoryName: categories.name,
         categorySlug: categories.slug,
-        count: sql5`count(*)`,
-        avgPrice: sql5`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`
-      }).from(listings).leftJoin(categories, eq5(listings.categoryId, categories.id)).where(eq5(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc4(sql5`count(*)`)).limit(10);
+        count: sql6`count(*)`,
+        avgPrice: sql6`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`
+      }).from(listings).leftJoin(categories, eq5(listings.categoryId, categories.id)).where(eq5(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc4(sql6`count(*)`)).limit(10);
       const recentActivity = await db.select({
-        date: sql5`DATE(${listings.createdAt})`,
-        count: sql5`count(*)`
-      }).from(listings).where(sql5`${listings.createdAt} >= CURRENT_DATE - INTERVAL '7 days'`).groupBy(sql5`DATE(${listings.createdAt})`).orderBy(sql5`DATE(${listings.createdAt})`);
+        date: sql6`DATE(${listings.createdAt})`,
+        count: sql6`count(*)`
+      }).from(listings).where(sql6`${listings.createdAt} >= CURRENT_DATE - INTERVAL '7 days'`).groupBy(sql6`DATE(${listings.createdAt})`).orderBy(sql6`DATE(${listings.createdAt})`);
       res.json({
         overview: {
           totalListings: Number(overallStats?.totalListings || 0),
@@ -9313,7 +9328,7 @@ async function registerRoutes(app2, existingServer) {
       if (file.size > maxSize) {
         return res.status(400).json({ message: `Video boyutu ${maxVideoMb}MB'\u0131 ge\xE7emez.` });
       }
-      const existingVideos = await db.select({ count: sql5`count(*)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
+      const existingVideos = await db.select({ count: sql6`count(*)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
       if (Number(existingVideos[0]?.count || 0) >= 3) {
         return res.status(400).json({ message: "Bir ilan i\xE7in en fazla 3 video y\xFCkleyebilirsiniz." });
       }
@@ -9329,7 +9344,7 @@ async function registerRoutes(app2, existingServer) {
           file.buffer,
           file.mimetype
         );
-        const maxOrderResult = await db.select({ maxOrder: sql5`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql6`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq5(listingVideos.listingId, listingId));
         const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1;
         const [video] = await db.insert(listingVideos).values({
           listingId,
@@ -9529,7 +9544,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/contact-requests/count", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const [result] = await db.select({ count: sql5`count(*)` }).from(contactRequests).where(
+      const [result] = await db.select({ count: sql6`count(*)` }).from(contactRequests).where(
         and5(
           eq5(contactRequests.sellerId, userId),
           eq5(contactRequests.status, "pending")
@@ -9813,7 +9828,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/listings/:id/share", async (req, res) => {
     try {
-      await db.update(listings).set({ shareCount: sql5`COALESCE(share_count, 0) + 1` }).where(eq5(listings.id, req.params.id));
+      await db.update(listings).set({ shareCount: sql6`COALESCE(share_count, 0) + 1` }).where(eq5(listings.id, req.params.id));
       res.json({ success: true });
     } catch (error) {
       console.error("Failed to track share:", error);
@@ -9840,9 +9855,9 @@ async function registerRoutes(app2, existingServer) {
         and5(
           eq5(listings.categoryId, listing.categoryId),
           eq5(listings.status, "active"),
-          sql5`${listings.id} != ${listing.id}`
+          sql6`${listings.id} != ${listing.id}`
         )
-      ).orderBy(sql5`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`).limit(6);
+      ).orderBy(sql6`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`).limit(6);
       const allPrices = [parseFloat(listing.price), ...similarListings.map((l) => parseFloat(l.price))];
       const avgPrice = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
       const minPrice = Math.min(...allPrices);
@@ -9951,7 +9966,7 @@ async function registerRoutes(app2, existingServer) {
       }
       let currentMaxOrder = 0;
       if (listingId) {
-        const maxOrderResult = await db.select({ maxOrder: sql5`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq5(listingImages.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql6`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq5(listingImages.listingId, listingId));
         currentMaxOrder = maxOrderResult[0]?.maxOrder || 0;
       }
       const uploadedImages = [];
@@ -10240,7 +10255,7 @@ async function registerRoutes(app2, existingServer) {
         updatedAt: /* @__PURE__ */ new Date()
       }).where(eq5(listings.id, listingId)).returning();
       await db.update(users).set({
-        totalListings: sql5`${users.totalListings} + 1`
+        totalListings: sql6`${users.totalListings} + 1`
       }).where(eq5(users.id, sellerId));
       res.json({
         message: newStatus === "pending" ? "\u0130lan\u0131n\u0131z yay\u0131nland\u0131 ve onay bekliyor" : "\u0130lan\u0131n\u0131z ba\u015Far\u0131yla yay\u0131nland\u0131",
@@ -10771,7 +10786,7 @@ async function registerRoutes(app2, existingServer) {
       }
       try {
         await db.execute(
-          sql5`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+          sql6`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
         );
         console.log(`\u{1F512} Rol de\u011Fi\u015Fti, oturumlar sonland\u0131r\u0131ld\u0131: ${id} \u2192 ${role}`);
       } catch (sessionErr) {
@@ -10807,7 +10822,7 @@ async function registerRoutes(app2, existingServer) {
       if (status !== "active") {
         try {
           await db.execute(
-            sql5`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
+            sql6`DELETE FROM sessions WHERE sess #>> '{passport,user,claims,sub}' = ${id}`
           );
           console.log(`\u{1F512} Oturumlar sonland\u0131r\u0131ld\u0131: ${id} (${status})`);
         } catch (sessionErr) {
@@ -10832,7 +10847,7 @@ async function registerRoutes(app2, existingServer) {
         status: stores.status,
         createdAt: stores.createdAt,
         ownerId: stores.ownerId,
-        ownerName: sql5`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
+        ownerName: sql6`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
         ownerEmail: users.email
       }).from(stores).leftJoin(users, eq5(stores.ownerId, users.id)).orderBy(desc4(stores.createdAt)).limit(100);
       res.json(allStores);
@@ -10904,7 +10919,7 @@ async function registerRoutes(app2, existingServer) {
         createdAt: blogPosts.createdAt,
         updatedAt: blogPosts.updatedAt,
         authorId: blogPosts.authorId,
-        authorName: sql5`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`
+        authorName: sql6`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`
       }).from(blogPosts).leftJoin(users, eq5(blogPosts.authorId, users.id)).orderBy(desc4(blogPosts.createdAt));
       res.json(allBlogs);
     } catch (error) {
@@ -10993,7 +11008,7 @@ async function registerRoutes(app2, existingServer) {
       }
       const logs = await query.orderBy(desc4(auditLogs.createdAt)).limit(parseInt(limit)).offset(parseInt(offset));
       const userIds = Array.from(new Set(logs.filter((l) => l.userId).map((l) => l.userId)));
-      const userNames = userIds.length > 0 ? await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(sql5`${users.id} IN ${userIds}`) : [];
+      const userNames = userIds.length > 0 ? await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(sql6`${users.id} IN ${userIds}`) : [];
       const userMap = Object.fromEntries(userNames.map((u) => [u.id, `${u.firstName || ""} ${u.lastName || ""}`.trim() || "Anonim"]));
       const logsWithUserNames = logs.map((log) => ({
         ...log,
@@ -11176,7 +11191,7 @@ async function registerRoutes(app2, existingServer) {
       if (search) {
         query = query.where(
           // Türkçe arama — bkz. ilan aramasındaki açıklama.
-          sql5`(
+          sql6`(
             public.tr_normalize(${stores.displayName}) LIKE public.tr_normalize(${`%${search}%`})
             OR public.tr_normalize(coalesce(${stores.summary}, '')) LIKE public.tr_normalize(${`%${search}%`})
           )`
@@ -11368,7 +11383,7 @@ async function registerRoutes(app2, existingServer) {
       if (!myStore) {
         return res.status(404).json({ message: "Ma\u011Fazan\u0131z hen\xFCz yok" });
       }
-      const storeListingsCount = await db.select({ count: sql5`count(*)` }).from(listings).where(eq5(listings.storeId, myStore.id));
+      const storeListingsCount = await db.select({ count: sql6`count(*)` }).from(listings).where(eq5(listings.storeId, myStore.id));
       res.json({
         ...myStore,
         stats: {
@@ -11392,10 +11407,10 @@ async function registerRoutes(app2, existingServer) {
       const listingIds = userListings.map((l) => l.id);
       let totalFavorites = 0;
       if (listingIds.length > 0) {
-        const favResult = await db.select({ count: sql5`count(*)::int` }).from(favorites).where(inArray3(favorites.listingId, listingIds));
+        const favResult = await db.select({ count: sql6`count(*)::int` }).from(favorites).where(inArray3(favorites.listingId, listingIds));
         totalFavorites = favResult[0]?.count || 0;
       }
-      const messagesResult = await db.select({ count: sql5`count(*)::int` }).from(messages).where(eq5(messages.receiverId, userId));
+      const messagesResult = await db.select({ count: sql6`count(*)::int` }).from(messages).where(eq5(messages.receiverId, userId));
       const totalMessages = messagesResult[0]?.count || 0;
       const topListings = userListings.filter((l) => l.status === "active").sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5).map((l) => ({
         id: l.id,
@@ -11451,11 +11466,11 @@ async function registerRoutes(app2, existingServer) {
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      const favResult = await db.select({ count: sql5`count(*)::int` }).from(favorites).where(eq5(favorites.listingId, id));
+      const favResult = await db.select({ count: sql6`count(*)::int` }).from(favorites).where(eq5(favorites.listingId, id));
       const favoritesCount = favResult[0]?.count || 0;
-      const msgResult = await db.select({ count: sql5`count(*)::int` }).from(messages).where(and5(
+      const msgResult = await db.select({ count: sql6`count(*)::int` }).from(messages).where(and5(
         eq5(messages.receiverId, userId),
-        sql5`${messages.content} LIKE '%' || ${listing.title} || '%'`
+        sql6`${messages.content} LIKE '%' || ${listing.title} || '%'`
       ));
       const messageCount = msgResult[0]?.count || 0;
       res.json({
@@ -11676,7 +11691,7 @@ async function registerRoutes(app2, existingServer) {
         storeId,
         userId
       });
-      await db.update(stores).set({ followerCount: sql5`COALESCE(follower_count, 0) + 1` }).where(eq5(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql6`COALESCE(follower_count, 0) + 1` }).where(eq5(stores.id, storeId));
       try {
         const follower = req.user;
         const followerName = follower.firstName ? `${follower.firstName} ${follower.lastName || ""}`.trim() : follower.username || "Birisi";
@@ -11712,7 +11727,7 @@ async function registerRoutes(app2, existingServer) {
       if (result.length === 0) {
         return res.status(404).json({ message: "Bu ma\u011Fazay\u0131 takip etmiyorsunuz" });
       }
-      await db.update(stores).set({ followerCount: sql5`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq5(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql6`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq5(stores.id, storeId));
       res.json({ message: "Takipten \xE7\u0131k\u0131ld\u0131", following: false });
     } catch (error) {
       console.error("Error unfollowing store:", error);
@@ -11764,7 +11779,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/view", async (req, res) => {
     try {
       const storeId = req.params.id;
-      await db.update(stores).set({ viewCount: sql5`COALESCE(view_count, 0) + 1` }).where(eq5(stores.id, storeId));
+      await db.update(stores).set({ viewCount: sql6`COALESCE(view_count, 0) + 1` }).where(eq5(stores.id, storeId));
       res.json({ success: true });
     } catch (error) {
       console.error("Error incrementing view count:", error);

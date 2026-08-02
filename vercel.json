@@ -121,6 +121,10 @@
     {
       "path": "/api/cron/saved-searches",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/temizlik",
+      "schedule": "0 4 * * *"
     }
   ]
 }
