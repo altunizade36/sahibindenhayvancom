@@ -30,7 +30,7 @@ export type NotificationEvent = {
 };
 import { locations, listings, blogPosts, users, messages, conversations, userPresence, messageReactions, favorites, savedSearches, categories, auctions, bids, liveStreams, insertLiveStreamSchema, vetServices, transportServices, reviews, stores, storeReviews, storeMedia, storeCategories, storeFollowers, notifications, insertNotificationSchema, reports, insertReportSchema, offers, insertOfferSchema, listingImages, insertListingImageSchema, userSettings, userDevices, loginHistory, restrictedCategories, auditLogs, systemSettings, adminBroadcasts, viewedListings, sellerReviews, listingVideos, contactRequests, categoryStats, searchNotificationLogs, marketPrices } from "@shared/schema";
 import { processAndUploadImage, deleteImageVariants, validateImageFile, processStoreImage } from "./imageProcessor";
-import { eq, and, isNull, asc, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
+import { eq, ne, and, isNull, asc, desc, sql, count, inArray, gte, lte, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
@@ -4571,6 +4571,66 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           link: `/mesajlar?conversationId=${conversationId}`,
           relatedId: message.id,
         });
+
+        /*
+         * Alıcıya e-posta bildirimi.
+         *
+         * Eskiden yalnızca site içi bildirim oluşuyordu; alıcı siteye
+         * girmediği sürece kendisine mesaj geldiğini HİÇ öğrenmiyordu. Az
+         * trafikli bir pazaryerinde kaçan her mesaj kaçan bir satıştır.
+         *
+         * SPAM ÖNLEME: e-posta yalnızca o konuşmadaki İLK okunmamış mesajda
+         * gönderiliyor. Karşılıklı yazışma sırasında her mesaj için posta
+         * atılmaz; alıcı mesajları okuyup konuşma temizlendikten sonra gelen
+         * yeni mesaj tekrar bildirilir. Mesajlaşma uygulamalarının davranışı
+         * budur ve ek bir tablo/sütun gerektirmez.
+         */
+        const [okunmamis] = await db
+          .select({ n: count() })
+          .from(messages)
+          .where(
+            and(
+              eq(messages.conversationId, conversationId),
+              eq(messages.receiverId, receiverId),
+              isNull(messages.readAt),
+              ne(messages.id, message.id)
+            )
+          );
+
+        if (Number(okunmamis?.n ?? 0) === 0) {
+          // Kullanıcı tercihleri: ayar kaydı olmayan kullanıcıya bildirim
+          // gönderilir (varsayılan açık), açıkça kapatan kullanıcıya gönderilmez.
+          const [ayar] = await db
+            .select({
+              emailNotifications: userSettings.emailNotifications,
+              notifyMessages: userSettings.notifyMessages,
+            })
+            .from(userSettings)
+            .where(eq(userSettings.userId, receiverId))
+            .limit(1);
+
+          const izinVar = !ayar || (ayar.emailNotifications && ayar.notifyMessages);
+
+          const [alici] = await db
+            .select({ email: users.email, firstName: users.firstName })
+            .from(users)
+            .where(eq(users.id, receiverId))
+            .limit(1);
+
+          if (izinVar && alici?.email) {
+            const onizleme = String(content).replace(/\s+/g, " ").trim().slice(0, 160);
+            // Beklemeden gönderiliyor; e-posta servisi yavaşlarsa mesaj
+            // gönderimi gecikmemeli. Hatalar servis içinde yutuluyor.
+            void emailService.sendNewMessageNotice({
+              to: alici.email,
+              recipientName: alici.firstName,
+              senderName,
+              preview: onizleme,
+              conversationId,
+              listingTitle: null,
+            });
+          }
+        }
       } catch (notifError) {
         console.error("Failed to create message notification:", notifError);
       }

@@ -10,11 +10,22 @@ export interface ContactMessage {
   message: string;
 }
 
+/** Yeni mesaj bildirimi için gereken bilgiler. */
+export interface NewMessageNotice {
+  to: string;
+  recipientName: string | null;
+  senderName: string;
+  preview: string;
+  conversationId: string;
+  listingTitle?: string | null;
+}
+
 // Email service configuration
 export interface EmailService {
   sendVerificationEmail(to: string, token: string, username: string): Promise<void>;
   sendPasswordResetEmail(to: string, token: string, username: string): Promise<void>;
   sendContactMessage(data: ContactMessage): Promise<void>;
+  sendNewMessageNotice(data: NewMessageNotice): Promise<void>;
 }
 
 /**
@@ -78,6 +89,16 @@ class DevelopmentEmailService implements EmailService {
     console.log(`Gönderen: ${data.name} <${data.email}> ${data.phone || ''}`);
     console.log(`Konu: ${data.subject}`);
     console.log(data.message);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  }
+
+  async sendNewMessageNotice(data: NewMessageNotice): Promise<void> {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('💬 YENİ MESAJ BİLDİRİMİ (DEV MODE)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Alıcı: ${data.to}`);
+    console.log(`Gönderen: ${data.senderName}`);
+    console.log(`Önizleme: ${data.preview}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 }
@@ -265,6 +286,58 @@ class ProductionEmailService implements EmailService {
     } catch (error) {
       console.error('❌ Failed to forward contact message:', error);
       throw new Error('Mesaj iletilemedi.');
+    }
+  }
+
+  /**
+   * "Size yeni bir mesaj var" bildirimi.
+   *
+   * Mesajın tamamı DEĞİL, kısa bir önizlemesi gönderiliyor. İki nedeni var:
+   * kullanıcıyı siteye çekmek ve pazarlığın e-posta üzerinden yürümesini
+   * engellemek; ayrıca alıcının posta kutusuna düşen içerik en aza iniyor.
+   */
+  async sendNewMessageNotice(data: NewMessageNotice): Promise<void> {
+    const appUrl = process.env.APP_URL || 'https://sahibindenhayvan.com';
+    const link = `${appUrl}/mesajlar?conversationId=${encodeURIComponent(data.conversationId)}`;
+    const hitap = data.recipientName ? `Merhaba ${escapeHtml(data.recipientName)},` : 'Merhaba,';
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.to,
+        subject: `${data.senderName} size mesaj gönderdi`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:20px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com</h2>
+            </div>
+            <div style="padding:28px 24px;background:#f5f5f5">
+              <p style="margin:0 0 12px">${hitap}</p>
+              <p style="margin:0 0 18px">
+                <b>${escapeHtml(data.senderName)}</b> size bir mesaj gönderdi${
+                  data.listingTitle ? ` — <i>${escapeHtml(data.listingTitle)}</i>` : ''
+                }.
+              </p>
+              <blockquote style="margin:0 0 22px;padding:12px 16px;background:#fff;border-left:3px solid #0066CC;color:#444">
+                ${escapeHtml(data.preview)}
+              </blockquote>
+              <div style="text-align:center;margin:26px 0">
+                <a href="${link}" style="background:#0066CC;color:#fff;padding:14px 28px;text-decoration:none;border-radius:5px;display:inline-block">
+                  Mesajı Görüntüle
+                </a>
+              </div>
+              <p style="color:#999;font-size:12px;margin:0">
+                Bu bildirimleri istemiyorsanız hesap ayarlarınızdan kapatabilirsiniz.
+              </p>
+            </div>
+          </div>
+        `,
+      });
+
+      console.log(`✅ New message notice sent to ${data.to}`);
+    } catch (error) {
+      // Bildirim gönderilemese de mesaj gönderimi başarılıdır; hata yutuluyor.
+      console.error('❌ Failed to send new message notice:', error);
     }
   }
 }

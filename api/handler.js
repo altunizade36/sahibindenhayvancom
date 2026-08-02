@@ -4045,7 +4045,7 @@ async function processStoreImage(buffer, config) {
 }
 
 // server/routes.ts
-import { eq as eq5, and as and5, isNull, asc, desc as desc4, sql as sql5, count, inArray as inArray3, gte as gte2, lte as lte2, ilike as ilike3, or as or3 } from "drizzle-orm";
+import { eq as eq5, ne, and as and5, isNull, asc, desc as desc4, sql as sql5, count, inArray as inArray3, gte as gte2, lte as lte2, ilike as ilike3, or as or3 } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -4096,6 +4096,15 @@ var DevelopmentEmailService = class {
     console.log(`G\xF6nderen: ${data.name} <${data.email}> ${data.phone || ""}`);
     console.log(`Konu: ${data.subject}`);
     console.log(data.message);
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
+  }
+  async sendNewMessageNotice(data) {
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log("\u{1F4AC} YEN\u0130 MESAJ B\u0130LD\u0130R\u0130M\u0130 (DEV MODE)");
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log(`Al\u0131c\u0131: ${data.to}`);
+    console.log(`G\xF6nderen: ${data.senderName}`);
+    console.log(`\xD6nizleme: ${data.preview}`);
     console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
   }
 };
@@ -4269,6 +4278,52 @@ var ProductionEmailService = class {
     } catch (error) {
       console.error("\u274C Failed to forward contact message:", error);
       throw new Error("Mesaj iletilemedi.");
+    }
+  }
+  /**
+   * "Size yeni bir mesaj var" bildirimi.
+   *
+   * Mesajın tamamı DEĞİL, kısa bir önizlemesi gönderiliyor. İki nedeni var:
+   * kullanıcıyı siteye çekmek ve pazarlığın e-posta üzerinden yürümesini
+   * engellemek; ayrıca alıcının posta kutusuna düşen içerik en aza iniyor.
+   */
+  async sendNewMessageNotice(data) {
+    const appUrl = process.env.APP_URL || "https://sahibindenhayvan.com";
+    const link = `${appUrl}/mesajlar?conversationId=${encodeURIComponent(data.conversationId)}`;
+    const hitap = data.recipientName ? `Merhaba ${escapeHtml(data.recipientName)},` : "Merhaba,";
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.to,
+        subject: `${data.senderName} size mesaj g\xF6nderdi`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0066CC;padding:20px;text-align:center">
+              <h2 style="color:#fff;margin:0">sahibindenhayvan.com</h2>
+            </div>
+            <div style="padding:28px 24px;background:#f5f5f5">
+              <p style="margin:0 0 12px">${hitap}</p>
+              <p style="margin:0 0 18px">
+                <b>${escapeHtml(data.senderName)}</b> size bir mesaj g\xF6nderdi${data.listingTitle ? ` \u2014 <i>${escapeHtml(data.listingTitle)}</i>` : ""}.
+              </p>
+              <blockquote style="margin:0 0 22px;padding:12px 16px;background:#fff;border-left:3px solid #0066CC;color:#444">
+                ${escapeHtml(data.preview)}
+              </blockquote>
+              <div style="text-align:center;margin:26px 0">
+                <a href="${link}" style="background:#0066CC;color:#fff;padding:14px 28px;text-decoration:none;border-radius:5px;display:inline-block">
+                  Mesaj\u0131 G\xF6r\xFCnt\xFCle
+                </a>
+              </div>
+              <p style="color:#999;font-size:12px;margin:0">
+                Bu bildirimleri istemiyorsan\u0131z hesap ayarlar\u0131n\u0131zdan kapatabilirsiniz.
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`\u2705 New message notice sent to ${data.to}`);
+    } catch (error) {
+      console.error("\u274C Failed to send new message notice:", error);
     }
   }
 };
@@ -8333,6 +8388,33 @@ async function registerRoutes(app2, existingServer) {
           link: `/mesajlar?conversationId=${conversationId}`,
           relatedId: message.id
         });
+        const [okunmamis] = await db.select({ n: count() }).from(messages).where(
+          and5(
+            eq5(messages.conversationId, conversationId),
+            eq5(messages.receiverId, receiverId),
+            isNull(messages.readAt),
+            ne(messages.id, message.id)
+          )
+        );
+        if (Number(okunmamis?.n ?? 0) === 0) {
+          const [ayar] = await db.select({
+            emailNotifications: userSettings.emailNotifications,
+            notifyMessages: userSettings.notifyMessages
+          }).from(userSettings).where(eq5(userSettings.userId, receiverId)).limit(1);
+          const izinVar = !ayar || ayar.emailNotifications && ayar.notifyMessages;
+          const [alici] = await db.select({ email: users.email, firstName: users.firstName }).from(users).where(eq5(users.id, receiverId)).limit(1);
+          if (izinVar && alici?.email) {
+            const onizleme = String(content).replace(/\s+/g, " ").trim().slice(0, 160);
+            void emailService.sendNewMessageNotice({
+              to: alici.email,
+              recipientName: alici.firstName,
+              senderName,
+              preview: onizleme,
+              conversationId,
+              listingTitle: null
+            });
+          }
+        }
       } catch (notifError) {
         console.error("Failed to create message notification:", notifError);
       }
