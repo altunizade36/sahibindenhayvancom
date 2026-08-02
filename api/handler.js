@@ -3227,6 +3227,215 @@ function registerSitemapRoutes(app2) {
   });
 }
 
+// server/prerender.ts
+import fs from "fs";
+import path from "path";
+import { eq as eq3, and as and3 } from "drizzle-orm";
+var SITE2 = (process.env.APP_URL || "https://sahibindenhayvan.com").replace(/\/$/, "");
+var VARSAYILAN_GORSEL = `${SITE2}/og-image.png?v=3`;
+function kacisla(deger) {
+  return deger.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function ozet(metin, uzunluk = 160) {
+  if (!metin) return "";
+  const duz = metin.replace(/<[^>]*>/g, " ").replace(/[#*_`>\[\]]/g, " ").replace(/\s+/g, " ").trim();
+  if (duz.length <= uzunluk) return duz;
+  return duz.slice(0, uzunluk - 1).replace(/\s+\S*$/, "") + "\u2026";
+}
+function tamAdres(yol) {
+  if (!yol) return VARSAYILAN_GORSEL;
+  if (/^https?:\/\//i.test(yol)) return yol;
+  return `${SITE2}${yol.startsWith("/") ? "" : "/"}${yol}`;
+}
+var kabukOnbellek = null;
+async function kabuguOku() {
+  if (kabukOnbellek !== null) return kabukOnbellek;
+  const adaylar = [
+    path.join(process.cwd(), "dist/public/index.html"),
+    path.join(process.cwd(), "public/index.html")
+  ];
+  for (const aday of adaylar) {
+    try {
+      if (fs.existsSync(aday)) {
+        kabukOnbellek = fs.readFileSync(aday, "utf8");
+        return kabukOnbellek;
+      }
+    } catch {
+    }
+  }
+  try {
+    const yanit = await fetch(`${SITE2}/index.html`);
+    if (yanit.ok) {
+      const html = await yanit.text();
+      if (html.includes("</head>")) {
+        console.warn("\xD6n-render: kabuk diskte yok, CDN'den al\u0131nd\u0131.");
+        kabukOnbellek = html;
+        return kabukOnbellek;
+      }
+    }
+  } catch (error) {
+    console.error("\xD6n-render: kabuk CDN'den de al\u0131namad\u0131:", error);
+  }
+  console.warn("\xD6n-render: uygulama kabu\u011Fu bulunamad\u0131, etiket yerle\u015Ftirme devre d\u0131\u015F\u0131.");
+  return null;
+}
+function etiketleriYerlestir(kabuk, meta) {
+  let html = kabuk;
+  const silinecek = [
+    /<title>[\s\S]*?<\/title>\s*/i,
+    /<meta\s+name="description"[^>]*>\s*/i,
+    /<link\s+rel="canonical"[^>]*>\s*/i,
+    /<meta\s+property="og:(?:title|description|image|url|type)"[^>]*>\s*/gi,
+    /<meta\s+name="twitter:(?:title|description|image)"[^>]*>\s*/gi
+  ];
+  for (const desen of silinecek) html = html.replace(desen, "");
+  const yeni = [
+    `<title>${kacisla(meta.title)}</title>`,
+    `<meta name="description" content="${kacisla(meta.description)}" />`,
+    `<link rel="canonical" href="${kacisla(meta.canonical)}" />`,
+    `<meta property="og:type" content="${meta.type || "website"}" />`,
+    `<meta property="og:title" content="${kacisla(meta.title)}" />`,
+    `<meta property="og:description" content="${kacisla(meta.description)}" />`,
+    `<meta property="og:image" content="${kacisla(meta.image || VARSAYILAN_GORSEL)}" />`,
+    `<meta property="og:url" content="${kacisla(meta.canonical)}" />`,
+    `<meta name="twitter:title" content="${kacisla(meta.title)}" />`,
+    `<meta name="twitter:description" content="${kacisla(meta.description)}" />`,
+    `<meta name="twitter:image" content="${kacisla(meta.image || VARSAYILAN_GORSEL)}" />`
+  ];
+  if (meta.structuredData) {
+    const json = JSON.stringify(meta.structuredData).replace(/<\//g, "<\\/");
+    yeni.push(`<script type="application/ld+json">${json}</script>`);
+  }
+  return html.replace("</head>", `    ${yeni.join("\n    ")}
+  </head>`);
+}
+async function ilanMetasi(id) {
+  const [ilan] = await db.select({
+    id: listings.id,
+    title: listings.title,
+    description: listings.description,
+    price: listings.price,
+    images: listings.images,
+    city: listings.city,
+    district: listings.district,
+    status: listings.status
+  }).from(listings).where(eq3(listings.id, id)).limit(1);
+  if (!ilan || ilan.status !== "active") return null;
+  const gorsel = tamAdres(ilan.images?.[0]);
+  const konum = [ilan.city, ilan.district].filter(Boolean).join(", ");
+  const canonical = `${SITE2}/ilan/${ilan.id}`;
+  return {
+    title: `${ilan.title}${konum ? ` \u2014 ${konum}` : ""} | sahibindenhayvan.com`,
+    description: ozet(ilan.description),
+    image: gorsel,
+    canonical,
+    type: "product",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: ilan.title,
+      description: ozet(ilan.description, 300),
+      image: gorsel,
+      offers: {
+        "@type": "Offer",
+        price: ilan.price,
+        priceCurrency: "TRY",
+        availability: "https://schema.org/InStock",
+        url: canonical
+      }
+    }
+  };
+}
+async function kategoriMetasi(slug) {
+  const [kategori] = await db.select({ name: categories.name, slug: categories.slug, description: categories.description }).from(categories).where(eq3(categories.slug, slug)).limit(1);
+  if (!kategori) return null;
+  return {
+    title: `${kategori.name} \u0130lanlar\u0131 | sahibindenhayvan.com`,
+    description: ozet(kategori.description) || `${kategori.name} kategorisindeki g\xFCncel ilanlar. T\xFCrkiye genelinde \xFCcretsiz ilan ver, g\xFCvenle al ve sat.`,
+    canonical: `${SITE2}/kategori/${kategori.slug}`
+  };
+}
+async function blogMetasi(slug) {
+  const [yazi] = await db.select({
+    title: blogPosts.title,
+    slug: blogPosts.slug,
+    excerpt: blogPosts.excerpt,
+    content: blogPosts.content,
+    featuredImage: blogPosts.featuredImage,
+    published: blogPosts.published,
+    createdAt: blogPosts.createdAt,
+    updatedAt: blogPosts.updatedAt
+  }).from(blogPosts).where(and3(eq3(blogPosts.slug, slug), eq3(blogPosts.published, true))).limit(1);
+  if (!yazi) return null;
+  const gorsel = tamAdres(yazi.featuredImage);
+  const canonical = `${SITE2}/blog/${yazi.slug}`;
+  return {
+    title: `${yazi.title} | sahibindenhayvan.com`,
+    description: ozet(yazi.excerpt || yazi.content),
+    image: gorsel,
+    canonical,
+    type: "article",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: yazi.title,
+      description: ozet(yazi.excerpt || yazi.content, 300),
+      image: gorsel,
+      datePublished: yazi.createdAt,
+      dateModified: yazi.updatedAt,
+      mainEntityOfPage: canonical,
+      publisher: {
+        "@type": "Organization",
+        name: "sahibindenhayvan.com",
+        logo: { "@type": "ImageObject", url: `${SITE2}/logo.png` }
+      }
+    }
+  };
+}
+async function magazaMetasi(slug) {
+  const [magaza] = await db.select({
+    slug: stores.slug,
+    displayName: stores.displayName,
+    summary: stores.summary,
+    description: stores.description,
+    logo: stores.logo,
+    city: stores.city
+  }).from(stores).where(eq3(stores.slug, slug)).limit(1);
+  if (!magaza) return null;
+  const konum = magaza.city ? ` \u2014 ${magaza.city}` : "";
+  return {
+    title: `${magaza.displayName}${konum} | sahibindenhayvan.com`,
+    description: ozet(magaza.summary || magaza.description) || `${magaza.displayName} ma\u011Fazas\u0131n\u0131n ilanlar\u0131 ve ileti\u015Fim bilgileri.`,
+    image: tamAdres(magaza.logo),
+    canonical: `${SITE2}/magaza/${magaza.slug}`
+  };
+}
+function registerPrerenderRoutes(app2) {
+  const isle = (uretici) => async (req, res, next) => {
+    const kabuk = await kabuguOku();
+    if (!kabuk) return next();
+    try {
+      const meta = await uretici(req.params[0] ?? Object.values(req.params)[0]);
+      const html = meta ? etiketleriYerlestir(kabuk, meta) : kabuk;
+      res.set({
+        "Content-Type": "text/html; charset=utf-8",
+        // Kullanıcıların çoğu CDN önbelleğinden yanıt alır, fonksiyona
+        // uğramaz. İçerik güncellenince en geç 5 dakikada yenilenir.
+        "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=600"
+      });
+      return res.send(html);
+    } catch (error) {
+      console.error("\xD6n-render ba\u015Far\u0131s\u0131z, kabuk d\xF6nd\xFCr\xFCl\xFCyor:", error);
+      res.set("Content-Type", "text/html; charset=utf-8");
+      return res.send(kabuk);
+    }
+  };
+  app2.get("/ilan/:id", isle((id) => ilanMetasi(id)));
+  app2.get("/kategori/:slug", isle((slug) => kategoriMetasi(slug)));
+  app2.get("/blog/:slug", isle((slug) => blogMetasi(slug)));
+  app2.get("/magaza/:slug", isle((slug) => magazaMetasi(slug)));
+}
+
 // server/imageProcessor.ts
 import sharp from "sharp";
 
@@ -3523,7 +3732,7 @@ async function processStoreImage(buffer, config) {
 }
 
 // server/routes.ts
-import { eq as eq3, and as and3, isNull, asc, desc as desc3, sql as sql4, count, inArray as inArray2, gte as gte2, lte as lte2, ilike as ilike2, or as or2 } from "drizzle-orm";
+import { eq as eq4, and as and4, isNull, asc, desc as desc3, sql as sql4, count, inArray as inArray2, gte as gte2, lte as lte2, ilike as ilike2, or as or2 } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -5135,12 +5344,12 @@ var LOGIN_FAIL_WINDOW_MS = 15 * 60 * 1e3;
 async function recentFailedLogins(userId) {
   try {
     const pencereBasi = new Date(Date.now() - LOGIN_FAIL_WINDOW_MS);
-    const [sonBasarili] = await db.select({ at: loginHistory.createdAt }).from(loginHistory).where(and3(eq3(loginHistory.userId, userId), eq3(loginHistory.success, true))).orderBy(desc3(loginHistory.createdAt)).limit(1);
+    const [sonBasarili] = await db.select({ at: loginHistory.createdAt }).from(loginHistory).where(and4(eq4(loginHistory.userId, userId), eq4(loginHistory.success, true))).orderBy(desc3(loginHistory.createdAt)).limit(1);
     const baslangic = sonBasarili?.at && sonBasarili.at > pencereBasi ? sonBasarili.at : pencereBasi;
     const [satir] = await db.select({ n: count() }).from(loginHistory).where(
-      and3(
-        eq3(loginHistory.userId, userId),
-        eq3(loginHistory.success, false),
+      and4(
+        eq4(loginHistory.userId, userId),
+        eq4(loginHistory.success, false),
         gte2(loginHistory.createdAt, baslangic)
       )
     );
@@ -5182,7 +5391,7 @@ function getUserId2(user) {
   return id;
 }
 async function isEmailVerified(user) {
-  const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq3(users.id, getUserId2(user))).limit(1);
+  const [row] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq4(users.id, getUserId2(user))).limit(1);
   return !!row?.emailVerified;
 }
 function parseUserAgent(userAgent) {
@@ -5233,14 +5442,14 @@ async function registerDevice(userId, req) {
     const deviceName = `${browser} - ${os}`;
     const deviceId = crypto.randomUUID();
     const existingDevice = await db.query.userDevices.findFirst({
-      where: and3(
-        eq3(userDevices.userId, userId),
-        eq3(userDevices.browser, browser),
-        eq3(userDevices.os, os)
+      where: and4(
+        eq4(userDevices.userId, userId),
+        eq4(userDevices.browser, browser),
+        eq4(userDevices.os, os)
       )
     });
     if (existingDevice) {
-      await db.update(userDevices).set({ lastActive: /* @__PURE__ */ new Date(), ipAddress }).where(eq3(userDevices.id, existingDevice.id));
+      await db.update(userDevices).set({ lastActive: /* @__PURE__ */ new Date(), ipAddress }).where(eq4(userDevices.id, existingDevice.id));
     } else {
       await db.insert(userDevices).values({
         id: deviceId,
@@ -5262,6 +5471,9 @@ async function registerDevice(userId, req) {
 async function registerRoutes(app2, existingServer) {
   app2.get("/readiness", readinessCheck);
   registerSitemapRoutes(app2);
+  if (process.env.NODE_ENV === "production") {
+    registerPrerenderRoutes(app2);
+  }
   app2.get("/metrics", metricsEndpoint);
   await setupAuth(app2);
   app2.use("/api", globalApiLimiter);
@@ -5322,7 +5534,7 @@ async function registerRoutes(app2, existingServer) {
   });
   const getOrCreateConversation = async (participant1Id, participant2Id, listingId) => {
     const conversationId = generateConversationId(participant1Id, participant2Id);
-    const [existing] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+    const [existing] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
     if (existing) {
       return existing;
     }
@@ -5382,7 +5594,7 @@ async function registerRoutes(app2, existingServer) {
         try {
           const message = JSON.parse(data.toString());
           if (message.type === "auth" && message.userId) {
-            const [dbUser2] = await db.select().from(users).where(eq3(users.id, message.userId)).limit(1);
+            const [dbUser2] = await db.select().from(users).where(eq4(users.id, message.userId)).limit(1);
             if (dbUser2) {
               setupAuthenticatedConnection(ws, message.userId, dbUser2);
               ws.send(JSON.stringify({ type: "auth_success" }));
@@ -5398,7 +5610,7 @@ async function registerRoutes(app2, existingServer) {
       });
       return;
     }
-    const [dbUser] = await db.select().from(users).where(eq3(users.id, userId)).limit(1);
+    const [dbUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
     if (dbUser) {
       setupAuthenticatedConnection(ws, userId, dbUser);
     } else {
@@ -5418,8 +5630,8 @@ async function registerRoutes(app2, existingServer) {
     await updateUserPresence(userId, true, `ws_${Date.now()}`);
     const userConversations = await db.select().from(conversations).where(
       or2(
-        eq3(conversations.participant1Id, userId),
-        eq3(conversations.participant2Id, userId)
+        eq4(conversations.participant1Id, userId),
+        eq4(conversations.participant2Id, userId)
       )
     );
     for (const conv of userConversations) {
@@ -5513,13 +5725,13 @@ async function registerRoutes(app2, existingServer) {
               status: "read",
               readAt: /* @__PURE__ */ new Date()
             }).where(
-              and3(
+              and4(
                 inArray2(messages.id, messageIds),
-                eq3(messages.receiverId, userId)
+                eq4(messages.receiverId, userId)
               )
             );
             for (const msgId of messageIds) {
-              const [msg] = await db.select().from(messages).where(eq3(messages.id, msgId)).limit(1);
+              const [msg] = await db.select().from(messages).where(eq4(messages.id, msgId)).limit(1);
               if (msg) {
                 broadcastToUser(msg.senderId, {
                   type: "message_read",
@@ -5530,10 +5742,10 @@ async function registerRoutes(app2, existingServer) {
               }
             }
           }
-          const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+          const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
           if (conv) {
             const updateData = conv.participant1Id === userId ? { participant1UnreadCount: 0, participant1LastReadAt: /* @__PURE__ */ new Date() } : { participant2UnreadCount: 0, participant2LastReadAt: /* @__PURE__ */ new Date() };
-            await db.update(conversations).set(updateData).where(eq3(conversations.id, conversationId));
+            await db.update(conversations).set(updateData).where(eq4(conversations.id, conversationId));
           }
           ws.send(JSON.stringify({ type: "marked_read", conversationId }));
         } else if (message.type === "chat") {
@@ -5558,7 +5770,7 @@ async function registerRoutes(app2, existingServer) {
             lastMessageAt: /* @__PURE__ */ new Date(),
             updatedAt: /* @__PURE__ */ new Date(),
             ...isParticipant1Receiver ? { participant1UnreadCount: sql4`${conversations.participant1UnreadCount} + 1` } : { participant2UnreadCount: sql4`${conversations.participant2UnreadCount} + 1` }
-          }).where(eq3(conversations.id, conversation.id));
+          }).where(eq4(conversations.id, conversation.id));
           const receiverOnline = broadcastToUser(message.receiverId, {
             type: "chat",
             message: {
@@ -5576,7 +5788,7 @@ async function registerRoutes(app2, existingServer) {
             await db.update(messages).set({
               status: "delivered",
               deliveredAt: /* @__PURE__ */ new Date()
-            }).where(eq3(messages.id, newMessage.id));
+            }).where(eq4(messages.id, newMessage.id));
             ws.send(JSON.stringify({
               type: "message_delivered",
               messageId: newMessage.id,
@@ -5623,13 +5835,13 @@ async function registerRoutes(app2, existingServer) {
           }
         } else if (message.type === "delete_message") {
           const messageId = message.messageId;
-          const [msg] = await db.select().from(messages).where(and3(eq3(messages.id, messageId), eq3(messages.senderId, userId))).limit(1);
+          const [msg] = await db.select().from(messages).where(and4(eq4(messages.id, messageId), eq4(messages.senderId, userId))).limit(1);
           if (msg) {
             await db.update(messages).set({
               isDeleted: true,
               deletedAt: /* @__PURE__ */ new Date(),
               content: "Bu mesaj silindi"
-            }).where(eq3(messages.id, messageId));
+            }).where(eq4(messages.id, messageId));
             broadcastToUser(msg.receiverId, {
               type: "message_deleted",
               messageId,
@@ -5644,13 +5856,13 @@ async function registerRoutes(app2, existingServer) {
         } else if (message.type === "edit_message") {
           const messageId = message.messageId;
           const newContent = message.content;
-          const [msg] = await db.select().from(messages).where(and3(eq3(messages.id, messageId), eq3(messages.senderId, userId))).limit(1);
+          const [msg] = await db.select().from(messages).where(and4(eq4(messages.id, messageId), eq4(messages.senderId, userId))).limit(1);
           if (msg && !msg.isDeleted) {
             await db.update(messages).set({
               content: newContent,
               isEdited: true,
               editedAt: /* @__PURE__ */ new Date()
-            }).where(eq3(messages.id, messageId));
+            }).where(eq4(messages.id, messageId));
             broadcastToUser(msg.receiverId, {
               type: "message_edited",
               messageId,
@@ -5668,7 +5880,7 @@ async function registerRoutes(app2, existingServer) {
           }
         } else if (message.type === "get_presence") {
           const targetUserId = message.userId;
-          const [presence] = await db.select().from(userPresence).where(eq3(userPresence.userId, targetUserId)).limit(1);
+          const [presence] = await db.select().from(userPresence).where(eq4(userPresence.userId, targetUserId)).limit(1);
           ws.send(JSON.stringify({
             type: "presence",
             userId: targetUserId,
@@ -5676,7 +5888,7 @@ async function registerRoutes(app2, existingServer) {
             lastSeenAt: presence?.lastSeenAt?.toISOString() || null
           }));
         } else if (message.type === "bid") {
-          const [auction] = await db.select().from(auctions).where(eq3(auctions.id, message.auctionId)).limit(1);
+          const [auction] = await db.select().from(auctions).where(eq4(auctions.id, message.auctionId)).limit(1);
           if (!auction) {
             ws.send(JSON.stringify({ type: "error", message: "Auction not found" }));
             return;
@@ -5727,8 +5939,8 @@ async function registerRoutes(app2, existingServer) {
       await updateUserPresence(userId, false);
       const userConvs = await db.select().from(conversations).where(
         or2(
-          eq3(conversations.participant1Id, userId),
-          eq3(conversations.participant2Id, userId)
+          eq4(conversations.participant1Id, userId),
+          eq4(conversations.participant2Id, userId)
         )
       );
       for (const conv of userConvs) {
@@ -5763,14 +5975,14 @@ async function registerRoutes(app2, existingServer) {
       }
       const normalizedPhone = phone ? String(phone).startsWith("+90") ? String(phone) : String(phone).replace(/^0/, "+90") : null;
       const existingEmailUser = await db.query.users.findFirst({
-        where: eq3(users.email, email)
+        where: eq4(users.email, email)
       });
       if (existingEmailUser) {
         return res.status(400).json({ message: "Bu email adresi zaten kay\u0131tl\u0131" });
       }
       if (normalizedPhone) {
         const existingPhoneUser = await db.query.users.findFirst({
-          where: eq3(users.phone, normalizedPhone)
+          where: eq4(users.phone, normalizedPhone)
         });
         if (existingPhoneUser) {
           return res.status(400).json({ message: "Bu telefon numaras\u0131 zaten kay\u0131tl\u0131" });
@@ -5826,9 +6038,9 @@ async function registerRoutes(app2, existingServer) {
       }
       const user = await db.query.users.findFirst({
         where: or2(
-          eq3(users.email, loginIdentifier),
-          eq3(users.phone, normalizedIdentifier),
-          eq3(users.username, loginIdentifier)
+          eq4(users.email, loginIdentifier),
+          eq4(users.phone, normalizedIdentifier),
+          eq4(users.username, loginIdentifier)
         )
       });
       if (!user || !user.password) {
@@ -5891,14 +6103,14 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Email gereklidir" });
       }
       const user = await db.query.users.findFirst({
-        where: eq3(users.email, email)
+        where: eq4(users.email, email)
       });
       if (!user) {
         return res.json({ message: "E\u011Fer bu email kay\u0131tl\u0131ysa, \u015Fifre s\u0131f\u0131rlama linki g\xF6nderildi" });
       }
       const resetToken = generateVerificationToken();
       const resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1e3);
-      await db.update(users).set({ resetToken, resetTokenExpiry }).where(eq3(users.id, user.id));
+      await db.update(users).set({ resetToken, resetTokenExpiry }).where(eq4(users.id, user.id));
       await emailService.sendPasswordResetEmail(
         email,
         resetToken,
@@ -5920,8 +6132,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "\u015Eifre en az 8 karakter olmal\u0131d\u0131r" });
       }
       const user = await db.query.users.findFirst({
-        where: and3(
-          eq3(users.resetToken, token),
+        where: and4(
+          eq4(users.resetToken, token),
           gte2(users.resetTokenExpiry, /* @__PURE__ */ new Date())
         )
       });
@@ -5933,7 +6145,7 @@ async function registerRoutes(app2, existingServer) {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null
-      }).where(eq3(users.id, user.id));
+      }).where(eq4(users.id, user.id));
       res.json({ message: "\u015Eifreniz ba\u015Far\u0131yla g\xFCncellendi" });
     } catch (error) {
       console.error("Reset password error:", error);
@@ -5947,8 +6159,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7ersiz do\u011Frulama linki" });
       }
       const user = await db.query.users.findFirst({
-        where: and3(
-          eq3(users.verificationToken, token),
+        where: and4(
+          eq4(users.verificationToken, token),
           gte2(users.verificationTokenExpiry, /* @__PURE__ */ new Date())
         )
       });
@@ -5959,7 +6171,7 @@ async function registerRoutes(app2, existingServer) {
         emailVerified: true,
         verificationToken: null,
         verificationTokenExpiry: null
-      }).where(eq3(users.id, user.id));
+      }).where(eq4(users.id, user.id));
       res.json({ message: "Email adresiniz ba\u015Far\u0131yla do\u011Fruland\u0131!" });
     } catch (error) {
       console.error("Email verification error:", error);
@@ -5971,7 +6183,7 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const currentUser = await db.query.users.findFirst({
-        where: eq3(users.id, userId)
+        where: eq4(users.id, userId)
       });
       if (!currentUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
@@ -5999,13 +6211,13 @@ async function registerRoutes(app2, existingServer) {
       await db.update(users).set({
         verificationToken,
         verificationTokenExpiry
-      }).where(eq3(users.id, userId));
+      }).where(eq4(users.id, userId));
       if (shouldAutoVerifyEmail()) {
         await db.update(users).set({
           emailVerified: true,
           verificationToken: null,
           verificationTokenExpiry: null
-        }).where(eq3(users.id, userId));
+        }).where(eq4(users.id, userId));
         return res.json({
           message: "Geli\u015Ftirme modunda: E-posta otomatik do\u011Fruland\u0131",
           autoVerified: true
@@ -6067,7 +6279,7 @@ async function registerRoutes(app2, existingServer) {
         district: district || void 0,
         bio: bio || void 0,
         profileImageUrl: profileImageUrl || void 0
-      }).where(eq3(users.id, userId)).returning();
+      }).where(eq4(users.id, userId)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -6092,7 +6304,7 @@ async function registerRoutes(app2, existingServer) {
       if (newPassword.length < 8) {
         return res.status(400).json({ message: "Yeni \u015Fifre en az 8 karakter olmal\u0131d\u0131r" });
       }
-      const [existingUser] = await db.select().from(users).where(eq3(users.id, userId)).limit(1);
+      const [existingUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
       if (!existingUser || !existingUser.password) {
         return res.status(400).json({ message: "Bu hesap i\xE7in \u015Fifre de\u011Fi\u015Ftirilemez" });
       }
@@ -6101,7 +6313,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "Mevcut \u015Fifre hatal\u0131" });
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await db.update(users).set({ password: hashedPassword }).where(eq3(users.id, userId));
+      await db.update(users).set({ password: hashedPassword }).where(eq4(users.id, userId));
       res.json({ message: "\u015Eifreniz ba\u015Far\u0131yla g\xFCncellendi" });
     } catch (error) {
       console.error("Change password error:", error);
@@ -6112,7 +6324,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const [existingSettings] = await db.select().from(userSettings).where(eq3(userSettings.userId, userId)).limit(1);
+      const [existingSettings] = await db.select().from(userSettings).where(eq4(userSettings.userId, userId)).limit(1);
       if (existingSettings) {
         return res.json(existingSettings);
       }
@@ -6150,13 +6362,13 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const settingsData = req.body;
-      const [existingSettings] = await db.select().from(userSettings).where(eq3(userSettings.userId, userId)).limit(1);
+      const [existingSettings] = await db.select().from(userSettings).where(eq4(userSettings.userId, userId)).limit(1);
       let updatedSettings;
       if (existingSettings) {
         [updatedSettings] = await db.update(userSettings).set({
           ...settingsData,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq3(userSettings.userId, userId)).returning();
+        }).where(eq4(userSettings.userId, userId)).returning();
       } else {
         [updatedSettings] = await db.insert(userSettings).values({
           userId,
@@ -6173,7 +6385,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const devices = await db.select().from(userDevices).where(eq3(userDevices.userId, userId)).orderBy(desc3(userDevices.lastActive));
+      const devices = await db.select().from(userDevices).where(eq4(userDevices.userId, userId)).orderBy(desc3(userDevices.lastActive));
       res.json(devices);
     } catch (error) {
       console.error("Get devices error:", error);
@@ -6185,9 +6397,9 @@ async function registerRoutes(app2, existingServer) {
       const user = req.user;
       const userId = getUserId2(user);
       const { deviceId } = req.params;
-      await db.delete(userDevices).where(and3(
-        eq3(userDevices.id, deviceId),
-        eq3(userDevices.userId, userId)
+      await db.delete(userDevices).where(and4(
+        eq4(userDevices.id, deviceId),
+        eq4(userDevices.userId, userId)
       ));
       res.json({ message: "Cihaz kald\u0131r\u0131ld\u0131" });
     } catch (error) {
@@ -6199,7 +6411,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const history = await db.select().from(loginHistory).where(eq3(loginHistory.userId, userId)).orderBy(desc3(loginHistory.createdAt)).limit(50);
+      const history = await db.select().from(loginHistory).where(eq4(loginHistory.userId, userId)).orderBy(desc3(loginHistory.createdAt)).limit(50);
       res.json(history);
     } catch (error) {
       console.error("Get login history error:", error);
@@ -6214,7 +6426,7 @@ async function registerRoutes(app2, existingServer) {
       if (confirmation !== "DELETE") {
         return res.status(400).json({ message: "Hesap silme onay\u0131 gereklidir" });
       }
-      const [existingUser] = await db.select().from(users).where(eq3(users.id, userId)).limit(1);
+      const [existingUser] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
       if (existingUser?.password && password) {
         const isValidPassword = await bcrypt.compare(password, existingUser.password);
         if (!isValidPassword) {
@@ -6222,9 +6434,9 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const objectStorage2 = new ObjectStorageService();
-      const userListings = await db.select().from(listings).where(eq3(listings.sellerId, userId));
+      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
       for (const listing of userListings) {
-        const listingImgs = await db.select().from(listingImages).where(eq3(listingImages.listingId, listing.id));
+        const listingImgs = await db.select().from(listingImages).where(eq4(listingImages.listingId, listing.id));
         for (const img of listingImgs) {
           const pathsToDelete = [
             img.originalKey,
@@ -6241,7 +6453,7 @@ async function registerRoutes(app2, existingServer) {
       if (existingUser?.profileImageUrl) {
         await objectStorage2.deleteFile(existingUser.profileImageUrl);
       }
-      const [userStore] = await db.select().from(stores).where(eq3(stores.ownerId, userId)).limit(1);
+      const [userStore] = await db.select().from(stores).where(eq4(stores.ownerId, userId)).limit(1);
       if (userStore) {
         if (userStore.logo) {
           await objectStorage2.deleteFile(userStore.logo);
@@ -6249,14 +6461,14 @@ async function registerRoutes(app2, existingServer) {
         if (userStore.banner) {
           await objectStorage2.deleteFile(userStore.banner);
         }
-        const storeMediaItems = await db.select().from(storeMedia).where(eq3(storeMedia.storeId, userStore.id));
+        const storeMediaItems = await db.select().from(storeMedia).where(eq4(storeMedia.storeId, userStore.id));
         for (const media of storeMediaItems) {
           if (media.url) {
             await objectStorage2.deleteFile(media.url);
           }
         }
       }
-      const userMessages = await db.select().from(messages).where(eq3(messages.senderId, userId));
+      const userMessages = await db.select().from(messages).where(eq4(messages.senderId, userId));
       for (const msg of userMessages) {
         if (msg.attachments && Array.isArray(msg.attachments)) {
           for (const attachment of msg.attachments) {
@@ -6266,7 +6478,7 @@ async function registerRoutes(app2, existingServer) {
           }
         }
       }
-      await db.delete(users).where(eq3(users.id, userId));
+      await db.delete(users).where(eq4(users.id, userId));
       req.logout((err) => {
         if (err) {
           console.error("Logout error:", err);
@@ -6282,13 +6494,13 @@ async function registerRoutes(app2, existingServer) {
     try {
       const user = req.user;
       const userId = getUserId2(user);
-      const [userData] = await db.select().from(users).where(eq3(users.id, userId)).limit(1);
-      const userListings = await db.select().from(listings).where(eq3(listings.sellerId, userId));
-      const userFavorites = await db.select().from(favorites).where(eq3(favorites.userId, userId));
+      const [userData] = await db.select().from(users).where(eq4(users.id, userId)).limit(1);
+      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
+      const userFavorites = await db.select().from(favorites).where(eq4(favorites.userId, userId));
       const userMessages = await db.select().from(messages).where(
-        or2(eq3(messages.senderId, userId), eq3(messages.receiverId, userId))
+        or2(eq4(messages.senderId, userId), eq4(messages.receiverId, userId))
       );
-      const userSettings_ = await db.select().from(userSettings).where(eq3(userSettings.userId, userId));
+      const userSettings_ = await db.select().from(userSettings).where(eq4(userSettings.userId, userId));
       if (userData) {
         delete userData.password;
         delete userData.verificationToken;
@@ -6312,7 +6524,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/categories/main", async (_req, res) => {
     try {
-      const mainCategories = await db.select().from(categories).where(eq3(categories.depth, 0)).orderBy(categories.order);
+      const mainCategories = await db.select().from(categories).where(eq4(categories.depth, 0)).orderBy(categories.order);
       res.json(mainCategories);
     } catch (error) {
       console.error("Error fetching main categories:", error);
@@ -6324,7 +6536,7 @@ async function registerRoutes(app2, existingServer) {
       const stats = await db.select({
         categoryId: listings.categoryId,
         count: count()
-      }).from(listings).where(eq3(listings.status, "active")).groupBy(listings.categoryId);
+      }).from(listings).where(eq4(listings.status, "active")).groupBy(listings.categoryId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching category stats:", error);
@@ -6385,16 +6597,16 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/categories/:slug", async (req, res) => {
     try {
-      const [category] = await db.select().from(categories).where(eq3(categories.slug, req.params.slug)).limit(1);
+      const [category] = await db.select().from(categories).where(eq4(categories.slug, req.params.slug)).limit(1);
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
       }
-      const childCategories = await db.select().from(categories).where(eq3(categories.parentId, category.id)).orderBy(categories.order);
+      const childCategories = await db.select().from(categories).where(eq4(categories.parentId, category.id)).orderBy(categories.order);
       const categoryWithChildren = {
         ...category,
         children: await Promise.all(
           childCategories.map(async (child) => {
-            const grandchildren = await db.select().from(categories).where(eq3(categories.parentId, child.id)).orderBy(categories.order);
+            const grandchildren = await db.select().from(categories).where(eq4(categories.parentId, child.id)).orderBy(categories.order);
             return {
               ...child,
               children: grandchildren
@@ -6411,19 +6623,19 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/categories/:slug/restrictions", async (req, res) => {
     try {
       const { slug } = req.params;
-      const kisitlamalar = await db.select().from(restrictedCategories).where(and3(
-        eq3(restrictedCategories.categorySlug, slug),
-        eq3(restrictedCategories.isActive, true)
+      const kisitlamalar = await db.select().from(restrictedCategories).where(and4(
+        eq4(restrictedCategories.categorySlug, slug),
+        eq4(restrictedCategories.isActive, true)
       ));
-      const [kategori] = await db.select({ path: categories.path }).from(categories).where(eq3(categories.slug, slug)).limit(1);
+      const [kategori] = await db.select({ path: categories.path }).from(categories).where(eq4(categories.slug, slug)).limit(1);
       const atalar = Array.isArray(kategori?.path) ? kategori.path : [];
       let devralinan = [];
       if (atalar.length > 0) {
         const atalarinSluglari = await db.select({ slug: categories.slug }).from(categories).where(inArray2(categories.id, atalar));
         if (atalarinSluglari.length > 0) {
-          devralinan = await db.select().from(restrictedCategories).where(and3(
+          devralinan = await db.select().from(restrictedCategories).where(and4(
             inArray2(restrictedCategories.categorySlug, atalarinSluglari.map((a) => a.slug)),
-            eq3(restrictedCategories.isActive, true)
+            eq4(restrictedCategories.isActive, true)
           ));
         }
       }
@@ -6442,13 +6654,13 @@ async function registerRoutes(app2, existingServer) {
         if (parent === null || parent === "") {
           conditions.push(isNull(locations.parentId));
         } else {
-          conditions.push(eq3(locations.parentId, parent));
+          conditions.push(eq4(locations.parentId, parent));
         }
       }
       if (type) {
-        conditions.push(eq3(locations.type, type));
+        conditions.push(eq4(locations.type, type));
       }
-      const result = await query.where(conditions.length > 0 ? and3(...conditions) : void 0);
+      const result = await query.where(conditions.length > 0 ? and4(...conditions) : void 0);
       res.json(result);
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -6460,7 +6672,7 @@ async function registerRoutes(app2, existingServer) {
       const q = (req.query.q || "").trim();
       if (!q || q.length < 2) return res.json({ listings: [], categories: [] });
       const [listingSuggestions, categorySuggestions] = await Promise.all([
-        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and3(ilike2(listings.title, `%${q}%`), eq3(listings.status, "active"))).orderBy(desc3(listings.createdAt)).limit(6),
+        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and4(ilike2(listings.title, `%${q}%`), eq4(listings.status, "active"))).orderBy(desc3(listings.createdAt)).limit(6),
         db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(ilike2(categories.name, `%${q}%`)).limit(4)
       ]);
       res.json({ listings: listingSuggestions, categories: categorySuggestions });
@@ -6526,19 +6738,19 @@ async function registerRoutes(app2, existingServer) {
         if (categoryIds.length > 1) {
           conditions.push(inArray2(listings.categoryId, categoryIds));
         } else {
-          conditions.push(eq3(listings.categoryId, categoryId));
+          conditions.push(eq4(listings.categoryId, categoryId));
         }
       }
       if (city) {
-        conditions.push(eq3(listings.city, city));
+        conditions.push(eq4(listings.city, city));
       }
       if (district) {
-        conditions.push(eq3(listings.district, district));
+        conditions.push(eq4(listings.district, district));
       }
       if (status) {
-        conditions.push(eq3(listings.status, status));
+        conditions.push(eq4(listings.status, status));
       } else {
-        conditions.push(eq3(listings.status, "active"));
+        conditions.push(eq4(listings.status, "active"));
       }
       if (minPrice) {
         const minPriceNum = parseFloat(minPrice);
@@ -6571,25 +6783,25 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       if (gender && gender !== "all") {
-        conditions.push(eq3(listings.gender, gender));
+        conditions.push(eq4(listings.gender, gender));
       }
       if (breed && typeof breed === "string" && breed.trim()) {
         conditions.push(ilike2(listings.breed, `%${breed}%`));
       }
       if (healthStatus && healthStatus !== "all") {
-        conditions.push(eq3(listings.healthStatus, healthStatus));
+        conditions.push(eq4(listings.healthStatus, healthStatus));
       }
       if (vaccinated !== void 0 && vaccinated !== "all") {
         const isVaccinated = vaccinated === "true" || vaccinated === "1";
-        conditions.push(eq3(listings.vaccinated, isVaccinated));
+        conditions.push(eq4(listings.vaccinated, isVaccinated));
       }
       if (neutered !== void 0 && neutered !== "all") {
         const isNeutered = neutered === "true" || neutered === "1";
-        conditions.push(eq3(listings.neutered, isNeutered));
+        conditions.push(eq4(listings.neutered, isNeutered));
       }
       if (pedigree !== void 0 && pedigree !== "all") {
         const hasPedigree = pedigree === "true" || pedigree === "1";
-        conditions.push(eq3(listings.pedigree, hasPedigree));
+        conditions.push(eq4(listings.pedigree, hasPedigree));
       }
       if (ageCategory && ageCategory !== "all") {
         const ageRanges = {
@@ -6623,7 +6835,7 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const validConditions = conditions.filter(Boolean);
-      const [{ count: totalCount }] = await db.select({ count: count() }).from(listings).where(validConditions.length > 0 ? and3(...validConditions) : void 0);
+      const [{ count: totalCount }] = await db.select({ count: count() }).from(listings).where(validConditions.length > 0 ? and4(...validConditions) : void 0);
       const ALLOWED_SORT_COLUMNS = {
         createdAt: "createdAt",
         price: "price",
@@ -6641,14 +6853,14 @@ async function registerRoutes(app2, existingServer) {
           displayName: stores.displayName,
           logo: stores.logo
         }
-      }).from(listings).leftJoin(stores, eq3(listings.storeId, stores.id)).where(validConditions.length > 0 ? and3(...validConditions) : void 0).orderBy(sortExpression).limit(limitNum).offset(offset);
+      }).from(listings).leftJoin(stores, eq4(listings.storeId, stores.id)).where(validConditions.length > 0 ? and4(...validConditions) : void 0).orderBy(sortExpression).limit(limitNum).offset(offset);
       const flattenedListings = listingsData.map((row) => ({
         ...row.listing,
         store: row.store?.id ? row.store : null
       }));
       let listingsWithFavorites = flattenedListings;
       if (req.user) {
-        const userFavorites = await db.select().from(favorites).where(eq3(favorites.userId, getUserId2(req.user)));
+        const userFavorites = await db.select().from(favorites).where(eq4(favorites.userId, getUserId2(req.user)));
         const favoriteIds = new Set(userFavorites.map((f) => f.listingId));
         listingsWithFavorites = flattenedListings.map((listing) => ({
           ...listing,
@@ -6674,7 +6886,7 @@ async function registerRoutes(app2, existingServer) {
       if (cached) {
         return res.json(cached);
       }
-      const hotListings = await db.select().from(listings).where(eq3(listings.status, "active")).orderBy(desc3(listings.views)).limit(12);
+      const hotListings = await db.select().from(listings).where(eq4(listings.status, "active")).orderBy(desc3(listings.views)).limit(12);
       await cache.set(cacheKey, hotListings, cacheTTL.hotListings);
       res.json(hotListings);
     } catch (error) {
@@ -6684,14 +6896,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/:id/similar", async (req, res) => {
     try {
-      const [currentListing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
+      const [currentListing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
       if (!currentListing) {
         return res.status(404).json({ message: "Listing not found" });
       }
       const similarListings = await db.select().from(listings).where(
-        and3(
-          eq3(listings.categoryId, currentListing.categoryId),
-          eq3(listings.status, "active"),
+        and4(
+          eq4(listings.categoryId, currentListing.categoryId),
+          eq4(listings.status, "active"),
           sql4`${listings.id} != ${req.params.id}`
           // Exclude current listing
         )
@@ -6706,15 +6918,15 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listings/:id", async (req, res, next) => {
     if (LISTE_SABIT_YOLLARI.has(req.params.id)) return next();
     try {
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
-      await db.update(listings).set({ views: sql4`${listings.views} + 1` }).where(eq3(listings.id, req.params.id));
-      const [seller] = await db.select().from(users).where(eq3(users.id, listing.sellerId)).limit(1);
+      await db.update(listings).set({ views: sql4`${listings.views} + 1` }).where(eq4(listings.id, req.params.id));
+      const [seller] = await db.select().from(users).where(eq4(users.id, listing.sellerId)).limit(1);
       let categoryInfo = null;
       if (listing.categoryId) {
-        const [category] = await db.select().from(categories).where(eq3(categories.id, listing.categoryId)).limit(1);
+        const [category] = await db.select().from(categories).where(eq4(categories.id, listing.categoryId)).limit(1);
         categoryInfo = category || null;
       }
       let storeInfo = null;
@@ -6724,15 +6936,15 @@ async function registerRoutes(app2, existingServer) {
           slug: stores.slug,
           displayName: stores.displayName,
           logo: stores.logo
-        }).from(stores).where(eq3(stores.id, listing.storeId)).limit(1);
+        }).from(stores).where(eq4(stores.id, listing.storeId)).limit(1);
         storeInfo = store || null;
       }
       let isFavorite = false;
       if (req.user) {
         const [favorite] = await db.select().from(favorites).where(
-          and3(
-            eq3(favorites.userId, getUserId2(req.user)),
-            eq3(favorites.listingId, listing.id)
+          and4(
+            eq4(favorites.userId, getUserId2(req.user)),
+            eq4(favorites.listingId, listing.id)
           )
         ).limit(1);
         isFavorite = !!favorite;
@@ -6769,8 +6981,8 @@ async function registerRoutes(app2, existingServer) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3);
       const normalizedTitle = req.body.title.toLowerCase().trim();
       const duplicates = await db.select().from(listings).where(
-        and3(
-          eq3(listings.sellerId, sellerId),
+        and4(
+          eq4(listings.sellerId, sellerId),
           sql4`LOWER(TRIM(${listings.title})) = ${normalizedTitle}`,
           gte2(listings.createdAt, oneHourAgo),
           // Ignore rejected/deleted listings
@@ -6784,8 +6996,8 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const recentListings = await db.select({ count: count() }).from(listings).where(
-        and3(
-          eq3(listings.sellerId, sellerId),
+        and4(
+          eq4(listings.sellerId, sellerId),
           gte2(listings.createdAt, oneHourAgo),
           sql4`${listings.status} NOT IN ('rejected', 'deleted')`
         )
@@ -6798,12 +7010,12 @@ async function registerRoutes(app2, existingServer) {
       }
       const categoryId = req.body.categoryId;
       if (categoryId) {
-        const categoryInfo = await db.select().from(categories).where(eq3(categories.id, categoryId)).limit(1);
+        const categoryInfo = await db.select().from(categories).where(eq4(categories.id, categoryId)).limit(1);
         if (categoryInfo.length > 0) {
           const categorySlug = categoryInfo[0].slug;
-          const restrictions = await db.select().from(restrictedCategories).where(and3(
-            eq3(restrictedCategories.categorySlug, categorySlug),
-            eq3(restrictedCategories.isActive, true)
+          const restrictions = await db.select().from(restrictedCategories).where(and4(
+            eq4(restrictedCategories.categorySlug, categorySlug),
+            eq4(restrictedCategories.isActive, true)
           ));
           if (restrictions.length > 0) {
             const restriction = restrictions[0];
@@ -6842,11 +7054,11 @@ async function registerRoutes(app2, existingServer) {
           }
           if (categoryInfo[0].path && Array.isArray(categoryInfo[0].path)) {
             for (const parentId of categoryInfo[0].path) {
-              const parentCat = await db.select().from(categories).where(eq3(categories.id, parentId)).limit(1);
+              const parentCat = await db.select().from(categories).where(eq4(categories.id, parentId)).limit(1);
               if (parentCat.length > 0) {
-                const parentRestrictions = await db.select().from(restrictedCategories).where(and3(
-                  eq3(restrictedCategories.categorySlug, parentCat[0].slug),
-                  eq3(restrictedCategories.isActive, true)
+                const parentRestrictions = await db.select().from(restrictedCategories).where(and4(
+                  eq4(restrictedCategories.categorySlug, parentCat[0].slug),
+                  eq4(restrictedCategories.isActive, true)
                 ));
                 if (parentRestrictions.length > 0) {
                   const restriction = parentRestrictions[0];
@@ -6899,7 +7111,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/listings/:id", isAuthenticated, async (req, res) => {
     try {
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -6932,10 +7144,10 @@ async function registerRoutes(app2, existingServer) {
       if ("storeId" in safeBody) {
         updateData.listingSource = safeBody.storeId ? "store" : "individual";
       }
-      const [updated] = await db.update(listings).set(updateData).where(eq3(listings.id, req.params.id)).returning();
+      const [updated] = await db.update(listings).set(updateData).where(eq4(listings.id, req.params.id)).returning();
       if (isPriceDrop && listing.status === "active") {
         try {
-          const favoritedUsers = await db.select({ userId: favorites.userId }).from(favorites).where(eq3(favorites.listingId, req.params.id));
+          const favoritedUsers = await db.select({ userId: favorites.userId }).from(favorites).where(eq4(favorites.listingId, req.params.id));
           const discountPercent = Math.round((oldPrice - newPrice) / oldPrice * 100);
           if (favoritedUsers.length > 0) {
             const notificationValues = favoritedUsers.map((fav) => ({
@@ -6961,7 +7173,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/listings/:id", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -6969,8 +7181,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       const objectStorage2 = new ObjectStorageService();
-      await db.delete(favorites).where(eq3(favorites.listingId, listingId));
-      const imagesToDelete = await db.select().from(listingImages).where(eq3(listingImages.listingId, listingId));
+      await db.delete(favorites).where(eq4(favorites.listingId, listingId));
+      const imagesToDelete = await db.select().from(listingImages).where(eq4(listingImages.listingId, listingId));
       for (const img of imagesToDelete) {
         const pathsToDelete = [
           img.originalKey,
@@ -6980,21 +7192,21 @@ async function registerRoutes(app2, existingServer) {
         ].filter(Boolean);
         await objectStorage2.deleteMultipleFiles(pathsToDelete);
       }
-      await db.delete(listingImages).where(eq3(listingImages.listingId, listingId));
+      await db.delete(listingImages).where(eq4(listingImages.listingId, listingId));
       if (listing.images && Array.isArray(listing.images)) {
         await objectStorage2.deleteMultipleFiles(listing.images);
       }
       await db.delete(reports).where(
-        and3(eq3(reports.reportedType, "listing"), eq3(reports.reportedId, listingId))
+        and4(eq4(reports.reportedType, "listing"), eq4(reports.reportedId, listingId))
       );
-      await db.delete(offers).where(eq3(offers.listingId, listingId));
-      await db.update(conversations).set({ listingId: null }).where(eq3(conversations.listingId, listingId));
-      const relatedAuctions = await db.select({ id: auctions.id }).from(auctions).where(eq3(auctions.listingId, listingId));
+      await db.delete(offers).where(eq4(offers.listingId, listingId));
+      await db.update(conversations).set({ listingId: null }).where(eq4(conversations.listingId, listingId));
+      const relatedAuctions = await db.select({ id: auctions.id }).from(auctions).where(eq4(auctions.listingId, listingId));
       for (const auction of relatedAuctions) {
-        await db.delete(bids).where(eq3(bids.auctionId, auction.id));
+        await db.delete(bids).where(eq4(bids.auctionId, auction.id));
       }
-      await db.delete(auctions).where(eq3(auctions.listingId, listingId));
-      await db.delete(listings).where(eq3(listings.id, listingId));
+      await db.delete(auctions).where(eq4(auctions.listingId, listingId));
+      await db.delete(listings).where(eq4(listings.id, listingId));
       res.json({ message: "Listing deleted successfully" });
     } catch (error) {
       console.error("Error deleting listing:", error);
@@ -7004,14 +7216,14 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/listings/:id/deactivate", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Bu i\u015Flem i\xE7in yetkiniz yok" });
       }
-      const [updated] = await db.update(listings).set({ status: "draft", updatedAt: /* @__PURE__ */ new Date() }).where(eq3(listings.id, listingId)).returning();
+      const [updated] = await db.update(listings).set({ status: "draft", updatedAt: /* @__PURE__ */ new Date() }).where(eq4(listings.id, listingId)).returning();
       res.json({ message: "\u0130lan pasife al\u0131nd\u0131", listing: updated });
     } catch (error) {
       console.error("Error deactivating listing:", error);
@@ -7021,14 +7233,14 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/listings/:id/activate", isAuthenticated, async (req, res) => {
     try {
       const listingId = req.params.id;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Bu i\u015Flem i\xE7in yetkiniz yok" });
       }
-      const [updated] = await db.update(listings).set({ status: "active", updatedAt: /* @__PURE__ */ new Date() }).where(eq3(listings.id, listingId)).returning();
+      const [updated] = await db.update(listings).set({ status: "active", updatedAt: /* @__PURE__ */ new Date() }).where(eq4(listings.id, listingId)).returning();
       res.json({ message: "\u0130lan aktifle\u015Ftirildi", listing: updated });
     } catch (error) {
       console.error("Error activating listing:", error);
@@ -7037,7 +7249,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/mine", isAuthenticated, async (req, res) => {
     try {
-      const userListings = await db.select().from(listings).where(eq3(listings.sellerId, getUserId2(req.user))).orderBy(desc3(listings.createdAt));
+      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, getUserId2(req.user))).orderBy(desc3(listings.createdAt));
       res.json(userListings);
     } catch (error) {
       console.error("Error fetching user listings:", error);
@@ -7046,7 +7258,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/users/:id/listings", async (req, res) => {
     try {
-      const userListings = await db.select().from(listings).where(eq3(listings.sellerId, req.params.id)).orderBy(desc3(listings.createdAt));
+      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, req.params.id)).orderBy(desc3(listings.createdAt));
       res.json(userListings);
     } catch (error) {
       console.error("Error fetching user listings:", error);
@@ -7058,7 +7270,7 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(auctions);
       if (status) {
-        query = query.where(eq3(auctions.status, status));
+        query = query.where(eq4(auctions.status, status));
       }
       const allAuctions = await query.orderBy(desc3(auctions.createdAt));
       res.json(allAuctions);
@@ -7069,12 +7281,12 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/auctions/:id", async (req, res) => {
     try {
-      const [auction] = await db.select().from(auctions).where(eq3(auctions.id, req.params.id)).limit(1);
+      const [auction] = await db.select().from(auctions).where(eq4(auctions.id, req.params.id)).limit(1);
       if (!auction) {
         return res.status(404).json({ message: "Auction not found" });
       }
-      const auctionBids = await db.select().from(bids).where(eq3(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, auction.listingId)).limit(1);
+      const auctionBids = await db.select().from(bids).where(eq4(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, auction.listingId)).limit(1);
       res.json({
         ...auction,
         bids: auctionBids,
@@ -7088,7 +7300,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/auctions", isAuthenticated, async (req, res) => {
     try {
       const data = insertAuctionSchema.parse(req.body);
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, data.listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, data.listingId)).limit(1);
       if (!listing || listing.sellerId !== getUserId2(req.user)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
@@ -7101,7 +7313,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/auctions/:id/bids", async (req, res) => {
     try {
-      const auctionBids = await db.select().from(bids).where(eq3(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
+      const auctionBids = await db.select().from(bids).where(eq4(bids.auctionId, req.params.id)).orderBy(desc3(bids.amount));
       res.json(auctionBids);
     } catch (error) {
       console.error("Failed to fetch bids:", error);
@@ -7110,7 +7322,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/auctions/:id/bids", isAuthenticated, async (req, res) => {
     try {
-      const [auction] = await db.select().from(auctions).where(eq3(auctions.id, req.params.id)).limit(1);
+      const [auction] = await db.select().from(auctions).where(eq4(auctions.id, req.params.id)).limit(1);
       if (!auction) {
         return res.status(404).json({ message: "Auction not found" });
       }
@@ -7133,7 +7345,7 @@ async function registerRoutes(app2, existingServer) {
       await db.update(auctions).set({
         currentPrice: bidAmount.toString(),
         totalBids: (auction.totalBids || 0) + 1
-      }).where(eq3(auctions.id, req.params.id));
+      }).where(eq4(auctions.id, req.params.id));
       wss?.clients?.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
@@ -7160,7 +7372,7 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(liveStreams);
       if (status) {
-        query = query.where(eq3(liveStreams.status, status));
+        query = query.where(eq4(liveStreams.status, status));
       }
       const allStreams = await query.orderBy(desc3(liveStreams.createdAt));
       res.json(allStreams);
@@ -7171,14 +7383,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/streams/:id", async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq3(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
-      const [streamer] = await db.select().from(users).where(eq3(users.id, stream.streamerId)).limit(1);
+      const [streamer] = await db.select().from(users).where(eq4(users.id, stream.streamerId)).limit(1);
       let listing = null;
       if (stream.listingId) {
-        [listing] = await db.select().from(listings).where(eq3(listings.id, stream.listingId)).limit(1);
+        [listing] = await db.select().from(listings).where(eq4(listings.id, stream.listingId)).limit(1);
       }
       res.json({
         ...stream,
@@ -7206,14 +7418,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/streams/:id", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq3(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
       if (stream.streamerId !== getUserId2(req.user)) {
         return res.status(403).json({ message: "Not authorized" });
       }
-      const [updated] = await db.update(liveStreams).set(req.body).where(eq3(liveStreams.id, req.params.id)).returning();
+      const [updated] = await db.update(liveStreams).set(req.body).where(eq4(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to update stream:", error);
@@ -7222,7 +7434,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/streams/:id/join", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq3(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
@@ -7234,7 +7446,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(liveStreams).set({
         viewerCount: newViewerCount,
         peakViewers: newPeakViewers
-      }).where(eq3(liveStreams.id, req.params.id)).returning();
+      }).where(eq4(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to join stream:", error);
@@ -7243,14 +7455,14 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/streams/:id/leave", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq3(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
       const newViewerCount = Math.max(0, (stream.viewerCount || 0) - 1);
       const [updated] = await db.update(liveStreams).set({
         viewerCount: newViewerCount
-      }).where(eq3(liveStreams.id, req.params.id)).returning();
+      }).where(eq4(liveStreams.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to leave stream:", error);
@@ -7259,7 +7471,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/streams/:id/token", isAuthenticated, async (req, res) => {
     try {
-      const [stream] = await db.select().from(liveStreams).where(eq3(liveStreams.id, req.params.id)).limit(1);
+      const [stream] = await db.select().from(liveStreams).where(eq4(liveStreams.id, req.params.id)).limit(1);
       if (!stream) {
         return res.status(404).json({ message: "Stream not found" });
       }
@@ -7302,7 +7514,7 @@ async function registerRoutes(app2, existingServer) {
       const limit = parseInt(req.query.limit) || 20;
       const unreadOnly = req.query.unreadOnly === "true";
       let query = db.select().from(notifications).where(
-        unreadOnly ? and3(eq3(notifications.userId, userId), eq3(notifications.isRead, false)) : eq3(notifications.userId, userId)
+        unreadOnly ? and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)) : eq4(notifications.userId, userId)
       ).orderBy(desc3(notifications.createdAt)).limit(limit);
       const userNotifications = await query;
       res.json(userNotifications);
@@ -7314,7 +7526,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/notifications/count", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const [result] = await db.select({ count: count() }).from(notifications).where(and3(eq3(notifications.userId, userId), eq3(notifications.isRead, false)));
+      const [result] = await db.select({ count: count() }).from(notifications).where(and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)));
       res.json({ count: result?.count || 0 });
     } catch (error) {
       console.error("Failed to fetch notification count:", error);
@@ -7325,7 +7537,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const notificationId = req.params.id;
-      const [notification] = await db.update(notifications).set({ isRead: true }).where(and3(eq3(notifications.id, notificationId), eq3(notifications.userId, userId))).returning();
+      const [notification] = await db.update(notifications).set({ isRead: true }).where(and4(eq4(notifications.id, notificationId), eq4(notifications.userId, userId))).returning();
       if (!notification) {
         return res.status(404).json({ message: "Notification not found" });
       }
@@ -7338,7 +7550,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/notifications/read-all", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      await db.update(notifications).set({ isRead: true }).where(and3(eq3(notifications.userId, userId), eq3(notifications.isRead, false)));
+      await db.update(notifications).set({ isRead: true }).where(and4(eq4(notifications.userId, userId), eq4(notifications.isRead, false)));
       res.json({ message: "All notifications marked as read" });
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
@@ -7349,7 +7561,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const notificationId = req.params.id;
-      const [deleted] = await db.delete(notifications).where(and3(eq3(notifications.id, notificationId), eq3(notifications.userId, userId))).returning();
+      const [deleted] = await db.delete(notifications).where(and4(eq4(notifications.id, notificationId), eq4(notifications.userId, userId))).returning();
       if (!deleted) {
         return res.status(404).json({ message: "Notification not found" });
       }
@@ -7364,8 +7576,8 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const userConvs = await db.select().from(conversations).where(
         or2(
-          eq3(conversations.participant1Id, userId),
-          eq3(conversations.participant2Id, userId)
+          eq4(conversations.participant1Id, userId),
+          eq4(conversations.participant2Id, userId)
         )
       );
       let totalUnread = 0;
@@ -7398,14 +7610,14 @@ async function registerRoutes(app2, existingServer) {
           lastName: users.lastName,
           profileImageUrl: users.profileImageUrl
         }
-      }).from(messages).leftJoin(users, eq3(messages.senderId, users.id)).where(
-        and3(
+      }).from(messages).leftJoin(users, eq4(messages.senderId, users.id)).where(
+        and4(
           or2(
-            eq3(messages.senderId, userId),
-            eq3(messages.receiverId, userId)
+            eq4(messages.senderId, userId),
+            eq4(messages.receiverId, userId)
           ),
           ilike2(messages.content, `%${query}%`),
-          eq3(messages.isDeleted, false)
+          eq4(messages.isDeleted, false)
         )
       ).orderBy(desc3(messages.createdAt)).limit(limit);
       res.json(results.map((r) => ({
@@ -7422,19 +7634,19 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const showArchived = req.query.archived === "true";
       const userConvs = await db.select().from(conversations).where(
-        and3(
+        and4(
           or2(
-            eq3(conversations.participant1Id, userId),
-            eq3(conversations.participant2Id, userId)
+            eq4(conversations.participant1Id, userId),
+            eq4(conversations.participant2Id, userId)
           ),
           // Filter archived based on query param
           showArchived ? or2(
-            and3(eq3(conversations.participant1Id, userId), eq3(conversations.participant1Archived, true)),
-            and3(eq3(conversations.participant2Id, userId), eq3(conversations.participant2Archived, true))
-          ) : and3(
+            and4(eq4(conversations.participant1Id, userId), eq4(conversations.participant1Archived, true)),
+            and4(eq4(conversations.participant2Id, userId), eq4(conversations.participant2Archived, true))
+          ) : and4(
             or2(
-              and3(eq3(conversations.participant1Id, userId), eq3(conversations.participant1Archived, false)),
-              and3(eq3(conversations.participant2Id, userId), eq3(conversations.participant2Archived, false))
+              and4(eq4(conversations.participant1Id, userId), eq4(conversations.participant1Archived, false)),
+              and4(eq4(conversations.participant2Id, userId), eq4(conversations.participant2Archived, false))
             )
           )
         )
@@ -7464,7 +7676,7 @@ async function registerRoutes(app2, existingServer) {
           city: listings.city,
           district: listings.district
         }
-      }).from(messages).leftJoin(listings, eq3(messages.listingId, listings.id)).where(inArray2(messages.id, messageIds)) : [];
+      }).from(messages).leftJoin(listings, eq4(messages.listingId, listings.id)).where(inArray2(messages.id, messageIds)) : [];
       const presences = partnerIds.length > 0 ? await db.select().from(userPresence).where(inArray2(userPresence.userId, partnerIds)) : [];
       const partnersMap = new Map(partners.map((p) => [p.id, p]));
       const messagesMap = new Map(lastMsgs.map((m) => [m.message.id, { ...m.message, listing: m.listing }]));
@@ -7511,7 +7723,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { archived } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7519,7 +7731,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Archived: archived } : { participant2Archived: archived };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
       res.json({ message: archived ? "Konu\u015Fma ar\u015Fivlendi" : "Konu\u015Fma ar\u015Fivden \xE7\u0131kar\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to archive conversation:", error);
@@ -7531,7 +7743,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { pinned } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7539,7 +7751,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Pinned: pinned } : { participant2Pinned: pinned };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
       res.json({ message: pinned ? "Konu\u015Fma sabitlendi" : "Konu\u015Fma sabitten \xE7\u0131kar\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to pin conversation:", error);
@@ -7551,7 +7763,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
       const { muted } = req.body;
-      const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7559,7 +7771,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1Muted: muted } : { participant2Muted: muted };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
       res.json({ message: muted ? "Konu\u015Fma sessize al\u0131nd\u0131" : "Konu\u015Fma sesi a\xE7\u0131ld\u0131" });
     } catch (error) {
       console.error("Failed to mute conversation:", error);
@@ -7570,7 +7782,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const conversationId = req.params.id;
-      const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (!conv) {
         return res.status(404).json({ message: "Konu\u015Fma bulunamad\u0131" });
       }
@@ -7578,14 +7790,14 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Bu konu\u015Fmaya eri\u015Fim yetkiniz yok" });
       }
       const updateData = conv.participant1Id === userId ? { participant1UnreadCount: 0, participant1LastReadAt: /* @__PURE__ */ new Date() } : { participant2UnreadCount: 0, participant2LastReadAt: /* @__PURE__ */ new Date() };
-      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(conversations.id, conversationId));
+      await db.update(conversations).set({ ...updateData, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(conversations.id, conversationId));
       await db.update(messages).set({
         status: "read",
         readAt: /* @__PURE__ */ new Date()
       }).where(
-        and3(
-          eq3(messages.conversationId, conversationId),
-          eq3(messages.receiverId, userId),
+        and4(
+          eq4(messages.conversationId, conversationId),
+          eq4(messages.receiverId, userId),
           sql4`${messages.status} != 'read'`
         )
       );
@@ -7660,7 +7872,7 @@ async function registerRoutes(app2, existingServer) {
           city: listings.city,
           district: listings.district
         }
-      }).from(messages).leftJoin(listings, eq3(messages.listingId, listings.id)).where(
+      }).from(messages).leftJoin(listings, eq4(messages.listingId, listings.id)).where(
         sql4`(${messages.senderId} = ${currentUserId} AND ${messages.receiverId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.receiverId} = ${currentUserId})`
       ).orderBy(messages.createdAt);
       const result = msgs.map((row) => ({
@@ -7685,7 +7897,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Al\u0131c\u0131 ve mesaj i\xE7eri\u011Fi gereklidir" });
       }
       if (listingId) {
-        const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq3(listings.id, listingId)).limit(1);
+        const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq4(listings.id, listingId)).limit(1);
         if (listing?.isExampleListing) {
           return res.status(403).json({
             message: "\xD6rnek ilanlara mesaj g\xF6nderilemez. Bu ilan sadece \xF6rnek ama\xE7l\u0131d\u0131r."
@@ -7693,7 +7905,7 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const conversationId = [senderId, receiverId].sort().join("_");
-      const [existingConv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [existingConv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (!existingConv) {
         const [p1, p2] = [senderId, receiverId].sort();
         await db.insert(conversations).values({
@@ -7719,7 +7931,7 @@ async function registerRoutes(app2, existingServer) {
         replyToId: replyToId || null,
         attachments: attachments || []
       }).returning();
-      const [conv] = await db.select().from(conversations).where(eq3(conversations.id, conversationId)).limit(1);
+      const [conv] = await db.select().from(conversations).where(eq4(conversations.id, conversationId)).limit(1);
       if (conv) {
         const isParticipant1Receiver = conv.participant1Id === receiverId;
         await db.update(conversations).set({
@@ -7727,7 +7939,7 @@ async function registerRoutes(app2, existingServer) {
           lastMessageAt: /* @__PURE__ */ new Date(),
           updatedAt: /* @__PURE__ */ new Date(),
           ...isParticipant1Receiver ? { participant1UnreadCount: sql4`COALESCE(${conversations.participant1UnreadCount}, 0) + 1` } : { participant2UnreadCount: sql4`COALESCE(${conversations.participant2UnreadCount}, 0) + 1` }
-        }).where(eq3(conversations.id, conversationId));
+        }).where(eq4(conversations.id, conversationId));
       }
       try {
         const sender = req.user;
@@ -7758,7 +7970,7 @@ async function registerRoutes(app2, existingServer) {
       }
       const published = req.query.published !== "false";
       const posts = await db.query.blogPosts.findMany({
-        where: published ? eq3(blogPosts.published, true) : void 0,
+        where: published ? eq4(blogPosts.published, true) : void 0,
         orderBy: (posts2, { desc: desc4 }) => [desc4(posts2.createdAt)],
         with: {
           author: true
@@ -7788,7 +8000,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/blog/:slug", async (req, res) => {
     try {
       const post = await db.query.blogPosts.findFirst({
-        where: (posts, { eq: eq4 }) => eq4(posts.slug, req.params.slug),
+        where: (posts, { eq: eq5 }) => eq5(posts.slug, req.params.slug),
         with: {
           author: true
         }
@@ -7835,7 +8047,7 @@ async function registerRoutes(app2, existingServer) {
       const city = req.query.city;
       let query = db.select().from(vetServices);
       if (city) {
-        query = query.where(eq3(vetServices.city, city));
+        query = query.where(eq4(vetServices.city, city));
       }
       const services = await query.orderBy(desc3(vetServices.createdAt));
       res.json(services);
@@ -7846,15 +8058,15 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/vet-services/:id", async (req, res) => {
     try {
-      const [service] = await db.select().from(vetServices).where(eq3(vetServices.id, req.params.id)).limit(1);
+      const [service] = await db.select().from(vetServices).where(eq4(vetServices.id, req.params.id)).limit(1);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      const [vet] = await db.select().from(users).where(eq3(users.id, service.vetId)).limit(1);
+      const [vet] = await db.select().from(users).where(eq4(users.id, service.vetId)).limit(1);
       const serviceReviews = await db.select().from(reviews).where(
-        and3(
-          eq3(reviews.targetId, req.params.id),
-          eq3(reviews.targetType, "vet_service")
+        and4(
+          eq4(reviews.targetId, req.params.id),
+          eq4(reviews.targetType, "vet_service")
         )
       );
       let sanitizedVet = null;
@@ -7899,15 +8111,15 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/transport-services/:id", async (req, res) => {
     try {
-      const [service] = await db.select().from(transportServices).where(eq3(transportServices.id, req.params.id)).limit(1);
+      const [service] = await db.select().from(transportServices).where(eq4(transportServices.id, req.params.id)).limit(1);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      const [transporter] = await db.select().from(users).where(eq3(users.id, service.transporterId)).limit(1);
+      const [transporter] = await db.select().from(users).where(eq4(users.id, service.transporterId)).limit(1);
       const serviceReviews = await db.select().from(reviews).where(
-        and3(
-          eq3(reviews.targetId, req.params.id),
-          eq3(reviews.targetType, "transport_service")
+        and4(
+          eq4(reviews.targetId, req.params.id),
+          eq4(reviews.targetType, "transport_service")
         )
       );
       let sanitizedTransporter = null;
@@ -7956,7 +8168,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/favorites", isAuthenticated, async (req, res) => {
     try {
-      const favs = await db.select().from(favorites).where(eq3(favorites.userId, getUserId2(req.user)));
+      const favs = await db.select().from(favorites).where(eq4(favorites.userId, getUserId2(req.user)));
       res.json(favs);
     } catch (error) {
       console.error("Failed to fetch favorites:", error);
@@ -7971,7 +8183,7 @@ async function registerRoutes(app2, existingServer) {
       });
       const [favorite] = await db.insert(favorites).values(data).returning();
       try {
-        const [listing] = await db.select().from(listings).where(eq3(listings.id, data.listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq4(listings.id, data.listingId)).limit(1);
         if (listing && listing.sellerId !== getUserId2(req.user)) {
           const favUser = req.user;
           const userName = favUser.firstName ? `${favUser.firstName} ${favUser.lastName || ""}`.trim() : favUser.username || "Birisi";
@@ -8000,9 +8212,9 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/favorites/:listingId", isAuthenticated, async (req, res) => {
     try {
       await db.delete(favorites).where(
-        and3(
-          eq3(favorites.userId, getUserId2(req.user)),
-          eq3(favorites.listingId, req.params.listingId)
+        and4(
+          eq4(favorites.userId, getUserId2(req.user)),
+          eq4(favorites.listingId, req.params.listingId)
         )
       );
       res.json({ message: "Favorite removed" });
@@ -8014,7 +8226,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/saved-searches", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userSearches = await db.select().from(savedSearches).where(eq3(savedSearches.userId, userId)).orderBy(desc3(savedSearches.createdAt));
+      const userSearches = await db.select().from(savedSearches).where(eq4(savedSearches.userId, userId)).orderBy(desc3(savedSearches.createdAt));
       res.json(userSearches);
     } catch (error) {
       console.error("Failed to fetch saved searches:", error);
@@ -8028,7 +8240,7 @@ async function registerRoutes(app2, existingServer) {
       if (!name || !filters) {
         return res.status(400).json({ message: "Arama ad\u0131 ve filtreler gereklidir" });
       }
-      const existingSearches = await db.select({ count: sql4`count(*)::int` }).from(savedSearches).where(eq3(savedSearches.userId, userId));
+      const existingSearches = await db.select({ count: sql4`count(*)::int` }).from(savedSearches).where(eq4(savedSearches.userId, userId));
       const searchCount = existingSearches[0]?.count ?? 0;
       if (searchCount >= 10) {
         return res.status(400).json({ message: "En fazla 10 arama kaydedebilirsiniz" });
@@ -8050,9 +8262,9 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const { id } = req.params;
       const { name, filters, notifyEnabled } = req.body;
-      const [existingSearch] = await db.select().from(savedSearches).where(and3(
-        eq3(savedSearches.id, id),
-        eq3(savedSearches.userId, userId)
+      const [existingSearch] = await db.select().from(savedSearches).where(and4(
+        eq4(savedSearches.id, id),
+        eq4(savedSearches.userId, userId)
       )).limit(1);
       if (!existingSearch) {
         return res.status(404).json({ message: "Kay\u0131tl\u0131 arama bulunamad\u0131" });
@@ -8061,7 +8273,7 @@ async function registerRoutes(app2, existingServer) {
       if (name !== void 0) updateData.name = name;
       if (filters !== void 0) updateData.filters = filters;
       if (notifyEnabled !== void 0) updateData.notifyEnabled = notifyEnabled;
-      const [updated] = await db.update(savedSearches).set(updateData).where(eq3(savedSearches.id, id)).returning();
+      const [updated] = await db.update(savedSearches).set(updateData).where(eq4(savedSearches.id, id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to update saved search:", error);
@@ -8072,9 +8284,9 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const { id } = req.params;
-      await db.delete(savedSearches).where(and3(
-        eq3(savedSearches.id, id),
-        eq3(savedSearches.userId, userId)
+      await db.delete(savedSearches).where(and4(
+        eq4(savedSearches.id, id),
+        eq4(savedSearches.userId, userId)
       ));
       res.json({ message: "Kay\u0131tl\u0131 arama silindi" });
     } catch (error) {
@@ -8099,7 +8311,7 @@ async function registerRoutes(app2, existingServer) {
           status: listings.status,
           createdAt: listings.createdAt
         }
-      }).from(viewedListings).innerJoin(listings, eq3(viewedListings.listingId, listings.id)).where(eq3(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt)).limit(limit);
+      }).from(viewedListings).innerJoin(listings, eq4(viewedListings.listingId, listings.id)).where(eq4(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt)).limit(limit);
       res.json(viewed.map((v) => ({
         ...v.listing,
         viewedAt: v.viewedAt
@@ -8116,19 +8328,19 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId) {
         return res.status(400).json({ message: "\u0130lan ID gerekli" });
       }
-      const [listing] = await db.select({ id: listings.id }).from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select({ id: listings.id }).from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      await db.delete(viewedListings).where(and3(
-        eq3(viewedListings.userId, userId),
-        eq3(viewedListings.listingId, listingId)
+      await db.delete(viewedListings).where(and4(
+        eq4(viewedListings.userId, userId),
+        eq4(viewedListings.listingId, listingId)
       ));
       await db.insert(viewedListings).values({
         userId,
         listingId
       });
-      const userViews = await db.select({ id: viewedListings.id }).from(viewedListings).where(eq3(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt));
+      const userViews = await db.select({ id: viewedListings.id }).from(viewedListings).where(eq4(viewedListings.userId, userId)).orderBy(desc3(viewedListings.viewedAt));
       if (userViews.length > 50) {
         const idsToDelete = userViews.slice(50).map((v) => v.id);
         await db.delete(viewedListings).where(inArray2(viewedListings.id, idsToDelete));
@@ -8142,7 +8354,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/viewed-listings", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      await db.delete(viewedListings).where(eq3(viewedListings.userId, userId));
+      await db.delete(viewedListings).where(eq4(viewedListings.userId, userId));
       res.json({ message: "G\xF6r\xFCnt\xFCleme ge\xE7mi\u015Fi temizlendi" });
     } catch (error) {
       console.error("Failed to clear viewed listings:", error);
@@ -8187,34 +8399,34 @@ async function registerRoutes(app2, existingServer) {
           title: listings.title,
           images: listings.images
         }
-      }).from(sellerReviews).leftJoin(users, eq3(sellerReviews.reviewerId, users.id)).leftJoin(listings, eq3(sellerReviews.listingId, listings.id)).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+      }).from(sellerReviews).leftJoin(users, eq4(sellerReviews.reviewerId, users.id)).leftJoin(listings, eq4(sellerReviews.listingId, listings.id)).where(
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       ).orderBy(desc3(sellerReviews.createdAt)).limit(limitNum).offset(offset);
       const [countResult] = await db.select({ count: sql4`count(*)` }).from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       );
       const [avgResult] = await db.select({
         avgRating: sql4`COALESCE(AVG(rating), 0)`,
         totalReviews: sql4`count(*)`
       }).from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       );
       const ratingDistribution = await db.select({
         rating: sellerReviews.rating,
         count: sql4`count(*)`
       }).from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       ).groupBy(sellerReviews.rating);
       res.json({
@@ -8241,9 +8453,9 @@ async function registerRoutes(app2, existingServer) {
         avgRating: sql4`COALESCE(AVG(rating), 0)`,
         totalReviews: sql4`count(*)`
       }).from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       );
       res.json({
@@ -8268,10 +8480,10 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7erli bir puan verin (1-5)" });
       }
       const existingReview = await db.select().from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.reviewerId, reviewerId),
-          listingId ? eq3(sellerReviews.listingId, listingId) : sql4`true`
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.reviewerId, reviewerId),
+          listingId ? eq4(sellerReviews.listingId, listingId) : sql4`true`
         )
       ).limit(1);
       if (existingReview.length > 0) {
@@ -8293,15 +8505,15 @@ async function registerRoutes(app2, existingServer) {
         avgRating: sql4`COALESCE(AVG(rating), 0)`,
         totalReviews: sql4`count(*)`
       }).from(sellerReviews).where(
-        and3(
-          eq3(sellerReviews.sellerId, sellerId),
-          eq3(sellerReviews.status, "active")
+        and4(
+          eq4(sellerReviews.sellerId, sellerId),
+          eq4(sellerReviews.status, "active")
         )
       );
       await db.update(users).set({
         sellerRating: avgResult?.avgRating?.toString() || "0",
         sellerReviewCount: Number(avgResult?.totalReviews || 0)
-      }).where(eq3(users.id, sellerId));
+      }).where(eq4(users.id, sellerId));
       await db.insert(notifications).values({
         userId: sellerId,
         type: "system",
@@ -8324,7 +8536,7 @@ async function registerRoutes(app2, existingServer) {
       if (!response || response.length < 5) {
         return res.status(400).json({ message: "Yan\u0131t en az 5 karakter olmal\u0131" });
       }
-      const [review] = await db.select().from(sellerReviews).where(eq3(sellerReviews.id, reviewId)).limit(1);
+      const [review] = await db.select().from(sellerReviews).where(eq4(sellerReviews.id, reviewId)).limit(1);
       if (!review) {
         return res.status(404).json({ message: "De\u011Ferlendirme bulunamad\u0131" });
       }
@@ -8338,7 +8550,7 @@ async function registerRoutes(app2, existingServer) {
         sellerResponse: response,
         sellerResponseAt: /* @__PURE__ */ new Date(),
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq3(sellerReviews.id, reviewId)).returning();
+      }).where(eq4(sellerReviews.id, reviewId)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Failed to respond to review:", error);
@@ -8350,7 +8562,7 @@ async function registerRoutes(app2, existingServer) {
       const { reviewId } = req.params;
       const [updated] = await db.update(sellerReviews).set({
         helpfulCount: sql4`helpful_count + 1`
-      }).where(eq3(sellerReviews.id, reviewId)).returning();
+      }).where(eq4(sellerReviews.id, reviewId)).returning();
       if (!updated) {
         return res.status(404).json({ message: "De\u011Ferlendirme bulunamad\u0131" });
       }
@@ -8363,13 +8575,13 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/category-stats/:categorySlug", async (req, res) => {
     try {
       const { categorySlug } = req.params;
-      const category = await db.select().from(categories).where(eq3(categories.slug, categorySlug)).limit(1);
+      const category = await db.select().from(categories).where(eq4(categories.slug, categorySlug)).limit(1);
       if (!category.length) {
         return res.status(404).json({ message: "Kategori bulunamad\u0131" });
       }
       const allCategories = await db.select({ id: categories.id, slug: categories.slug }).from(categories).where(
         or2(
-          eq3(categories.slug, categorySlug),
+          eq4(categories.slug, categorySlug),
           ilike2(categories.slug, `${categorySlug}-%`)
         )
       );
@@ -8383,18 +8595,18 @@ async function registerRoutes(app2, existingServer) {
         totalViews: sql4`COALESCE(SUM(${listings.views}), 0)`,
         totalFavorites: sql4`COALESCE(SUM(${listings.favoriteCount}), 0)`
       }).from(listings).where(
-        and3(
+        and4(
           inArray2(listings.categoryId, categoryIds),
-          eq3(listings.status, "active")
+          eq4(listings.status, "active")
         )
       );
       const cityDistribution = await db.select({
         city: listings.city,
         count: sql4`count(*)`
       }).from(listings).where(
-        and3(
+        and4(
           inArray2(listings.categoryId, categoryIds),
-          eq3(listings.status, "active")
+          eq4(listings.status, "active")
         )
       ).groupBy(listings.city).orderBy(desc3(sql4`count(*)`)).limit(10);
       const priceRanges = await db.select({
@@ -8410,9 +8622,9 @@ async function registerRoutes(app2, existingServer) {
           `,
         count: sql4`count(*)`
       }).from(listings).where(
-        and3(
+        and4(
           inArray2(listings.categoryId, categoryIds),
-          eq3(listings.status, "active")
+          eq4(listings.status, "active")
         )
       ).groupBy(sql4`
           CASE 
@@ -8428,7 +8640,7 @@ async function registerRoutes(app2, existingServer) {
         date: sql4`DATE(${listings.createdAt})`,
         count: sql4`count(*)`
       }).from(listings).where(
-        and3(
+        and4(
           inArray2(listings.categoryId, categoryIds),
           sql4`${listings.createdAt} >= CURRENT_DATE - INTERVAL '30 days'`
         )
@@ -8460,8 +8672,8 @@ async function registerRoutes(app2, existingServer) {
       const { days = "30" } = req.query;
       const daysNum = parseInt(days) || 30;
       const trends = await db.select().from(categoryStats).where(
-        and3(
-          eq3(categoryStats.categorySlug, categorySlug),
+        and4(
+          eq4(categoryStats.categorySlug, categorySlug),
           sql4`${categoryStats.date} >= CURRENT_DATE - INTERVAL '${daysNum} days'`
         )
       ).orderBy(categoryStats.date);
@@ -8522,7 +8734,7 @@ async function registerRoutes(app2, existingServer) {
         categorySlug: categories.slug,
         count: sql4`count(*)`,
         avgPrice: sql4`COALESCE(AVG(CAST(${listings.price} AS DECIMAL)), 0)`
-      }).from(listings).leftJoin(categories, eq3(listings.categoryId, categories.id)).where(eq3(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc3(sql4`count(*)`)).limit(10);
+      }).from(listings).leftJoin(categories, eq4(listings.categoryId, categories.id)).where(eq4(listings.status, "active")).groupBy(listings.categoryId, categories.name, categories.slug).orderBy(desc3(sql4`count(*)`)).limit(10);
       const recentActivity = await db.select({
         date: sql4`DATE(${listings.createdAt})`,
         count: sql4`count(*)`
@@ -8556,7 +8768,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId) {
         return res.status(400).json({ message: "\u0130lan ID'si belirtilmemi\u015F." });
       }
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
@@ -8572,7 +8784,7 @@ async function registerRoutes(app2, existingServer) {
       if (file.size > maxSize) {
         return res.status(400).json({ message: `Video boyutu ${maxVideoMb}MB'\u0131 ge\xE7emez.` });
       }
-      const existingVideos = await db.select({ count: sql4`count(*)` }).from(listingVideos).where(eq3(listingVideos.listingId, listingId));
+      const existingVideos = await db.select({ count: sql4`count(*)` }).from(listingVideos).where(eq4(listingVideos.listingId, listingId));
       if (Number(existingVideos[0]?.count || 0) >= 3) {
         return res.status(400).json({ message: "Bir ilan i\xE7in en fazla 3 video y\xFCkleyebilirsiniz." });
       }
@@ -8588,7 +8800,7 @@ async function registerRoutes(app2, existingServer) {
           file.buffer,
           file.mimetype
         );
-        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq3(listingVideos.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingVideos.order}), 0)` }).from(listingVideos).where(eq4(listingVideos.listingId, listingId));
         const nextOrder = (maxOrderResult[0]?.maxOrder || 0) + 1;
         const [video] = await db.insert(listingVideos).values({
           listingId,
@@ -8611,7 +8823,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listing-videos/:listingId", async (req, res) => {
     try {
       const { listingId } = req.params;
-      const videos = await db.select().from(listingVideos).where(eq3(listingVideos.listingId, listingId)).orderBy(listingVideos.order);
+      const videos = await db.select().from(listingVideos).where(eq4(listingVideos.listingId, listingId)).orderBy(listingVideos.order);
       res.json(videos);
     } catch (error) {
       console.error("Failed to fetch listing videos:", error);
@@ -8625,7 +8837,7 @@ async function registerRoutes(app2, existingServer) {
       const [video] = await db.select({
         video: listingVideos,
         listing: { sellerId: listings.sellerId }
-      }).from(listingVideos).leftJoin(listings, eq3(listingVideos.listingId, listings.id)).where(eq3(listingVideos.id, videoId)).limit(1);
+      }).from(listingVideos).leftJoin(listings, eq4(listingVideos.listingId, listings.id)).where(eq4(listingVideos.id, videoId)).limit(1);
       if (!video) {
         return res.status(404).json({ message: "Video bulunamad\u0131." });
       }
@@ -8639,7 +8851,7 @@ async function registerRoutes(app2, existingServer) {
       } catch (e) {
         console.warn("Failed to delete video from storage:", e);
       }
-      await db.delete(listingVideos).where(eq3(listingVideos.id, videoId));
+      await db.delete(listingVideos).where(eq4(listingVideos.id, videoId));
       res.json({ success: true });
     } catch (error) {
       console.error("Failed to delete video:", error);
@@ -8655,7 +8867,7 @@ async function registerRoutes(app2, existingServer) {
       const [listing] = await db.select({
         sellerId: listings.sellerId,
         isExampleListing: listings.isExampleListing
-      }).from(listings).where(eq3(listings.id, listingId)).limit(1);
+      }).from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -8700,13 +8912,13 @@ async function registerRoutes(app2, existingServer) {
       let query = db.select({
         contactRequest: contactRequests,
         listing: listings
-      }).from(contactRequests).leftJoin(listings, eq3(contactRequests.listingId, listings.id)).where(eq3(contactRequests.sellerId, userId)).orderBy(desc3(contactRequests.createdAt));
-      const conditions = [eq3(contactRequests.sellerId, userId)];
+      }).from(contactRequests).leftJoin(listings, eq4(contactRequests.listingId, listings.id)).where(eq4(contactRequests.sellerId, userId)).orderBy(desc3(contactRequests.createdAt));
+      const conditions = [eq4(contactRequests.sellerId, userId)];
       if (status && typeof status === "string") {
-        conditions.push(eq3(contactRequests.status, status));
+        conditions.push(eq4(contactRequests.status, status));
       }
       if (listingId && typeof listingId === "string") {
-        conditions.push(eq3(contactRequests.listingId, listingId));
+        conditions.push(eq4(contactRequests.listingId, listingId));
       }
       const results = await db.select({
         contactRequest: contactRequests,
@@ -8715,7 +8927,7 @@ async function registerRoutes(app2, existingServer) {
           title: listings.title,
           images: listings.images
         }
-      }).from(contactRequests).leftJoin(listings, eq3(contactRequests.listingId, listings.id)).where(and3(...conditions)).orderBy(desc3(contactRequests.createdAt));
+      }).from(contactRequests).leftJoin(listings, eq4(contactRequests.listingId, listings.id)).where(and4(...conditions)).orderBy(desc3(contactRequests.createdAt));
       res.json(results);
     } catch (error) {
       console.error("Failed to fetch contact requests:", error);
@@ -8730,9 +8942,9 @@ async function registerRoutes(app2, existingServer) {
         status: "replied",
         repliedAt: /* @__PURE__ */ new Date()
       }).where(
-        and3(
-          eq3(contactRequests.id, id),
-          eq3(contactRequests.sellerId, userId)
+        and4(
+          eq4(contactRequests.id, id),
+          eq4(contactRequests.sellerId, userId)
         )
       ).returning();
       if (!updated) {
@@ -8753,9 +8965,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Ge\xE7ersiz durum" });
       }
       const [updated] = await db.update(contactRequests).set({ status }).where(
-        and3(
-          eq3(contactRequests.id, id),
-          eq3(contactRequests.sellerId, userId)
+        and4(
+          eq4(contactRequests.id, id),
+          eq4(contactRequests.sellerId, userId)
         )
       ).returning();
       if (!updated) {
@@ -8771,9 +8983,9 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const [result] = await db.select({ count: sql4`count(*)` }).from(contactRequests).where(
-        and3(
-          eq3(contactRequests.sellerId, userId),
-          eq3(contactRequests.status, "pending")
+        and4(
+          eq4(contactRequests.sellerId, userId),
+          eq4(contactRequests.status, "pending")
         )
       );
       res.json({ count: Number(result?.count || 0) });
@@ -8817,7 +9029,7 @@ async function registerRoutes(app2, existingServer) {
       if (!userId) {
         return res.status(401).json({ message: "User not found" });
       }
-      const [listing] = await db.select({ sellerId: listings.sellerId }).from(listings).where(eq3(listings.id, req.params.listingId)).limit(1);
+      const [listing] = await db.select({ sellerId: listings.sellerId }).from(listings).where(eq4(listings.id, req.params.listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -8833,7 +9045,7 @@ async function registerRoutes(app2, existingServer) {
           profileImageUrl: users.profileImageUrl,
           sellerLevel: users.sellerLevel
         }
-      }).from(offers).innerJoin(users, eq3(offers.buyerId, users.id)).where(eq3(offers.listingId, req.params.listingId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(users, eq4(offers.buyerId, users.id)).where(eq4(offers.listingId, req.params.listingId)).orderBy(desc3(offers.createdAt));
       res.json(listingOffers.map((o) => ({
         ...o.offer,
         buyer: o.buyer
@@ -8863,7 +9075,7 @@ async function registerRoutes(app2, existingServer) {
           firstName: users.firstName,
           lastName: users.lastName
         }
-      }).from(offers).innerJoin(listings, eq3(offers.listingId, listings.id)).innerJoin(users, eq3(offers.sellerId, users.id)).where(eq3(offers.buyerId, userId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(listings, eq4(offers.listingId, listings.id)).innerJoin(users, eq4(offers.sellerId, users.id)).where(eq4(offers.buyerId, userId)).orderBy(desc3(offers.createdAt));
       res.json(sentOffers.map((o) => ({
         ...o.offer,
         listing: o.listing,
@@ -8896,7 +9108,7 @@ async function registerRoutes(app2, existingServer) {
           profileImageUrl: users.profileImageUrl,
           sellerLevel: users.sellerLevel
         }
-      }).from(offers).innerJoin(listings, eq3(offers.listingId, listings.id)).innerJoin(users, eq3(offers.buyerId, users.id)).where(eq3(offers.sellerId, userId)).orderBy(desc3(offers.createdAt));
+      }).from(offers).innerJoin(listings, eq4(offers.listingId, listings.id)).innerJoin(users, eq4(offers.buyerId, users.id)).where(eq4(offers.sellerId, userId)).orderBy(desc3(offers.createdAt));
       res.json(receivedOffers.map((o) => ({
         ...o.offer,
         listing: o.listing,
@@ -8915,7 +9127,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "User not found" });
       }
       const { listingId, amount, message, expiresAt } = req.body;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -8931,10 +9143,10 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const [existingOffer] = await db.select().from(offers).where(
-        and3(
-          eq3(offers.listingId, listingId),
-          eq3(offers.buyerId, userId),
-          eq3(offers.status, "pending")
+        and4(
+          eq4(offers.listingId, listingId),
+          eq4(offers.buyerId, userId),
+          eq4(offers.status, "pending")
         )
       ).limit(1);
       if (existingOffer) {
@@ -8975,7 +9187,7 @@ async function registerRoutes(app2, existingServer) {
         return res.status(401).json({ message: "User not found" });
       }
       const { status, counterAmount, counterMessage } = req.body;
-      const [offer] = await db.select().from(offers).where(eq3(offers.id, req.params.id)).limit(1);
+      const [offer] = await db.select().from(offers).where(eq4(offers.id, req.params.id)).limit(1);
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
       }
@@ -8993,8 +9205,8 @@ async function registerRoutes(app2, existingServer) {
         updateData.counterAmount = String(counterAmount);
         updateData.counterMessage = counterMessage;
       }
-      const [updatedOffer] = await db.update(offers).set(updateData).where(eq3(offers.id, req.params.id)).returning();
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, offer.listingId)).limit(1);
+      const [updatedOffer] = await db.update(offers).set(updateData).where(eq4(offers.id, req.params.id)).returning();
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, offer.listingId)).limit(1);
       try {
         let notifMessage = "";
         if (status === "accepted") {
@@ -9028,7 +9240,7 @@ async function registerRoutes(app2, existingServer) {
       if (!userId) {
         return res.status(401).json({ message: "User not found" });
       }
-      const [offer] = await db.select().from(offers).where(eq3(offers.id, req.params.id)).limit(1);
+      const [offer] = await db.select().from(offers).where(eq4(offers.id, req.params.id)).limit(1);
       if (!offer) {
         return res.status(404).json({ message: "Offer not found" });
       }
@@ -9038,7 +9250,7 @@ async function registerRoutes(app2, existingServer) {
       if (offer.status !== "pending") {
         return res.status(400).json({ message: "Can only withdraw pending offers" });
       }
-      await db.update(offers).set({ status: "withdrawn" }).where(eq3(offers.id, req.params.id));
+      await db.update(offers).set({ status: "withdrawn" }).where(eq4(offers.id, req.params.id));
       res.json({ message: "Offer withdrawn" });
     } catch (error) {
       console.error("Failed to withdraw offer:", error);
@@ -9047,7 +9259,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/listings/:id/share", async (req, res) => {
     try {
-      await db.update(listings).set({ shareCount: sql4`COALESCE(share_count, 0) + 1` }).where(eq3(listings.id, req.params.id));
+      await db.update(listings).set({ shareCount: sql4`COALESCE(share_count, 0) + 1` }).where(eq4(listings.id, req.params.id));
       res.json({ success: true });
     } catch (error) {
       console.error("Failed to track share:", error);
@@ -9056,7 +9268,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/listings/:id/compare", async (req, res) => {
     try {
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "Listing not found" });
       }
@@ -9071,9 +9283,9 @@ async function registerRoutes(app2, existingServer) {
         views: listings.views,
         createdAt: listings.createdAt
       }).from(listings).where(
-        and3(
-          eq3(listings.categoryId, listing.categoryId),
-          eq3(listings.status, "active"),
+        and4(
+          eq4(listings.categoryId, listing.categoryId),
+          eq4(listings.status, "active"),
           sql4`${listings.id} != ${listing.id}`
         )
       ).orderBy(sql4`ABS(CAST(${listings.price} AS DECIMAL) - CAST(${listing.price} AS DECIMAL))`).limit(6);
@@ -9169,7 +9381,7 @@ async function registerRoutes(app2, existingServer) {
       }
       const listingId = req.body.listingId;
       if (listingId) {
-        const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
         if (!listing) {
           return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
         }
@@ -9185,7 +9397,7 @@ async function registerRoutes(app2, existingServer) {
       }
       let currentMaxOrder = 0;
       if (listingId) {
-        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq3(listingImages.listingId, listingId));
+        const maxOrderResult = await db.select({ maxOrder: sql4`COALESCE(MAX(${listingImages.displayOrder}), 0)` }).from(listingImages).where(eq4(listingImages.listingId, listingId));
         currentMaxOrder = maxOrderResult[0]?.maxOrder || 0;
       }
       const uploadedImages = [];
@@ -9238,7 +9450,7 @@ async function registerRoutes(app2, existingServer) {
         });
         return res.json(cached);
       }
-      const images = await db.select().from(listingImages).where(eq3(listingImages.listingId, req.params.listingId)).orderBy(listingImages.displayOrder);
+      const images = await db.select().from(listingImages).where(eq4(listingImages.listingId, req.params.listingId)).orderBy(listingImages.displayOrder);
       await cache.set(cacheKey, images, 300);
       res.set({
         "Cache-Control": "public, max-age=300, s-maxage=600",
@@ -9253,12 +9465,12 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.delete("/api/listing-images/:imageId", isAuthenticated, async (req, res) => {
     try {
-      const [image] = await db.select().from(listingImages).where(eq3(listingImages.id, req.params.imageId)).limit(1);
+      const [image] = await db.select().from(listingImages).where(eq4(listingImages.id, req.params.imageId)).limit(1);
       if (!image) {
         return res.status(404).json({ message: "G\xF6rsel bulunamad\u0131." });
       }
       if (image.listingId) {
-        const [listing] = await db.select().from(listings).where(eq3(listings.id, image.listingId)).limit(1);
+        const [listing] = await db.select().from(listings).where(eq4(listings.id, image.listingId)).limit(1);
         if (listing && listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
           return res.status(403).json({ message: "Bu g\xF6rseli silme yetkiniz yok." });
         }
@@ -9270,7 +9482,7 @@ async function registerRoutes(app2, existingServer) {
         image.largeKey
       ].filter(Boolean);
       await deleteImageVariants(keysToDelete);
-      await db.delete(listingImages).where(eq3(listingImages.id, req.params.imageId));
+      await db.delete(listingImages).where(eq4(listingImages.id, req.params.imageId));
       res.json({ message: "G\xF6rsel ba\u015Far\u0131yla silindi." });
     } catch (error) {
       console.error("Error deleting listing image:", error);
@@ -9283,7 +9495,7 @@ async function registerRoutes(app2, existingServer) {
       if (!listingId || !Array.isArray(imageIds)) {
         return res.status(400).json({ message: "Ge\xE7ersiz istek." });
       }
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
@@ -9291,9 +9503,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
       for (let i = 0; i < imageIds.length; i++) {
-        await db.update(listingImages).set({ displayOrder: i }).where(and3(
-          eq3(listingImages.id, imageIds[i]),
-          eq3(listingImages.listingId, listingId)
+        await db.update(listingImages).set({ displayOrder: i }).where(and4(
+          eq4(listingImages.id, imageIds[i]),
+          eq4(listingImages.listingId, listingId)
         ));
       }
       res.json({ message: "G\xF6rsel s\u0131ralamas\u0131 g\xFCncellendi." });
@@ -9304,19 +9516,19 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.patch("/api/listing-images/:imageId/cover", isAuthenticated, async (req, res) => {
     try {
-      const [image] = await db.select().from(listingImages).where(eq3(listingImages.id, req.params.imageId)).limit(1);
+      const [image] = await db.select().from(listingImages).where(eq4(listingImages.id, req.params.imageId)).limit(1);
       if (!image || !image.listingId) {
         return res.status(404).json({ message: "G\xF6rsel bulunamad\u0131." });
       }
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, image.listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, image.listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131." });
       }
       if (listing.sellerId !== getUserId2(req.user) && req.user.role !== "admin") {
         return res.status(403).json({ message: "Yetkiniz yok." });
       }
-      await db.update(listingImages).set({ isCover: false }).where(eq3(listingImages.listingId, image.listingId));
-      await db.update(listingImages).set({ isCover: true }).where(eq3(listingImages.id, req.params.imageId));
+      await db.update(listingImages).set({ isCover: false }).where(eq4(listingImages.listingId, image.listingId));
+      await db.update(listingImages).set({ isCover: true }).where(eq4(listingImages.id, req.params.imageId));
       res.json({ message: "Kapak g\xF6rseli g\xFCncellendi." });
     } catch (error) {
       console.error("Error setting cover image:", error);
@@ -9372,7 +9584,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { listingId } = req.params;
       const sellerId = getUserId2(req.user);
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -9415,7 +9627,7 @@ async function registerRoutes(app2, existingServer) {
           updateData.price = priceNum.toFixed(2);
         }
       }
-      const [updatedListing] = await db.update(listings).set(updateData).where(eq3(listings.id, listingId)).returning();
+      const [updatedListing] = await db.update(listings).set(updateData).where(eq4(listings.id, listingId)).returning();
       res.json({
         message: "Taslak g\xFCncellendi",
         listing: updatedListing
@@ -9428,9 +9640,9 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listings/drafts", isAuthenticated, async (req, res) => {
     try {
       const sellerId = getUserId2(req.user);
-      const drafts = await db.select().from(listings).where(and3(
-        eq3(listings.sellerId, sellerId),
-        eq3(listings.status, "draft")
+      const drafts = await db.select().from(listings).where(and4(
+        eq4(listings.sellerId, sellerId),
+        eq4(listings.status, "draft")
       )).orderBy(desc3(listings.updatedAt));
       res.json(drafts);
     } catch (error) {
@@ -9443,7 +9655,7 @@ async function registerRoutes(app2, existingServer) {
       const { listingId } = req.params;
       const sellerId = getUserId2(req.user);
       const user = req.user;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, listingId)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, listingId)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -9472,10 +9684,10 @@ async function registerRoutes(app2, existingServer) {
       const [publishedListing] = await db.update(listings).set({
         status: newStatus,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq3(listings.id, listingId)).returning();
+      }).where(eq4(listings.id, listingId)).returning();
       await db.update(users).set({
         totalListings: sql4`${users.totalListings} + 1`
-      }).where(eq3(users.id, sellerId));
+      }).where(eq4(users.id, sellerId));
       res.json({
         message: newStatus === "pending" ? "\u0130lan\u0131n\u0131z yay\u0131nland\u0131 ve onay bekliyor" : "\u0130lan\u0131n\u0131z ba\u015Far\u0131yla yay\u0131nland\u0131",
         listing: publishedListing
@@ -9501,7 +9713,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/reports/my", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userReports = await db.select().from(reports).where(eq3(reports.reporterId, userId)).orderBy(desc3(reports.createdAt));
+      const userReports = await db.select().from(reports).where(eq4(reports.reporterId, userId)).orderBy(desc3(reports.createdAt));
       res.json(userReports);
     } catch (error) {
       console.error("Failed to fetch user reports:", error);
@@ -9516,7 +9728,7 @@ async function registerRoutes(app2, existingServer) {
       const status = req.query.status;
       let query = db.select().from(reports);
       if (status && status !== "all") {
-        query = query.where(eq3(reports.status, status));
+        query = query.where(eq4(reports.status, status));
       }
       const allReports = await query.orderBy(desc3(reports.createdAt));
       res.json(allReports);
@@ -9539,7 +9751,7 @@ async function registerRoutes(app2, existingServer) {
         updateData.resolvedAt = /* @__PURE__ */ new Date();
         updateData.resolvedBy = getUserId2(req.user);
       }
-      const [updatedReport] = await db.update(reports).set(updateData).where(eq3(reports.id, reportId)).returning();
+      const [updatedReport] = await db.update(reports).set(updateData).where(eq4(reports.id, reportId)).returning();
       if (!updatedReport) {
         return res.status(404).json({ message: "\u015Eikayet bulunamad\u0131" });
       }
@@ -9554,7 +9766,7 @@ async function registerRoutes(app2, existingServer) {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
     const userId = getUserId2(req.user);
-    const [dbUser] = await db.select({ role: users.role, status: users.status }).from(users).where(eq3(users.id, userId)).limit(1);
+    const [dbUser] = await db.select({ role: users.role, status: users.status }).from(users).where(eq4(users.id, userId)).limit(1);
     if (!dbUser || dbUser.role !== "admin") {
       return res.status(403).json({ message: "Admin yetkisi gereklidir" });
     }
@@ -9612,7 +9824,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/admin/users/:id/activity", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const [kullanici] = await db.select({ id: users.id, createdAt: users.createdAt }).from(users).where(eq3(users.id, id)).limit(1);
+      const [kullanici] = await db.select({ id: users.id, createdAt: users.createdAt }).from(users).where(eq4(users.id, id)).limit(1);
       if (!kullanici) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -9624,9 +9836,9 @@ async function registerRoutes(app2, existingServer) {
         success: loginHistory.success,
         failureReason: loginHistory.failureReason,
         createdAt: loginHistory.createdAt
-      }).from(loginHistory).where(eq3(loginHistory.userId, id)).orderBy(desc3(loginHistory.createdAt)).limit(25);
-      const [basarisiz] = await db.select({ n: count() }).from(loginHistory).where(and3(eq3(loginHistory.userId, id), eq3(loginHistory.success, false)));
-      const ilanDurumlari = await db.select({ status: listings.status, n: count() }).from(listings).where(eq3(listings.sellerId, id)).groupBy(listings.status);
+      }).from(loginHistory).where(eq4(loginHistory.userId, id)).orderBy(desc3(loginHistory.createdAt)).limit(25);
+      const [basarisiz] = await db.select({ n: count() }).from(loginHistory).where(and4(eq4(loginHistory.userId, id), eq4(loginHistory.success, false)));
+      const ilanDurumlari = await db.select({ status: listings.status, n: count() }).from(listings).where(eq4(listings.sellerId, id)).groupBy(listings.status);
       res.json({
         // Ham user-agent yerine okunabilir cihaz bilgisi döndürülüyor.
         logins: girisler.map((g) => {
@@ -9654,7 +9866,7 @@ async function registerRoutes(app2, existingServer) {
     const kok = slugify(taban) || "kategori";
     for (let i = 1; i < 200; i++) {
       const aday = i === 1 ? kok : `${kok}-${i}`;
-      const [carpisan] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.slug, aday)).limit(1);
+      const [carpisan] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.slug, aday)).limit(1);
       if (!carpisan || carpisan.id === haricId) return aday;
     }
     return `${kok}-${Date.now()}`;
@@ -9679,21 +9891,21 @@ async function registerRoutes(app2, existingServer) {
     const kuyruk = [kokId];
     while (kuyruk.length) {
       const id = kuyruk.shift();
-      const [dugum] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      const [dugum] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
       if (!dugum) continue;
       let derinlik = 0;
       let yol = [];
       if (dugum.parentId) {
-        const [ebeveyn] = await db.select({ depth: categories.depth, path: categories.path, id: categories.id }).from(categories).where(eq3(categories.id, dugum.parentId)).limit(1);
+        const [ebeveyn] = await db.select({ depth: categories.depth, path: categories.path, id: categories.id }).from(categories).where(eq4(categories.id, dugum.parentId)).limit(1);
         if (ebeveyn) {
           derinlik = (ebeveyn.depth ?? 0) + 1;
           yol = [...ebeveyn.path || [], ebeveyn.id];
         }
       }
       if (derinlik !== dugum.depth || JSON.stringify(yol) !== JSON.stringify(dugum.path)) {
-        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq3(categories.id, id));
+        await db.update(categories).set({ depth: derinlik, path: yol }).where(eq4(categories.id, id));
       }
-      const cocuklar = await db.select({ id: categories.id }).from(categories).where(eq3(categories.parentId, id));
+      const cocuklar = await db.select({ id: categories.id }).from(categories).where(eq4(categories.parentId, id));
       kuyruk.push(...cocuklar.map((c) => c.id));
     }
   }
@@ -9706,7 +9918,7 @@ async function registerRoutes(app2, existingServer) {
       let derinlik = 0;
       let yol = [];
       if (parentId) {
-        const [ebeveyn] = await db.select().from(categories).where(eq3(categories.id, parentId)).limit(1);
+        const [ebeveyn] = await db.select().from(categories).where(eq4(categories.id, parentId)).limit(1);
         if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
         derinlik = (ebeveyn.depth ?? 0) + 1;
         yol = [...ebeveyn.path || [], ebeveyn.id];
@@ -9732,7 +9944,7 @@ async function registerRoutes(app2, existingServer) {
     try {
       const { id } = req.params;
       const { name, slug, parentId, icon, description, order } = req.body;
-      const [mevcut] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      const [mevcut] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
       if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
       const ebeveynDegisti = parentId !== void 0 && (parentId || null) !== mevcut.parentId;
       if (ebeveynDegisti && parentId) {
@@ -9743,7 +9955,7 @@ async function registerRoutes(app2, existingServer) {
         if (altlar.includes(parentId)) {
           return res.status(400).json({ message: "Bir kategori kendi alt dal\u0131n\u0131n alt\u0131na ta\u015F\u0131namaz" });
         }
-        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.id, parentId)).limit(1);
+        const [ebeveyn] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.id, parentId)).limit(1);
         if (!ebeveyn) return res.status(400).json({ message: "\xDCst kategori bulunamad\u0131" });
       }
       const guncelleme = {};
@@ -9756,7 +9968,7 @@ async function registerRoutes(app2, existingServer) {
       if (Object.keys(guncelleme).length === 0) {
         return res.status(400).json({ message: "G\xFCncellenecek alan verilmedi" });
       }
-      const [guncel] = await db.update(categories).set(guncelleme).where(eq3(categories.id, id)).returning();
+      const [guncel] = await db.update(categories).set(guncelleme).where(eq4(categories.id, id)).returning();
       if (ebeveynDegisti) await agaciYenidenHesapla(id);
       await kategoriOnbelleginiTemizle();
       res.json(guncel);
@@ -9768,21 +9980,21 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/admin/categories/:id", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const [mevcut] = await db.select().from(categories).where(eq3(categories.id, id)).limit(1);
+      const [mevcut] = await db.select().from(categories).where(eq4(categories.id, id)).limit(1);
       if (!mevcut) return res.status(404).json({ message: "Kategori bulunamad\u0131" });
-      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq3(categories.parentId, id)).limit(1);
+      const [cocuk] = await db.select({ id: categories.id }).from(categories).where(eq4(categories.parentId, id)).limit(1);
       if (cocuk) {
         return res.status(409).json({
           message: "Bu kategorinin alt kategorileri var. \xD6nce onlar\u0131 silin veya ba\u015Fka bir kategoriye ta\u015F\u0131y\u0131n."
         });
       }
-      const [{ n }] = await db.select({ n: count() }).from(listings).where(eq3(listings.categoryId, id));
+      const [{ n }] = await db.select({ n: count() }).from(listings).where(eq4(listings.categoryId, id));
       if (Number(n) > 0) {
         return res.status(409).json({
           message: `Bu kategoride ${n} ilan var. Kategori silinemez; \xF6nce ilanlar\u0131 ba\u015Fka kategoriye ta\u015F\u0131y\u0131n.`
         });
       }
-      await db.delete(categories).where(eq3(categories.id, id));
+      await db.delete(categories).where(eq4(categories.id, id));
       await kategoriOnbelleginiTemizle();
       res.json({ success: true, message: `"${mevcut.name}" kategorisi silindi` });
     } catch (error) {
@@ -9816,12 +10028,12 @@ async function registerRoutes(app2, existingServer) {
       ] = await Promise.all([
         db.select({ count: count() }).from(users),
         db.select({ count: count() }).from(listings),
-        db.select({ count: count() }).from(listings).where(eq3(listings.status, "active")),
-        db.select({ count: count() }).from(listings).where(eq3(listings.status, "pending")),
-        db.select({ count: count() }).from(users).where(eq3(users.emailVerified, true)),
+        db.select({ count: count() }).from(listings).where(eq4(listings.status, "active")),
+        db.select({ count: count() }).from(listings).where(eq4(listings.status, "pending")),
+        db.select({ count: count() }).from(users).where(eq4(users.emailVerified, true)),
         db.select({ count: count() }).from(stores),
-        db.select({ count: count() }).from(stores).where(eq3(stores.status, "pending")),
-        db.select({ count: count() }).from(reports).where(eq3(reports.status, "pending")),
+        db.select({ count: count() }).from(stores).where(eq4(stores.status, "pending")),
+        db.select({ count: count() }).from(reports).where(eq4(reports.status, "pending")),
         db.select({ count: count() }).from(listings).where(gte2(listings.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, todayStart)),
         db.select({ count: count() }).from(users).where(gte2(users.createdAt, weekStart))
@@ -9854,7 +10066,7 @@ async function registerRoutes(app2, existingServer) {
       const { status } = req.query;
       const conditions = [];
       if (status && status !== "all") {
-        conditions.push(eq3(listings.status, status));
+        conditions.push(eq4(listings.status, status));
       }
       const allListings = await db.select({
         id: listings.id,
@@ -9873,7 +10085,7 @@ async function registerRoutes(app2, existingServer) {
         sellerUsername: users.username,
         sellerEmail: users.email,
         sellerIsVerified: users.emailVerified
-      }).from(listings).leftJoin(users, eq3(listings.sellerId, users.id)).where(conditions.length > 0 ? and3(...conditions) : void 0).orderBy(desc3(listings.createdAt)).limit(100);
+      }).from(listings).leftJoin(users, eq4(listings.sellerId, users.id)).where(conditions.length > 0 ? and4(...conditions) : void 0).orderBy(desc3(listings.createdAt)).limit(100);
       res.json(allListings);
     } catch (error) {
       console.error("Error fetching listings for admin:", error);
@@ -9890,7 +10102,7 @@ async function registerRoutes(app2, existingServer) {
         });
       }
       const { status, reason } = validationResult.data;
-      const [listing] = await db.select().from(listings).where(eq3(listings.id, req.params.id)).limit(1);
+      const [listing] = await db.select().from(listings).where(eq4(listings.id, req.params.id)).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
@@ -9913,7 +10125,7 @@ async function registerRoutes(app2, existingServer) {
         moderatedBy: getUserId2(req.user),
         moderatedAt: /* @__PURE__ */ new Date(),
         moderationReason: status === "rejected" ? reason : null
-      }).where(eq3(listings.id, req.params.id)).returning();
+      }).where(eq4(listings.id, req.params.id)).returning();
       try {
         if (status === "active") {
           const [notification] = await db.insert(notifications).values({
@@ -9986,7 +10198,7 @@ async function registerRoutes(app2, existingServer) {
       if (!validRoles.includes(role)) {
         return res.status(400).json({ message: "Ge\xE7ersiz rol" });
       }
-      const [updatedUser] = await db.update(users).set({ role }).where(eq3(users.id, id)).returning();
+      const [updatedUser] = await db.update(users).set({ role }).where(eq4(users.id, id)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -10021,7 +10233,7 @@ async function registerRoutes(app2, existingServer) {
         statusChangedAt: /* @__PURE__ */ new Date(),
         statusChangedBy: adminId,
         statusReason: reason || null
-      }).where(eq3(users.id, id)).returning();
+      }).where(eq4(users.id, id)).returning();
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullan\u0131c\u0131 bulunamad\u0131" });
       }
@@ -10055,7 +10267,7 @@ async function registerRoutes(app2, existingServer) {
         ownerId: stores.ownerId,
         ownerName: sql4`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`,
         ownerEmail: users.email
-      }).from(stores).leftJoin(users, eq3(stores.ownerId, users.id)).orderBy(desc3(stores.createdAt)).limit(100);
+      }).from(stores).leftJoin(users, eq4(stores.ownerId, users.id)).orderBy(desc3(stores.createdAt)).limit(100);
       res.json(allStores);
     } catch (error) {
       console.error("Error fetching stores for admin:", error);
@@ -10070,7 +10282,7 @@ async function registerRoutes(app2, existingServer) {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Ge\xE7ersiz durum" });
       }
-      const [updatedStore] = await db.update(stores).set({ status }).where(eq3(stores.id, id)).returning();
+      const [updatedStore] = await db.update(stores).set({ status }).where(eq4(stores.id, id)).returning();
       if (!updatedStore) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
       }
@@ -10126,7 +10338,7 @@ async function registerRoutes(app2, existingServer) {
         updatedAt: blogPosts.updatedAt,
         authorId: blogPosts.authorId,
         authorName: sql4`COALESCE(NULLIF(TRIM(CONCAT(${users.firstName}, ' ', ${users.lastName})), ''), ${users.username})`
-      }).from(blogPosts).leftJoin(users, eq3(blogPosts.authorId, users.id)).orderBy(desc3(blogPosts.createdAt));
+      }).from(blogPosts).leftJoin(users, eq4(blogPosts.authorId, users.id)).orderBy(desc3(blogPosts.createdAt));
       res.json(allBlogs);
     } catch (error) {
       console.error("Error fetching admin blog posts:", error);
@@ -10167,7 +10379,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(blogPosts).set({
         ...validationResult.data,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq3(blogPosts.id, req.params.id)).returning();
+      }).where(eq4(blogPosts.id, req.params.id)).returning();
       if (!updated) {
         return res.status(404).json({ message: "Blog yaz\u0131s\u0131 bulunamad\u0131" });
       }
@@ -10182,7 +10394,7 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.delete("/api/admin/blog/:id", isAuthenticated, adminMiddleware, async (req, res) => {
     try {
-      const [deleted] = await db.delete(blogPosts).where(eq3(blogPosts.id, req.params.id)).returning();
+      const [deleted] = await db.delete(blogPosts).where(eq4(blogPosts.id, req.params.id)).returning();
       if (!deleted) {
         return res.status(404).json({ message: "Blog yaz\u0131s\u0131 bulunamad\u0131" });
       }
@@ -10207,10 +10419,10 @@ async function registerRoutes(app2, existingServer) {
         createdAt: auditLogs.createdAt
       }).from(auditLogs).$dynamic();
       if (level && level !== "all") {
-        query = query.where(eq3(auditLogs.level, level));
+        query = query.where(eq4(auditLogs.level, level));
       }
       if (entity && entity !== "all") {
-        query = query.where(eq3(auditLogs.entity, entity));
+        query = query.where(eq4(auditLogs.entity, entity));
       }
       const logs = await query.orderBy(desc3(auditLogs.createdAt)).limit(parseInt(limit)).offset(parseInt(offset));
       const userIds = Array.from(new Set(logs.filter((l) => l.userId).map((l) => l.userId)));
@@ -10233,8 +10445,8 @@ async function registerRoutes(app2, existingServer) {
       const [totalCount, todayCount, warningCount, errorCount] = await Promise.all([
         db.select({ count: count() }).from(auditLogs),
         db.select({ count: count() }).from(auditLogs).where(gte2(auditLogs.createdAt, todayStart)),
-        db.select({ count: count() }).from(auditLogs).where(eq3(auditLogs.level, "warning")),
-        db.select({ count: count() }).from(auditLogs).where(eq3(auditLogs.level, "error"))
+        db.select({ count: count() }).from(auditLogs).where(eq4(auditLogs.level, "warning")),
+        db.select({ count: count() }).from(auditLogs).where(eq4(auditLogs.level, "error"))
       ]);
       res.json({
         totalActions: Number(totalCount[0].count),
@@ -10268,7 +10480,7 @@ async function registerRoutes(app2, existingServer) {
       const userId = getUserId2(req.user);
       const updates = req.body;
       for (const [key, value] of Object.entries(updates)) {
-        await db.update(systemSettings).set({ value, updatedBy: userId, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(systemSettings.key, key));
+        await db.update(systemSettings).set({ value, updatedBy: userId, updatedAt: /* @__PURE__ */ new Date() }).where(eq4(systemSettings.key, key));
       }
       await db.insert(auditLogs).values({
         userId,
@@ -10323,10 +10535,10 @@ async function registerRoutes(app2, existingServer) {
         const [result] = await db.select({ count: count() }).from(users);
         recipientCount = Number(result.count);
       } else if (targetAudience === "verified") {
-        const [result] = await db.select({ count: count() }).from(users).where(eq3(users.emailVerified, true));
+        const [result] = await db.select({ count: count() }).from(users).where(eq4(users.emailVerified, true));
         recipientCount = Number(result.count);
       } else if (targetAudience === "sellers") {
-        const [result] = await db.select({ count: count() }).from(users).where(eq3(users.role, "seller"));
+        const [result] = await db.select({ count: count() }).from(users).where(eq4(users.role, "seller"));
         recipientCount = Number(result.count);
       } else {
         const [result] = await db.select({ count: count() }).from(users);
@@ -10387,12 +10599,12 @@ async function registerRoutes(app2, existingServer) {
         totalListings: stores.totalListings,
         verifiedAt: stores.verifiedAt,
         createdAt: stores.createdAt
-      }).from(stores).where(eq3(stores.status, "active")).$dynamic();
+      }).from(stores).where(eq4(stores.status, "active")).$dynamic();
       if (type) {
-        query = query.where(eq3(stores.storeType, type));
+        query = query.where(eq4(stores.storeType, type));
       }
       if (city) {
-        query = query.where(eq3(stores.city, city));
+        query = query.where(eq4(stores.city, city));
       }
       if (search) {
         query = query.where(
@@ -10413,7 +10625,7 @@ async function registerRoutes(app2, existingServer) {
         return res.json({ available: false, message: "Slug en az 3 karakter olmal\u0131" });
       }
       const existingStore = await db.query.stores.findFirst({
-        where: eq3(stores.slug, slug.toLowerCase())
+        where: eq4(stores.slug, slug.toLowerCase())
       });
       res.json({
         available: !existingStore,
@@ -10427,7 +10639,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/store/:slug", async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.slug, req.params.slug),
+        where: eq4(stores.slug, req.params.slug),
         with: {
           owner: {
             columns: {
@@ -10443,9 +10655,9 @@ async function registerRoutes(app2, existingServer) {
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
       }
-      const storeListings = await db.select().from(listings).where(and3(
-        eq3(listings.storeId, store.id),
-        eq3(listings.status, "active")
+      const storeListings = await db.select().from(listings).where(and4(
+        eq4(listings.storeId, store.id),
+        eq4(listings.status, "active")
       )).orderBy(desc3(listings.createdAt)).limit(20);
       const storeReviewsList = await db.select({
         id: storeReviews.id,
@@ -10457,9 +10669,9 @@ async function registerRoutes(app2, existingServer) {
         reviewerFirstName: users.firstName,
         reviewerLastName: users.lastName,
         reviewerProfileImage: users.profileImageUrl
-      }).from(storeReviews).leftJoin(users, eq3(storeReviews.reviewerId, users.id)).where(and3(
-        eq3(storeReviews.storeId, store.id),
-        eq3(storeReviews.status, "approved")
+      }).from(storeReviews).leftJoin(users, eq4(storeReviews.reviewerId, users.id)).where(and4(
+        eq4(storeReviews.storeId, store.id),
+        eq4(storeReviews.status, "approved")
       )).orderBy(desc3(storeReviews.createdAt)).limit(10);
       res.json({
         ...store,
@@ -10474,7 +10686,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store", isAuthenticated, async (req, res) => {
     try {
       const existingStore = await db.query.stores.findFirst({
-        where: eq3(stores.ownerId, getUserId2(req.user))
+        where: eq4(stores.ownerId, getUserId2(req.user))
       });
       if (existingStore) {
         return res.status(400).json({ message: "Zaten bir ma\u011Fazan\u0131z var" });
@@ -10502,7 +10714,7 @@ async function registerRoutes(app2, existingServer) {
   app2.patch("/api/store/:id", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, req.params.id)
+        where: eq4(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10520,7 +10732,7 @@ async function registerRoutes(app2, existingServer) {
       const [updated] = await db.update(stores).set({
         ...validationResult.data,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq3(stores.id, req.params.id)).returning();
+      }).where(eq4(stores.id, req.params.id)).returning();
       res.json(updated);
     } catch (error) {
       console.error("Error updating store:", error);
@@ -10533,7 +10745,7 @@ async function registerRoutes(app2, existingServer) {
   app2.delete("/api/store/:id", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, req.params.id)
+        where: eq4(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10557,7 +10769,7 @@ async function registerRoutes(app2, existingServer) {
         }
       }
       const storeMediaList = await db.query.storeMedia.findMany({
-        where: eq3(storeMedia.storeId, store.id)
+        where: eq4(storeMedia.storeId, store.id)
       });
       for (const media of storeMediaList) {
         try {
@@ -10566,11 +10778,11 @@ async function registerRoutes(app2, existingServer) {
           console.warn("Failed to delete store media:", e);
         }
       }
-      await db.delete(storeMedia).where(eq3(storeMedia.storeId, store.id));
-      await db.delete(storeFollowers).where(eq3(storeFollowers.storeId, store.id));
-      await db.delete(storeReviews).where(eq3(storeReviews.storeId, store.id));
-      await db.update(listings).set({ storeId: null }).where(eq3(listings.storeId, store.id));
-      await db.delete(stores).where(eq3(stores.id, store.id));
+      await db.delete(storeMedia).where(eq4(storeMedia.storeId, store.id));
+      await db.delete(storeFollowers).where(eq4(storeFollowers.storeId, store.id));
+      await db.delete(storeReviews).where(eq4(storeReviews.storeId, store.id));
+      await db.update(listings).set({ storeId: null }).where(eq4(listings.storeId, store.id));
+      await db.delete(stores).where(eq4(stores.id, store.id));
       res.json({ message: "Ma\u011Faza ba\u015Far\u0131yla silindi" });
     } catch (error) {
       console.error("Error deleting store:", error);
@@ -10580,12 +10792,12 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/store/my/dashboard", isAuthenticated, async (req, res) => {
     try {
       const myStore = await db.query.stores.findFirst({
-        where: eq3(stores.ownerId, getUserId2(req.user))
+        where: eq4(stores.ownerId, getUserId2(req.user))
       });
       if (!myStore) {
         return res.status(404).json({ message: "Ma\u011Fazan\u0131z hen\xFCz yok" });
       }
-      const storeListingsCount = await db.select({ count: sql4`count(*)` }).from(listings).where(eq3(listings.storeId, myStore.id));
+      const storeListingsCount = await db.select({ count: sql4`count(*)` }).from(listings).where(eq4(listings.storeId, myStore.id));
       res.json({
         ...myStore,
         stats: {
@@ -10600,7 +10812,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/seller/analytics", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId2(req.user);
-      const userListings = await db.select().from(listings).where(eq3(listings.sellerId, userId));
+      const userListings = await db.select().from(listings).where(eq4(listings.sellerId, userId));
       const totalListings = userListings.length;
       const activeListings = userListings.filter((l) => l.status === "active").length;
       const pendingListings = userListings.filter((l) => l.status === "pending").length;
@@ -10612,7 +10824,7 @@ async function registerRoutes(app2, existingServer) {
         const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(inArray2(favorites.listingId, listingIds));
         totalFavorites = favResult[0]?.count || 0;
       }
-      const messagesResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(eq3(messages.receiverId, userId));
+      const messagesResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(eq4(messages.receiverId, userId));
       const totalMessages = messagesResult[0]?.count || 0;
       const topListings = userListings.filter((l) => l.status === "active").sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5).map((l) => ({
         id: l.id,
@@ -10661,17 +10873,17 @@ async function registerRoutes(app2, existingServer) {
     try {
       const userId = getUserId2(req.user);
       const { id } = req.params;
-      const [listing] = await db.select().from(listings).where(and3(
-        eq3(listings.id, id),
-        eq3(listings.sellerId, userId)
+      const [listing] = await db.select().from(listings).where(and4(
+        eq4(listings.id, id),
+        eq4(listings.sellerId, userId)
       )).limit(1);
       if (!listing) {
         return res.status(404).json({ message: "\u0130lan bulunamad\u0131" });
       }
-      const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(eq3(favorites.listingId, id));
+      const favResult = await db.select({ count: sql4`count(*)::int` }).from(favorites).where(eq4(favorites.listingId, id));
       const favoritesCount = favResult[0]?.count || 0;
-      const msgResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(and3(
-        eq3(messages.receiverId, userId),
+      const msgResult = await db.select({ count: sql4`count(*)::int` }).from(messages).where(and4(
+        eq4(messages.receiverId, userId),
         sql4`${messages.content} LIKE '%' || ${listing.title} || '%'`
       ));
       const messageCount = msgResult[0]?.count || 0;
@@ -10693,7 +10905,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/review", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, req.params.id)
+        where: eq4(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10702,9 +10914,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Kendi ma\u011Fazan\u0131z\u0131 de\u011Ferlendiremezsiniz" });
       }
       const existingReview = await db.query.storeReviews.findFirst({
-        where: and3(
-          eq3(storeReviews.storeId, req.params.id),
-          eq3(storeReviews.reviewerId, getUserId2(req.user))
+        where: and4(
+          eq4(storeReviews.storeId, req.params.id),
+          eq4(storeReviews.reviewerId, getUserId2(req.user))
         )
       });
       if (existingReview) {
@@ -10722,15 +10934,15 @@ async function registerRoutes(app2, existingServer) {
         storeId: req.params.id,
         reviewerId: getUserId2(req.user)
       }).returning();
-      const allReviews = await db.select({ rating: storeReviews.rating }).from(storeReviews).where(and3(
-        eq3(storeReviews.storeId, req.params.id),
-        eq3(storeReviews.status, "approved")
+      const allReviews = await db.select({ rating: storeReviews.rating }).from(storeReviews).where(and4(
+        eq4(storeReviews.storeId, req.params.id),
+        eq4(storeReviews.status, "approved")
       ));
       const avgRating = allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
       await db.update(stores).set({
         rating: avgRating.toFixed(2),
         reviewCount: allReviews.length
-      }).where(eq3(stores.id, req.params.id));
+      }).where(eq4(stores.id, req.params.id));
       try {
         const reviewer = req.user;
         const reviewerName = reviewer.firstName ? `${reviewer.firstName} ${reviewer.lastName || ""}`.trim() : reviewer.username || "Birisi";
@@ -10768,9 +10980,9 @@ async function registerRoutes(app2, existingServer) {
         reviewerFirstName: users.firstName,
         reviewerLastName: users.lastName,
         reviewerProfileImage: users.profileImageUrl
-      }).from(storeReviews).leftJoin(users, eq3(storeReviews.reviewerId, users.id)).where(and3(
-        eq3(storeReviews.storeId, req.params.id),
-        eq3(storeReviews.status, "approved")
+      }).from(storeReviews).leftJoin(users, eq4(storeReviews.reviewerId, users.id)).where(and4(
+        eq4(storeReviews.storeId, req.params.id),
+        eq4(storeReviews.status, "approved")
       )).orderBy(desc3(storeReviews.createdAt));
       res.json(reviewsList);
     } catch (error) {
@@ -10781,7 +10993,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/media", isAuthenticated, async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, req.params.id)
+        where: eq4(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10799,9 +11011,9 @@ async function registerRoutes(app2, existingServer) {
         url
       }).returning();
       if (mediaType === "logo") {
-        await db.update(stores).set({ logo: url }).where(eq3(stores.id, req.params.id));
+        await db.update(stores).set({ logo: url }).where(eq4(stores.id, req.params.id));
       } else if (mediaType === "banner") {
-        await db.update(stores).set({ banner: url }).where(eq3(stores.id, req.params.id));
+        await db.update(stores).set({ banner: url }).where(eq4(stores.id, req.params.id));
       }
       res.status(201).json(media);
     } catch (error) {
@@ -10812,7 +11024,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/upload-image", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, req.params.id)
+        where: eq4(stores.id, req.params.id)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10846,9 +11058,9 @@ async function registerRoutes(app2, existingServer) {
         url: result.originalUrl
       }).returning();
       if (imageType === "logo") {
-        await db.update(stores).set({ logo: result.originalUrl }).where(eq3(stores.id, store.id));
+        await db.update(stores).set({ logo: result.originalUrl }).where(eq4(stores.id, store.id));
       } else if (imageType === "banner") {
-        await db.update(stores).set({ banner: result.originalUrl }).where(eq3(stores.id, store.id));
+        await db.update(stores).set({ banner: result.originalUrl }).where(eq4(stores.id, store.id));
       }
       console.log(`Store ${imageType} uploaded successfully:`, result.originalUrl);
       res.status(201).json({
@@ -10872,7 +11084,7 @@ async function registerRoutes(app2, existingServer) {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
       const store = await db.query.stores.findFirst({
-        where: eq3(stores.id, storeId)
+        where: eq4(stores.id, storeId)
       });
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
@@ -10881,9 +11093,9 @@ async function registerRoutes(app2, existingServer) {
         return res.status(400).json({ message: "Kendi ma\u011Fazan\u0131z\u0131 takip edemezsiniz" });
       }
       const existingFollow = await db.query.storeFollowers.findFirst({
-        where: and3(
-          eq3(storeFollowers.storeId, storeId),
-          eq3(storeFollowers.userId, userId)
+        where: and4(
+          eq4(storeFollowers.storeId, storeId),
+          eq4(storeFollowers.userId, userId)
         )
       });
       if (existingFollow) {
@@ -10893,7 +11105,7 @@ async function registerRoutes(app2, existingServer) {
         storeId,
         userId
       });
-      await db.update(stores).set({ followerCount: sql4`COALESCE(follower_count, 0) + 1` }).where(eq3(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql4`COALESCE(follower_count, 0) + 1` }).where(eq4(stores.id, storeId));
       try {
         const follower = req.user;
         const followerName = follower.firstName ? `${follower.firstName} ${follower.lastName || ""}`.trim() : follower.username || "Birisi";
@@ -10922,14 +11134,14 @@ async function registerRoutes(app2, existingServer) {
     try {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
-      const result = await db.delete(storeFollowers).where(and3(
-        eq3(storeFollowers.storeId, storeId),
-        eq3(storeFollowers.userId, userId)
+      const result = await db.delete(storeFollowers).where(and4(
+        eq4(storeFollowers.storeId, storeId),
+        eq4(storeFollowers.userId, userId)
       )).returning();
       if (result.length === 0) {
         return res.status(404).json({ message: "Bu ma\u011Fazay\u0131 takip etmiyorsunuz" });
       }
-      await db.update(stores).set({ followerCount: sql4`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq3(stores.id, storeId));
+      await db.update(stores).set({ followerCount: sql4`GREATEST(COALESCE(follower_count, 0) - 1, 0)` }).where(eq4(stores.id, storeId));
       res.json({ message: "Takipten \xE7\u0131k\u0131ld\u0131", following: false });
     } catch (error) {
       console.error("Error unfollowing store:", error);
@@ -10955,7 +11167,7 @@ async function registerRoutes(app2, existingServer) {
         followerCount: stores.followerCount,
         badges: stores.badges,
         followedAt: storeFollowers.createdAt
-      }).from(storeFollowers).innerJoin(stores, eq3(storeFollowers.storeId, stores.id)).where(eq3(storeFollowers.userId, userId)).orderBy(desc3(storeFollowers.createdAt));
+      }).from(storeFollowers).innerJoin(stores, eq4(storeFollowers.storeId, stores.id)).where(eq4(storeFollowers.userId, userId)).orderBy(desc3(storeFollowers.createdAt));
       res.json(followedStores);
     } catch (error) {
       console.error("Error fetching followed stores:", error);
@@ -10967,9 +11179,9 @@ async function registerRoutes(app2, existingServer) {
       const storeId = req.params.id;
       const userId = getUserId2(req.user);
       const follow = await db.query.storeFollowers.findFirst({
-        where: and3(
-          eq3(storeFollowers.storeId, storeId),
-          eq3(storeFollowers.userId, userId)
+        where: and4(
+          eq4(storeFollowers.storeId, storeId),
+          eq4(storeFollowers.userId, userId)
         )
       });
       res.json({ following: !!follow });
@@ -10981,7 +11193,7 @@ async function registerRoutes(app2, existingServer) {
   app2.post("/api/store/:id/view", async (req, res) => {
     try {
       const storeId = req.params.id;
-      await db.update(stores).set({ viewCount: sql4`COALESCE(view_count, 0) + 1` }).where(eq3(stores.id, storeId));
+      await db.update(stores).set({ viewCount: sql4`COALESCE(view_count, 0) + 1` }).where(eq4(stores.id, storeId));
       res.json({ success: true });
     } catch (error) {
       console.error("Error incrementing view count:", error);
@@ -11021,9 +11233,9 @@ async function registerRoutes(app2, existingServer) {
         totalListings: stores.totalListings,
         verifiedAt: stores.verifiedAt,
         createdAt: stores.createdAt
-      }).from(stores).where(and3(
-        eq3(stores.categoryId, categoryId),
-        eq3(stores.status, "active")
+      }).from(stores).where(and4(
+        eq4(stores.categoryId, categoryId),
+        eq4(stores.status, "active")
       )).orderBy(desc3(stores.rating), desc3(stores.reviewCount));
       res.json(storesList);
     } catch (error) {
@@ -11053,7 +11265,7 @@ Sitemap: https://sahibindenhayvan.com/sitemap.xml
     try {
       const baseUrl = "https://sahibindenhayvan.com";
       const allCategories = await db.select({ slug: categories.slug }).from(categories);
-      const activeListings = await db.select({ id: listings.id }).from(listings).where(eq3(listings.status, "active")).limit(1e3);
+      const activeListings = await db.select({ id: listings.id }).from(listings).where(eq4(listings.status, "active")).limit(1e3);
       const allBlogPosts = await db.select({ slug: blogPosts.slug }).from(blogPosts);
       let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

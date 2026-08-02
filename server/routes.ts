@@ -11,6 +11,7 @@ import { cache, cacheKeys, cacheTTL } from "./cache";
 import { slugify } from "@shared/utils";
 import { healthCheck, readinessCheck, metricsEndpoint } from "./monitoring";
 import { registerSitemapRoutes } from "./sitemap";
+import { registerPrerenderRoutes } from "./prerender";
 
 // Global notification event emitter for real-time WebSocket notifications
 export const notificationEmitter = new EventEmitter();
@@ -508,6 +509,13 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   // SEO: dinamik sitemap (robots.txt statik olarak client/public altinda)
   registerSitemapRoutes(app);
+
+  // SEO: icerik sayfalarina sunucu tarafinda sayfaya ozel meta etiketleri.
+  // Yalnizca uretimde: gelistirmede index.html Vite tarafindan HMR ile
+  // servis ediliyor, araya girmek gelistirme akisini bozar.
+  if (process.env.NODE_ENV === "production") {
+    registerPrerenderRoutes(app);
+  }
   app.get("/metrics", metricsEndpoint);
 
   // ============ Kimlik Dogrulama Kurulumu ============

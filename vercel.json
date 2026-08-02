@@ -6,12 +6,29 @@
   "functions": {
     "api/handler.js": {
       "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "dist/public/index.html"
     }
   },
   "rewrites": [
     {
       "source": "/sitemap.xml",
+      "destination": "/api/handler"
+    },
+    {
+      "source": "/ilan/:id",
+      "destination": "/api/handler"
+    },
+    {
+      "source": "/kategori/:slug",
+      "destination": "/api/handler"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/handler"
+    },
+    {
+      "source": "/magaza/:slug",
       "destination": "/api/handler"
     },
     {
