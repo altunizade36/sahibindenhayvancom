@@ -9,7 +9,8 @@ import {
   decimal,
   pgEnum,
   jsonb,
-  index
+  index,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -975,7 +976,11 @@ export const favorites = pgTable("favorites", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   userCreatedIdx: index("favorites_user_created_idx").on(table.userId, table.createdAt),
-  userListingUnique: index("favorites_user_listing_unique").on(table.userId, table.listingId),
+  // Aynı kullanıcı aynı ilanı bir kez favlayabilir. Ad "unique" diyordu ama
+  // `index()` idi (unique değil); çift favori veritabanı düzeyinde
+  // engellenmiyordu. Sunucu da idempotent kontrol yapıyor ama yarış
+  // durumuna karşı asıl güvence bu.
+  userListingUnique: uniqueIndex("favorites_user_listing_unique").on(table.userId, table.listingId),
 }));
 
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({

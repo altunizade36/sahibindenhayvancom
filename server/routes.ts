@@ -5106,10 +5106,25 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   app.post("/api/favorites", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = getUserId(req.user);
       const data = insertFavoriteSchema.parse({
         ...req.body,
-        userId: getUserId(req.user),
+        userId,
       });
+
+      // Aynı ilan iki kez favlanmasın. Şemadaki `favorites_user_listing_unique`
+      // adına rağmen normal index (uniqueIndex değil), yani veritabanı çift
+      // kaydı engellemiyor: liste çiftleniyor, favori sayacı şişiyordu. Var
+      // olan favori tekrar eklenmek istenirse mevcut kayıt döner (idempotent).
+      const [mevcut] = await db
+        .select()
+        .from(favorites)
+        .where(and(eq(favorites.userId, userId), eq(favorites.listingId, data.listingId)))
+        .limit(1);
+
+      if (mevcut) {
+        return res.status(200).json(mevcut);
+      }
 
       // Create favorite in PostgreSQL
       const [favorite] = await db
@@ -5124,13 +5139,20 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           .from(listings)
           .where(eq(listings.id, data.listingId))
           .limit(1);
-        
-        if (listing && listing.sellerId !== getUserId(req.user)) {
-          const favUser = req.user as any;
-          const userName = favUser.firstName 
-            ? `${favUser.firstName} ${favUser.lastName || ''}`.trim() 
-            : favUser.username || 'Birisi';
-          
+
+        if (listing && listing.sellerId !== userId) {
+          // İsim veritabanından okunur — oturum nesnesinde firstName/username
+          // YOKTUR, bu yüzden bildirim hep "Birisi ... favorilere ekledi"
+          // diyordu. (Mesaj ve teklif bildirimlerinde de aynı hata vardı.)
+          const [favUser] = await db
+            .select({ firstName: users.firstName, lastName: users.lastName, username: users.username })
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1);
+          const userName = favUser?.firstName
+            ? `${favUser.firstName} ${favUser.lastName || ''}`.trim()
+            : favUser?.username || 'Bir kullanıcı';
+
           const [notification] = await db.insert(notifications).values({
             userId: listing.sellerId,
             type: 'new_favorite',

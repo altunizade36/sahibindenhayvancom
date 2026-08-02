@@ -45,3 +45,10 @@ CREATE INDEX IF NOT EXISTS notifications_user_created_idx
 -- Süresi dolmuş oturumları silen sorgu `expire` üzerinden çalışıyor.
 CREATE INDEX IF NOT EXISTS sessions_expire_idx
   ON public.sessions (expire);
+
+-- ── Favori tekilliği ────────────────────────────────────────────────────────
+-- Şemadaki ad "unique" diyordu ama normal index'ti; aynı ilan birden çok kez
+-- favlanabiliyordu (liste çiftlenir, sayaç şişer). uniqueIndex olarak yeniden.
+DROP INDEX IF EXISTS favorites_user_listing_unique;
+CREATE UNIQUE INDEX IF NOT EXISTS favorites_user_listing_unique
+  ON public.favorites (user_id, listing_id);
