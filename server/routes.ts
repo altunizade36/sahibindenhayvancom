@@ -405,8 +405,13 @@ function getUserId(user: any): string {
  * Kullanıcı tercihi her zaman kontrol edilir. Ayar KAYDI OLMAYAN kullanıcıya
  * gönderilir (varsayılan açık), açıkça kapatmış olana gönderilmez.
  *
- * Çağıran taraf beklemek zorunda değildir ve hata fırlatmaz: bildirim
- * gönderilemedi diye ilan onayı ya da teklif işlemi başarısız sayılmamalı.
+ * Bu yardımcı hata FIRLATMAZ: bildirim gönderilemedi diye ilan onayı ya da
+ * teklif işlemi başarısız sayılmamalı.
+ *
+ * Çağrılar `await` ile yapılmalı, `void` ile DEĞİL. Sunucusuz ortamda yanıt
+ * gönderildiği anda fonksiyon dondurulur ve arkada kalan iş tamamlanmaz;
+ * `void` kullanıldığında e-postalar örneğin sıcak kalıp kalmamasına göre
+ * rastgele gidiyor ya da hiç gitmiyordu (canlı logla doğrulandı).
  */
 async function olayEpostasiGonder(
   userId: string,
@@ -4675,9 +4680,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
           if (izinVar && alici?.email) {
             const onizleme = String(content).replace(/\s+/g, " ").trim().slice(0, 160);
-            // Beklemeden gönderiliyor; e-posta servisi yavaşlarsa mesaj
-            // gönderimi gecikmemeli. Hatalar servis içinde yutuluyor.
-            void emailService.sendNewMessageNotice({
+            // Yanıt dönmeden ÖNCE bekleniyor. Sunucusuz ortamda yanıt
+            // gönderildikten sonraki iş tamamlanmaz (fonksiyon donar), bu
+            // yüzden "beklemeden gönder" kalıbı e-postanın rastgele
+            // kaybolmasına yol açıyordu. Hatalar servis içinde yutuluyor.
+            await emailService.sendNewMessageNotice({
               to: alici.email,
               recipientName: alici.firstName,
               senderName,
@@ -6156,7 +6163,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (senderPhone) iletisimAyrintilari.push(["Telefon", String(senderPhone)]);
       iletisimAyrintilari.push(["İlan", listing.title || "—"]);
 
-      void olayEpostasiGonder(
+      await olayEpostasiGonder(
         listing.sellerId,
         {
           title: "İlanınız için iletişim talebi",
@@ -6576,7 +6583,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         });
 
         // Para teklifi: satıcının bunu geç görmesi doğrudan kayıp.
-        void olayEpostasiGonder(listing.sellerId, {
+        await olayEpostasiGonder(listing.sellerId, {
           title: 'İlanınıza teklif geldi',
           body: `"${listing.title}" ilanınıza yeni bir teklif var.`,
           details: [['Teklif', `₺${amount}`]],
@@ -8055,7 +8062,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           });
 
           // Satıcı moderasyonu bekliyor; siteye girmeden sonucu öğrenemezdi.
-          void olayEpostasiGonder(listing.sellerId, {
+          await olayEpostasiGonder(listing.sellerId, {
             title: 'İlanınız yayınlandı',
             body: `"${listing.title}" ilanınız onaylandı ve yayına girdi.`,
             actionPath: `/ilan/${listing.id}`,
@@ -8081,7 +8088,7 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
             notification,
           });
 
-          void olayEpostasiGonder(listing.sellerId, {
+          await olayEpostasiGonder(listing.sellerId, {
             title: yayindaydi ? 'İlanınız yayından kaldırıldı' : 'İlanınız yayınlanmadı',
             body: yayindaydi
               ? `"${listing.title}" ilanınız yayından kaldırıldı.`

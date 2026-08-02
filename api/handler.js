@@ -8479,7 +8479,7 @@ async function registerRoutes(app2, existingServer) {
           const [alici] = await db.select({ email: users.email, firstName: users.firstName }).from(users).where(eq5(users.id, receiverId)).limit(1);
           if (izinVar && alici?.email) {
             const onizleme = String(content).replace(/\s+/g, " ").trim().slice(0, 160);
-            void emailService.sendNewMessageNotice({
+            await emailService.sendNewMessageNotice({
               to: alici.email,
               recipientName: alici.firstName,
               senderName,
@@ -9432,7 +9432,7 @@ async function registerRoutes(app2, existingServer) {
       ];
       if (senderPhone) iletisimAyrintilari.push(["Telefon", String(senderPhone)]);
       iletisimAyrintilari.push(["\u0130lan", listing.title || "\u2014"]);
-      void olayEpostasiGonder(
+      await olayEpostasiGonder(
         listing.sellerId,
         {
           title: "\u0130lan\u0131n\u0131z i\xE7in ileti\u015Fim talebi",
@@ -9717,7 +9717,7 @@ async function registerRoutes(app2, existingServer) {
           link: `/ilan/${listing.id}`,
           relatedId: newOffer.id
         });
-        void olayEpostasiGonder(listing.sellerId, {
+        await olayEpostasiGonder(listing.sellerId, {
           title: "\u0130lan\u0131n\u0131za teklif geldi",
           body: `"${listing.title}" ilan\u0131n\u0131za yeni bir teklif var.`,
           details: [["Teklif", `\u20BA${amount}`]],
@@ -10694,7 +10694,7 @@ async function registerRoutes(app2, existingServer) {
             userId: listing.sellerId,
             notification
           });
-          void olayEpostasiGonder(listing.sellerId, {
+          await olayEpostasiGonder(listing.sellerId, {
             title: "\u0130lan\u0131n\u0131z yay\u0131nland\u0131",
             body: `"${listing.title}" ilan\u0131n\u0131z onayland\u0131 ve yay\u0131na girdi.`,
             actionPath: `/ilan/${listing.id}`,
@@ -10714,7 +10714,7 @@ async function registerRoutes(app2, existingServer) {
             userId: listing.sellerId,
             notification
           });
-          void olayEpostasiGonder(listing.sellerId, {
+          await olayEpostasiGonder(listing.sellerId, {
             title: yayindaydi ? "\u0130lan\u0131n\u0131z yay\u0131ndan kald\u0131r\u0131ld\u0131" : "\u0130lan\u0131n\u0131z yay\u0131nlanmad\u0131",
             body: yayindaydi ? `"${listing.title}" ilan\u0131n\u0131z yay\u0131ndan kald\u0131r\u0131ld\u0131.` : `"${listing.title}" ilan\u0131n\u0131z yay\u0131nlanmad\u0131.`,
             details: reason ? [["Gerek\xE7e", reason]] : void 0,
