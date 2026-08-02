@@ -56,3 +56,38 @@ export function redirectReason(): string | null {
   if (hedef.startsWith("/panel")) return "Panelinize erişmek için giriş yapın.";
   return "Devam etmek için giriş yapın.";
 }
+
+/**
+ * Kayıt ekranından giriş ekranına geçerken e-postayı taşır.
+ *
+ * Kullanıcı az önce yazdığı adresi bir daha yazmak zorunda kalmamalı; kayıt
+ * sonrası giriş adımı akışın en çok terk edildiği yerlerden biri. Mevcut
+ * `redirect` parametresi de korunur, böylece ilan verme akışına dönüş bozulmaz.
+ */
+export function girisQuery(email?: string | null): string {
+  const parcalar: string[] = [];
+
+  const hedef = safeRedirectTarget();
+  if (hedef !== "/") parcalar.push("redirect=" + encodeURIComponent(hedef));
+  if (email) parcalar.push("email=" + encodeURIComponent(email));
+
+  return parcalar.length ? "?" + parcalar.join("&") : "";
+}
+
+/**
+ * Giriş ekranına taşınmış e-posta adresi (varsa).
+ *
+ * Adres çubuğundan geldiği için doğrulanıyor: geçerli bir e-posta değilse
+ * yok sayılır ve form boş açılır.
+ */
+export function onerilenEposta(): string {
+  const raw = new URLSearchParams(window.location.search).get("email");
+  if (!raw) return "";
+  try {
+    const deger = decodeURIComponent(raw);
+    const gecerli = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deger);
+    return gecerli ? deger : "";
+  } catch {
+    return "";
+  }
+}

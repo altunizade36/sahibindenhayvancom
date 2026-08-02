@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirectQuery, redirectReason } from "@/lib/redirect";
+import { redirectQuery, redirectReason, girisQuery } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -134,7 +134,7 @@ export default function Register() {
               <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> E-posta gelmediyse Spam/Gereksiz klasörünü kontrol edin</p>
               <p className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Yine gelmezse giriş yapıp hesabınızdan yeni bağlantı isteyebilirsiniz</p>
             </div>
-            <Button className="w-full" onClick={() => setLocation(`/giris${redirectQuery()}`)} data-testid="button-go-login">
+            <Button className="w-full" onClick={() => setLocation(`/giris${girisQuery(registeredEmail)}`)} data-testid="button-go-login">
               Giriş Yap
             </Button>
           </CardContent>

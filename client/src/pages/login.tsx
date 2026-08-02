@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { safeRedirectTarget, redirectQuery, redirectReason } from "@/lib/redirect";
+import { safeRedirectTarget, redirectQuery, redirectReason, onerilenEposta } from "@/lib/redirect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,7 +27,8 @@ export default function Login() {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    // Kayıttan geliniyorsa e-posta hazır gelir; kullanıcı yeniden yazmasın.
+    defaultValues: { email: onerilenEposta(), password: "" },
   });
 
   const onSubmit = async (data: LoginForm) => {
