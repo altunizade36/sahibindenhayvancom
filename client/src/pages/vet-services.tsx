@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Star, MapPin, Phone, Mail, Search, Clock, Shield, Stethoscope, Plus, Info, AlertTriangle } from "lucide-react";
+import { Star, MapPin, Phone, Mail, Search, Clock, Shield, Stethoscope, Plus, Info, Ambulance, ArrowUpDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { HizmetKaydi } from "@/components/services/hizmet-kaydi";
 import type { Listing } from "@shared/schema";
@@ -51,7 +54,9 @@ function ExampleListingBadge() {
 
 export default function VetServices() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("all");
+  const [emergencyOnly, setEmergencyOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"rating" | "reviews" | "name">("rating");
   const { user } = useAuth();
 
   const { data: vetServices, isLoading } = useQuery<VetService[]>({
@@ -66,13 +71,23 @@ export default function VetServices() {
 
   const cities = Array.from(new Set(vetServices?.map(v => v.city) || []));
 
-  const filteredServices = vetServices?.filter((service) => {
-    const matchesSearch = searchQuery === "" ||
-      service.clinicName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.specializations.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCity = selectedCity === "" || service.city === selectedCity;
-    return matchesSearch && matchesCity;
-  });
+  const filteredServices = (vetServices ?? [])
+    .filter((service) => {
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch = q === "" ||
+        service.clinicName.toLowerCase().includes(q) ||
+        (service.specializations ?? []).some((s) => s.toLowerCase().includes(q)) ||
+        (service.services ?? []).some((s) => s.toLowerCase().includes(q));
+      const matchesCity = selectedCity === "all" || service.city === selectedCity;
+      const matchesEmergency = !emergencyOnly || service.emergencyService;
+      return matchesSearch && matchesCity && matchesEmergency;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.clinicName.localeCompare(b.clinicName, "tr");
+      if (sortBy === "reviews") return (b.totalReviews ?? 0) - (a.totalReviews ?? 0);
+      if (a.verified !== b.verified) return a.verified ? -1 : 1;
+      return parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0");
+    });
 
   if (isLoading) {
     return (
@@ -115,38 +130,69 @@ export default function VetServices() {
             </Link>
           </div>
           
-          {/* Info alert about example listings */}
-          <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
-            <Info className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-sm"> Veteriner olarak hizmet vermek için <strong>"Veteriner İlanı Ver"</strong> butonuna tıklayarak kendi ilanınızı oluşturabilirsiniz.
+          {/* Bilgilendirme: klinik profili ile ilan farkı */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              Klinik veya muayenehanenizi doğrulanmış bir profil olarak listelemek için
+              sayfanın altındaki <strong>"Kliniğinizi listeleyin"</strong> bölümünü kullanın.
+              Tekil bir hizmet duyurusu için <strong>"Veteriner İlanı Ver"</strong> ile ilan açabilirsiniz.
             </AlertDescription>
           </Alert>
         </div>
 
         <Card className="mb-6">
-          <CardContent className="pt-4">
-            <div className="flex flex-col md:flex-row gap-4">
+          <CardContent className="pt-4 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Klinik veya uzmanlık alanı ara..."
+                  placeholder="Klinik, uzmanlık veya hizmet ara..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                   data-testid="input-search-vet"
                 />
               </div>
-              <select 
-                className="border rounded-md px-3 py-2 bg-background text-foreground"
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                data-testid="select-city"
-              >
-                <option value="">Tüm Şehirler</option>
-                {cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
+              <Select value={selectedCity} onValueChange={setSelectedCity}>
+                <SelectTrigger className="sm:w-44" data-testid="select-city">
+                  <SelectValue placeholder="Tüm Şehirler" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tüm Şehirler</SelectItem>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                <SelectTrigger className="sm:w-44" data-testid="select-sort">
+                  <ArrowUpDown className="w-4 h-4 mr-1 opacity-60" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">Önce en yüksek puan</SelectItem>
+                  <SelectItem value="reviews">Önce en çok değerlendirme</SelectItem>
+                  <SelectItem value="name">İsme göre (A-Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="emergency-only"
+                  checked={emergencyOnly}
+                  onCheckedChange={setEmergencyOnly}
+                  data-testid="switch-emergency"
+                />
+                <Label htmlFor="emergency-only" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                  <Ambulance className="w-4 h-4 text-red-600" />
+                  Sadece 7/24 acil hizmet
+                </Label>
+              </div>
+              <span className="text-sm text-muted-foreground" data-testid="text-result-count">
+                {filteredServices.length} klinik
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -209,10 +255,19 @@ export default function VetServices() {
                     <span className="truncate">{service.district}, {service.city}</span>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{service.workingHours}</span>
-                  </div>
+                  {service.workingHours && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{service.workingHours}</span>
+                    </div>
+                  )}
+
+                  {service.phone && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{service.phone}</span>
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-1">
                     {service.specializations.slice(0, 3).map((spec, i) => (
@@ -234,23 +289,19 @@ export default function VetServices() {
                   )}
 
                   <div className="flex gap-2 pt-2">
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => window.location.href = `tel:${service.phone}`}
-                      data-testid={`button-call-${service.id}`}
-                    >
-                      <Phone className="w-4 h-4 mr-1" />
-                      Ara
+                    <Button asChild size="sm" className="flex-1" data-testid={`button-call-${service.id}`}>
+                      <a href={`tel:${service.phone}`}>
+                        <Phone className="w-4 h-4 mr-1" />
+                        Ara
+                      </a>
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => window.location.href = `mailto:${service.email}`}
-                      data-testid={`button-email-${service.id}`}
-                    >
-                      <Mail className="w-4 h-4" />
-                    </Button>
+                    {service.email && (
+                      <Button asChild size="sm" variant="outline" data-testid={`button-email-${service.id}`}>
+                        <a href={`mailto:${service.email}`} aria-label="E-posta gönder">
+                          <Mail className="w-4 h-4" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

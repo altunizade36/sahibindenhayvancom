@@ -335,7 +335,7 @@ export default function TransportServices() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Truck className="h-6 w-6 text-primary" />
@@ -345,14 +345,14 @@ export default function TransportServices() {
                   Hayvan Nakliye Hizmetleri
                 </h1>
                 <p className="text-muted-foreground">
-                  Uber tarzı nakliye eşleştirme sistemi
+                  Talebinizi paylaşın, nakliyeciler size teklif versin
                 </p>
               </div>
             </div>
-            
+
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button data-testid="button-create-request">
+                <Button className="w-full sm:w-auto" data-testid="button-create-request">
                   <Plus className="w-4 h-4 mr-2" />
                   Nakliye Talebi Oluştur
                 </Button>
@@ -378,18 +378,19 @@ export default function TransportServices() {
         </div>
 
         <Card className="mb-6">
-          <CardContent className="pt-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Şehir veya hayvan türü ara..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                  data-testid="input-search"
-                />
-              </div>
+          <CardContent className="pt-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Kalkış/varış şehri veya hayvan türü ara..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                data-testid="input-search"
+              />
+            </div>
+            <div className="text-sm text-muted-foreground" data-testid="text-result-count">
+              {(filteredRequests?.length ?? 0)} aktif talep
             </div>
           </CardContent>
         </Card>
