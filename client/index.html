@@ -74,12 +74,8 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-    </script>
+    <!-- Satır içi değil ayrı dosya: CSP'nin betikler için 'unsafe-inline'
+         izni vermesi gerekmesin (bkz. public/sw-register.js). -->
+    <script src="/sw-register.js" defer></script>
   </body>
 </html>
