@@ -386,6 +386,38 @@ function publicUserFields<T extends Record<string, any> | undefined | null>(user
   };
 }
 
+/**
+ * Bir satıcının ilan oluştururken/düzenlerken belirleyebileceği alanlar.
+ *
+ * Beyaz liste; kütle atamayı engeller. Burada OLMAYAN her şey (status,
+ * isPremium, isFeatured, sellerId, viewCount, moderationStatus, createdAt …)
+ * satıcı tarafından değiştirilemez. `price` ayrı doğrulanır, `status` yalnızca
+ * moderasyon uçlarından değişir.
+ *
+ * Hem POST /api/listings hem PATCH /api/listings/:id bu listeyi kullanır —
+ * tek kaynak. İlan oluşturmada beyaz liste vardı ama düzenlemede yoktu:
+ * düzenleme gövdesine `{"status":"active"}` yazan biri reddedilen/bekleyen
+ * ilanını doğrudan yayına alabiliyor, `{"isPremium":true}` ile ödeme yapmadan
+ * öne çıkabiliyordu.
+ */
+const SATICI_ILAN_ALANLARI = [
+  "categoryId", "title", "description", "images",
+  "breed", "age", "ageCategory", "gender", "healthStatus",
+  "vaccinated", "neutered", "pedigree", "characterTraits",
+  "videoUrls", "categoryAttributes",
+  "deliveryInfo", "warrantyInfo", "allowOffers",
+  "locationId", "city", "district", "storeId",
+] as const;
+
+/** İlan gövdesinden yalnızca satıcının belirleyebileceği alanları süzer. */
+function ilanAlanlariniSuz(govde: Record<string, any>): Record<string, any> {
+  const temiz: Record<string, any> = {};
+  for (const alan of SATICI_ILAN_ALANLARI) {
+    if (govde?.[alan] !== undefined) temiz[alan] = govde[alan];
+  }
+  return temiz;
+}
+
 // Helper function to get user ID from session (handles OIDC and email/phone auth)
 // Returns a non-null string for authenticated routes (throws if not found)
 function getUserId(user: any): string {
@@ -3214,19 +3246,8 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
        * bilinçli olarak listede YOK: bunlar hayvanın kimlik numaraları ve
        * herkese açık bir ilanda yayımlanmamalı.
        */
-      const SATICININ_BELIRLEYEBILECEGI = [
-        "categoryId", "title", "description", "images",
-        "breed", "age", "ageCategory", "gender", "healthStatus",
-        "vaccinated", "neutered", "pedigree", "characterTraits",
-        "videoUrls", "categoryAttributes",
-        "deliveryInfo", "warrantyInfo", "allowOffers",
-        "locationId", "city", "district", "storeId",
-      ] as const;
-
-      const safeBody: Record<string, unknown> = {};
-      for (const alan of SATICININ_BELIRLEYEBILECEGI) {
-        if (req.body[alan] !== undefined) safeBody[alan] = req.body[alan];
-      }
+      // Kütle atama koruması — ortak beyaz liste (bkz. SATICI_ILAN_ALANLARI).
+      const safeBody = ilanAlanlariniSuz(req.body);
 
       const parsedData = insertListingSchema.parse({
         ...safeBody,
@@ -3325,15 +3346,28 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       const newPrice = sanitizedPrice ? parseFloat(sanitizedPrice) : oldPrice;
       const isPriceDrop = newPrice < oldPrice && oldPrice > 0;
 
-      // Auto-detect listing source when storeId changes
-      // Remove sensitive fields that should not be stored
-      const { microchipNumber, passportNumber, earTagNumber, turkvetNumber, ...safeBody } = req.body;
+      // Yalnızca satıcının belirleyebileceği alanlar geçer (kütle atama
+      // koruması). Eski hâli `req.body`'den yalnızca birkaç belge alanını
+      // çıkarıp gerisini olduğu gibi yazıyordu; satıcı status/isPremium/
+      // isFeatured/sellerId gönderebiliyordu.
+      const safeBody = ilanAlanlariniSuz(req.body);
       const updateData: any = { ...safeBody, updatedAt: new Date() };
       if (sanitizedPrice) {
         updateData.price = sanitizedPrice;
       }
       if ('storeId' in safeBody) {
         updateData.listingSource = safeBody.storeId ? 'store' : 'individual';
+      }
+
+      // Reddedilen ilanı satıcı düzeltince yeniden incelemeye alınır.
+      // Aksi halde çıkmaz oluşuyordu: `publish` yalnızca 'draft'ı yayınlar,
+      // PATCH ise (kütle atama koruması yüzünden) status'e dokunamaz — yani
+      // reddedilen ilan asla kurtarılamıyordu. 'pending'e düşürmek güvenli;
+      // satıcı 'active'e atlayamıyor, yönetici tekrar bakıyor. Yöneticinin
+      // kendi düzenlemesi bu kuralı tetiklemez.
+      if (listing.status === 'rejected' && (req.user as any).role !== 'admin') {
+        updateData.status = 'pending';
+        updateData.moderationReason = null;
       }
 
       const [updated] = await db
