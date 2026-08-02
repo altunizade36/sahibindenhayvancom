@@ -2073,7 +2073,7 @@ function getPoolStats() {
 }
 
 // server/db-storage.ts
-import { eq, and, gte, lte, ilike, or, sql as sql2, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, or, sql as sql2, inArray } from "drizzle-orm";
 var DbStorage = class {
   // ============ Kullanicilar ============
   async getUser(id) {
@@ -2151,10 +2151,10 @@ var DbStorage = class {
     }
     if (filters?.search) {
       conditions.push(
-        or(
-          ilike(listings.title, `%${filters.search}%`),
-          ilike(listings.description, `%${filters.search}%`)
-        )
+        sql2`(
+          public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${filters.search}%`})
+          OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${`%${filters.search}%`})
+        )`
       );
     }
     return await db.query.listings.findMany({
@@ -6685,8 +6685,11 @@ async function registerRoutes(app2, existingServer) {
       const q = (req.query.q || "").trim();
       if (!q || q.length < 2) return res.json({ listings: [], categories: [] });
       const [listingSuggestions, categorySuggestions] = await Promise.all([
-        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and4(ilike2(listings.title, `%${q}%`), eq4(listings.status, "active"))).orderBy(desc3(listings.createdAt)).limit(6),
-        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(ilike2(categories.name, `%${q}%`)).limit(4)
+        db.select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city }).from(listings).where(and4(
+          sql4`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
+          eq4(listings.status, "active")
+        )).orderBy(desc3(listings.createdAt)).limit(6),
+        db.select({ id: categories.id, name: categories.name, slug: categories.slug }).from(categories).where(sql4`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`).limit(4)
       ]);
       res.json({ listings: listingSuggestions, categories: categorySuggestions });
     } catch (err) {
@@ -6780,7 +6783,11 @@ async function registerRoutes(app2, existingServer) {
       if (search) {
         const searchTerm = `%${search}%`;
         conditions.push(
-          sql4`(${listings.title} ILIKE ${searchTerm} OR ${listings.description} ILIKE ${searchTerm})`
+          sql4`(
+            public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${searchTerm})
+            OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${searchTerm})
+            OR public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${searchTerm})
+          )`
         );
       }
       if (minAge) {
@@ -6799,7 +6806,9 @@ async function registerRoutes(app2, existingServer) {
         conditions.push(eq4(listings.gender, gender));
       }
       if (breed && typeof breed === "string" && breed.trim()) {
-        conditions.push(ilike2(listings.breed, `%${breed}%`));
+        conditions.push(
+          sql4`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
+        );
       }
       if (healthStatus && healthStatus !== "all") {
         conditions.push(eq4(listings.healthStatus, healthStatus));
@@ -10645,7 +10654,11 @@ async function registerRoutes(app2, existingServer) {
       }
       if (search) {
         query = query.where(
-          sql4`${stores.displayName} ILIKE ${`%${search}%`} OR ${stores.summary} ILIKE ${`%${search}%`}`
+          // Türkçe arama — bkz. ilan aramasındaki açıklama.
+          sql4`(
+            public.tr_normalize(${stores.displayName}) LIKE public.tr_normalize(${`%${search}%`})
+            OR public.tr_normalize(coalesce(${stores.summary}, '')) LIKE public.tr_normalize(${`%${search}%`})
+          )`
         );
       }
       const storesList = await query.orderBy(desc3(stores.rating), desc3(stores.reviewCount)).limit(parseInt(limit)).offset(parseInt(offset));

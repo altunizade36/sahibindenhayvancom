@@ -144,11 +144,14 @@ export class DbStorage implements IStorage {
       conditions.push(eq(listings.status, filters.status as any));
     }
     if (filters?.search) {
+      // Türkçe arama: aksansız yazım da eşleşsin. Telefonda Türkçe karakter
+      // kullanmamak yaygın; "kopek" araması "Köpek" ilanını bulmalı.
+      // Tanım: scripts/sql/turkce-arama.sql
       conditions.push(
-        or(
-          ilike(listings.title, `%${filters.search}%`),
-          ilike(listings.description, `%${filters.search}%`)
-        )
+        sql`(
+          public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${filters.search}%`})
+          OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${`%${filters.search}%`})
+        )`
       );
     }
 

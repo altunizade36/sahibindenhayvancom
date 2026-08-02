@@ -2418,13 +2418,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         db
           .select({ id: listings.id, title: listings.title, price: listings.price, city: listings.city })
           .from(listings)
-          .where(and(ilike(listings.title, `%${q}%`), eq(listings.status, "active")))
+          .where(and(
+            sql`public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${`%${q}%`})`,
+            eq(listings.status, "active")
+          ))
           .orderBy(desc(listings.createdAt))
           .limit(6),
         db
           .select({ id: categories.id, name: categories.name, slug: categories.slug })
           .from(categories)
-          .where(ilike(categories.name, `%${q}%`))
+          .where(sql`public.tr_normalize(${categories.name}) LIKE public.tr_normalize(${`%${q}%`})`)
           .limit(4),
       ]);
 
@@ -2542,9 +2545,23 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
       
       if (search) {
+        /*
+         * Türkçe arama: iki taraf da `tr_normalize` ile sadeleştiriliyor
+         * (küçük harf + aksan kaldırma). Önceden düz `ILIKE` kullanılıyordu
+         * ve telefonda Türkçe karakter yazmayan kullanıcı hiçbir şey
+         * bulamıyordu: "kopek" araması "Köpek yavrusu" ilanını getirmiyordu.
+         *
+         * Fonksiyon IMMUTABLE olduğu için trigram (pg_trgm) indeksleri bu
+         * karşılaştırmada kullanılabiliyor; baştaki `%` yüzünden B-tree'nin
+         * yapamadığı şey budur. Tanım: scripts/sql/turkce-arama.sql
+         */
         const searchTerm = `%${search}%`;
         conditions.push(
-          sql`(${listings.title} ILIKE ${searchTerm} OR ${listings.description} ILIKE ${searchTerm})`
+          sql`(
+            public.tr_normalize(${listings.title}) LIKE public.tr_normalize(${searchTerm})
+            OR public.tr_normalize(${listings.description}) LIKE public.tr_normalize(${searchTerm})
+            OR public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${searchTerm})
+          )`
         );
       }
       
@@ -2568,7 +2585,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
       
       if (breed && typeof breed === 'string' && breed.trim()) {
-        conditions.push(ilike(listings.breed, `%${breed}%`));
+        // Irk filtresi de aksansız yazımla eşleşmeli ("kangal" / "Kangal").
+        conditions.push(
+          sql`public.tr_normalize(coalesce(${listings.breed}, '')) LIKE public.tr_normalize(${`%${breed}%`})`
+        );
       }
       
       if (healthStatus && healthStatus !== 'all') {
@@ -8480,7 +8500,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       
       if (search) {
         query = query.where(
-          sql`${stores.displayName} ILIKE ${`%${search}%`} OR ${stores.summary} ILIKE ${`%${search}%`}`
+          // Türkçe arama — bkz. ilan aramasındaki açıklama.
+          sql`(
+            public.tr_normalize(${stores.displayName}) LIKE public.tr_normalize(${`%${search}%`})
+            OR public.tr_normalize(coalesce(${stores.summary}, '')) LIKE public.tr_normalize(${`%${search}%`})
+          )`
         );
       }
       
