@@ -156,7 +156,7 @@ export default function AuctionListPage() {
   const [status, setStatus] = useState<string>("all");
 
   const { data: auctions, isLoading } = useQuery<Auction[]>({
-    queryKey: ["/api/auctions", status !== "all" ? status : undefined],
+    queryKey: ["/api/auctions", status !== "all" ? { status } : {}],
     enabled: true,
   });
 

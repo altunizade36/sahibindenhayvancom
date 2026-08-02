@@ -618,7 +618,7 @@ export default function Messages() {
   }, [location, user]);
 
   const { data: conversations, isLoading: isLoadingConversations } = useQuery<Conversation[]>({
-    queryKey: ["/api/messages/conversations", showArchived ? "archived=true" : ""],
+    queryKey: ["/api/messages/conversations", showArchived ? { archived: "true" } : {}],
     enabled: !!user,
   });
 

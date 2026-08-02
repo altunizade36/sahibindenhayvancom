@@ -115,7 +115,7 @@ export default function LiveStreamListPage() {
   const [status, setStatus] = useState<string>("all");
 
   const { data: streams, isLoading } = useQuery<LiveStream[]>({
-    queryKey: ["/api/streams", status !== "all" ? status : undefined],
+    queryKey: ["/api/streams", status !== "all" ? { status } : {}],
     enabled: true,
   });
 

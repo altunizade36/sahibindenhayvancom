@@ -24,21 +24,48 @@ export async function apiRequest(
   return res;
 }
 
-// Helper to serialize query key into a URL with query parameters
+/**
+ * Sorgu anahtarını istek adresine çevirir.
+ *
+ * Kural:
+ *   - İlk eleman temel yoldur:            ["/api/messages"]            -> /api/messages
+ *   - Metin/sayı elemanlar YOL PARÇASIDIR: ["/api/messages", "u1"]      -> /api/messages/u1
+ *                                          ["/api/sellers","s1","rating"] -> /api/sellers/s1/rating
+ *   - Nesne elemanlar SORGU PARAMETRESİDİR: ["/api/listings", {city:"..."}] -> /api/listings?city=...
+ *
+ * Metin elemanlar önceden SESSİZCE YOK SAYILIYORDU. Sonuç: `["/api/messages",
+ * userId]` anahtarı `/api/messages` adresini çağırıyor, sunucudaki
+ * `/api/messages/:userId` rotasına hiç ulaşılamıyordu. Arayüzde mesaj dizisi,
+ * satıcı puanı ve satıcı yorumları bu yüzden hiç yüklenmiyordu — hata da
+ * görünmüyordu, sadece boş kalıyorlardı.
+ *
+ * `undefined` / `null` elemanlar atlanır; "filtre yok" durumunu anahtarda
+ * belirtmek yaygın bir kalıp ve adrese eklenmemeleri gerekir.
+ */
 function serializeQueryKey(queryKey: readonly unknown[]): string {
   if (queryKey.length === 0) return "/";
-  
+
   // First element should be the base URL string
-  const baseUrl = String(queryKey[0]);
-  
+  let baseUrl = String(queryKey[0]);
+
   // If there's only one element or no additional params, return as is
   if (queryKey.length === 1) return baseUrl;
-  
+
   // Check if there are object params to serialize
   const params = new URLSearchParams();
   for (let i = 1; i < queryKey.length; i++) {
     const item = queryKey[i];
-    
+
+    if (item === undefined || item === null) continue;
+
+    // Metin ve sayılar yol parçası olarak eklenir.
+    if (typeof item === "string" || typeof item === "number") {
+      const parca = String(item);
+      if (parca === "") continue;
+      baseUrl = baseUrl.replace(/\/$/, "") + "/" + encodeURIComponent(parca);
+      continue;
+    }
+
     // If it's a plain object, add its entries as query params
     if (item && typeof item === 'object' && !Array.isArray(item)) {
       Object.entries(item).forEach(([key, value]) => {

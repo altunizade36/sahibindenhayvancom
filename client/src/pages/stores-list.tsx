@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Store, Building2, MapPin, Star, BadgeCheck, Filter, ChevronDown, ChevronRight, Plus, Loader2, Package, Users } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,7 +177,9 @@ function StoreCardSkeleton() {
 }
 
 export default function StoresList() {
-  const { user } = useUser();
+  // useUser() kaldirildi: var olmayan /api/auth/me ucunu cagiriyordu ve
+  // giris yapmis kullanici bile "oturum yok" gorunuyordu.
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");

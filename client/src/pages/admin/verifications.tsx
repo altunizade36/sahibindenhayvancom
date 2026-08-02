@@ -96,7 +96,7 @@ export default function AdminVerificationsPage() {
   }
 
   const { data: verifications = [], isLoading, refetch } = useQuery<Verification[]>({
-    queryKey: ["/api/admin/verifications", statusFilter],
+    queryKey: ["/api/admin/verifications", statusFilter === "all" ? {} : { status: statusFilter }],
     queryFn: async () => {
       const res = await fetch(`/api/admin/verifications?status=${statusFilter}`);
       if (!res.ok) throw new Error("Failed to fetch");

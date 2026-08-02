@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/lib/auth";
 
 const storeTypeLabels: Record<string, string> = {
   petshop: "Pet Shop",
@@ -186,7 +186,9 @@ function ListingCard({ listing }: { listing: any }) {
 export default function StoreDetail() {
   const [, params] = useRoute("/magaza/:slug");
   const slug = params?.slug;
-  const { user } = useUser();
+  // useUser() kaldirildi: var olmayan /api/auth/me ucunu cagiriyordu ve
+  // giris yapmis kullanici bile "oturum yok" gorunuyordu.
+  const { user } = useAuth();
   const { toast } = useToast();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

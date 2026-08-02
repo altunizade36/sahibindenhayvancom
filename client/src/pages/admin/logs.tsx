@@ -58,7 +58,7 @@ export default function AdminLogsPage() {
   const [entityFilter, setEntityFilter] = useState("all");
 
   const { data: logs = [], isLoading, refetch } = useQuery<AuditLogEntry[]>({
-    queryKey: ["/api/admin/audit-logs", levelFilter, entityFilter],
+    queryKey: ["/api/admin/audit-logs", { level: levelFilter === "all" ? undefined : levelFilter, entity: entityFilter === "all" ? undefined : entityFilter }],
   });
 
   const { data: stats } = useQuery<LogStats>({
