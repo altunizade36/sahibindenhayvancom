@@ -7293,8 +7293,9 @@ async function registerRoutes(app2, existingServer) {
         // Sorting
         sortBy,
         sortOrder,
-        // Belirli bir satıcının ilanları
-        sellerId
+        // Belirli bir satıcının / mağazanın ilanları
+        sellerId,
+        storeId
       } = req.query;
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
       const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
@@ -7338,6 +7339,9 @@ async function registerRoutes(app2, existingServer) {
       }
       if (sellerId) {
         conditions.push(eq7(listings.sellerId, sellerId));
+      }
+      if (storeId) {
+        conditions.push(eq7(listings.storeId, storeId));
       }
       const GORUNUR_ILAN_DURUMLARI = ["active", "sold"];
       if (status && GORUNUR_ILAN_DURUMLARI.includes(status)) {
@@ -11415,10 +11419,16 @@ async function registerRoutes(app2, existingServer) {
       if (!store) {
         return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
       }
-      const storeListings = await db.select().from(listings).where(and6(
+      const izleyiciId = req.user ? getUserId3(req.user) : null;
+      const magazaSahibiMi = izleyiciId === store.ownerId || req.user?.role === "admin";
+      if (store.status !== "active" && !magazaSahibiMi) {
+        return res.status(404).json({ message: "Ma\u011Faza bulunamad\u0131" });
+      }
+      const storeListingsRaw = await db.select().from(listings).where(and6(
         eq7(listings.storeId, store.id),
         eq7(listings.status, "active")
       )).orderBy(desc5(listings.createdAt)).limit(20);
+      const storeListings = storeListingsRaw.map((l) => ilanGizliAlanlariAyikla(l, false));
       const storeReviewsList = await db.select({
         id: storeReviews.id,
         rating: storeReviews.rating,

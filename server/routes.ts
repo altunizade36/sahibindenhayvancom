@@ -2651,8 +2651,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         // Sorting
         sortBy,
         sortOrder,
-        // Belirli bir satıcının ilanları
+        // Belirli bir satıcının / mağazanın ilanları
         sellerId,
+        storeId,
       } = req.query;
 
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
@@ -2720,6 +2721,11 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       // için başkasının draft/pending ilanı yine sızmaz.
       if (sellerId) {
         conditions.push(eq(listings.sellerId, sellerId as string));
+      }
+
+      // Mağaza filtresi — mağaza vitrininin "tüm ürünler" sayfası bunu kullanır.
+      if (storeId) {
+        conditions.push(eq(listings.storeId, storeId as string));
       }
 
       // Herkese açık listede status yalnız GÖRÜNÜR durumlarla sınırlı.
@@ -9061,9 +9067,20 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (!store) {
         return res.status(404).json({ message: "Mağaza bulunamadı" });
       }
-      
+
+      // Yalnız YAYINDAKİ (active) mağaza herkese açık. Onay bekleyen,
+      // askıya alınmış veya kapalı mağaza slug'ıyla erişilememeli — mağaza
+      // listesi zaten active filtreli ama detay ucunda kontrol yoktu, yani
+      // yönetici bir mağazayı askıya alsa bile URL'den görünmeye devam
+      // ediyordu. Sahibi ve yöneticiler kendi/askıdaki mağazayı görebilir.
+      const izleyiciId = req.user ? getUserId(req.user) : null;
+      const magazaSahibiMi = izleyiciId === store.ownerId || (req.user as any)?.role === "admin";
+      if (store.status !== "active" && !magazaSahibiMi) {
+        return res.status(404).json({ message: "Mağaza bulunamadı" });
+      }
+
       // Get store listings
-      const storeListings = await db
+      const storeListingsRaw = await db
         .select()
         .from(listings)
         .where(and(
@@ -9072,6 +9089,9 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         ))
         .orderBy(desc(listings.createdAt))
         .limit(20);
+      // Mağaza vitrini herkese açık: ilanların hassas alanları (mikroçip/
+      // pasaport/turkvet no, moderasyon notu) ayıklanır.
+      const storeListings = storeListingsRaw.map((l) => ilanGizliAlanlariAyikla(l, false));
       
       // Get store reviews (approved only)
       const storeReviewsList = await db

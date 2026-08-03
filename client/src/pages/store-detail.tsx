@@ -429,11 +429,24 @@ export default function StoreDetail() {
 
               <TabsContent value="listings" className="mt-4">
                 {store.listings && store.listings.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {store.listings.map((listing: any) => (
-                      <ListingCard key={listing.id} listing={listing} />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      {store.listings.map((listing: any) => (
+                        <ListingCard key={listing.id} listing={listing} />
+                      ))}
+                    </div>
+                    {/* Vitrinde ilk 20 ilan gösteriliyor; tümü için arama/
+                        filtre/sayfalama sunan mağaza ürünleri sayfasına git. */}
+                    {(store.totalListings || store.listings.length) >= 20 && (
+                      <div className="mt-6 text-center">
+                        <Button asChild variant="outline" size="lg" data-testid="button-all-store-listings">
+                          <Link href={`/ilanlar?storeId=${store.id}`}>
+                            Bu mağazadaki tüm ilanları gör
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <Card className="p-8 text-center">
                     <Package className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />

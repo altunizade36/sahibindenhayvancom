@@ -128,6 +128,7 @@ export default function ListingList() {
     search: activeSearch || undefined,
     categoryId: urlCategoryId || undefined,
     sellerId: searchParams.get("sellerId") || undefined,
+    storeId: searchParams.get("storeId") || undefined,
     ...filters
   };
 
