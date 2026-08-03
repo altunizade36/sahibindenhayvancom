@@ -164,7 +164,7 @@ async function seedExampleListings() {
       // Görseller client/public/ornek-gorseller/ altında statik servis edilir
       // (Vite bunları dist/public'e, Vercel de CDN'e taşır). Böylece örnek
       // ilanlar Supabase Storage'a bağımlı olmadan görselli görünür.
-      images: example.imageFile ? [`/ornek-gorseller/${example.imageFile}`] : ([] as string[]),
+      images: example.imageFile ? [`/ornek-gorseller/${example.imageFile.replace(/.jpg$/, ".webp")}`] : ([] as string[]),
     };
   });
 
