@@ -152,27 +152,33 @@ export default function ListingDetail() {
       }
     },
     onMutate: async () => {
+      // İşlemin niyetini BURADA yakala. onMutate optimistic olarak favori
+      // listesini değiştirdiği anda `isFavorited` türetilmiş değeri hemen
+      // tersine döner; onSuccess onu okursa toast ters çıkar ("ekledim" ama
+      // "kaldırıldı" der). Bu yüzden eklendi/kaldırıldı bilgisini context'e
+      // koyup onSuccess'te oradan okuyoruz.
+      const ekleniyor = !isFavorited;
       await queryClient.cancelQueries({ queryKey: ["/api/favorites"] });
       const previousFavorites = queryClient.getQueryData<any[]>(["/api/favorites"]);
-      
+
       queryClient.setQueryData(["/api/favorites"], (old: any[] | undefined) => {
         const current = old || [];
-        if (isFavorited) {
-          return current.filter(fav => fav.listingId !== id);
-        } else {
+        if (ekleniyor) {
           return [...current, { listingId: id, id: 'temp-' + Date.now() }];
         }
+        return current.filter(fav => fav.listingId !== id);
       });
-      
-      return { previousFavorites: previousFavorites || [] };
+
+      return { previousFavorites: previousFavorites || [], ekleniyor };
     },
-    onSuccess: () => {
+    onSuccess: (_data, _vars, context) => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      const eklendi = context?.ekleniyor;
       toast({
-        title: isFavorited ? "Favorilerden kaldırıldı" : "Favorilere eklendi",
-        description: isFavorited
-          ? "İlan favorilerinizden çıkarıldı"
-          : "İlan favorilerinize eklendi",
+        title: eklendi ? "Favorilere eklendi" : "Favorilerden kaldırıldı",
+        description: eklendi
+          ? "İlan favorilerinize eklendi"
+          : "İlan favorilerinizden çıkarıldı",
       });
     },
     onError: (error: any, _, context) => {

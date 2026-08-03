@@ -342,7 +342,17 @@ function NotificationItem({
 
   if (notification.link) {
     return (
-      <Link href={notification.link} className="block hover:bg-muted/30 transition-colors">
+      <Link
+        href={notification.link}
+        className="block hover:bg-muted/30 transition-colors"
+        // Bildirime tıklayınca hedefe gitmenin yanı sıra otomatik okundu
+        // işaretlenir. Önceden yalnız ayrı ✓ düğmesi işaretliyordu; kullanıcı
+        // bildirime tıklayıp sayfaya gidiyor ama bildirim "okunmadı" kalıyor,
+        // zil sayacı düşmüyordu — kafa karıştırıcı.
+        onClick={() => {
+          if (!notification.isRead) onMarkAsRead();
+        }}
+      >
         {content}
       </Link>
     );

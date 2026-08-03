@@ -1281,6 +1281,11 @@ export default function MyStore() {
     queryKey: ["/api/store/my/dashboard"],
     // Oturum yokken 401 istemeye gerek yok; boş yere hata üretmesin.
     enabled: isAuthenticated,
+    // Mağazası olmayan kullanıcıda uç 404 döner (beklenen: sihirbaz açılmalı).
+    // React Query 404'ü hata sayıp 3 kez geri-çekilmeli retry yapıyordu →
+    // "Mağaza Aç"ta ~7 sn boş skeleton. Retry kapalı: mağaza yoksa sihirbaz
+    // anında açılır.
+    retry: false,
   });
 
   const { data: categories = [] } = useQuery<StoreCategory[]>({

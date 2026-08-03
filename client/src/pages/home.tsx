@@ -4,6 +4,7 @@ import { SearchBar } from "@/components/search-bar";
 import { ListingCard } from "@/components/listing-card";
 import { Pagination } from "@/components/pagination";
 import { RecentlyViewedListings } from "@/components/recently-viewed-listings";
+import { CategoryExplorer } from "@/components/category-explorer";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Gavel, Loader2, ChevronUp, ChevronRight } from "lucide-react";
@@ -123,6 +124,7 @@ export default function Home() {
 
       <section className="py-3 md:py-4 flex-1 min-h-[400px]">
         <div className="container mx-auto px-4 h-full">
+          <CategoryExplorer categories={categories} />
           <RecentlyViewedListings />
           
           <div className="flex items-center justify-between gap-2 mb-4">
