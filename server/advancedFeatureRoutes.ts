@@ -414,13 +414,17 @@ export function registerTransportRoutes(app: Express) {
         return res.status(403).json({ message: "Bu talebin tekliflerini görme yetkiniz yok" });
       }
 
+      // Sütun adları transport_services şemasıyla eşleşmeli: JOIN transporter_id
+      // üzerinden (user_id sütunu yok), service_areas (service_regions değil),
+      // total_reviews (completed_transports yok). Eski sorgu bu yüzden 500
+      // veriyordu; özellik pasif olduğu için fark edilmemişti.
       const result = await db.execute(sql`
         SELECT q.*,
                u.first_name, u.last_name, u.profile_image_url,
-               ts.vehicle_types, ts.service_regions, ts.rating, ts.completed_transports
+               ts.vehicle_types, ts.service_areas, ts.rating, ts.total_reviews, ts.company_name
         FROM transport_quotes q
         INNER JOIN users u ON q.transporter_id = u.id
-        LEFT JOIN transport_services ts ON u.id = ts.user_id
+        LEFT JOIN transport_services ts ON ts.transporter_id = u.id
         WHERE q.request_id = ${id}
         ORDER BY q.price ASC
       `);
