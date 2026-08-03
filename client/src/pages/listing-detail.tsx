@@ -993,19 +993,25 @@ export default function ListingDetail() {
                             {(listing.seller?.firstName?.[0] || listing.seller?.username?.[0] || "S").toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        {/* Online indicator placeholder */}
-                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" title="Çevrimiçi" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold truncate text-base" data-testid="text-seller-name">
                           {listing.seller ? `${listing.seller.firstName || ''} ${listing.seller.lastName || ''}`.trim() || listing.seller.username || "İsimsiz Satıcı" : "İsimsiz Satıcı"}
                         </div>
-                        <div className="text-xs text-green-600 font-medium">Çevrimiçi</div>
+                        {/* Üyelik tarihi — güven sinyali. Sahte "Çevrimiçi"
+                            göstergesinin yerini aldı: gerçek presence verisi
+                            herkese açık uçta yok, sabit "Çevrimiçi" yanıltıcıydı. */}
+                        {listing.seller?.createdAt && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid="text-seller-since">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(listing.seller.createdAt).toLocaleDateString("tr-TR", { year: "numeric", month: "long" })} tarihinden beri üye
+                          </div>
+                        )}
                         <SellerRatingSummary sellerId={listing.sellerId} compact />
-                        {listing.seller?.phone && (
+                        {listing.seller?.city && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                            <Phone className="w-3 h-3" />
-                            {listing.seller?.phone}
+                            <MapPin className="w-3 h-3" />
+                            {listing.seller.city}
                           </div>
                         )}
                       </div>
