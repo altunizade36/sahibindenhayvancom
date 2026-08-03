@@ -459,6 +459,11 @@ export const insertListingSchema = createInsertSchema(listings, {
   characterTraits: z.array(z.string()).optional().default([]),
   videoUrls: z.array(z.string()).optional().default([]),
   categoryAttributes: z.record(z.any()).optional().default({}),
+  // Metin alanı üst sınırları: title/description sınırsız `text` sütunuydu ve
+  // yalnızca gövde boyutuyla dolaylı sınırlıydı. Aşırı uzun başlık/açıklama
+  // hem arayüzü hem SEO'yu bozar.
+  title: z.string().min(3, "Başlık en az 3 karakter olmalı").max(120, "Başlık en fazla 120 karakter olabilir"),
+  description: z.string().max(10000, "Açıklama en fazla 10.000 karakter olabilir"),
 }).omit({
   id: true,
   createdAt: true,

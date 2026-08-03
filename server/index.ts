@@ -89,12 +89,16 @@ async function runServer() {
     },
     level: 6, // Balance between compression ratio and speed
   }));
+  // JSON gövde sınırı. Görseller/dosyalar multipart (multer) ile ayrı uçlara
+  // gidiyor; JSON gövdesi yalnızca metin ve meta taşır, o yüzden 200kb fazlasıyla
+  // yeter ve aşırı büyük payload'la DB/bellek şişirmeyi engeller.
   app.use(express.json({
+    limit: "200kb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     }
   }));
-  app.use(express.urlencoded({ extended: false }));
+  app.use(express.urlencoded({ extended: false, limit: "200kb" }));
 
   app.use((req, res, next) => {
     const start = Date.now();

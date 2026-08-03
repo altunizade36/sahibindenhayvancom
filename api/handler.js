@@ -643,7 +643,12 @@ var insertListingSchema = createInsertSchema(listings, {
   healthDocuments: z.array(z.string()).optional().default([]),
   characterTraits: z.array(z.string()).optional().default([]),
   videoUrls: z.array(z.string()).optional().default([]),
-  categoryAttributes: z.record(z.any()).optional().default({})
+  categoryAttributes: z.record(z.any()).optional().default({}),
+  // Metin alanı üst sınırları: title/description sınırsız `text` sütunuydu ve
+  // yalnızca gövde boyutuyla dolaylı sınırlıydı. Aşırı uzun başlık/açıklama
+  // hem arayüzü hem SEO'yu bozar.
+  title: z.string().min(3, "Ba\u015Fl\u0131k en az 3 karakter olmal\u0131").max(120, "Ba\u015Fl\u0131k en fazla 120 karakter olabilir"),
+  description: z.string().max(1e4, "A\xE7\u0131klama en fazla 10.000 karakter olabilir")
 }).omit({
   id: true,
   createdAt: true,
@@ -8481,6 +8486,12 @@ async function registerRoutes(app2, existingServer) {
       if (!receiverId || !content) {
         return res.status(400).json({ message: "Al\u0131c\u0131 ve mesaj i\xE7eri\u011Fi gereklidir" });
       }
+      if (typeof content !== "string" || content.trim().length === 0) {
+        return res.status(400).json({ message: "Mesaj i\xE7eri\u011Fi ge\xE7ersiz" });
+      }
+      if (content.length > 5e3) {
+        return res.status(400).json({ message: "Mesaj en fazla 5000 karakter olabilir" });
+      }
       if (listingId) {
         const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq7(listings.id, listingId)).limit(1);
         if (listing?.isExampleListing) {
@@ -9673,6 +9684,9 @@ async function registerRoutes(app2, existingServer) {
       if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Ge\xE7erli bir e-posta adresi girin" });
       }
+      if (String(name).length > 100 || String(subject).length > 200 || String(message).length > 5e3) {
+        return res.status(400).json({ message: "Girdi\u011Finiz bilgiler \xE7ok uzun" });
+      }
       await emailService.sendContactMessage({
         name: String(name).slice(0, 200),
         email: String(email).slice(0, 320),
@@ -9806,6 +9820,9 @@ async function registerRoutes(app2, existingServer) {
       }
       if (numericAmount > 9999999999e-2) {
         return res.status(400).json({ message: "Teklif tutar\u0131 en fazla 99.999.999,99 TL olabilir" });
+      }
+      if (message && String(message).length > 1e3) {
+        return res.status(400).json({ message: "Teklif mesaj\u0131 en fazla 1000 karakter olabilir" });
       }
       const [listing] = await db.select().from(listings).where(eq7(listings.id, listingId)).limit(1);
       if (!listing) {
@@ -12098,12 +12115,13 @@ app.get("/health", (_req, res) => {
 app.use(compression());
 app.use(
   express.json({
+    limit: "200kb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     }
   })
 );
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "200kb" }));
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {

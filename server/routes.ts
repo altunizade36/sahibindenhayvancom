@@ -4583,9 +4583,19 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
     try {
       const senderId = getUserId(req.user);
       const { receiverId, content, listingId, messageType, replyToId, attachments } = req.body;
-      
+
       if (!receiverId || !content) {
         return res.status(400).json({ message: "Alıcı ve mesaj içeriği gereklidir" });
+      }
+
+      // Mesaj içeriği uzunluk sınırı: içerik sınırsız `text` sütunu ve
+      // yalnızca boş kontrolü vardı. Aşırı uzun mesaj hem spam hem DB/arayüz
+      // yükü; 5000 karakter samimi bir yazışma için fazlasıyla yeterli.
+      if (typeof content !== "string" || content.trim().length === 0) {
+        return res.status(400).json({ message: "Mesaj içeriği geçersiz" });
+      }
+      if (content.length > 5000) {
+        return res.status(400).json({ message: "Mesaj en fazla 5000 karakter olabilir" });
       }
       
       // Check if this is an example listing - prevent messaging
@@ -6472,6 +6482,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(400).json({ message: "Geçerli bir e-posta adresi girin" });
       }
 
+      // Uzunluk sınırları: mesaj e-posta ile iletildiği için aşırı uzun içerik
+      // hem gönderimi zorlar hem spam vektörüdür.
+      if (String(name).length > 100 || String(subject).length > 200 || String(message).length > 5000) {
+        return res.status(400).json({ message: "Girdiğiniz bilgiler çok uzun" });
+      }
+
       // Mesaj site sahibine e-posta ile iletilir.
       //
       // Daha önce burada yalnızca `console.log` vardı ve kullanıcıya
@@ -6667,6 +6683,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       }
       if (numericAmount > 99999999.99) {
         return res.status(400).json({ message: "Teklif tutarı en fazla 99.999.999,99 TL olabilir" });
+      }
+
+      if (message && String(message).length > 1000) {
+        return res.status(400).json({ message: "Teklif mesajı en fazla 1000 karakter olabilir" });
       }
 
       // Get listing details

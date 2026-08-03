@@ -27,14 +27,17 @@ app.get("/health", (_req, res) => {
 });
 
 app.use(compression());
+// JSON gövde sınırı — görseller multipart ile ayrı gider, JSON yalnızca
+// metin/meta taşır (bkz. server/index.ts).
 app.use(
   express.json({
+    limit: "200kb",
     verify: (req, _res, buf) => {
       (req as any).rawBody = buf;
     },
   })
 );
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "200kb" }));
 
 app.use((req, res, next) => {
   const start = Date.now();
