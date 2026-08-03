@@ -3411,12 +3411,15 @@ function etiketleriYerlestir(kabuk, meta) {
     /<meta\s+name="description"[^>]*>\s*/i,
     /<link\s+rel="canonical"[^>]*>\s*/i,
     /<meta\s+property="og:(?:title|description|image|url|type)"[^>]*>\s*/gi,
-    /<meta\s+name="twitter:(?:title|description|image)"[^>]*>\s*/gi
+    /<meta\s+name="twitter:(?:title|description|image)"[^>]*>\s*/gi,
+    // Kabukta (index.html) statik `robots: index, follow` var. Örnek ilana
+    // noindex eklerken bunu silmezsek sayfada iki çelişkili robots meta olur.
+    /<meta\s+name="robots"[^>]*>\s*/gi
   ];
   for (const desen of silinecek) html = html.replace(desen, "");
   const yeni = [
     `<title>${kacisla(meta.title)}</title>`,
-    ...meta.noindex ? [`<meta name="robots" content="noindex, follow" />`] : [],
+    `<meta name="robots" content="${meta.noindex ? "noindex, follow" : "index, follow"}" />`,
     `<meta name="description" content="${kacisla(meta.description)}" />`,
     `<link rel="canonical" href="${kacisla(meta.canonical)}" />`,
     `<meta property="og:type" content="${meta.type || "website"}" />`,
