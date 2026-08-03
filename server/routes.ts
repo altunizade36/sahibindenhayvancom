@@ -3723,12 +3723,17 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .where(eq(bids.auctionId, req.params.id))
         .orderBy(desc(bids.amount));
       
-      // Get listing
-      const [listing] = await db
+      // Get listing — yalnız yayındaki ilan, hassas alanlar ayıklanmış.
+      // Ham select ile taslak/beklemedeki ilan + mikroçip/pasaport/moderasyon
+      // notu sızıyordu.
+      const [hamIlan] = await db
         .select()
         .from(listings)
         .where(eq(listings.id, auction.listingId))
         .limit(1);
+      const listing = hamIlan && hamIlan.status === "active"
+        ? ilanGizliAlanlariAyikla(hamIlan, false)
+        : null;
 
       res.json({
         ...auction,
@@ -3882,26 +3887,32 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      // Get streamer info
+      // Get streamer info — YALNIZ herkese açık alanlar. Ham users kaydı
+      // döndürülüyordu: password (bcrypt), email, reset/verification token
+      // hepsi sızıyordu.
       const [streamer] = await db
         .select()
         .from(users)
         .where(eq(users.id, stream.streamerId))
         .limit(1);
-      
-      // Get linked listing if exists
+
+      // Get linked listing if exists — yayında değilse gösterilmez, hassas
+      // alanlar ayıklanır.
       let listing = null;
       if (stream.listingId) {
-        [listing] = await db
+        const [ham] = await db
           .select()
           .from(listings)
           .where(eq(listings.id, stream.listingId))
           .limit(1);
+        if (ham && ham.status === "active") {
+          listing = ilanGizliAlanlariAyikla(ham, false);
+        }
       }
 
       res.json({
         ...stream,
-        streamer,
+        streamer: publicUserFields(streamer),
         listing,
       });
     } catch (error) {
@@ -7052,11 +7063,14 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         .from(listings)
         .where(eq(listings.id, req.params.id))
         .limit(1);
-      
-      if (!listing) {
+
+      // Herkese açık fiyat karşılaştırması yalnız yayındaki ilan için. Status
+      // kontrolü yoktu; ID'sini bilen biri taslak/beklemedeki ilanın fiyatını
+      // görebiliyordu (yanıt id + price açığa çıkarıyor).
+      if (!listing || listing.status !== "active") {
         return res.status(404).json({ message: "Listing not found" });
       }
-      
+
       // Find similar listings (same category, different sellers)
       const similarListings = await db
         .select({

@@ -4969,7 +4969,7 @@ function registerB2BRoutes(app2) {
         FROM b2b_listings l
         INNER JOIN users u ON l.seller_id = u.id
         LEFT JOIN stores s ON l.store_id = s.id
-        WHERE l.id = ${id}
+        WHERE l.id = ${id} AND l.status = 'active'
       `);
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
@@ -5165,7 +5165,7 @@ function registerWholesaleRoutes(app2) {
         FROM wholesale_products p
         INNER JOIN users u ON p.seller_id = u.id
         LEFT JOIN stores s ON p.store_id = s.id
-        WHERE p.id = ${id}
+        WHERE p.id = ${id} AND p.status = 'active'
       `);
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "\xDCr\xFCn bulunamad\u0131" });
@@ -5334,7 +5334,7 @@ function registerFarmTVRoutes(app2) {
           END,
           s.scheduled_at ASC
       `);
-      res.json(result.rows);
+      res.json(result.rows.map(({ stream_key, ...r }) => r));
     } catch (error) {
       console.error("Error fetching streams:", error);
       res.status(500).json({ message: "Yay\u0131nlar getirilemedi" });
@@ -5354,7 +5354,8 @@ function registerFarmTVRoutes(app2) {
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Yay\u0131n bulunamad\u0131" });
       }
-      res.json(result.rows[0]);
+      const { stream_key, ...yayin } = result.rows[0];
+      res.json(yayin);
     } catch (error) {
       console.error("Error fetching stream:", error);
       res.status(500).json({ message: "Yay\u0131n getirilemedi" });
@@ -7914,7 +7915,8 @@ async function registerRoutes(app2, existingServer) {
         return res.status(404).json({ message: "Auction not found" });
       }
       const auctionBids = await db.select().from(bids).where(eq7(bids.auctionId, req.params.id)).orderBy(desc5(bids.amount));
-      const [listing] = await db.select().from(listings).where(eq7(listings.id, auction.listingId)).limit(1);
+      const [hamIlan] = await db.select().from(listings).where(eq7(listings.id, auction.listingId)).limit(1);
+      const listing = hamIlan && hamIlan.status === "active" ? ilanGizliAlanlariAyikla(hamIlan, false) : null;
       res.json({
         ...auction,
         bids: auctionBids,
@@ -8018,11 +8020,14 @@ async function registerRoutes(app2, existingServer) {
       const [streamer] = await db.select().from(users).where(eq7(users.id, stream.streamerId)).limit(1);
       let listing = null;
       if (stream.listingId) {
-        [listing] = await db.select().from(listings).where(eq7(listings.id, stream.listingId)).limit(1);
+        const [ham] = await db.select().from(listings).where(eq7(listings.id, stream.listingId)).limit(1);
+        if (ham && ham.status === "active") {
+          listing = ilanGizliAlanlariAyikla(ham, false);
+        }
       }
       res.json({
         ...stream,
-        streamer,
+        streamer: publicUserFields(streamer),
         listing
       });
     } catch (error) {
@@ -10033,7 +10038,7 @@ async function registerRoutes(app2, existingServer) {
   app2.get("/api/listings/:id/compare", async (req, res) => {
     try {
       const [listing] = await db.select().from(listings).where(eq7(listings.id, req.params.id)).limit(1);
-      if (!listing) {
+      if (!listing || listing.status !== "active") {
         return res.status(404).json({ message: "Listing not found" });
       }
       const similarListings = await db.select({

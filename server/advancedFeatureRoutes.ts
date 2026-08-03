@@ -495,7 +495,7 @@ export function registerB2BRoutes(app: Express) {
         FROM b2b_listings l
         INNER JOIN users u ON l.seller_id = u.id
         LEFT JOIN stores s ON l.store_id = s.id
-        WHERE l.id = ${id}
+        WHERE l.id = ${id} AND l.status = 'active'
       `);
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Ürün bulunamadı" });
@@ -715,7 +715,7 @@ export function registerWholesaleRoutes(app: Express) {
         FROM wholesale_products p
         INNER JOIN users u ON p.seller_id = u.id
         LEFT JOIN stores s ON p.store_id = s.id
-        WHERE p.id = ${id}
+        WHERE p.id = ${id} AND p.status = 'active'
       `);
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Ürün bulunamadı" });
@@ -905,7 +905,9 @@ export function registerFarmTVRoutes(app: Express) {
           END,
           s.scheduled_at ASC
       `);
-      res.json(result.rows);
+      // stream_key = RTMP özel yayın anahtarı; herkese açık uçta ASLA
+      // dönmemeli (yalnız yayın sahibine, oluşturma yanıtında verilir).
+      res.json(result.rows.map(({ stream_key, ...r }: any) => r));
     } catch (error) {
       console.error("Error fetching streams:", error);
       res.status(500).json({ message: "Yayınlar getirilemedi" });
@@ -929,7 +931,9 @@ export function registerFarmTVRoutes(app: Express) {
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Yayın bulunamadı" });
       }
-      res.json(result.rows[0]);
+      // stream_key (RTMP özel anahtarı) herkese açık uçtan çıkarılır.
+      const { stream_key, ...yayin } = result.rows[0] as any;
+      res.json(yayin);
     } catch (error) {
       console.error("Error fetching stream:", error);
       res.status(500).json({ message: "Yayın getirilemedi" });
