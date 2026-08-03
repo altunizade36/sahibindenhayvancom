@@ -1117,19 +1117,45 @@ export default function ListingDetail() {
               currentPrice={(listing?.price as string) || "0"} 
             />
 
-            {/* Safety Tips */}
-            <Card className="bg-muted/30">
+            {/* Güvenli Alışveriş — dolandırıcılığa karşı uyarı */}
+            <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-primary" />
-                  Güvenlik İpuçları
+                <CardTitle className="text-base flex items-center gap-2 text-amber-900 dark:text-amber-200">
+                  <ShieldAlert className="w-4 h-4" />
+                  Güvenli Alışveriş
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 pt-2 text-xs md:text-sm text-muted-foreground space-y-1.5">
-                <p>• Alışverişinizi güvenli bir yerde yapın</p>
-                <p>• Ödeme yapmadan önce hayvanı görün</p>
-                <p>• Sağlık belgelerini kontrol edin</p>
-                <p>• Şüpheli durumları bildirin</p>
+              <CardContent className="p-4 pt-2 text-xs md:text-sm text-amber-900/90 dark:text-amber-100/90 space-y-2">
+                <p className="flex gap-2">
+                  <span aria-hidden>⚠️</span>
+                  <span><strong>Hayvanı görmeden, elden teslim almadan ödeme yapmayın.</strong></span>
+                </p>
+                <p className="flex gap-2">
+                  <span aria-hidden>•</span>
+                  <span><strong>Kapora/kaparo</strong> adı altında para isteyenlere <strong>itibar etmeyin.</strong> En sık görülen dolandırıcılık budur.</span>
+                </p>
+                <p className="flex gap-2">
+                  <span aria-hidden>•</span>
+                  <span>"Kargoyla gönderirim, önce parayı yatır" diyen satıcılara dikkat edin.</span>
+                </p>
+                <p className="flex gap-2">
+                  <span aria-hidden>•</span>
+                  <span>Sizi WhatsApp'a/havaleye yönlendirip site dışına çekmeye çalışanlara güvenmeyin.</span>
+                </p>
+                <p className="flex gap-2">
+                  <span aria-hidden>•</span>
+                  <span>Aşı ve sağlık belgelerini teslim anında isteyin.</span>
+                </p>
+                {isAuthenticated && listing.sellerId !== user?.id && (
+                  <button
+                    type="button"
+                    onClick={() => setReportDialogOpen(true)}
+                    className="pt-1 font-medium underline underline-offset-2 hover:opacity-80"
+                    data-testid="button-report-from-safety"
+                  >
+                    Şüpheli bir durum mu var? Bu ilanı bildirin
+                  </button>
+                )}
               </CardContent>
             </Card>
           </div>

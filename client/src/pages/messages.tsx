@@ -59,6 +59,7 @@ import {
   Trash2,
   Copy,
   CornerUpLeft,
+  ShieldAlert,
 } from "lucide-react";
 import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -1401,6 +1402,16 @@ export default function Messages() {
           )}
 
           <ScrollArea className="flex-1 p-4">
+            {/* Dolandırıcılık genelde mesajlaşmada başlar (satıcı alıcıyı site
+                dışına / kaporaya çeker). Konuşmanın başında kalıcı uyarı. */}
+            <div className="mb-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+              <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                Güvenliğiniz için: hayvanı <strong>görmeden ödeme yapmayın</strong>,
+                <strong> kapora göndermeyin</strong>. Sizi site dışına yönlendiren
+                veya önden ödeme isteyen kişilere dikkat edin.
+              </span>
+            </div>
             {isLoadingMessages ? (
               <div className="space-y-3">
                 {Array.from({ length: 6 }).map((_, i) => (
