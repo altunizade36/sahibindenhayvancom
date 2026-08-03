@@ -95,6 +95,14 @@ export default function ListingDetail() {
     enabled: !!id,
   });
 
+  // Satıcının diğer aktif ilanları (bu ilan hariç). Herkese açık uç yalnız
+  // yayındaki ilanları döndürüyor.
+  const { data: sellerListingsRaw = [] } = useQuery<Listing[]>({
+    queryKey: [`/api/users/${listing?.sellerId}/listings`],
+    enabled: !!listing?.sellerId && !listing?.isExampleListing,
+  });
+  const sellerOtherListings = sellerListingsRaw.filter((l) => l.id !== id).slice(0, 4);
+
   const isFavorited = favorites?.some((fav) => fav.listingId === id);
 
   // Track listing view for recently viewed feature
@@ -1166,6 +1174,29 @@ export default function ListingDetail() {
             </Card>
           </div>
         </div>
+
+        {/* Satıcının diğer ilanları — güven sinyali + site içi gezinme */}
+        {sellerOtherListings.length > 0 && (
+          <div className="mt-8 md:mt-12">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-lg md:text-2xl font-bold">Satıcının Diğer İlanları</h2>
+              {listing?.sellerId && (
+                <Link
+                  href={`/ilanlar?sellerId=${listing.sellerId}`}
+                  className="text-sm text-primary hover:underline font-medium"
+                  data-testid="link-all-seller-listings"
+                >
+                  Tümünü gör
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {sellerOtherListings.map((sellerListing) => (
+                <ListingCard key={sellerListing.id} listing={sellerListing} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Similar Listings */}
         {similarListings.length > 0 && (

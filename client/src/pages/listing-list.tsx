@@ -127,6 +127,7 @@ export default function ListingList() {
     limit: viewMode === "list" ? 10 : 20,
     search: activeSearch || undefined,
     categoryId: urlCategoryId || undefined,
+    sellerId: searchParams.get("sellerId") || undefined,
     ...filters
   };
 

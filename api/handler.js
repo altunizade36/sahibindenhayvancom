@@ -5872,6 +5872,21 @@ function publicUserFields(user) {
     createdAt: u.createdAt ?? null
   };
 }
+var ILAN_GIZLI_ALANLARI = [
+  "microchipNumber",
+  "passportNumber",
+  "earTagNumber",
+  "turkvetNumber",
+  "moderationReason",
+  "moderatedBy",
+  "moderatedAt"
+];
+function ilanGizliAlanlariAyikla(listing, sahibiMi) {
+  if (sahibiMi || !listing) return listing;
+  const kopya = { ...listing };
+  for (const alan of ILAN_GIZLI_ALANLARI) delete kopya[alan];
+  return kopya;
+}
 var SATICI_ILAN_ALANLARI = [
   "categoryId",
   "title",
@@ -7277,7 +7292,9 @@ async function registerRoutes(app2, existingServer) {
         characterTraits,
         // Sorting
         sortBy,
-        sortOrder
+        sortOrder,
+        // Belirli bir satıcının ilanları
+        sellerId
       } = req.query;
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
       const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
@@ -7319,7 +7336,11 @@ async function registerRoutes(app2, existingServer) {
       if (district) {
         conditions.push(eq7(listings.district, district));
       }
-      if (status) {
+      if (sellerId) {
+        conditions.push(eq7(listings.sellerId, sellerId));
+      }
+      const GORUNUR_ILAN_DURUMLARI = ["active", "sold"];
+      if (status && GORUNUR_ILAN_DURUMLARI.includes(status)) {
         conditions.push(eq7(listings.status, status));
       } else {
         conditions.push(eq7(listings.status, "active"));
@@ -7537,8 +7558,11 @@ async function registerRoutes(app2, existingServer) {
         city: seller.city ?? null,
         createdAt: seller.createdAt
       } : null;
+      const izleyiciId = req.user ? getUserId3(req.user) : null;
+      const sahibiMi = izleyiciId === listing.sellerId || req.user?.role === "admin";
+      const gorunurListing = ilanGizliAlanlariAyikla(listing, sahibiMi);
       res.json({
-        ...listing,
+        ...gorunurListing,
         views: (listing.views || 0) + 1,
         // Return incremented view count
         seller: sanitizedSeller,
@@ -7858,8 +7882,8 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.get("/api/users/:id/listings", async (req, res) => {
     try {
-      const userListings = await db.select().from(listings).where(eq7(listings.sellerId, req.params.id)).orderBy(desc5(listings.createdAt));
-      res.json(userListings);
+      const userListings = await db.select().from(listings).where(and6(eq7(listings.sellerId, req.params.id), eq7(listings.status, "active"))).orderBy(desc5(listings.createdAt));
+      res.json(userListings.map((l) => ilanGizliAlanlariAyikla(l, false)));
     } catch (error) {
       console.error("Error fetching user listings:", error);
       res.status(500).json({ message: "Failed to fetch user listings" });

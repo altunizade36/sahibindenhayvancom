@@ -422,6 +422,32 @@ function publicUserFields<T extends Record<string, any> | undefined | null>(user
 }
 
 /**
+ * Bir ilan kaydından, SAHİBİ DIŞINDAKİLERE gösterilmemesi gereken alanlar.
+ *
+ * - microchip/passport/earTag/turkvet: hayvanın resmi kimlik numaraları.
+ *   Herkese açık olursa kimlik/kayıt sahtekârlığına ve gizlilik ihlaline
+ *   yol açar; belge özelliği kaldırıldığı için zaten dolu değiller ama
+ *   alan olarak sızmaları da gerekmez.
+ * - moderationReason: iç moderasyon notu (ilan neden reddedildi). Yalnızca
+ *   sahibi ve yöneticiler görmeli.
+ *
+ * Herkese açık ilan dönen uçlar bu alanları sahibi/yönetici değilse
+ * çıkarmalı. `/api/listings/:id` ve `/api/users/:id/listings` bunları ham
+ * `select()` ile herkese açık döndürüyordu (canlıda doğrulandı).
+ */
+const ILAN_GIZLI_ALANLARI = [
+  "microchipNumber", "passportNumber", "earTagNumber", "turkvetNumber",
+  "moderationReason", "moderatedBy", "moderatedAt",
+] as const;
+
+function ilanGizliAlanlariAyikla<T extends Record<string, any>>(listing: T, sahibiMi: boolean): T {
+  if (sahibiMi || !listing) return listing;
+  const kopya: Record<string, any> = { ...listing };
+  for (const alan of ILAN_GIZLI_ALANLARI) delete kopya[alan];
+  return kopya as T;
+}
+
+/**
  * Bir satıcının ilan oluştururken/düzenlerken belirleyebileceği alanlar.
  *
  * Beyaz liste; kütle atamayı engeller. Burada OLMAYAN her şey (status,
@@ -2625,8 +2651,10 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         // Sorting
         sortBy,
         sortOrder,
+        // Belirli bir satıcının ilanları
+        sellerId,
       } = req.query;
-      
+
       const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
       const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10) || 50)); // Max 100
       const offset = (pageNum - 1) * limitNum;
@@ -2685,13 +2713,27 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
         conditions.push(eq(listings.district, district as string));
       }
       
-      if (status) {
+      // Satıcı filtresi. Bu parametre destructure edilmiyordu, yani
+      // `?sellerId=X` sessizce yok sayılıp TÜM ilanlar dönüyordu (profil
+      // sayfasındaki "satıcının ilanları" da bu yüzden aslında hepsini
+      // gösteriyordu). Herkese açık liste status varsayılanı 'active' olduğu
+      // için başkasının draft/pending ilanı yine sızmaz.
+      if (sellerId) {
+        conditions.push(eq(listings.sellerId, sellerId as string));
+      }
+
+      // Herkese açık listede status yalnız GÖRÜNÜR durumlarla sınırlı.
+      // Önceden `?status=pending` (veya draft/rejected) doğrudan geçiyordu —
+      // onay bekleyen/reddedilen ilanlar herkese görünüyordu (canlıda pending
+      // sızdığı doğrulandı). Yönetim kendi ucunu (`/api/admin/listings`)
+      // kullanır. Beyaz listede olmayan bir değer 'active'e düşer.
+      const GORUNUR_ILAN_DURUMLARI = ['active', 'sold'];
+      if (status && GORUNUR_ILAN_DURUMLARI.includes(status as string)) {
         conditions.push(eq(listings.status, status as any));
       } else {
-        // Default: only show active listings
         conditions.push(eq(listings.status, 'active'));
       }
-      
+
       if (minPrice) {
         const minPriceNum = parseFloat(minPrice as string);
         if (!isNaN(minPriceNum)) {
@@ -3081,8 +3123,15 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
           }
         : null;
 
+      // Hassas alanları (mikroçip/pasaport/turkvet no, moderasyon notu) yalnız
+      // sahibi ve yöneticiler görebilir. Herkese açık uçtu, ham select ile
+      // hepsini döndürüyordu.
+      const izleyiciId = req.user ? getUserId(req.user) : null;
+      const sahibiMi = izleyiciId === listing.sellerId || (req.user as any)?.role === "admin";
+      const gorunurListing = ilanGizliAlanlariAyikla(listing, sahibiMi);
+
       res.json({
-        ...listing,
+        ...gorunurListing,
         views: (listing.views || 0) + 1, // Return incremented view count
         seller: sanitizedSeller,
         category: categoryInfo,
@@ -3611,13 +3660,18 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
   app.get("/api/users/:id/listings", async (req: Request, res: Response) => {
     try {
+      // Herkese açık uç: yalnız YAYINDAKİ (active) ilanlar dönmeli. Eskiden
+      // status filtresi yoktu — bir satıcının draft/pending/rejected ilanları
+      // da herkese görünüyordu. Hassas alanlar da (mikroçip/pasaport/turkvet no,
+      // moderasyon notu) çıkarılır; bu uçta izleyici asla ilan sahibi
+      // sayılmaz (kendi ilanlarını panelden yönetir).
       const userListings = await db
         .select()
         .from(listings)
-        .where(eq(listings.sellerId, req.params.id))
+        .where(and(eq(listings.sellerId, req.params.id), eq(listings.status, "active")))
         .orderBy(desc(listings.createdAt));
-        
-      res.json(userListings);
+
+      res.json(userListings.map((l) => ilanGizliAlanlariAyikla(l, false)));
     } catch (error) {
       console.error("Error fetching user listings:", error);
       res.status(500).json({ message: "Failed to fetch user listings" });
