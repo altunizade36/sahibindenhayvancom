@@ -5836,6 +5836,16 @@ var pinAttemptLimiter = async (req, res, next) => {
   }
   next();
 };
+async function eylemHiziAsildi(tablo, kullaniciSutunu, zamanSutunu, userId, esik, windowMs) {
+  try {
+    const pencereBasi = new Date(Date.now() - windowMs);
+    const [row] = await db.select({ n: count() }).from(tablo).where(and6(eq7(kullaniciSutunu, userId), gte2(zamanSutunu, pencereBasi)));
+    return Number(row?.n ?? 0) >= esik;
+  } catch (e) {
+    console.error("eylemHiziAsildi hatas\u0131:", e);
+    return false;
+  }
+}
 function sanitizeUser(user) {
   if (!user) return user;
   const {
@@ -8492,6 +8502,9 @@ async function registerRoutes(app2, existingServer) {
       if (content.length > 5e3) {
         return res.status(400).json({ message: "Mesaj en fazla 5000 karakter olabilir" });
       }
+      if (await eylemHiziAsildi(messages, messages.senderId, messages.createdAt, senderId, 20, 60 * 1e3)) {
+        return res.status(429).json({ message: "\xC7ok h\u0131zl\u0131 mesaj g\xF6nderiyorsunuz. L\xFCtfen biraz bekleyin." });
+      }
       if (listingId) {
         const [listing] = await db.select({ isExampleListing: listings.isExampleListing }).from(listings).where(eq7(listings.id, listingId)).limit(1);
         if (listing?.isExampleListing) {
@@ -8812,9 +8825,13 @@ async function registerRoutes(app2, existingServer) {
   });
   app2.post("/api/reviews", isAuthenticated, async (req, res) => {
     try {
+      const reviewerId = getUserId3(req.user);
+      if (await eylemHiziAsildi(reviews, reviews.reviewerId, reviews.createdAt, reviewerId, 10, 60 * 60 * 1e3)) {
+        return res.status(429).json({ message: "\xC7ok fazla de\u011Ferlendirme g\xF6nderdiniz. L\xFCtfen biraz bekleyin." });
+      }
       const data = insertReviewSchema.parse({
         ...req.body,
-        reviewerId: getUserId3(req.user)
+        reviewerId
       });
       const [review] = await db.insert(reviews).values(data).returning();
       res.status(201).json(review);
@@ -9823,6 +9840,9 @@ async function registerRoutes(app2, existingServer) {
       }
       if (message && String(message).length > 1e3) {
         return res.status(400).json({ message: "Teklif mesaj\u0131 en fazla 1000 karakter olabilir" });
+      }
+      if (await eylemHiziAsildi(offers, offers.buyerId, offers.createdAt, userId, 30, 60 * 60 * 1e3)) {
+        return res.status(429).json({ message: "\xC7ok fazla teklif verdiniz. L\xFCtfen biraz bekleyin." });
       }
       const [listing] = await db.select().from(listings).where(eq7(listings.id, listingId)).limit(1);
       if (!listing) {

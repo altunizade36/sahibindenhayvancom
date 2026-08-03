@@ -320,6 +320,41 @@ const pinAttemptLimiter = async (req: Request, res: Response, next: Function) =>
   next();
 };
 
+/**
+ * Kullanıcı başına, VERİTABANI tabanlı eylem hız sınırı.
+ *
+ * IP tabanlı `rateLimit`/`checkRedisRateLimit` bu proje için iki nedenle
+ * yetersiz: (1) TR mobil operatörleri CGNAT kullanıyor — binlerce abone tek IP,
+ * masumlar 429 alır; (2) Vercel'de Redis yok, süreç-içi sayaç her serverless
+ * örneğinde ayrı olduğu için birikmiyor. Bu yardımcı, hesap kilidiyle aynı
+ * güvenilir deseni kullanır: ilgili tablodan son `windowMs` içindeki kaydı
+ * sayar. Giriş yapmış kullanıcıya bağlı olduğu için CGNAT'tan etkilenmez.
+ *
+ * `true` dönerse istek SINIRI AŞMIŞTIR (reddedilmeli).
+ */
+async function eylemHiziAsildi(
+  tablo: any,
+  kullaniciSutunu: any,
+  zamanSutunu: any,
+  userId: string,
+  esik: number,
+  windowMs: number,
+): Promise<boolean> {
+  try {
+    const pencereBasi = new Date(Date.now() - windowMs);
+    const [row] = await db
+      .select({ n: count() })
+      .from(tablo)
+      .where(and(eq(kullaniciSutunu, userId), gte(zamanSutunu, pencereBasi)));
+    return Number(row?.n ?? 0) >= esik;
+  } catch (e) {
+    // Sayım başarısız olursa isteği ENGELLEME (fail-open) — meşru kullanıcı
+    // geçici bir DB sorunu yüzünden kilitlenmemeli.
+    console.error("eylemHiziAsildi hatası:", e);
+    return false;
+  }
+}
+
 // Extended user type for authenticated requests (combines session user with DB user)
 interface AuthenticatedUser {
   id: string;
@@ -4597,6 +4632,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
       if (content.length > 5000) {
         return res.status(400).json({ message: "Mesaj en fazla 5000 karakter olabilir" });
       }
+
+      // Taciz/spam koruması: dakikada en fazla 20 mesaj. Normal bir yazışma
+      // bunu aşmaz; aşan biri karşı tarafı mesaja boğuyordur.
+      if (await eylemHiziAsildi(messages, messages.senderId, messages.createdAt, senderId, 20, 60 * 1000)) {
+        return res.status(429).json({ message: "Çok hızlı mesaj gönderiyorsunuz. Lütfen biraz bekleyin." });
+      }
       
       // Check if this is an example listing - prevent messaging
       if (listingId) {
@@ -5114,9 +5155,16 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
   // ============ Review Routes ============
   app.post("/api/reviews", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const reviewerId = getUserId(req.user);
+
+      // Spam yorum koruması: saatte en fazla 10 yorum.
+      if (await eylemHiziAsildi(reviews, reviews.reviewerId, reviews.createdAt, reviewerId, 10, 60 * 60 * 1000)) {
+        return res.status(429).json({ message: "Çok fazla değerlendirme gönderdiniz. Lütfen biraz bekleyin." });
+      }
+
       const data = insertReviewSchema.parse({
         ...req.body,
-        reviewerId: getUserId(req.user),
+        reviewerId,
       });
 
       // Create review in PostgreSQL
@@ -6687,6 +6735,12 @@ export async function registerRoutes(app: Express, existingServer?: Server): Pro
 
       if (message && String(message).length > 1000) {
         return res.status(400).json({ message: "Teklif mesajı en fazla 1000 karakter olabilir" });
+      }
+
+      // Spam teklif koruması: saatte en fazla 30 teklif. Aynı ilana mükerrer
+      // bekleyen teklif zaten engelli; bu, farklı ilanlara toplu spam'i durdurur.
+      if (await eylemHiziAsildi(offers, offers.buyerId, offers.createdAt, userId, 30, 60 * 60 * 1000)) {
+        return res.status(429).json({ message: "Çok fazla teklif verdiniz. Lütfen biraz bekleyin." });
       }
 
       // Get listing details
