@@ -29,7 +29,8 @@
     "make-admin": "node scripts/make-admin.mjs",
     "setup:search": "node scripts/setup-search.mjs",
     "setup:indexes": "node scripts/setup-indexes.mjs",
-    "setup:dogrulama": "node scripts/setup-meslek-dogrulama.mjs"
+    "setup:dogrulama": "node scripts/setup-meslek-dogrulama.mjs",
+    "seed:examples": "tsx server/seed-example-listings.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

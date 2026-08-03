@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import { eq, and, like, sql } from "drizzle-orm";
 import { db } from "./db";
 import { users, listings, categories } from "../shared/schema";
@@ -23,7 +24,10 @@ async function seedExampleListings() {
   let sellerId: string;
   
   if (existingUser.length === 0) {
-    const hashedPassword = await bcrypt.hash("ornek123", 10);
+    // Örnek satıcı gerçek girişe kapalı: rastgele, kimsenin bilmediği şifre.
+    // Örnek ilanların "sahibi" olması için hesap gerekli ama bu hesapla
+    // oturum açılması istenmiyor (bilinen 'ornek123' şifresi güvenlik zaafıydı).
+    const hashedPassword = await bcrypt.hash(randomUUID() + randomUUID(), 10);
     const [newUser] = await db.insert(users).values({
       username: "ornek_satici",
       email: "ornek@sahibindenhayvan.com",
@@ -156,7 +160,10 @@ async function seedExampleListings() {
       isExampleListing: true,
       exampleSource: example.exampleSource || "Piyasa Araştırması 2024",
       views: Math.floor(Math.random() * 500) + 50,
-      images: [] as string[],
+      // Görseller client/public/ornek-gorseller/ altında statik servis edilir
+      // (Vite bunları dist/public'e, Vercel de CDN'e taşır). Böylece örnek
+      // ilanlar Supabase Storage'a bağımlı olmadan görselli görünür.
+      images: example.imageFile ? [`/ornek-gorseller/${example.imageFile}`] : ([] as string[]),
     };
   });
 
@@ -185,4 +192,9 @@ async function seedExampleListings() {
   `);
 }
 
-seedExampleListings().catch(console.error);
+seedExampleListings()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
