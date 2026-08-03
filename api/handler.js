@@ -4899,6 +4899,13 @@ function registerTransportRoutes(app2) {
       const userId = getUserId2(req.user);
       if (!userId) return res.status(401).json({ message: "Giri\u015F yapmal\u0131s\u0131n\u0131z" });
       const { id } = req.params;
+      const talep = await db.execute(sql5`SELECT user_id FROM transport_requests WHERE id = ${id} LIMIT 1`);
+      if (talep.rows.length === 0) {
+        return res.status(404).json({ message: "Talep bulunamad\u0131" });
+      }
+      if (talep.rows[0].user_id !== userId) {
+        return res.status(403).json({ message: "Bu talebin tekliflerini g\xF6rme yetkiniz yok" });
+      }
       const result = await db.execute(sql5`
         SELECT q.*,
                u.first_name, u.last_name, u.profile_image_url,
@@ -4920,17 +4927,25 @@ function registerTransportRoutes(app2) {
       const userId = getUserId2(req.user);
       if (!userId) return res.status(401).json({ message: "Giri\u015F yapmal\u0131s\u0131n\u0131z" });
       const { id } = req.params;
-      const quoteResult = await db.execute(sql5`
-        UPDATE transport_quotes SET is_accepted = true WHERE id = ${id} RETURNING request_id
+      const sahiplik = await db.execute(sql5`
+        SELECT tq.request_id, tr.user_id AS talep_sahibi
+        FROM transport_quotes tq
+        INNER JOIN transport_requests tr ON tr.id = tq.request_id
+        WHERE tq.id = ${id}
+        LIMIT 1
       `);
-      if (quoteResult.rows.length === 0) {
+      if (sahiplik.rows.length === 0) {
         return res.status(404).json({ message: "Teklif bulunamad\u0131" });
       }
-      const requestId = quoteResult.rows[0].request_id;
+      const { request_id: requestId, talep_sahibi } = sahiplik.rows[0];
+      if (talep_sahibi !== userId) {
+        return res.status(403).json({ message: "Bu teklifi kabul etme yetkiniz yok" });
+      }
+      await db.execute(sql5`UPDATE transport_quotes SET is_accepted = true WHERE id = ${id}`);
       const result = await db.execute(sql5`
         UPDATE transport_requests
         SET status = 'accepted', accepted_quote_id = ${id}, updated_at = NOW()
-        WHERE id = ${requestId} AND user_id = ${userId}
+        WHERE id = ${requestId}
         RETURNING *
       `);
       res.json(result.rows[0]);

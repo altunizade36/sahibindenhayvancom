@@ -402,6 +402,18 @@ export function registerTransportRoutes(app: Express) {
 
       const { id } = req.params;
 
+      // Sahiplik: bir talebe gelen teklifleri (rakip fiyatlar + nakliyeci
+      // kimliği) yalnız TALEBİN SAHİBİ görebilir. Önceden userId alınıp hiç
+      // kullanılmıyordu; herhangi bir kullanıcı request id deneyerek
+      // başkasının aldığı teklifleri görebiliyordu (rekabet bilgisi sızıntısı).
+      const talep = await db.execute(sql`SELECT user_id FROM transport_requests WHERE id = ${id} LIMIT 1`);
+      if (talep.rows.length === 0) {
+        return res.status(404).json({ message: "Talep bulunamadı" });
+      }
+      if ((talep.rows[0] as any).user_id !== userId) {
+        return res.status(403).json({ message: "Bu talebin tekliflerini görme yetkiniz yok" });
+      }
+
       const result = await db.execute(sql`
         SELECT q.*,
                u.first_name, u.last_name, u.profile_image_url,
@@ -427,20 +439,33 @@ export function registerTransportRoutes(app: Express) {
 
       const { id } = req.params;
 
-      // Get the quote and update request status
-      const quoteResult = await db.execute(sql`
-        UPDATE transport_quotes SET is_accepted = true WHERE id = ${id} RETURNING request_id
+      // Sahiplik ÖNCE doğrulanır. Önceki sürüm teklifi KOŞULSUZ
+      // `is_accepted=true` yapıyor, sahiplik kontrolünü ise SONRAKİ farklı
+      // tablo (transport_requests) güncellemesinde yapıyordu — yani sahibi
+      // olmayan biri, quote id'sini vererek herhangi bir nakliyecinin teklifini
+      // "kabul edildi" olarak işaretleyebiliyordu (talep güncellenmese bile
+      // teklif kalıcı bozuluyordu).
+      const sahiplik = await db.execute(sql`
+        SELECT tq.request_id, tr.user_id AS talep_sahibi
+        FROM transport_quotes tq
+        INNER JOIN transport_requests tr ON tr.id = tq.request_id
+        WHERE tq.id = ${id}
+        LIMIT 1
       `);
-      if (quoteResult.rows.length === 0) {
+      if (sahiplik.rows.length === 0) {
         return res.status(404).json({ message: "Teklif bulunamadı" });
       }
+      const { request_id: requestId, talep_sahibi } = sahiplik.rows[0] as any;
+      if (talep_sahibi !== userId) {
+        return res.status(403).json({ message: "Bu teklifi kabul etme yetkiniz yok" });
+      }
 
-      const requestId = (quoteResult.rows[0] as any).request_id;
-
+      // Sahiplik doğrulandı: teklifi kabul et + talebi güncelle.
+      await db.execute(sql`UPDATE transport_quotes SET is_accepted = true WHERE id = ${id}`);
       const result = await db.execute(sql`
         UPDATE transport_requests
         SET status = 'accepted', accepted_quote_id = ${id}, updated_at = NOW()
-        WHERE id = ${requestId} AND user_id = ${userId}
+        WHERE id = ${requestId}
         RETURNING *
       `);
       res.json(result.rows[0]);
