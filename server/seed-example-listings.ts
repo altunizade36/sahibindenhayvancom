@@ -1,3 +1,4 @@
+import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
 import { eq, and, like, sql } from "drizzle-orm";

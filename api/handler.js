@@ -3416,6 +3416,7 @@ function etiketleriYerlestir(kabuk, meta) {
   for (const desen of silinecek) html = html.replace(desen, "");
   const yeni = [
     `<title>${kacisla(meta.title)}</title>`,
+    ...meta.noindex ? [`<meta name="robots" content="noindex, follow" />`] : [],
     `<meta name="description" content="${kacisla(meta.description)}" />`,
     `<link rel="canonical" href="${kacisla(meta.canonical)}" />`,
     `<meta property="og:type" content="${meta.type || "website"}" />`,
@@ -3443,9 +3444,11 @@ async function ilanMetasi(id) {
     images: listings.images,
     city: listings.city,
     district: listings.district,
-    status: listings.status
+    status: listings.status,
+    isExampleListing: listings.isExampleListing
   }).from(listings).where(eq4(listings.id, id)).limit(1);
   if (!ilan || ilan.status !== "active") return null;
+  const ornekMi = !!ilan.isExampleListing;
   const gorsel = tamAdres(imageVariant(ilan.images?.[0], "medium"));
   const konum = [ilan.city, ilan.district].filter(Boolean).join(", ");
   const canonical = `${SITE2}/ilan/${ilan.id}`;
@@ -3455,7 +3458,8 @@ async function ilanMetasi(id) {
     image: gorsel,
     canonical,
     type: "product",
-    structuredData: {
+    noindex: ornekMi,
+    structuredData: ornekMi ? void 0 : {
       "@context": "https://schema.org",
       "@type": "Product",
       name: ilan.title,

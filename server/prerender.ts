@@ -77,6 +77,9 @@ interface SayfaMeta {
   canonical: string;
   type?: "website" | "article" | "product";
   structuredData?: Record<string, unknown>;
+  // true ise sayfaya robots noindex eklenir — örnek/vitrin içeriği arama
+  // motorlarına gerçek ürün gibi sunulmaz.
+  noindex?: boolean;
 }
 
 // ── Uygulama kabuğu ─────────────────────────────────────────────────────────
@@ -155,6 +158,7 @@ function etiketleriYerlestir(kabuk: string, meta: SayfaMeta): string {
 
   const yeni = [
     `<title>${kacisla(meta.title)}</title>`,
+    ...(meta.noindex ? [`<meta name="robots" content="noindex, follow" />`] : []),
     `<meta name="description" content="${kacisla(meta.description)}" />`,
     `<link rel="canonical" href="${kacisla(meta.canonical)}" />`,
     `<meta property="og:type" content="${meta.type || "website"}" />`,
@@ -189,6 +193,7 @@ async function ilanMetasi(id: string): Promise<SayfaMeta | null> {
       city: listings.city,
       district: listings.district,
       status: listings.status,
+      isExampleListing: listings.isExampleListing,
     })
     .from(listings)
     .where(eq(listings.id, id))
@@ -197,6 +202,11 @@ async function ilanMetasi(id: string): Promise<SayfaMeta | null> {
   // Yayında olmayan ilan için özel etiket üretilmez: taslak/reddedilmiş bir
   // ilanın başlığını arama motoruna ve önizlemelere sunmak doğru olmaz.
   if (!ilan || ilan.status !== "active") return null;
+
+  // Örnek/vitrin ilanı: siteyi dolu göstermek için var, GERÇEK ürün değil.
+  // Paylaşım önizlemesi (OG) çalışsın diye meta üretilir ama arama motoruna
+  // gerçek ürün gibi sunulmaz — noindex + Product structured data YOK.
+  const ornekMi = !!ilan.isExampleListing;
 
   // Paylasim onizlemesi icin ORTA boyut (1200px): listings.images alaninda
   // kucuk boyut (400x400) saklaniyor ve WhatsApp/Facebook onizlemesinde
@@ -211,20 +221,23 @@ async function ilanMetasi(id: string): Promise<SayfaMeta | null> {
     image: gorsel,
     canonical,
     type: "product",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: ilan.title,
-      description: ozet(ilan.description, 300),
-      image: gorsel,
-      offers: {
-        "@type": "Offer",
-        price: ilan.price,
-        priceCurrency: "TRY",
-        availability: "https://schema.org/InStock",
-        url: canonical,
-      },
-    },
+    noindex: ornekMi,
+    structuredData: ornekMi
+      ? undefined
+      : {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: ilan.title,
+          description: ozet(ilan.description, 300),
+          image: gorsel,
+          offers: {
+            "@type": "Offer",
+            price: ilan.price,
+            priceCurrency: "TRY",
+            availability: "https://schema.org/InStock",
+            url: canonical,
+          },
+        },
   };
 }
 
