@@ -201,6 +201,16 @@ export default function ListingDetail() {
   };
 
   const handleMessageSeller = () => {
+    // Örnek ilan: buton görünür (ziyaretçi platformun mesajlaşma özelliğini
+    // görsün) ama gerçek mesaj gönderilmez — örnek ilanın gerçek sahibi yok.
+    if (listing?.isExampleListing) {
+      toast({
+        title: "Bu bir örnek ilan",
+        description:
+          "Örnek ilanlar platformu tanıtmak için eklendi. Gerçek bir ilanda alıcılar satıcıya buradan anında mesaj gönderebilir.",
+      });
+      return;
+    }
     if (!isAuthenticated) {
       toast({
         title: "Giriş Gerekli",
@@ -522,13 +532,15 @@ export default function ListingDetail() {
                     ÖRNEK İLANDIR
                   </Badge>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
-                    Bu bir örnek ilandır. Gerçek satıcıyla iletişim kurulamaz.
+                    Platformu tanıtmak için eklendi. Gerçek ilanlarda satıcıya mesaj gönderebilir,
+                    teklif verebilir ve favorilerinize ekleyebilirsiniz.
                   </p>
                 </div>
               )}
-              
-              {/* Primary Message Button - Full Width - Hidden for example listings */}
-              {listing.sellerId !== user?.id && !listing.isExampleListing && (
+
+              {/* Mesaj butonu — örnek ilanda da görünür (özellik tanıtımı);
+                  tıklanınca handleMessageSeller örnek ilanı bilgilendirir. */}
+              {listing.sellerId !== user?.id && (
                 <Button
                   size="lg"
                   className="w-full h-14 text-base font-semibold shadow-lg"
@@ -888,25 +900,33 @@ export default function ListingDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Example Listing Warning (Desktop) */}
+            {/* Example Listing Warning (Desktop) — mesaj butonu görünür ki
+                ziyaretçi platformun özelliğini görsün; tıklanınca bilgilendirir. */}
             {listing.isExampleListing && (
               <Card className="border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30">
-                <CardContent className="p-4 text-center">
+                <CardContent className="p-4 text-center space-y-3">
                   <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border-yellow-400 text-sm px-4 py-1">
                     ÖRNEK İLANDIR
                   </Badge>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-3">
-                    Bu bir örnek ilandır ve gerçek bir satışı temsil etmemektedir. Satıcıyla iletişim kurulamaz.
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Platformu tanıtmak için eklendi. Gerçek ilanlarda satıcıya mesaj gönderebilir,
+                    teklif verebilir ve favorilerinize ekleyebilirsiniz.
                   </p>
                   {listing.exampleSource && (
-                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
                       Kaynak: {listing.exampleSource}
                     </p>
+                  )}
+                  {listing.sellerId !== user?.id && (
+                    <Button className="w-full" onClick={handleMessageSeller} data-testid="button-message-seller-example">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Satıcıya Mesaj Gönder
+                    </Button>
                   )}
                 </CardContent>
               </Card>
             )}
-            
+
             {/* Primary Contact CTA - Big prominent message button or Guest Contact Form */}
             {listing.sellerId !== user?.id && !listing.isExampleListing && (
               <>
